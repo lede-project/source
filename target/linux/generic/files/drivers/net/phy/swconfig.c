@@ -139,6 +139,30 @@ swconfig_set_link(struct switch_dev *dev, const struct switch_attr *attr,
 }
 
 static int
+swconfig_set_reg(struct switch_dev *dev, const struct switch_attr *attr, struct switch_val *val)
+{
+	if (val->port_vlan < 0)
+		return -EINVAL;
+
+	if (!dev->ops->set_reg_val)
+		return -EOPNOTSUPP;
+
+	return dev->ops->set_reg_val(dev, val->port_vlan, val->value.i);
+}
+
+static int
+swconfig_get_reg(struct switch_dev *dev, const struct switch_attr *attr, struct switch_val *val)
+{
+	if (val->port_vlan < 0)
+		return -EINVAL;
+
+	if (!dev->ops->get_reg_val)
+		return -EOPNOTSUPP;
+
+	return dev->ops->get_reg_val(dev, val->port_vlan, &val->value.i);
+}
+
+static int
 swconfig_get_link(struct switch_dev *dev, const struct switch_attr *attr,
 			struct switch_val *val)
 {
@@ -190,6 +214,10 @@ enum port_defaults {
 	PORT_LINK,
 };
 
+enum reg_defaults {
+	REG_VAL,
+};
+
 static struct switch_attr default_global[] = {
 	[GLOBAL_APPLY] = {
 		.type = SWITCH_TYPE_NOVAL,
@@ -232,6 +260,16 @@ static struct switch_attr default_vlan[] = {
 	},
 };
 
+static struct switch_attr default_reg[] = {
+	[REG_VAL] = {
+		.type = SWITCH_TYPE_INT,
+		.name = "regval",
+		.description = "read/write value of switch register (debug use only)",
+		.set = swconfig_set_reg,
+		.get = swconfig_get_reg,
+	}
+};
+
 static const struct switch_attr *
 swconfig_find_attr_by_name(const struct switch_attrlist *alist,
 				const char *name)
@@ -252,12 +290,16 @@ static void swconfig_defaults_init(struct switch_dev *dev)
 	dev->def_global = 0;
 	dev->def_vlan = 0;
 	dev->def_port = 0;
+	dev->def_reg = 0;
 
 	if (ops->get_vlan_ports || ops->set_vlan_ports)
 		set_bit(VLAN_PORTS, &dev->def_vlan);
 
 	if (ops->get_port_pvid || ops->set_port_pvid)
 		set_bit(PORT_PVID, &dev->def_port);
+
+	if (ops->get_reg_val || ops->set_reg_val)
+		set_bit(REG_VAL, &dev->def_reg);
 
 	if (ops->get_port_link &&
 	    !swconfig_find_attr_by_name(&ops->attr_port, "link"))
@@ -458,6 +500,12 @@ swconfig_list_attrs(struct sk_buff *skb, struct genl_info *info)
 		def_active = &dev->def_port;
 		n_def = ARRAY_SIZE(default_port);
 		break;
+	case SWITCH_CMD_LIST_REG:
+		alist = &dev->ops->attr_reg;
+		def_list = default_reg;
+		def_active = &dev->def_reg;
+		n_def = ARRAY_SIZE(default_reg);
+		break;
 	default:
 		WARN_ON(1);
 		goto out;
@@ -546,6 +594,18 @@ swconfig_lookup_attr(struct switch_dev *dev, struct genl_info *info,
 			goto done;
 		val->port_vlan = nla_get_u32(info->attrs[SWITCH_ATTR_OP_PORT]);
 		if (val->port_vlan >= dev->ports)
+			goto done;
+		break;
+	case SWITCH_CMD_SET_REG:
+	case SWITCH_CMD_GET_REG:
+		alist = &dev->ops->attr_reg;
+		def_list = default_reg;
+		def_active = &dev->def_reg;
+		n_def = ARRAY_SIZE(default_reg);
+		if (!info->attrs[SWITCH_ATTR_OP_REG])
+			goto done;
+		val->port_vlan = nla_get_u32(info->attrs[SWITCH_ATTR_OP_REG]);
+		if (val->port_vlan < 0)
 			goto done;
 		break;
 	default:
@@ -1011,6 +1071,11 @@ static struct genl_ops swconfig_ops[] = {
 		.policy = switch_policy,
 	},
 	{
+		.cmd = SWITCH_CMD_LIST_REG,
+		.doit = swconfig_list_attrs,
+		.policy = switch_policy,
+	},
+	{
 		.cmd = SWITCH_CMD_GET_GLOBAL,
 		.doit = swconfig_get_attr,
 		.policy = switch_policy,
@@ -1022,6 +1087,11 @@ static struct genl_ops swconfig_ops[] = {
 	},
 	{
 		.cmd = SWITCH_CMD_GET_PORT,
+		.doit = swconfig_get_attr,
+		.policy = switch_policy,
+	},
+	{
+		.cmd = SWITCH_CMD_GET_REG,
 		.doit = swconfig_get_attr,
 		.policy = switch_policy,
 	},
@@ -1040,6 +1110,11 @@ static struct genl_ops swconfig_ops[] = {
 	{
 		.cmd = SWITCH_CMD_SET_PORT,
 		.flags = GENL_ADMIN_PERM,
+		.doit = swconfig_set_attr,
+		.policy = switch_policy,
+	},
+	{
+		.cmd = SWITCH_CMD_SET_REG,
 		.doit = swconfig_set_attr,
 		.policy = switch_policy,
 	},
