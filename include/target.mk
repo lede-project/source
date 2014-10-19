@@ -146,7 +146,7 @@ ifeq ($(CONFIG_TARGET),env)
   LINUX_RECONFIG_TARGET = $(TOPDIR)/env/kernel-config
 endif
 
-__linux_confcmd = $(SCRIPT_DIR)/kconfig.pl $(2) $(patsubst %,+,$(wordlist 2,9999,$(1))) $(1)
+__linux_confcmd = $(SCRIPT_DIR)/kconfig.pl $(2) $(patsubst %,+,$(wordlist 2,$(words $(1)),$(1))) $(1)
 
 LINUX_CONF_CMD = $(call __linux_confcmd,$(LINUX_KCONFIG_LIST),)
 LINUX_RECONF_CMD = $(call __linux_confcmd,$(LINUX_RECONFIG_LIST),)
