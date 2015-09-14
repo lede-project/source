@@ -314,6 +314,25 @@ endef
 $(eval $(call KernelPackage,crypto-hw-omap))
 
 
+define KernelPackage/crypto-aes-ni
+  TITLE:=AES-NI CryptoAPI module
+  DEPENDS:=@TARGET_x86_64
+  KCONFIG:=CONFIG_CRYPTO_AES_NI_INTEL
+  FILES+=$(LINUX_DIR)/arch/x86/crypto/aes-x86_64.ko \
+	$(LINUX_DIR)/arch/x86/crypto/aesni-intel.ko \
+	$(LINUX_DIR)/arch/x86/crypto/glue_helper.ko \
+	$(LINUX_DIR)/crypto/ablk_helper.ko \
+	$(LINUX_DIR)/crypto/cryptd.ko \
+	$(LINUX_DIR)/crypto/gf128mul.ko \
+	$(LINUX_DIR)/crypto/xts.ko \
+	$(LINUX_DIR)/crypto/lrw.ko
+  AUTOLOAD:=$(call AutoLoad,09,cryptd ablk_helper gf128mul xts lrw aesni-intel)
+  $(call AddDepends/crypto,+kmod-crypto-manager +kmod-crypto-wq)
+endef
+
+$(eval $(call KernelPackage,crypto-aes-ni))
+
+
 define KernelPackage/crypto-authenc
   TITLE:=Combined mode wrapper for IPsec
   DEPENDS:=+kmod-crypto-manager +LINUX_4_4:kmod-crypto-null
