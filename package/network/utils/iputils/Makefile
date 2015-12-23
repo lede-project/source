@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=iputils
 PKG_VERSION:=20101006
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-s$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=http://www.skbuff.net/iputils
@@ -42,6 +42,7 @@ define Package/iputils-arping/description
   Sends ARP REQUEST to a neighbour host.
 endef
 
+$(eval $(call Package/BusyBoxReplacement/Default,iputils-arping,/usr/sbin../../bin,arping,,$(PKG_BUILD_DIR)/arping))
 
 define Package/iputils-clockdiff
 $(call Package/iputils/Default)
@@ -64,6 +65,7 @@ define Package/iputils-ping/description
   Sends ICMP ECHO_REQUEST to network hosts (IPv4).
 endef
 
+$(eval $(call Package/BusyBoxReplacement/Default,iputils-ping,/bin,,ping,,$(PKG_BUILD_DIR)/ping))
 
 define Package/iputils-ping6
 $(call Package/iputils/Default)
@@ -76,6 +78,7 @@ define Package/iputils-ping6/description
   Sends ICMP ECHO_REQUEST to network hosts (IPv6).
 endef
 
+$(eval $(call Package/BusyBoxReplacement/Default,iputils-ping6,/bin,,ping6,,$(PKG_BUILD_DIR)/ping6))
 
 define Package/iputils-tftpd
 $(call Package/iputils/Default)
@@ -87,6 +90,7 @@ define Package/iputils-tftpd/description
   Trivial File Transfer Protocol server.
 endef
 
+$(eval $(call Package/BusyBoxReplacement/Default,iputils-tftpd,/usr/sbin,../../bin,tftpd,,$(PKG_BUILD_DIR)/tftpd))
 
 define Package/iputils-tracepath
 $(call Package/iputils/Default)
@@ -122,6 +126,8 @@ define Package/iputils-traceroute6/description
   Traces path to a network host (IPv6).
 endef
 
+$(eval $(call Package/BusyBoxReplacement/Default,iputils-traceroute6,/usr/bin,../../bin,traceroute6,,$(PKG_BUILD_DIR)/traceroute6))
+
 ifdef CONFIG_USE_MUSL
   TARGET_CFLAGS += -D__UCLIBC__
 endif
@@ -132,8 +138,7 @@ MAKE_FLAGS += \
 	CONFIG_USE_UCLIBC="$(CONFIG_USE_UCLIBC)$(CONFIG_USE_MUSL)" \
 
 define Package/iputils-arping/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/arping $(1)/usr/bin/
+	$(call Package/iputils-ping/install-location,$(1))
 endef
 
 define Package/iputils-clockdiff/install
@@ -142,18 +147,15 @@ define Package/iputils-clockdiff/install
 endef
 
 define Package/iputils-ping/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ping $(1)/usr/bin/
+	$(call Package/iputils-ping/install-location,$(1))
 endef
 
 define Package/iputils-ping6/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ping6 $(1)/usr/bin/
+	$(call Package/iputils-ping6/install-location,$(1))
 endef
 
 define Package/iputils-tftpd/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tftpd $(1)/usr/sbin/
+	$(call Package/iputils-ping/install-location,$(1))
 endef
 
 define Package/iputils-tracepath/install
@@ -167,8 +169,7 @@ define Package/iputils-tracepath6/install
 endef
 
 define Package/iputils-traceroute6/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/traceroute6 $(1)/usr/bin/
+	$(call Package/iputils-ping/install-location,$(1))
 endef
 
 $(eval $(call BuildPackage,iputils-arping))
