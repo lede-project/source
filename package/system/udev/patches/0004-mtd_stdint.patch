@@ -1,0 +1,10 @@
+--- udev-173/extras/mtd_probe/mtd_probe.h.orig	2016-01-31 09:45:49.959461944 +0000
++++ udev-173/extras/mtd_probe/mtd_probe.h	2016-01-31 09:45:58.643458000 +0000
+@@ -18,6 +18,7 @@
+  */
+ 
+ #include <mtd/mtd-user.h>
++#include <stdint.h>
+ 
+ /* Full oob structure as written on the flash */
+ struct sm_oob {
