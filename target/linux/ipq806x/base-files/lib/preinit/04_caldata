@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# Copyright (C) 2015 OpenWrt.org
+#
+
+do_ath10k_caldata() {
+
+	. /lib/ipq806x.sh
+	. /lib/functions.sh
+	. /lib/functions/system.sh
+
+	board=$(ipq806x_board_name)
+	DIR=/lib/firmware
+
+	case $board in
+		ea8500)
+			hw_mac_addr=$(mtd_get_mac_ascii devinfo hw_mac_addr)
+			
+			FIRMWARE="ath10k/cal-pci-0000:01:00.0.bin"
+			[ -f $DIR/$FIRMWARE ] || caldata -i art -o 0x1000 -s 0x4000 -a $hw_mac_addr -f $DIR/$FIRMWARE
+
+			FIRMWARE="ath10k/cal-pci-0001:01:00.0.bin"
+			[ -f $DIR/$FIRMWARE ] || caldata -i art -o 0x5000 -s 0x4000 -a $hw_mac_addr -f $DIR/$FIRMWARE
+			;;
+
+		*)
+			exit 1
+			;;
+	esac
+}
+
+boot_hook_add preinit_mount_root do_ath10k_caldata

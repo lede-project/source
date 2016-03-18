@@ -9,10 +9,10 @@
 define Profile/EA8500
 	NAME:=Linksys EA8500 Max-Stream AC2600 MU-MIMO
 	PACKAGES:= \
-		kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-ledtrig-usbdev \
+		kmod-usb-core kmod-usb-ohci kmod-usb2 \
 		kmod-usb3 kmod-usb-dwc3-qcom kmod-usb-phy-qcom-dwc3 \
 		kmod-ath10k wpad-mini ath10k-firmware-qca99x0 \
-		uboot-envtools 
+		uboot-envtools caldata-utils
 endef
 
 define Profile/EA8500/Description
