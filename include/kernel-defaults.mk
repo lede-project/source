@@ -79,6 +79,7 @@ else
 	ln -s $(CONFIG_EXTERNAL_KERNEL_TREE) $(LINUX_DIR)
   endef
 endif
+Kernel/Prepare?=$(Kernel/Prepare/Default)
 
 ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
   ifeq ($(strip $(CONFIG_EXTERNAL_CPIO)),"")
@@ -136,6 +137,7 @@ define Kernel/Configure/Default
 	$(_SINGLE) [ -d $(LINUX_DIR)/user_headers ] || $(MAKE) $(KERNEL_MAKEOPTS) INSTALL_HDR_PATH=$(LINUX_DIR)/user_headers headers_install
 	$(SH_FUNC) grep '=[ym]' $(LINUX_DIR)/.config.set | LC_ALL=C sort | md5s > $(LINUX_DIR)/.vermagic
 endef
+Kernel/Configure?=$(Kernel/Configure/Default)
 
 define Kernel/Configure/Initramfs
 	$(call Kernel/SetInitramfs)

@@ -27,6 +27,11 @@ PATCH_DIR := ./patches$(if $(wildcard ./patches-$(LINUX_VERSION)),-$(LINUX_VERSI
 include $(INCLUDE_DIR)/toolchain-build.mk
 include $(INCLUDE_DIR)/kernel-defaults.mk
 
+# toolchain-build sets STAGING_DIR_HOST to TOOLCHAIN_DIR which ripples through
+# to KERNEL_MAKEOPTS, therefor we have to correct HOST_LOADLIBES here to point
+# to the correct lib dir.
+KERNEL_MAKEOPTS += HOST_LOADLIBES="-L$(REAL_STAGING_DIR_HOST)/lib"
+
 ifeq ($(strip $(BOARD)),uml)
   LINUX_KARCH:=$(subst x86_64,x86,$(subst i386,x86,$(ARCH)))
 endif
@@ -46,9 +51,7 @@ KMAKE := $(MAKE) -C $(HOST_BUILD_DIR) \
 
 define Host/Configure/all
 	mkdir -p $(BUILD_DIR_TOOLCHAIN)/linux-dev
-	$(KMAKE) \
-		INSTALL_HDR_PATH="$(BUILD_DIR_TOOLCHAIN)/linux-dev/" \
-		headers_install
+	$(CP) $(LINUX_DIR)/user_headers/* $(BUILD_DIR_TOOLCHAIN)/linux-dev/
 endef
 
 # XXX: the following is needed to build lzma-loader
@@ -71,13 +74,14 @@ define Host/Configure/post/mipsel
 endef
 
 define Host/Prepare
-	$(call Kernel/Prepare/Default)
+	$(call Kernel/Prepare)
 	rm -f $(BUILD_DIR_TOOLCHAIN)/linux
 	ln -s linux-$(LINUX_VERSION) $(BUILD_DIR_TOOLCHAIN)/linux
 	$(SED) 's/@expr length/@-expr length/' $(HOST_BUILD_DIR)/Makefile
 endef
 
 define Host/Configure
+	$(call Kernel/Configure)
 	env
 	yes '' | $(KMAKE) oldconfig
 	$(call Host/Configure/all)
