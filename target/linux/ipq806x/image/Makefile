@@ -161,6 +161,26 @@ define Device/R7500
 	DEVICE_TITLE := Netgear Nighthawk X4 R7500
 endef
 
-TARGET_DEVICES += AP148 AP148-legacy C2600 D7800 DB149 R7500
+define Device/EA8500
+	$(call Device/LegacyImage)
+	DEVICE_DTS := qcom-ipq8064-ea8500
+	PAGESIZE := 2048
+	BLOCKSIZE := 128KiB
+	KERNEL_SIZE := 3145728
+	FILESYSTEMS := squashfs
+	KERNEL = kernel-bin | append-dtb | uImage none | append-file $(KDIR)/root.dummy
+	PROFILES := Generic EA8500
+	BOARD_NAME := ea8500
+	IMAGES := factory_168206.bin factory_169978.bin sysupgrade.tar
+	IMAGE/factory_168206.bin := append-kernel 3145728 | append-ubi | append-file ea8500_168206.tag
+	IMAGE/factory_169978.bin := append-kernel 3145728 | append-ubi | append-file ea8500_169978.tag
+	IMAGE/sysupgrade.tar := sysupgrade-nand
+	DEVICE_VARS += DEVICE_DTS KERNEL_SIZE PAGESIZE BLOCKSIZE SUBPAGESIZE
+endef
+
+TARGET_DEVICES += AP148 AP148-legacy C2600 D7800 DB149 EA8500 R7500
+ifeq ($(PROFILE),EA8500)
+   TARGET_DEVICES = EA8500
+endif
 
 $(eval $(call BuildImage))
