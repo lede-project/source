@@ -22,6 +22,7 @@
 #include <linux/byteorder/generic.h>
 #include <linux/slab.h>
 #include <linux/of_fdt.h>
+#include <linux/version.h>
 
 #include "mtdsplit.h"
 
@@ -44,9 +45,15 @@ struct fdt_header {
 	uint32_t size_dt_struct;	 /* size of the structure block */
 };
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,5,0)
 static int
 mtdsplit_fit_parse(struct mtd_info *mtd, struct mtd_partition **pparts,
 	           struct mtd_part_parser_data *data)
+#else
+static int
+mtdsplit_fit_parse(struct mtd_info *mtd, const struct mtd_partition **pparts,
+	           struct mtd_part_parser_data *data)
+#endif
 {
 	struct fdt_header hdr;
 	size_t hdr_len, retlen;

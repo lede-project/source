@@ -14,6 +14,7 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/slab.h>
+#include <linux/version.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/partitions.h>
 #include <linux/byteorder/generic.h>
@@ -54,10 +55,17 @@ read_trx_header(struct mtd_info *mtd, size_t offset,
 	return 0;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,5,0)
 static int
 mtdsplit_parse_trx(struct mtd_info *master,
 		   struct mtd_partition **pparts,
 		   struct mtd_part_parser_data *data)
+#else
+static int
+mtdsplit_parse_trx(struct mtd_info *master,
+		   const struct mtd_partition **pparts,
+		   struct mtd_part_parser_data *data)
+#endif
 {
 	struct mtd_partition *parts;
 	struct trx_header hdr;

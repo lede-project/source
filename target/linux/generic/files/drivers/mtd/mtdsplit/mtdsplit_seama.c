@@ -11,6 +11,7 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/slab.h>
+#include <linux/version.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/partitions.h>
 #include <linux/byteorder/generic.h>
@@ -29,9 +30,15 @@ struct seama_header {
 	u8	md5[16];	/* digest */
 };
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,5,0)
 static int mtdsplit_parse_seama(struct mtd_info *master,
 				struct mtd_partition **pparts,
 				struct mtd_part_parser_data *data)
+#else
+static int mtdsplit_parse_seama(struct mtd_info *master,
+				const struct mtd_partition **pparts,
+				struct mtd_part_parser_data *data)
+#endif
 {
 	struct seama_header hdr;
 	size_t hdr_len, retlen, kernel_ent_size;

@@ -12,6 +12,7 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/slab.h>
+#include <linux/version.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/partitions.h>
 #include <linux/byteorder/generic.h>
@@ -26,9 +27,15 @@
 #define BRNIMAGE_MIN_OVERHEAD	(BRNIMAGE_FOOTER_SIZE)
 #define BRNIMAGE_MAX_OVERHEAD	(BRNIMAGE_ALIGN_BYTES + BRNIMAGE_FOOTER_SIZE)
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,5,0)
 static int mtdsplit_parse_brnimage(struct mtd_info *master,
 				struct mtd_partition **pparts,
 				struct mtd_part_parser_data *data)
+#else
+static int mtdsplit_parse_brnimage(struct mtd_info *master,
+				const struct mtd_partition **pparts,
+				struct mtd_part_parser_data *data)
+#endif
 {
 	struct mtd_partition *parts;
 	uint32_t buf;
