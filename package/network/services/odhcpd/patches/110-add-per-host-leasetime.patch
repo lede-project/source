@@ -1,0 +1,218 @@
+Index: odhcpd-2015-11-19/src/config.c
+===================================================================
+--- odhcpd-2015-11-19.orig/src/config.c	2016-04-09 07:07:14.432237095 -0400
++++ odhcpd-2015-11-19/src/config.c	2016-04-09 07:07:14.428237095 -0400
+@@ -100,6 +100,7 @@
+ 	LEASE_ATTR_MAC,
+ 	LEASE_ATTR_DUID,
+ 	LEASE_ATTR_HOSTID,
++	LEASE_ATTR_LEASETIME,
+ 	LEASE_ATTR_NAME,
+ 	LEASE_ATTR_MAX
+ };
+@@ -110,6 +111,7 @@
+ 	[LEASE_ATTR_MAC] = { .name = "mac", .type = BLOBMSG_TYPE_STRING },
+ 	[LEASE_ATTR_DUID] = { .name = "duid", .type = BLOBMSG_TYPE_STRING },
+ 	[LEASE_ATTR_HOSTID] = { .name = "hostid", .type = BLOBMSG_TYPE_STRING },
++	[LEASE_ATTR_LEASETIME] = { .name = "leasetime", .type = BLOBMSG_TYPE_STRING },
+ 	[LEASE_ATTR_NAME] = { .name = "name", .type = BLOBMSG_TYPE_STRING },
+ };
+ 
+@@ -222,6 +224,32 @@
+ 	}
+ }
+ 
++static double parse_leasetime(struct blob_attr *c) {
++	char *val = blobmsg_get_string(c), *endptr;
++	double time = strtod(val, &endptr);
++	if (time && endptr[0]) {
++		if (endptr[0] == 's')
++			time *= 1;
++		else if (endptr[0] == 'm')
++			time *= 60;
++		else if (endptr[0] == 'h')
++			time *= 3600;
++		else if (endptr[0] == 'd')
++			time *= 24 * 3600;
++		else if (endptr[0] == 'w')
++			time *= 7 * 24 * 3600;
++		else
++			goto err;
++	}
++
++	if (time >= 60)
++		return time;
++
++	return 0;
++
++err:
++	return -1;
++}
+ 
+ static int set_lease(struct uci_section *s)
+ {
+@@ -272,6 +300,15 @@
+ 			goto err;
+ 	}
+ 
++	if ((c = tb[LEASE_ATTR_LEASETIME])) {
++		double time = parse_leasetime(c);
++		if (time < 0)
++			goto err;
++
++		if (time >= 60)
++			lease->dhcpv4_leasetime = time;
++	}
++
+ 	list_add(&lease->head, &leases);
+ 	return 0;
+ 
+@@ -337,22 +374,9 @@
+ 		iface->ignore = blobmsg_get_bool(c);
+ 
+ 	if ((c = tb[IFACE_ATTR_LEASETIME])) {
+-		char *val = blobmsg_get_string(c), *endptr;
+-		double time = strtod(val, &endptr);
+-		if (time && endptr[0]) {
+-			if (endptr[0] == 's')
+-				time *= 1;
+-			else if (endptr[0] == 'm')
+-				time *= 60;
+-			else if (endptr[0] == 'h')
+-				time *= 3600;
+-			else if (endptr[0] == 'd')
+-				time *= 24 * 3600;
+-			else if (endptr[0] == 'w')
+-				time *= 7 * 24 * 3600;
+-			else
+-				goto err;
+-		}
++		double time = parse_leasetime(c);
++		if (time < 0)
++			goto err;
+ 
+ 		if (time >= 60)
+ 			iface->dhcpv4_leasetime = time;
+Index: odhcpd-2015-11-19/src/dhcpv4.c
+===================================================================
+--- odhcpd-2015-11-19.orig/src/dhcpv4.c	2016-04-09 07:07:14.432237095 -0400
++++ odhcpd-2015-11-19/src/dhcpv4.c	2016-04-09 07:48:42.924237095 -0400
+@@ -176,6 +176,8 @@
+ 					iface->ifname);
+ 				return -1;
+ 			}
++			if (lease->dhcpv4_leasetime >= 60)
++				a->leasetime = lease->dhcpv4_leasetime;
+ 			a->addr = ntohl(lease->ipaddr.s_addr);
+ 			memcpy(a->hwaddr, lease->mac.ether_addr_octet, sizeof(a->hwaddr));
+ 			memcpy(a->hostname, lease->hostname, hostlen);
+@@ -382,13 +384,22 @@
+ 	if (lease) {
+ 		reply.yiaddr.s_addr = htonl(lease->addr);
+ 
+-		uint32_t val = htonl(iface->dhcpv4_leasetime);
++		uint32_t val;
++		uint32_t leasetime;
++
++		if (lease->leasetime >= 60) {
++			leasetime = lease->leasetime;
++		} else {
++			leasetime = iface->dhcpv4_leasetime;
++		}
++
++		val = htonl(leasetime);
+ 		dhcpv4_put(&reply, &cookie, DHCPV4_OPT_LEASETIME, 4, &val);
+ 
+-		val = htonl(500 * iface->dhcpv4_leasetime / 1000);
++		val = htonl(500 * leasetime / 1000);
+ 		dhcpv4_put(&reply, &cookie, DHCPV4_OPT_RENEW, 4, &val);
+ 
+-		val = htonl(875 * iface->dhcpv4_leasetime / 1000);
++		val = htonl(875 * leasetime / 1000);
+ 		dhcpv4_put(&reply, &cookie, DHCPV4_OPT_REBIND, 4, &val);
+ 
+ 		dhcpv4_put(&reply, &cookie, DHCPV4_OPT_NETMASK, 4, &ifnetmask.sin_addr);
+@@ -622,10 +633,17 @@
+ 			a->head.prev->next = &a->head;
+ 		}
+ 
++		uint32_t leasetime;
++		if (a->leasetime) {
++			leasetime = a->leasetime;
++		} else {
++			leasetime = iface->dhcpv4_leasetime;
++		}
++
+ 		// Was only a solicitation: mark binding for removal
+ 		if (assigned && a->valid_until < now) {
+ 			a->valid_until = (msg == DHCPV4_MSG_DISCOVER) ? 0 :
+-					(now + iface->dhcpv4_leasetime);
++					(now + leasetime);
+ 		} else if (!assigned && a) { // Cleanup failed assignment
+ 			free(a);
+ 			a = NULL;
+Index: odhcpd-2015-11-19/src/dhcpv6-ia.c
+===================================================================
+--- odhcpd-2015-11-19.orig/src/dhcpv6-ia.c	2016-04-09 07:07:14.432237095 -0400
++++ odhcpd-2015-11-19/src/dhcpv6-ia.c	2016-04-09 07:11:06.036237095 -0400
+@@ -100,6 +100,9 @@
+ 				return -1;
+ 			}
+ 
++			if (lease->dhcpv4_leasetime > 0)
++				a->leasetime = lease->dhcpv4_leasetime;
++
+ 			a->clid_len = duid_len;
+ 			a->length = 128;
+ 			if (lease->hostid) {
+@@ -701,7 +704,12 @@
+ 		datalen += sizeof(stat);
+ 	} else {
+ 		if (a) {
+-			uint32_t leasetime = iface->dhcpv4_leasetime;
++			uint32_t leasetime;
++			if (a->leasetime > 0) {
++				leasetime = a->leasetime;
++			} else {
++				leasetime = iface->dhcpv4_leasetime;
++			}
+ 			if (leasetime == 0)
+ 				leasetime = 3600;
+ 			else if (leasetime < 60)
+Index: odhcpd-2015-11-19/src/dhcpv6.h
+===================================================================
+--- odhcpd-2015-11-19.orig/src/dhcpv6.h	2016-04-09 07:07:14.432237095 -0400
++++ odhcpd-2015-11-19/src/dhcpv6.h	2016-04-09 07:07:14.432237095 -0400
+@@ -155,6 +155,8 @@
+ 	ssize_t managed_size;
+ 	struct ustream_fd managed_sock;
+ 
++	uint32_t leasetime;
++
+ 	uint8_t clid_len;
+ 	uint8_t clid_data[];
+ };
+Index: odhcpd-2015-11-19/src/odhcpd.h
+===================================================================
+--- odhcpd-2015-11-19.orig/src/odhcpd.h	2016-04-09 07:07:14.432237095 -0400
++++ odhcpd-2015-11-19/src/odhcpd.h	2016-04-09 07:07:14.432237095 -0400
+@@ -96,6 +96,7 @@
+ 	struct ether_addr mac;
+ 	uint16_t duid_len;
+ 	uint8_t *duid;
++	uint32_t dhcpv4_leasetime;
+ 	char hostname[];
+ };
+ 
+Index: odhcpd-2015-11-19/src/dhcpv4.h
+===================================================================
+--- odhcpd-2015-11-19.orig/src/dhcpv4.h	2016-04-09 07:07:14.432237095 -0400
++++ odhcpd-2015-11-19/src/dhcpv4.h	2016-04-09 07:47:32.000000000 -0400
+@@ -78,6 +78,7 @@
+ 	uint32_t addr;
+ 	time_t valid_until;
+ 	uint8_t hwaddr[6];
++	uint32_t leasetime;
+ 	char hostname[];
+ };
+ 
