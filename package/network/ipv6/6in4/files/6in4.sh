@@ -11,7 +11,7 @@
 
 proto_6in4_update() {
 	sh -c '
-		local timeout=5
+		local timeout=15
 
 		(while [ $((timeout--)) -gt 0 ]; do
 			sleep 1
@@ -93,7 +93,7 @@ proto_6in4_setup() {
 
 		local url="$http://ipv4.tunnelbroker.net/nic/update?hostname=$tunnelid"
 		local try=0
-		local max=3
+		local max=10
 
 		(
 			set -o pipefail
