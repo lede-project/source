@@ -160,14 +160,14 @@ if ($terse) {
 
 if ($tree) {
 	if (defined $root) {
-		if (!top_of_openwrt_tree($root)) {
+		if (!top_of_lede_tree($root)) {
 			die "$P: $root: --root does not point at a valid tree\n";
 		}
 	} else {
-		if (top_of_openwrt_tree('.')) {
+		if (top_of_lede_tree('.')) {
 			$root = '.';
 		} elsif ($0 =~ m@(.*)/scripts/[^/]*$@ &&
-						top_of_openwrt_tree($1)) {
+						top_of_lede_tree($1)) {
 			$root = $1;
 		}
 	}
@@ -386,7 +386,7 @@ for my $filename (@ARGV) {
 
 exit($exit);
 
-sub top_of_openwrt_tree {
+sub top_of_lede_tree {
 	my ($root) = @_;
 
 	my @tree_check = (

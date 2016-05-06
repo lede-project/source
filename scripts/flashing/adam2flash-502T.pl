@@ -44,7 +44,7 @@
 # that the image appears to extend beyond the end of mtd1, it will refuse to load it. On
 # the DSL-502T, this manifests as the USB light blinking rapidly on boot.
 #
-# The OpenWRT kernel does not follow quite the same layout:
+# The OpenWrt/LEDE kernel does not follow quite the same layout:
 #  (a) it does not have a 0x90-byte firmware signature prefix
 #  (b) it is larger than the default mtd1 size
 #
@@ -60,8 +60,8 @@
 #
 # *** NOTE NOTE NOTE NOTE ***
 #
-# /dev/mtd0 .. /dev/mtd4 when using OpenWRT do **NOT** correspond to the ADAM2 mtd0-4 settings!
-# Instead, OpenWRT scans the MTD itself and determines its own boundaries which are arranged
+# /dev/mtd0 .. /dev/mtd4 when using OpenWrt/LEDE do **NOT** correspond to the ADAM2 mtd0-4 settings!
+# Instead, OpenWrt/LEDE scans the MTD itself and determines its own boundaries which are arranged
 # quite differently to ADAM2. It will look something like this, see dmsg on boot:
 #
 # (/dev/mtd0) 0x00000000-0x00010000 : "loader"        # Bootloader, read-only
@@ -86,7 +86,7 @@ sub usage() {
 	print STDERR "<ip> may be any spare address on the local subnet.\n\n";
 	print STDERR "If a firmware file is specified, MTD settings are verified and\n";
 	print STDERR "then the firmware is written to the router's flash.\n";
-	print STDERR "The firmware type (D-Link or OpenWRT) is automatically detected.\n\n";
+	print STDERR "The firmware type (D-Link or OpenWrt/LEDE) is automatically detected.\n\n";
 	print STDERR "  -setmtd1  update mtd1 if it is not the appropriate value for this firmware\n";
 	print STDERR "  -noflash  does normal checks, updates mtd1 if requested, but does not actually write firmware\n\n";
 	exit 0;
@@ -210,7 +210,7 @@ if (!$file) {
 open FILE, "<$file" or die "can't open firmware file\n";
 
 # D-Link firmware starts with "MTD4" little-endian, then has an image header at 0x90
-# OpenWRT firmware just starts with an image header at 0x00
+# OpenWrt/LEDE firmware just starts with an image header at 0x00
 
 my $signature;
 my $sbytes = read FILE, $signature, 4;
@@ -232,10 +232,10 @@ if ($signature eq "4DTM") {
     $expectedmtd1 = "0x90010090,0x90091000";
   }
 } elsif ($signature eq "\x42\xfa\xed\xfe") {
-  $fwtype = "OpenWRT (little-endian)";
+  $fwtype = "OpenWrt/LEDE (little-endian)";
   $expectedmtd1 = "0x90010000,0x903f0000";
 } elsif ($signature eq "\xde\xad\xbe\x42") {
-  $fwtype = "OpenWRT (big-endian)";
+  $fwtype = "OpenWrt/LEDE (big-endian)";
   $expectedmtd1 = "0x90010000,0x903f0000";
 }
 

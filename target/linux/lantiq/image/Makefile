@@ -41,7 +41,7 @@ endef
 
 define MkImageLzma
 	mkimage -A mips -O linux -T kernel -a 0x80002000 -C lzma \
-		-e 0x80002000 -n 'MIPS OpenWrt Linux-$(LINUX_VERSION)' \
+		-e 0x80002000 -n 'MIPS LEDE Linux-$(LINUX_VERSION)' \
 		-d $(KDIR)/vmlinux$(2)-$(1).lzma $(KDIR)/uImage-$(1)$(2)
 endef
 

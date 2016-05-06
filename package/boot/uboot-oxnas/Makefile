@@ -58,7 +58,7 @@ endef
 ifdef BUILD_VARIANT
 $(eval $(call uboot/$(BUILD_VARIANT)))
 UBOOT_CONFIG:=$(if $(CONFIG),$(CONFIG),$(BUILD_VARIANT))
-UBOOT_IMAGE:=$(if $(IMAGE),$(IMAGE),openwrt-$(BOARD)-$(BUILD_VARIANT)-u-boot.bin)
+UBOOT_IMAGE:=$(if $(IMAGE),$(IMAGE),lede-$(BOARD)-$(BUILD_VARIANT)-u-boot.bin)
 endif
 
 define Build/Prepare
@@ -81,7 +81,7 @@ endef
 define Package/uboot/install/default
 	$(INSTALL_DIR) $(BIN_DIR)
 	$(CP) $(PKG_BUILD_DIR)/u-boot.bin \
-		$(BIN_DIR)/openwrt-$(BOARD)-$(1)-u-boot.bin
+		$(BIN_DIR)/lede-$(BOARD)-$(1)-u-boot.bin
 	$(CP) $(PKG_BUILD_DIR)/u-boot.bin \
 		$(KERNEL_BUILD_DIR)/u-boot.bin
 endef

@@ -20,7 +20,7 @@ add_insmod() {
 }
 
 [ -e /etc/config/network ] && {
-	# only try to parse network config on openwrt
+	# only try to parse network config on openwrt/lede
 
 	find_ifname() {(
 		reset_cb

@@ -3,10 +3,10 @@ It can be used to prototype an OpenWrt firmware targetting ARM-based hardware.
 One could also use it to troubleshoot ARM applications without access to real
 hardware.
 
-To use the images built by OpenWrt with qemu, use the following commands:
+To use the images built by LEDE with qemu, use the following commands:
 
 qemu-system-arm -M realview-eb-mpcore \
--kernel bin/realview/openwrt-realview-vmlinux.elf \
+-kernel bin/realview/lede-realview-vmlinux.elf \
 -nographic -m 128
 
 and enjoy the system booting.
