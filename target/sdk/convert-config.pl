@@ -7,6 +7,7 @@ while (<>) {
 	my $val;
 	my $type;
 	chomp;
+	next if /^CONFIG_SOURCE/;
 	next if /^CONFIG_SIGNED_PACKAGES/;
 
 	if (/^CONFIG_([^=]+)=(.*)$/) {
