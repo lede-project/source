@@ -23,10 +23,25 @@ install_bin() { # <file> [ <symlink> ... ]
 	install_file $files
 	shift
 	for link in "$@"; do {
-		dest="$RAM_ROOT/$link"
-		dir="$(dirname $dest)"
-		mkdir -p "$dir"
-		[ -f "$dest" ] || ln -s $src $dest
+		# Handle the case of using full versions of
+		# commands instead of busybox version; this
+		# only matters when busybox version is not
+		# compiled in (and hence /{s,}bin link doesn't
+		# exist)
+		if [ -L "$link" ]; then
+			dest="$RAM_ROOT/$link"
+			dir="$(dirname $dest)"
+			mkdir -p "$dir"
+			[ -f "$dest" ] || ln -s $src $dest
+		else
+			# We *only* have the full version, which
+			# is always in /usr/{s,}bin
+			$install_file /usr/$link
+			# For sysupgrade to work in case of full
+			# versions without busybox version we
+			# must ensure there are no hardcoded paths,
+			# so that PATH is always honoured
+		fi
 	}; done
 }
 

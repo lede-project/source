@@ -18,6 +18,172 @@ config BUSYBOX_CUSTOM
 	source "config/Config.in"
 	endif
 
+config BUSYBOX_USE_FULL_VERSIONS
+	bool "(EXPERIMENTAL) Use full versions of commands instead of busybox replacements"
+	default n
+
+if BUSYBOX_USE_FULL_VERSIONS
+	config BUSYBOX_USE_BRIDGE
+		bool "Use full bridge instead of busybox replacement"
+		depends on HAS_BRIDGE
+		select PACKAGE_bridge
+		default y
+		help
+		  Use the full versions of brctl command from bridge
+		  package instead of the cut down busybox replacement for
+		  this commands.
+
+	config BUSYBOX_USE_BZIP2
+		bool "Use full bzip2 instead of busybox replacements"
+		depends on HAS_BZIP2
+		select PACKAGE_bzip2
+		default y
+		help
+		  Use the full versions of brctl command from bridge
+		  package instead of the cut down busybox replacement for
+		  this commands.
+
+	config USE_CIFS_UTILS
+		bool "Use full cifs-utils instead of busybox replacement"
+		depends on HAS_CIFS_UTILS
+		select PACKAGE_cifsmount
+		default y
+		help
+		  Use the full versions of mount.cifs from cifs-utils
+		  package instead of the cut down busybox support
+		  in busybox's mount.
+
+	config BUSYBOX_USE_COREUTILS
+		bool "Use full coreutils instead of busybox replacements"
+		depends on HAS_COREUTILS
+		select PACKAGE_coreutils
+		select PACKAGE_coreutils-busybox
+		default y
+		help
+		  Use the full versions of commands available in coreutils
+		  package instead of the cut down busybox replacements for
+		  those commands.
+
+	config BUSYBOX_USE_DIFFUTILS
+		bool "Use full diffutils cmp instead of busybox replacement"
+		depends on HAS_DIFFUTILS
+		select PACKAGE_diffutils-cmp
+		default y
+		help
+		  Use the full version of cmp command from diffutils
+		  package instead of the cut down busybox replacement for
+		  this command.
+
+	config BUSYBOX_USE_FINDUTILS
+		bool "Use full findutils instead of busybox replacements"
+		depends on HAS_FINDUTILS
+		select PACKAGE_findutils-busybox
+		default y
+		help
+		  Use the full version of commands from findutils
+		  package instead of the cut down busybox replacements for
+		  these commands.
+
+	config BUSYBOX_USE_GREP
+		bool "Use full grep instead of busybox replacement"
+		depends on HAS_GREP
+		select PACKAGE_grep
+		default y
+		help
+		  Use the full version of grep command from grep
+		  package instead of the cut down busybox replacement for
+		  this command.
+
+	config BUSYBOX_USE_IPROUTE2
+		bool "Use full iproute2 instead of busybox replacements"
+		depends on HAS_IPROUTE2
+		select PACKAGE_iproute2-busybox
+		default y
+		help
+		  Use the full version of ip command from iproute2
+		  package instead of the cut down busybox replacement for
+		  this command.
+
+	config BUSYBOX_USE_IPUTILS
+		bool "Use full iputils instead of busybox replacements"
+		depends on HAS_IPUTILS
+		select PACKAGE_iputils-busybox
+		default y
+		help
+		  Use the full version of commands from findutils
+		  package instead of the cut down busybox replacements for
+		  these commands.
+
+	config BUSYBOX_USE_LESS
+		bool "Use full less instead of busybox replacement"
+		depends on HAS_LESS
+		select PACKAGE_less
+		default y
+		help
+		  Use the full version of less command from less
+		  package instead of the cut down busybox replacement for
+		  this command.
+
+	config BUSYBOX_USE_TAR
+		bool "Use full tar instead of busybox replacement"
+		depends on HAS_TAR
+		select PACKAGE_tar
+		default y
+		help
+		  Use the full version of tar command from netcat
+		  package instead of the cut down busybox replacement for
+
+	config BUSYBOX_USE_PROCPS_NG
+		bool "Use full procps-ng instead of busybox replacements"
+		depends on HAS_PROCPS_NG
+		select PACKAGE_procps-ng
+		select PACKAGE_procps-ng-busybox
+		default y
+		help
+		  Use the full versions of commands available in util-linux
+		  package instead of the cut down busybox replacements for
+		  those commands.
+
+	config BUSYBOX_USE_SHADOW_UTILS
+		bool "Use full passwd instead of busybox replacement"
+		depends on HAS_SHADOW
+		select PACKAGE_shadow
+		select PACKAGE_shadow-passwd
+		default y
+		help
+		  Use the full version of passwd  command from shadow-utils
+		  package instead of the cut down busybox replacement for
+		  this command.
+
+	config BUSYBOX_USE_NETCAT
+		bool "Use full netcat instead of busybox replacement"
+		depends on HAS_NETCAT
+		select PACKAGE_netcat
+		default y
+		help
+		  Use the full version of nc command from netcat
+		  package instead of the cut down busybox replacement for
+
+	config BUSYBOX_USE_UTIL_LINUX
+		bool "Use full util-linux instead of busybox replacements"
+		depends on HAS_UTIL_LINUX
+		select PACKAGE_util-linux-busybox
+		default y
+		help
+		  Use the full versions of commands available in util-linux
+		  package instead of the cut down busybox replacements for
+		  those commands.
+
+	config BUSYBOX_USE_VIM
+		bool "Use full vim instead of busybox replacement"
+		depends on HAS_VIM
+		select PACKAGE_vim
+		default y
+		help
+		  Use the full version of vi command from
+		  package instead of the cut down busybox replacement for
+endif
+
 config BUSYBOX_USE_LIBRPC
 	bool
 	default y if BUSYBOX_CUSTOM && BUSYBOX_CONFIG_FEATURE_HAVE_RPC
