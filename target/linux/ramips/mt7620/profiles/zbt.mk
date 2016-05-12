@@ -6,11 +6,11 @@
 #
 
 define Profile/ZBT-WE826
-	NAME:=ZBT-WE826 Device
+	NAME:=ZBT-WE826
 	PACKAGES:=\
-		kmod-scsi-core kmod-scsi-generic kmod-mmc kmod-sdhci \
-		block-mount kmod-usb-core kmod-usb-dwc2 kmod-usb2 kmod-usb-ohci \
-		kmod-mt76
+		kmod-mt76 kmod-scsi-core kmod-scsi-generic kmod-mmc kmod-sdhci \
+		block-mount kmod-usb-core kmod-usb2 kmod-usb-ohci kmod-usb-serial \
+		kmod-usb-serial-option kmod-usb-serial-wwan comgt wwan
 endef
 
 define Profile/ZBT-WE826/Description
