@@ -35,7 +35,14 @@ define Package/samba36-server
   CATEGORY:=Network
   TITLE:=Samba 3.6 SMB/CIFS server
   URL:=http://www.samba.org/
-  DEPENDS:=+USE_GLIBC:librt $(ICONV_DEPENDS)
+  DEPENDS:=+USE_GLIBC:librt $(ICONV_DEPENDS) +PACKAGE_SAMBA_LIBAVAHI_SUPPORT:libavahi-client
+endef
+
+define Package/samba36-server-avahi-service
+  SECTION:=net
+  CATEGORY:=Network
+  TITLE:=Samba 3.6 SMB/CIFS server avahi service files
+  DEPENDS:=samba36-server +avahi-daemon
 endef
 
 define Package/samba36-client
@@ -46,11 +53,20 @@ define Package/samba36-client
   DEPENDS:=+libreadline +libncurses
 endef
 
+define Package/samba36-server-avahi-service/conffiles
+/etc/avahi/services/samba.service
+endef
+
 define Package/samba36-server/config
 	config PACKAGE_SAMBA_MAX_DEBUG_LEVEL
-		int "Maximum level of compiled-in debug messages"
+		int "SAMBA: Maximum level of compiled-in debug messages"
 		depends on PACKAGE_samba36-server || PACKAGE_samba36-client
 		default -1
+
+	config PACKAGE_SAMBA_LIBAVAHI_SUPPORT
+		bool "SAMBA: Enable mDNS support"
+		depends on PACKAGE_samba36-server
+		select PACKAGE_libavahi-client
 
 endef
 
@@ -90,7 +106,6 @@ CONFIGURE_VARS += \
 CONFIGURE_ARGS += \
 	--exec-prefix=/usr \
 	--prefix=/ \
-	--disable-avahi \
 	--disable-cups \
 	--disable-pie \
 	--disable-relro \
@@ -124,6 +139,15 @@ CONFIGURE_ARGS += \
 	--without-libaddns \
 	--with-shared-modules=pdb_tdbsam,pdb_wbc_sam,idmap_nss,nss_info_template,auth_winbind,auth_wbc,auth_domain
 
+ifneq ($(CONFIG_PACKAGE_SAMBA_LIBAVAHI_SUPPORT),)
+CONFIGURE_ARGS += \
+	--enable-avahi
+else
+CONFIGURE_ARGS += \
+	--disable-avahi
+endif
+
+
 MAKE_FLAGS += DYNEXP= PICFLAG= MODULES=
 
 define Package/samba36-server/conffiles
@@ -149,6 +173,11 @@ define Package/samba36-server/install
 	$(LN) samba_multicall $(1)/usr/sbin/smbpasswd
 endef
 
+define Package/samba36-server-avahi-service/install
+	$(INSTALL_DIR) $(1)/etc/avahi/services
+	$(INSTALL_DATA) ./files/samba.service $(1)/etc/avahi/services/
+endef
+
 define Package/samba36-client/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_BUILD_BIN)/smbclient $(1)/usr/sbin
@@ -157,4 +186,4 @@ endef
 
 $(eval $(call BuildPackage,samba36-client))
 $(eval $(call BuildPackage,samba36-server))
-
+$(eval $(call BuildPackage,samba36-server-avahi-service))
