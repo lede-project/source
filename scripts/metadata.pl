@@ -584,7 +584,11 @@ sub print_package_config_category($) {
 				if ($pkg->{name} =~ /^kmod-/) {
 					push @def, "ALL_KMODS";
 				}
-				$pkg->{default} ||= "m if " . join("||", @def);
+				my $defdefs = "m if " . join("||", @def);
+				if ($pkg->{default}) {
+					$defdefs = ", ${defdefs}";
+				}
+				$pkg->{default} = "$pkg->{default}$defdefs";
 			}
 			if ($pkg->{default}) {
 				foreach my $default (split /\s*,\s*/, $pkg->{default}) {
@@ -608,6 +612,114 @@ sub print_package_config_category($) {
 	print "endmenu\n\n";
 
 	undef $category{$cat};
+}
+
+sub find_reverse_deps($) {
+	my $sname = shift;
+	my %rdeps = ();
+
+	foreach my $name (keys %package) {
+		my $pkg = $package{$name};
+		next if ($sname eq $pkg->{src});
+		foreach my $rspkg (@{$srcpackage{$pkg->{src}}}) {
+			foreach my $dep (@{$rspkg->{depends}}, @{$rspkg->{builddepends}}) {
+				$dep =~ /@/ or do {
+				$dep =~ s/\+//g;
+				my $dsrcname = $package{$dep}->{src};
+					if ($dsrcname eq $sname) {
+						$rdeps{$name} = 1;
+					}
+				}
+			}
+		}
+	}
+	return %rdeps;
+}
+
+# Create 'source package' configuration which are are depended on
+# by all packages in the source package when building the SDK,
+# to ensure that no package becomes unbuildable (due to logic
+# prevent reconfiguring already built packages so that packages
+# built by SDK don't conflict with packages in core).
+sub print_source_package_config() {
+	my %skip_src = ();
+	my %force_deps = ();
+
+	# In order avoid recursive dependency errors, allow to omit
+	# certain dependencies.
+	foreach my $skip_source (@skip_source_depends) {
+		$skip_source =~ /(.+)/;
+		$skip_src{$1} = 1;
+	}
+
+	foreach my $force_dep (@force_source_depends) {
+		$force_dep =~ /(.+)=(.+)/;
+		$force_deps{$1} = ();
+		foreach my $fsdep (split(/,/, $2)) {
+			${$force_deps{$1}}{$fsdep} = 1;
+		}
+	}
+
+	foreach my $sname (sort {uc($a) cmp uc($b)} keys %srcpackage) {
+		next if ($skip_src{$sname} and not ${$force_deps{$sname}}{'y'});
+		if ($sname eq 'toolchain') {
+			print <<EOF;
+config SOURCE_toolchain
+	bool
+	depends on SDK
+	default y
+
+EOF
+		} else {
+			# We find the packages on which depend on each source
+			# package and have the source package depend on those
+			# packages, so that the packages from source package will be
+			# default m (unless there are higher priority defaults)
+			# if the source package is selected by a package that
+			# depends on it.
+			my %rdeps = ();
+
+			# if we exclude the normal dependencies for source package
+			if ($skip_src{$sname}) {
+
+				# we can force the source package to be selected
+				if (${$force_deps{$sname}}{"y"}) {
+					print  <<EOF;
+config SOURCE_$sname
+	bool
+	depends on SDK
+	default y
+
+EOF
+				}
+			# normal dependencies plus added forced dependencies
+			} else {
+				%rdeps = find_reverse_deps($sname);
+
+				if ($force_deps{$sname}) {
+					foreach my $force_dep (keys $force_deps{$sname}) {
+						next if ($force_dep eq "y");
+						$rdeps{$force_dep} = 1;
+					}
+				}
+				print  <<EOF;
+config SOURCE_$sname
+	bool
+	depends on SDK
+EOF
+				foreach my $dep (keys %rdeps) {
+					next if not $dep;
+					print <<EOF;
+	default y if PACKAGE_$dep
+EOF
+				}
+				print <<EOF;
+	default n
+
+EOF
+			}
+		}
+	}
 }
 
 sub print_package_features() {
@@ -668,6 +780,10 @@ EOF
 		print_package_config_category $cat;
 	}
 	print_package_overrides();
+
+	if (not $nosource) {
+		print_source_package_config();
+	}
 }
 
 sub get_conditional_dep($$) {
@@ -920,7 +1036,7 @@ sub gen_profile_mk() {
 }
 
 sub parse_command() {
-	GetOptions("ignore=s", \@ignore);
+	GetOptions("ignore=s", \@ignore, "skipsrcdep=s", \@skip_source_depends, "forcesrcdep=s", \@force_source_depends, "nosource", \$nosource);
 	my $cmd = shift @ARGV;
 	for ($cmd) {
 		/^target_config$/ and return gen_target_config();
@@ -949,6 +1065,9 @@ Available Commands:
 
 Options:
 	--ignore <name>				Ignore the source package <name>
+	--skipsrcedep <name>			Skip source package <name> unless forcesrcdep <name>=y
+	--forcesrcdep <name>=<dep[,dep]...>	Default m source package <name> if <dep> is selected
+	--nosource				Don't generate source package definitions
 EOF
 }
 

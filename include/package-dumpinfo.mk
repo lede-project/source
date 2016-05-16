@@ -27,8 +27,8 @@ $(info Package: $(1)
 $(if $(MENU),Menu: $(MENU)
 )$(if $(SUBMENU),Submenu: $(SUBMENU)
 )$(if $(SUBMENUDEP),Submenu-Depends: $(SUBMENUDEP)
-)$(if $(DEFAULT),Default: $(DEFAULT)
-)$(if $(findstring $(PREREQ_CHECK),1),Prereq-Check: 1
+)$(if $(DEFAULT),Default: $(DEFAULT))$(if $(SDK),,$(if $(DEFAULT),$(comma),Default: )m if SOURCE_$(SRC_PKG_NAME))
+$(if $(findstring $(PREREQ_CHECK),1),Prereq-Check: 1
 )Version: $(VERSION)
 Depends: $(call PKG_FIXUP_DEPENDS,$(1),$(DEPENDS))
 Conflicts: $(CONFLICTS)

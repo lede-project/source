@@ -68,11 +68,18 @@ ULIMIT_FIX=_limit=`ulimit -n`; [ "$$_limit" = "unlimited" -o "$$_limit" -ge 1024
 
 prepare-mk: FORCE ;
 
+ifndef SDK
+SKIP_SOURCE_DEPS = iptables $(notdir $(wildcard $(TOPDIR)/package/kernel/*)) $(notdir $(wildcard $(TOPDIR)/feeds/*/kernel/*))
+FORCE_SOURCE_DEPS = iwinfo=wpad,wpad-mini,nas ppp=y iptables=y
+endif
+
 ifdef SDK
   include $(TOPDIR)/ignore-packages.mk
 endif
 
 _ignore = $(foreach p,$(IGNORE_PACKAGES),--ignore $(p))
+_skipsourcedeps = $(foreach p,$(SKIP_SOURCE_DEPS),--skipsrcdep "$(p)")
+_forcesourcedeps = $(foreach p,$(FORCE_SOURCE_DEPS),--forcesrcdep "$(p)")
 
 prepare-tmpinfo: FORCE
 	@+$(MAKE) -r -s staging_dir/host/.prereq-build $(PREP_MK)
@@ -81,7 +88,8 @@ prepare-tmpinfo: FORCE
 	$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f include/scan.mk SCAN_TARGET="targetinfo" SCAN_DIR="target/linux" SCAN_NAME="target" SCAN_DEPS="image/Makefile profiles/*.mk $(TOPDIR)/include/kernel*.mk $(TOPDIR)/include/target.mk" SCAN_DEPTH=2 SCAN_EXTRA="" SCAN_MAKEOPTS="TARGET_BUILD=1"
 	for type in package target; do \
 		f=tmp/.$${type}info; t=tmp/.config-$${type}.in; \
-		[ "$$t" -nt "$$f" ] || ./scripts/metadata.pl $(_ignore) $${type}_config "$$f" > "$$t" || { rm -f "$$t"; echo "Failed to build $$t"; false; break; }; \
+		if [ "$${type}" = "package" ]; then echo "Generating package KConfig - this could take a long time."; fi; \
+		[ "$$t" -nt "$$f" ] || ./scripts/metadata.pl $(_ignore) $(_skipsourcedeps) $(_forcesourcedeps) $(if $(SDK),--nosource) $${type}_config "$$f" > "$$t" || { rm -f "$$t"; echo "Failed to build $$t"; false; break; }; \
 	done
 	[ tmp/.config-feeds.in -nt tmp/.packagesubdirs ] || ./scripts/feeds feed_config > tmp/.config-feeds.in
 	./scripts/metadata.pl package_mk tmp/.packageinfo > tmp/.packagedeps || { rm -f tmp/.packagedeps; false; }

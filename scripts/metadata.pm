@@ -2,7 +2,7 @@ package metadata;
 use base 'Exporter';
 use strict;
 use warnings;
-our @EXPORT = qw(%package %srcpackage %category %subdir %preconfig %features %overrides clear_packages parse_package_metadata parse_target_metadata get_multiline @ignore);
+our @EXPORT = qw(%package %srcpackage %category %subdir %preconfig %features %overrides clear_packages parse_package_metadata parse_target_metadata get_multiline @ignore @skip_source_depends @force_source_depends $nosource);
 
 our %package;
 our %preconfig;
@@ -12,6 +12,9 @@ our %subdir;
 our %features;
 our %overrides;
 our @ignore;
+our @skip_source_depends;
+our @force_source_depends;
+our $nosource;
 
 sub get_multiline {
 	my $fh = shift;
