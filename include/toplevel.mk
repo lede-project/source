@@ -69,7 +69,7 @@ ULIMIT_FIX=_limit=`ulimit -n`; [ "$$_limit" = "unlimited" -o "$$_limit" -ge 1024
 prepare-mk: FORCE ;
 
 ifdef SDK
-  IGNORE_PACKAGES = linux
+  include $(TOPDIR)/ignore-packages.mk
 endif
 
 _ignore = $(foreach p,$(IGNORE_PACKAGES),--ignore $(p))

@@ -108,6 +108,8 @@ $(BIN_DIR)/$(SDK_NAME).tar.bz2: clean
 		$(TOPDIR)/package/Makefile \
 		$(SDK_BUILD_DIR)/package/
 
+	# Used to prevent altering compile options for already build packages
+	(echo -n "IGNORE_PACKAGES = "; cd $(STAGING_DIR)/pkgstamp-current && ls -A |tr $$'\n' ' ') >>$(SDK_BUILD_DIR)/ignore-packages.mk
 	-rm -f $(SDK_BUILD_DIR)/feeds.conf.default
 	$(if $(BASE_FEED),echo "$(BASE_FEED)" > $(SDK_BUILD_DIR)/feeds.conf.default)
 	if [ -f $(TOPDIR)/feeds.conf ]; then \
