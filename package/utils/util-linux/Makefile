@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
 PKG_VERSION:=2.28
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.28
@@ -178,6 +178,8 @@ define Package/blkid/description
  library.
 endef
 
+$(eval $(call Package/BusyBoxReplacement/Default,blkid,/sbin,../bin,blkid,,$(PKG_BUILD_DIR)/.libs/blkid))
+
 define Package/cal
 $(call Package/util-linux/Default)
   TITLE:=display a calendar
@@ -187,6 +189,8 @@ endef
 define Package/cal/description
  cal displays a simple calendar
 endef
+
+$(eval $(call Package/BusyBoxReplacement/Default,cal,/usr/bin,../../bin,cal,,$(PKG_BUILD_DIR)/cal))
 
 define Package/cfdisk
 $(call Package/util-linux/Default)
@@ -205,6 +209,8 @@ $(call Package/util-linux/Default)
   DEPENDS:= +librt
 endef
 
+$(eval $(call Package/BusyBoxReplacement/Default,dmesg,/bin,,dmesg,,$(PKG_BUILD_DIR)/dmesg))
+
 define Package/dmesg/description
  dmesg  is used to examine or control the kernel ring buffer
 endef
@@ -220,6 +226,8 @@ define Package/fdisk/description
  a menu-driven program for creation and manipulation of partition tables
 endef
 
+$(eval $(call Package/BusyBoxReplacement/Default,fdisk,/sbin,../bin,fdisk,,$(PKG_BUILD_DIR)/.libs/fdisk))
+
 define Package/findfs
 $(call Package/util-linux/Default)
   TITLE:=find a filesystem by label or UUID
@@ -232,6 +240,8 @@ define Package/findfs/description
  a label matching label or a UUID equal to uuid
 endef
 
+$(eval $(call Package/BusyBoxReplacement/Default,findfs,/sbin,../bin,findfs,,$(PKG_BUILD_DIR)/.libs/findfs))
+
 define Package/flock
 $(call Package/util-linux/Default)
   TITLE:=manage locks from shell scripts
@@ -240,6 +250,8 @@ endef
 define Package/flock/description
   manages flock locks from within shell scripts or the command line
 endef
+
+$(eval $(call Package/BusyBoxReplacement/Default,flock,/usr/bin,../../bin,flock,,$(PKG_BUILD_DIR)/flock))
 
 define Package/getopt
 $(call Package/util-linux/Default)
@@ -251,6 +263,8 @@ define Package/getopt/description
  by shell procedures, and to check for legal options
 endef
 
+$(eval $(call Package/BusyBoxReplacement/Default,getopt,/bin,,getopt,,$(PKG_BUILD_DIR)/getopt))
+
 define Package/hwclock
 $(call Package/util-linux/Default)
   TITLE:=query or set the hardware clock
@@ -259,6 +273,8 @@ endef
 define Package/hwclock/description
  hwclock is a tool for accessing the Hardware Clock
 endef
+
+$(eval $(call Package/BusyBoxReplacement/Default,hwclock,/sbin,../bin,hwclock,,$(PKG_BUILD_DIR)/hwclock))
 
 define Package/logger
 $(call Package/util-linux/Default)
@@ -269,6 +285,8 @@ define Package/logger/description
  logger makes entries in the system log, it provides a shell command interface
  to the syslog system log module
 endef
+
+$(eval $(call Package/BusyBoxReplacement/Default,logger,/usr/bin,../../bin,logger,,$(PKG_BUILD_DIR)/logger))
 
 define Package/look
 $(call Package/util-linux/Default)
@@ -289,6 +307,8 @@ define Package/losetup/description
  losetup is used to associate loop devices with regular files or block devices,
  to detach loop devices and to query the status of a loop device
 endef
+
+$(eval $(call Package/BusyBoxReplacement/Default,losetup,/sbin,../bin,losetup,,$(PKG_BUILD_DIR)/.libs/losetup))
 
 define Package/lsblk
 $(call Package/util-linux/Default)
@@ -320,6 +340,10 @@ endef
 define Package/mount-utils/description
  contains: mount, umount, findmnt
 endef
+
+$(eval $(call Package/BusyBoxReplacement/Default,mount-utils,/bin,,mount,\
+/bin/busybox umount -h 2>&1 | grep -q BusyBox && ln -sf busybox /bin/umount \
+,$(PKG_BUILD_DIR)/.libs/mount,$(INSTALL_BIN) $(PKG_BUILD_DIR)/.libs/umount $$(1)/bin/umount))
 
 define Package/namei
 $(call Package/util-linux/Default)
@@ -373,6 +397,10 @@ define Package/script-utils/description
  contains: script, scriptreplay
 endef
 
+$(eval $(call Package/BusyBoxReplacement/Default,script-utils,/usr/bin,../../bin,script,\
+/bin/busybox scriptreplay -h 2>&1 | grep -q BusyBox && ln -sf ../../busybox /usr/bin/scriptreplay,\
+$(PKG_BUILD_DIR)/script,$(INSTALL_BIN) $(PKG_BUILD_DIR)/scriptreplay $$(1)/usr/bin/scriptreplay))
+
 define Package/setterm
 $(call Package/util-linux/Default)
   TITLE:=set terminal attributes
@@ -406,6 +434,10 @@ endef
 define Package/swap-utils/description
  contains: mkswap, swaplabel
 endef
+
+$(eval $(call Package/BusyBoxReplacement/Default,swap-utils,/sbin,../bin,mkswap,\
+/bin/busybox swaplabel -h 2>&1 | grep -q BusyBox && ln -sf ../bin/busybox /sbin/swaplabel || rm -f /sbin/swaplabel,\
+$(PKG_BUILD_DIR)/.libs/mkswap,$(INSTALL_BIN) $(PKG_BUILD_DIR)/.libs/swaplabel $$(1)/sbin/swaplabel))
 
 define Package/uuidd
 $(call Package/util-linux/Default)
@@ -443,6 +475,8 @@ define Package/wall/description
  wall sends a message to everybody logged in with their mesg permission
  set to yes
 endef
+
+$(eval $(call Package/BusyBoxReplacement/Default,wall,/usr/bin,../../bin,wall,,$(PKG_BUILD_DIR)/wall))
 
 define Package/whereis
 $(call Package/util-linux/Default)
@@ -502,13 +536,11 @@ define Package/blkdiscard/install
 endef
 
 define Package/blkid/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/.libs/blkid $(1)/usr/sbin/
+	$(call Package/blkid/install-location,$(1))
 endef
 
 define Package/cal/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/cal $(1)/usr/bin/
+	$(call Package/cal/install-location,$(1))
 endef
 
 define Package/cfdisk/install
@@ -517,38 +549,31 @@ define Package/cfdisk/install
 endef
 
 define Package/dmesg/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/dmesg $(1)/usr/sbin/
+	$(call Package/dmesg/install-location,$(1))
 endef
 
 define Package/fdisk/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/.libs/fdisk $(1)/usr/sbin/
+	$(call Package/fdisk/install-location,$(1))
 endef
 
 define Package/findfs/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/.libs/findfs $(1)/usr/sbin/
+	$(call Package/findfs/install-location,$(1))
 endef
 
 define Package/flock/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/flock $(1)/usr/bin/
+	$(call Package/flock/install-location,$(1))
 endef
 
 define Package/getopt/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/getopt $(1)/usr/bin/
+	$(call Package/getopt/install-location,$(1))
 endef
 
 define Package/hwclock/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/hwclock $(1)/usr/sbin/
+	$(call Package/hwclock/install-location,$(1))
 endef
 
 define Package/logger/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/logger $(1)/usr/bin/
+	$(call Package/logger/install-location,$(1))
 endef
 
 define Package/look/install
@@ -557,8 +582,7 @@ define Package/look/install
 endef
 
 define Package/losetup/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/.libs/losetup $(1)/usr/sbin/
+	$(call Package/losetup/install-location,$(1))
 endef
 
 define Package/lsblk/install
@@ -573,7 +597,7 @@ endef
 
 define Package/mount-utils/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/.libs/{u,}mount $(1)/usr/bin/
+	$(call Package/mount-utils/install-location,$(1))
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/.libs/mountpoint $(1)/usr/bin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/.libs/findmnt $(1)/usr/bin/
 endef
@@ -601,9 +625,7 @@ define Package/partx-utils/install
 endef
 
 define Package/script-utils/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/script $(1)/usr/bin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/scriptreplay $(1)/usr/bin/
+	$(call Package/script-utils/install-location,$(1))
 endef
 
 define Package/setterm/install
@@ -617,9 +639,7 @@ define Package/sfdisk/install
 endef
 
 define Package/swap-utils/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/.libs/mkswap $(1)/usr/sbin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/.libs/swaplabel $(1)/usr/sbin/
+	$(call Package/swap-utils/install-location,$(1))
 endef
 
 define Package/uuidd/install
@@ -633,8 +653,7 @@ define Package/uuidgen/install
 endef
 
 define Package/wall/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/wall $(1)/usr/bin/
+	$(call Package/wall/install-location,$(1))
 endef
 
 define Package/whereis/install
