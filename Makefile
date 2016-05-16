@@ -42,8 +42,9 @@ else
 $(toolchain/stamp-install): $(tools/stamp-install)
 $(target/stamp-compile): $(toolchain/stamp-install) $(tools/stamp-install) $(BUILD_DIR)/.prepared
 $(package/stamp-compile): $(target/stamp-compile) $(package/stamp-cleanup)
-$(package/stamp-install): $(package/stamp-compile)
-$(target/stamp-install): $(package/stamp-compile) $(package/stamp-install)
+$(package/stamp-markforsdk): $(package/stamp-compile)
+$(package/stamp-install): $(package/stamp-compile) $(package/stamp-markforsdk)
+$(target/stamp-install): $(package/stamp-compile) $(package/stamp-markforsdk) $(package/stamp-install)
 
 printdb:
 	@true

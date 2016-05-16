@@ -9,7 +9,7 @@ ifeq ($(MAKECMDGOALS),prereq)
   SUBTARGETS:=prereq
   PREREQ_ONLY:=1
 else
-  SUBTARGETS:=clean download prepare compile install update refresh prereq dist distcheck configure
+  SUBTARGETS:=clean download prepare compile markforsdk install update refresh prereq dist distcheck configure
 endif
 
 subtarget-default = $(filter-out ., \
@@ -41,6 +41,7 @@ log_make = \
 	$$(SUBMAKE) -r -C $(1) $(if $(3),$(3)-)$(2) \
 		BUILD_SUBDIR="$(1)" \
 		BUILD_VARIANT="$(4)" \
+		SRC_PKG_NAME="$(notdir $(1))" \
 		$(if $(BUILD_LOG),SILENT= 2>&1 | tee $(BUILD_LOG_DIR)/$(1)$(if $(4),/$(4))/$(if $(3),$(3)-)$(2).txt)
 
 # Parameters: <subdir>

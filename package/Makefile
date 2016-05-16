@@ -25,6 +25,7 @@ ifneq ($(IGNORE_ERRORS),)
   $(curdir)/builddirs-ignore-compile := $(package-ignore-subdirs)
   $(curdir)/builddirs-ignore-host-download := $(package-ignore-subdirs)
   $(curdir)/builddirs-ignore-host-compile := $(package-ignore-subdirs)
+  $(curdir)/builddirs-ignore-markforsdk := $(foreach m,$(package-ignore-errors),$(package-$(m)-filter))
 endif
 
 ifdef CONFIG_USE_MKLIBS
@@ -179,9 +180,16 @@ $(curdir)/preconfig:
 
 $(curdir)/flags-install:= -j1
 
+# If rebuilding all packages, clean out the record (for sdk) of built packages so
+# that it is guaranteed to not include packages which were built at some point, but
+# which are no longer part of the build.
+package/compile:
+	rm -f $(STAGING_DIR)/pkgstamp-current/*
+
 $(eval $(call stampfile,$(curdir),package,prereq,.config))
 $(eval $(call stampfile,$(curdir),package,cleanup,$(TMP_DIR)/.build))
 $(eval $(call stampfile,$(curdir),package,compile,$(TMP_DIR)/.build))
+$(eval $(call stampfile,$(curdir),package,markforsdk,$(TMP_DIR)/.build))
 $(eval $(call stampfile,$(curdir),package,install,$(TMP_DIR)/.build))
 
 $(eval $(call subdir,$(curdir)))
