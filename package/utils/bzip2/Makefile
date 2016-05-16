@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=bzip2
 PKG_VERSION:=1.0.6
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.bzip.org/$(PKG_VERSION)
@@ -53,6 +53,15 @@ define Package/bzip2/description
 	data compressor. This package provides the binary.
 endef
 
+define Package/bzip2/postrm
+#!/bin/sh
+  #!/bin/sh
+  /bin/busybox bzip2 -h 2>&1 | grep -q BusyBox && ln -sf ../../bin/busybox /usr/bin/bzip2 || rm -f /usr/bin/bzip2
+  /bin/busybox bunzip2 -h 2>&1 | grep -q BusyBox && ln -sf ../../bin/busybox /usr/bin/bunzip2 || rm -f /usr/bin/bunzip2
+  /bin/busybox bzcat -h 2>&1 | grep -q BusyBox && ln -sf ../../bin/busybox /usr/bin/bzcat || rm -f /usr/bin/bzcat
+exit 0
+endef
+
 TARGET_CFLAGS += \
 	$(FPIC) \
 	$(TARGET_LDFLAGS)
@@ -82,6 +91,8 @@ endef
 define Package/bzip2/install
 	$(INSTALL_DIR) $(1)/usr/bin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/bzip2-shared $(1)/usr/bin/bzip2
+	ln -sf bzip2 $(1)/usr/bin/bunzip2
+	ln -sf bzip2 $(1)/usr/bin/bzcat
 endef
 
 HOST_CFLAGS += \
