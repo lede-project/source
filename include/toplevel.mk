@@ -166,10 +166,10 @@ printdb: FORCE
 	@$(_SINGLE)$(NO_TRACE_MAKE) -p $@ V=99 DUMP_TARGET_DB=1 2>&1
 
 download: .config FORCE
-	@+$(SUBMAKE) tools/download
-	@+$(SUBMAKE) toolchain/download
+	@+$(if $(SDK),,$(SUBMAKE) tools/download)
+	@+$(if $(SDK),,$(SUBMAKE) toolchain/download)
 	@+$(SUBMAKE) package/download
-	@+$(SUBMAKE) target/download
+	@+$(if $(SDK),,$(SUBMAKE) target/download)
 
 clean dirclean: .config
 	@+$(SUBMAKE) -r $@
