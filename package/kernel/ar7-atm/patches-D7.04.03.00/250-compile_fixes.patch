@@ -1,0 +1,236 @@
+--- a/tn7atm.c
++++ b/tn7atm.c
+@@ -788,7 +788,7 @@
+    * Register SAR interrupt
+    */
+   priv->sar_irq = LNXINTNUM (ATM_SAR_INT);      /* Interrupt line # */
+-  if (request_irq (priv->sar_irq, tn7atm_sar_irq, IRQF_DISABLED, "SAR ", dev))
++  if (request_irq (priv->sar_irq, tn7atm_sar_irq, 0, "SAR ", dev))
+     printk ("Could not register tn7atm_sar_irq\n");
+ 
+   /*
+@@ -806,7 +806,7 @@
+    * Reigster Receive interrupt A
+    */
+   priv->dsl_irq = LNXINTNUM (ATM_DSL_INT);      /* Interrupt line # */
+-  if (request_irq (priv->dsl_irq, tn7atm_dsl_irq, IRQF_DISABLED, "DSL ", dev))
++  if (request_irq (priv->dsl_irq, tn7atm_dsl_irq, 0, "DSL ", dev))
+     printk ("Could not register tn7atm_dsl_irq\n");
+ 
+ /***** VRB Tasklet Mode ****/
+@@ -1160,7 +1160,7 @@
+   Tn7AtmPrivate *priv;
+   int dmachan;
+   spinlock_t closeLock;
+-  unsigned int closeFlag;
++  unsigned long closeFlag;
+   int rc;
+ 
+   priv = (Tn7AtmPrivate *) vcc->dev->dev_data;
+--- a/tn7sar.c
++++ b/tn7sar.c
+@@ -1214,7 +1214,7 @@
+   HAL_FUNCTIONS *pHalFunc;
+   HAL_DEVICE    *pHalDev;
+   int rc;
+-  int flags;
++  unsigned long flags;
+ 
+   //dgprintf(4, "tn7sar_deactivate_vc\n");
+   //printk("tn7sar_deactivate_vc entered\n");
+@@ -1467,7 +1467,7 @@
+ {
+   struct atm_dev *dev;
+   Tn7AtmPrivate *priv;
+-  int i, j, k;
++  int i, j;
+   int stat_len;
+   char statString[32];
+   unsigned int *pStateBase, *pSarStat;
+@@ -1486,7 +1486,6 @@
+     if(priv->lut[i].inuse)
+     {
+       seq_printf(m, "\nChannel %d:\n",priv->lut[i].chanid);
+-      k=0;
+       for(j=0;j<4;j++)
+       {
+         stat_len =sprintf(statString, "Stats;%d;%d", j,priv->lut[i].chanid);
+@@ -1499,16 +1498,11 @@
+           if((char *)*pSarStat == NULL)
+             break;
+ 
+-          k += seq_printf(m, "%s: ",(char *) *pSarStat);
++          seq_printf(m, "%s: ",(char *) *pSarStat);
+           pSarStat++;
+-          k += seq_printf(m, "%s;  \n",(char *) *pSarStat);
++          seq_printf(m, "%s;  \n",(char *) *pSarStat);
+           pSarStat++;
+ 
+-          if(k > 60)
+-          {
+-            k=0;
+-            seq_printf(m, "\n");
+-          }
+         }
+ 
+         kfree(pStateBase);
+--- a/cpswhal_cpaal5.h
++++ b/cpswhal_cpaal5.h
+@@ -430,10 +430,10 @@
+   int   (*DeviceFindInfo)(int Inst, const char *DeviceName, void *DeviceInfo);
+   int   (*DeviceFindParmUint)(void *DeviceInfo, const char *Parm, bit32u *Value);
+   int   (*DeviceFindParmValue)(void *DeviceInfo, const char *Parm, void *Value);
+-  void  (*Free)(void *MemPtr);
++  void  (*Free)(const void *MemPtr);
+   void  (*FreeRxBuffer)(OS_RECEIVEINFO *OsReceiveInfo, void *MemPtr);
+-  void  (*FreeDev)(void *MemPtr);
+-  void  (*FreeDmaXfer)(void *MemPtr);
++  void  (*FreeDev)(const void *MemPtr);
++  void  (*FreeDmaXfer)(const void *MemPtr);
+   void  (*IsrRegister)(OS_DEVICE *OsDev, int (*halISR)(HAL_DEVICE*, int*), int InterruptBit);
+   void  (*IsrUnRegister)(OS_DEVICE *OsDev, int InterruptBit);
+   void* (*Malloc)(bit32u size);
+--- a/cpswhal_cpsar.h
++++ b/cpswhal_cpsar.h
+@@ -430,10 +430,10 @@
+   int   (*DeviceFindInfo)(int Inst, const char *DeviceName, void *DeviceInfo);
+   int   (*DeviceFindParmUint)(void *DeviceInfo, const char *Parm, bit32u *Value);
+   int   (*DeviceFindParmValue)(void *DeviceInfo, const char *Parm, void *Value);
+-  void  (*Free)(void *MemPtr);
++  void  (*Free)(const void *MemPtr);
+   void  (*FreeRxBuffer)(OS_RECEIVEINFO *OsReceiveInfo, void *MemPtr);
+-  void  (*FreeDev)(void *MemPtr);
+-  void  (*FreeDmaXfer)(void *MemPtr);
++  void  (*FreeDev)(const void *MemPtr);
++  void  (*FreeDmaXfer)(const void *MemPtr);
+   void  (*IsrRegister)(OS_DEVICE *OsDev, int (*halISR)(HAL_DEVICE*, int*), int InterruptBit);
+   void  (*IsrUnRegister)(OS_DEVICE *OsDev, int InterruptBit);
+   void* (*Malloc)(bit32u size);
+--- a/tn7dsl.c
++++ b/tn7dsl.c
+@@ -637,7 +637,7 @@
+   return jiffies;
+ }
+ 
+-int flags;
++unsigned long flags;
+ spinlock_t shimLock;
+ 
+ void shim_osCriticalEnter(void)
+--- a/dsl_hal_support.c
++++ b/dsl_hal_support.c
+@@ -1665,7 +1665,7 @@
+   unsigned char * image;
+   char *tmp = (char *)DEV_HOST_DSP_OAM_POINTER_LOCATION;
+   DEV_HOST_dspVersionDef_t        dspVersion;
+-#if SWTC
++#ifdef SWTC
+   DEV_HOST_tcHostCommDef_t        TCHostCommDef;
+ #endif
+   DEV_HOST_oamWrNegoParaDef_t     OamWrNegoParaDef;
+@@ -1675,7 +1675,7 @@
+ #ifndef NO_ACT
+   DEV_HOST_consBufDef_t           constDisp;
+ #endif
+-#if CO_PROFILES
++#ifdef CO_PROFILES
+   DEV_HOST_coData_t               coData;
+ #endif
+   DEV_HOST_olayDpPageDef_t        olayDpPageDef[32];
+@@ -2152,7 +2152,7 @@
+     }
+ 
+   /* table_dsp info */
+-#if SWTC
++#ifdef SWTC
+   dspOamSharedInterface.tcHostComm_p = (DEV_HOST_tcHostCommDef_t *)dslhal_support_byteSwap32((unsigned int)dspOamSharedInterface.tcHostComm_p);
+   rc = dslhal_support_blockRead(&pdspOamSharedInterface->tcHostComm_p,
+                                     &pTCHostCommDef, 4);
+@@ -2252,7 +2252,7 @@
+   }
+ 
+   /* Co Profile Test */
+-#if CO_PROFILES
++#ifdef CO_PROFILES
+   dspOamSharedInterface.profileList_p = (DEV_HOST_profileBase_t *)dslhal_support_byteSwap32((unsigned int)dspOamSharedInterface.profileList_p);
+   /* Access the profileList Structure */
+   rc = dslhal_support_blockRead((PVOID)dspOamSharedInterface.profileList_p,&profileList, sizeof(DEV_HOST_profileBase_t));
+--- a/dsl_hal_api.c
++++ b/dsl_hal_api.c
+@@ -958,7 +958,7 @@
+ 
+   /*char *tmp;*/
+   DEV_HOST_dspOamSharedInterface_t *pdspOamSharedInterface, dspOamSharedInterface;
+-#if SWTC
++#ifdef SWTC
+   DEV_HOST_tcHostCommDef_t          TCHostCommDef;
+ #endif
+ 
+@@ -971,7 +971,7 @@
+     dgprintf(1,"dslhal_support_blockRead failed\n");
+     return DSLHAL_ERROR_BLOCK_READ;
+   }
+-#if SWTC
++#ifdef SWTC
+   dspOamSharedInterface.tcHostComm_p =(DEV_HOST_tcHostCommDef_t *) dslhal_support_byteSwap32((unsigned int)dspOamSharedInterface.tcHostComm_p);
+ 
+   rc = dslhal_support_blockRead((PVOID)dspOamSharedInterface.tcHostComm_p,
+@@ -1025,7 +1025,7 @@
+ 
+   /*char *tmp;*/
+   DEV_HOST_dspOamSharedInterface_t *pdspOamSharedInterface, dspOamSharedInterface;
+-#if SWTC
++#ifdef SWTC
+   DEV_HOST_tcHostCommDef_t          TCHostCommDef;
+ #endif
+   dgprintf(6,"dslhal_api_handleTrainingInterrupt\n");
+@@ -1037,7 +1037,7 @@
+     dgprintf(1,"dslhal_support_blockRead failed\n");
+     return DSLHAL_ERROR_BLOCK_READ;
+   }
+-#if SWTC
++#ifdef SWTC
+   dspOamSharedInterface.tcHostComm_p =(DEV_HOST_tcHostCommDef_t *) dslhal_support_byteSwap32((unsigned int)dspOamSharedInterface.tcHostComm_p);
+ 
+   rc = dslhal_support_blockRead((PVOID)dspOamSharedInterface.tcHostComm_p,
+@@ -1705,12 +1705,12 @@
+       /* Get ATM Stats for both US and DS for Channel 0*/
+       ptidsl->AppData.usAtm_count[0]     = dslhal_support_byteSwap32(usAtmStats0.goodCount);
+       ptidsl->AppData.usIdle_count[0]    = dslhal_support_byteSwap32(usAtmStats0.idleCount);
+-#if SWTC
++#ifdef SWTC
+       ptidsl->AppData.usPdu_count[0]     = dslhal_support_byteSwap32(usAtmStats0.pduCount);
+ #endif
+       ptidsl->AppData.dsGood_count[0]    = dslhal_support_byteSwap32(dsAtmStats0.goodCount);
+       ptidsl->AppData.dsIdle_count[0]    = dslhal_support_byteSwap32(dsAtmStats0.idleCount);
+-#if SWTC
++#ifdef SWTC
+       ptidsl->AppData.dsPdu_count[0]     = dslhal_support_byteSwap32(dsAtmStats0.pduCount);
+ #endif
+       ptidsl->AppData.dsBadHec_count[0]  = dslhal_support_byteSwap32((dsAtmStats0.badHecCount));
+@@ -1718,12 +1718,12 @@
+       /* Get ATM Stats for both US and DS for Channel 1*/
+       ptidsl->AppData.usAtm_count[1]     = dslhal_support_byteSwap32(usAtmStats1.goodCount);
+       ptidsl->AppData.usIdle_count[1]    = dslhal_support_byteSwap32(usAtmStats1.idleCount);
+-#if SWTC
++#ifdef SWTC
+       ptidsl->AppData.usPdu_count[1]     = dslhal_support_byteSwap32(usAtmStats1.pduCount);
+ #endif
+       ptidsl->AppData.dsGood_count[1]    = dslhal_support_byteSwap32(dsAtmStats1.goodCount);
+       ptidsl->AppData.dsIdle_count[1]    = dslhal_support_byteSwap32(dsAtmStats1.idleCount);
+-#if SWTC
++#ifdef SWTC
+       ptidsl->AppData.dsPdu_count[1]     = dslhal_support_byteSwap32(dsAtmStats1.pduCount);
+ #endif
+       ptidsl->AppData.dsBadHec_count[1]  = dslhal_support_byteSwap32((dsAtmStats1.badHecCount));
+--- a/dev_host_interface.h
++++ b/dev_host_interface.h
+@@ -1288,7 +1288,7 @@
+ 
+   SINT16 devCodecRxdf4Coeff[12] ;             // (BOTH) IIR Coefficients
+   SINT16 devCodecTxdf2aCoeff[64] ;            // (BOTH) FIR filter coefficients
+-#if OHIO_SUPPORT
++#ifdef OHIO_SUPPORT
+   SINT16 devCodecTxdf2bCoeff[84] ;            // (BOTH) FIR filter coefficients
+ #else
+   SINT16 devCodecTxdf2bCoeff[64] ;            // (BOTH) FIR filter coefficients
