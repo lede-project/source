@@ -1,0 +1,14 @@
+--- a/drivers/tty/serial/8250/8250_port.c
++++ b/drivers/tty/serial/8250/8250_port.c
+@@ -3348,7 +3355,11 @@ static void serial8250_console_putchar(s
+ {
+ 	struct uart_8250_port *up = up_to_u8250p(port);
+ 
++#ifdef CONFIG_AR7
++	wait_for_xmitr(up, BOTH_EMPTY);
++#else
+ 	wait_for_xmitr(up, UART_LSR_THRE);
++#endif
+ 	serial_port_out(port, UART_TX, ch);
+ }
+ 
