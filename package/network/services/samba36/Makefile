@@ -79,6 +79,12 @@ define Package/samba36-server/config
 		default n
 		select PACKAGE_SAMBA_ACL_SUPPORT
 
+	config PACKAGE_SAMBA_NETATALK_SUPPORT
+		bool "SAMBA: Enable netatalk interoperability"
+		depends on PACKAGE_samba36-server
+		default y if PACKAGE_netatalk
+		default n
+
 	config PACKAGE_SAMBA_LIBAVAHI_SUPPORT
 		bool "SAMBA: Enable mDNS support"
 		depends on PACKAGE_samba36-server
@@ -169,6 +175,10 @@ MAKEFLAGS += SAMBA_ACL=1
 else
 CONFIGURE_ARGS += \
 	--without-acl-support
+endif
+ifneq ($(CONFIG_PACKAGE_SAMBA_NETATALK_SUPPORT),)
+SAMBA_STATIC_VFS += vfs_netatalk
+MAKEFLAGS += SAMBA_NETATALK
 endif
 ifneq ($(CONFIG_PACKAGE_SAMBA_LIBAVAHI_SUPPORT),)
 CONFIGURE_ARGS += \
