@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=iproute2
 PKG_VERSION:=4.4.0
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=http://kernel.org/pub/linux/utils/net/iproute2/
@@ -37,7 +37,11 @@ $(call Package/iproute2/Default,tiny,Minimal)
   CONFLICTS:=ip-full
 endef
 
+$(eval $(call Package/BusyBoxReplacement/Default,ip,/sbin,../bin,ip,,$(PKG_BUILD_DIR)/ip/ip))
+
 Package/ip-full=$(call Package/iproute2/Default,full,Full)
+
+$(eval $(call Package/BusyBoxReplacement/Default,ip-full,/sbin,../bin,ip,,$(PKG_BUILD_DIR)/ip/ip))
 
 define Package/tc
 $(call Package/iproute2/Default)
@@ -101,14 +105,12 @@ define Build/InstallDev
 	$(CP) $(PKG_BUILD_DIR)/lib/libnetlink.a $(1)/usr/lib/
 endef
 
-define Package/ip/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ip/ip $(1)/usr/bin/
+define Package/ip-tiny/install
+	$(call Package/ip-tiny/install-location,$(1))
 endef
 
 define Package/ip-full/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ip/ip $(1)/usr/sbin/
+	$(call Package/ip-full/install-location,$(1))
 endef
 
 define Package/tc/install
