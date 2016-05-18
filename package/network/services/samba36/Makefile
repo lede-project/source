@@ -33,6 +33,7 @@ PKG_BUILD_BIN:=$(PKG_BUILD_DIR)/$(MAKE_PATH)/bin
 define Package/samba36-server
   SECTION:=net
   CATEGORY:=Network
+  SUBMENU:=Filesystem
   TITLE:=Samba 3.6 SMB/CIFS server
   URL:=http://www.samba.org/
   DEPENDS:=+USE_GLIBC:librt $(ICONV_DEPENDS) +PACKAGE_SAMBA_LIBAVAHI_SUPPORT:libavahi-client
@@ -41,6 +42,7 @@ endef
 define Package/samba36-server-avahi-service
   SECTION:=net
   CATEGORY:=Network
+  SUBMENU:=Filesystem
   TITLE:=Samba 3.6 SMB/CIFS server avahi service files
   DEPENDS:=samba36-server +avahi-daemon
 endef
@@ -48,6 +50,7 @@ endef
 define Package/samba36-client
   SECTION:=net
   CATEGORY:=Network
+  SUBMENU:=Filesystem
   TITLE:=Samba 3.6 SMB/CIFS client
   URL:=http://www.samba.org/
   DEPENDS:=+libreadline +libncurses
