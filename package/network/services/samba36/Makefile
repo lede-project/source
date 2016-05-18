@@ -36,7 +36,7 @@ define Package/samba36-server
   SUBMENU:=Filesystem
   TITLE:=Samba 3.6 SMB/CIFS server
   URL:=http://www.samba.org/
-  DEPENDS:=+USE_GLIBC:librt $(ICONV_DEPENDS) +PACKAGE_SAMBA_LIBAVAHI_SUPPORT:libavahi-client
+  DEPENDS:=+USE_GLIBC:librt $(ICONV_DEPENDS) +PACKAGE_SAMBA_ACL_SUPPORT:libacl +PACKAGE_SAMBA_ATTR_SUPPORT:libattr +PACKAGE_SAMBA_LIBAVAHI_SUPPORT:libavahi-client
 endef
 
 define Package/samba36-server-avahi-service
@@ -66,6 +66,19 @@ define Package/samba36-server/config
 		depends on PACKAGE_samba36-server || PACKAGE_samba36-client
 		default -1
 
+	config PACKAGE_SAMBA_ACL_SUPPORT
+		bool "SAMBA: Enable POSIX ACL support"
+		depends on PACKAGE_samba36-server || PACKAGE_samba36-client
+		select PACKAGE_libacl
+		default n
+
+	config PACKAGE_SAMBA_ATTR_SUPPORT
+		bool "SAMBA: Enable Linux extended attribute support"
+		depends on PACKAGE_samba36-server || PACKAGE_samba36-client
+		select PACKAGE_libattr
+		default n
+		select PACKAGE_SAMBA_ACL_SUPPORT
+
 	config PACKAGE_SAMBA_LIBAVAHI_SUPPORT
 		bool "SAMBA: Enable mDNS support"
 		depends on PACKAGE_samba36-server
@@ -84,8 +97,6 @@ TARGET_CFLAGS += -DMAX_DEBUG_LEVEL=$(CONFIG_PACKAGE_SAMBA_MAX_DEBUG_LEVEL) -D__l
 TARGET_LDFLAGS += -Wl,--gc-sections
 
 CONFIGURE_VARS += \
-	ac_cv_lib_attr_getxattr=no \
-	ac_cv_search_getxattr=no \
 	ac_cv_file__proc_sys_kernel_core_pattern=yes \
 	libreplace_cv_HAVE_C99_VSNPRINTF=yes \
 	libreplace_cv_HAVE_GETADDRINFO=yes \
@@ -105,6 +116,12 @@ CONFIGURE_VARS += \
 	samba_cv_zlib_1_2_3=no \
 	ac_cv_path_PYTHON="" \
 	ac_cv_path_PYTHON_CONFIG=""
+
+ifeq ($(CONFIG_SAMBA_PACKAGE_ATTR_SUPPORT),)
+CONFIGURE_VARS += \
+	ac_cv_lib_attr_getxattr=no \
+	ac_cv_search_getxattr=no
+endif
 
 CONFIGURE_ARGS += \
 	--exec-prefix=/usr \
@@ -126,7 +143,6 @@ CONFIGURE_ARGS += \
 	--with-piddir=/var/run \
 	--with-privatedir=/etc/samba \
 	--with-sendfile-support \
-	--without-acl-support \
 	--without-cluster-support \
 	--without-ads \
 	--without-krb5 \
@@ -140,8 +156,20 @@ CONFIGURE_ARGS += \
 	--without-libsmbsharemodes \
 	--without-libtevent \
 	--without-libaddns \
-	--with-shared-modules=pdb_tdbsam,pdb_wbc_sam,idmap_nss,nss_info_template,auth_winbind,auth_wbc,auth_domain
 
+ifneq ($(CONFIG_PACKAGE_SAMBA_ATTR_SUPPORT),)
+SAMBA_STATIC_VFS += vfs_acl_xattr
+MAKEFLAGS += SAMBA_XATTR=1
+endif
+ifneq ($(CONFIG_PACKAGE_SAMBA_ACL_SUPPORT),)
+SAMBA_STATIC_VFS += vfs_posixacl
+CONFIGURE_ARGS += \
+	--with-acl-support
+MAKEFLAGS += SAMBA_ACL=1
+else
+CONFIGURE_ARGS += \
+	--without-acl-support
+endif
 ifneq ($(CONFIG_PACKAGE_SAMBA_LIBAVAHI_SUPPORT),)
 CONFIGURE_ARGS += \
 	--enable-avahi
@@ -150,6 +178,12 @@ CONFIGURE_ARGS += \
 	--disable-avahi
 endif
 
+ifneq ($(SAMBA_STATIC_VFS),)
+CONFIGURE_ARGS += \
+	--with-static-modules=$(shell echo $(SAMBA_STATIC_VFS)|tr -s ' '|tr ' ' ',')
+else
+	--with-shared-modules=pdb_tdbsam,pdb_wbc_sam,idmap_nss,nss_info_template,auth_winbind,auth_wbc,auth_domain
+endif
 
 MAKE_FLAGS += DYNEXP= PICFLAG= MODULES=
 

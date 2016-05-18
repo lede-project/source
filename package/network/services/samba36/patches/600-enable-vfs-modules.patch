@@ -1,0 +1,13 @@
+Index: samba-3.6.25/source3/Makefile.in
+===================================================================
+--- samba-3.6.25.orig/source3/Makefile.in
++++ samba-3.6.25/source3/Makefile.in
+@@ -1798,7 +1798,7 @@ utils/smbpasswd_multicall.o: utils/owrt_
+ 		echo "$(COMPILE_CC_PATH)" 1>&2;\
+ 		$(COMPILE_CC_PATH) >/dev/null 2>&1
+ 
+-SMBD_MULTI_O = $(patsubst smbd/server.o,smbd/server_multicall.o,$(SMBD_OBJ))
++SMBD_MULTI_O = $(patsubst smbd/server.o,smbd/server_multicall.o,$(SMBD_OBJ)) $(if $(SAMBA_XATTR),$(VFS_ACL_XATTR_OBJ)) $(if $(SAMBA_ACL),$(VFS_POSIXACL_OBJ)) $(if $(SAMBA_NETATALK),$(VFS_NETATALK_OBJ))
+ NMBD_MULTI_O = $(patsubst nmbd/nmbd.o,nmbd/nmbd_multicall.o,$(filter-out $(LIB_DUMMY_OBJ),$(NMBD_OBJ)))
+ SMBPASSWD_MULTI_O = $(patsubst utils/owrt_smbpasswd.o,utils/smbpasswd_multicall.o,$(filter-out $(LIB_DUMMY_OBJ),$(SMBPASSWD_OBJ)))
+ MULTI_O = multi.o
