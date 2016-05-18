@@ -7,7 +7,7 @@
 
 __package_mk:=1
 
-all: $(if $(DUMP),dumpinfo,compile)
+all: $(if $(DUMP),dumpinfo,compile markforsdk)
 
 PKG_BUILD_DIR ?= $(BUILD_DIR)/$(PKG_NAME)$(if $(PKG_VERSION),-$(PKG_VERSION))
 PKG_INSTALL_DIR ?= $(PKG_BUILD_DIR)/ipkg-install
@@ -71,6 +71,11 @@ STAMP_INSTALLED:=$(STAGING_DIR)/stamp/.$(PKG_DIR_NAME)$(if $(BUILD_VARIANT),.$(B
 STAGING_FILES_LIST:=$(PKG_DIR_NAME)$(if $(BUILD_VARIANT),.$(BUILD_VARIANT),).list
 
 define CleanStaging
+	$(if $(PKG_NAME), \
+		rm -f $(STAGING_DIR)/pkgstamp-current/$(PKG_NAME)
+	,\
+		rm -rf $(STAGING_DIR)/pkgstamp-current \
+	)
 	rm -f $(STAMP_INSTALLED)
 	@-(\
 		cd "$(STAGING_DIR)"; \
@@ -219,6 +224,10 @@ define Build/DefaultTargets
 	rm -rf $(TMP_DIR)/stage-$(PKG_DIR_NAME)
 	touch $$@
 
+   markforsdk:
+	mkdir -p $(STAGING_DIR)/pkgstamp-current
+	touch $(STAGING_DIR)/pkgstamp-current/$(SRC_PKG_NAME)
+
   ifdef Build/InstallDev
     compile: $(STAMP_INSTALLED)
   endif
@@ -303,6 +312,7 @@ dumpinfo:
 download:
 prepare:
 configure:
+markforsdk:
 compile: prepare-package-install
 install: compile
 
