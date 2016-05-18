@@ -19,6 +19,12 @@ menu "Global build settings"
 		bool "Select all userspace packages by default"
 		default n
 
+	config PREFER_FULL_VS_BUSYBOX
+		bool "Prefer full versions of commands vs Busybox version"
+		depends on FEED_packages
+		select PACKAGE_prefer-full
+		default y
+
 	config SIGNED_PACKAGES
 		bool "Cryptographically signed package lists"
 		default y
