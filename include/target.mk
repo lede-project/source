@@ -10,14 +10,19 @@ ifneq ($(__target_inc),1)
 __target_inc=1
 
 # default device type
-DEVICE_TYPE?=router
+DEVICE_TYPE?=$(if $(wildcard $(TOPDIR)/.minimal-sdk),minimal_sdk,$(if $(wildcard $(TOPDIR)/.nas),nas,router))
 
-# Default packages - the really basic set
-DEFAULT_PACKAGES:=base-files libc libgcc busybox dropbear mtd uci opkg netifd fstools uclient-fetch logd
+# Default packages - the really basic set - only what's required to build minimal SDK
+# base-files is required for host build of usign to occur
+# busybox doesn't configure properly outside core
+# libc/libgcc are part of toolchain build and hence must be part of core
+DEFAULT_PACKAGES:=libc libgcc base-files busybox
+
+DEFAULT_PACKAGES.device_common:=dropbear mtd uci opkg netifd fstools uclient-fetch logd
 # For nas targets
-DEFAULT_PACKAGES.nas:=block-mount fdisk lsblk mdadm
+DEFAULT_PACKAGES.nas:=block-mount fdisk lsblk mdadm $(DEFAULT_PACKAGES.device_common)
 # For router targets
-DEFAULT_PACKAGES.router:=dnsmasq iptables ip6tables ppp ppp-mod-pppoe firewall odhcpd odhcp6c
+DEFAULT_PACKAGES.router:=dnsmasq iptables ip6tables ppp ppp-mod-pppoe firewall odhcpd odhcp6c $(DEFAULT_PACKAGES.device_common)
 DEFAULT_PACKAGES.bootloader:=
 
 ifneq ($(DUMP),)
@@ -290,6 +295,7 @@ define BuildTargets/DumpCurrent
 	 echo 'Target-Description:'; \
 	 echo "$$$$DESCRIPTION"; \
 	 echo '@@'; \
+	 echo 'Minimal-SDK: $(if $(filter minimal_sdk,$(DEVICE_TYPE)),1,0)'; \
 	 echo 'Default-Packages: $(DEFAULT_PACKAGES) $(call extra_packages,$(DEFAULT_PACKAGES))'; \
 	 $(DUMPINFO)
 	$(if $(CUR_SUBTARGET),$(SUBMAKE) -r --no-print-directory -C image -s DUMP=1 SUBTARGET=$(CUR_SUBTARGET))

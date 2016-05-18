@@ -21,6 +21,19 @@ To build your own firmware you need to have access to a Linux, BSD or MacOSX sys
 (case-sensitive filesystem required). Cygwin will not be supported because of
 the lack of case sensitiveness in the file system.
 
+If you wish to build a minimal sdk or use the nas device type profile, then
+*before* any other commands (or else 'rm -rf .config tmp'), you need to either
+
+touch .minimal-sdk
+
+for selecting the minimal sdk package set (but you still must leave
+SDK selected in menuconfig to actually build a minimal SDK).
+
+or
+
+touch .nas
+
+for selecting the nas package set.
 
 Sunshine!
 	Your LEDE Community

@@ -11,6 +11,7 @@ EOF
 while (<>) {
 	chomp;
 	next if /^CONFIG_SIGNED_PACKAGES/;
+	next if /^CONFIG_SDK_MINIMAL/;
 	next unless /^CONFIG_([^=]+)=(.*)$/;
 
 	my $var = $1;

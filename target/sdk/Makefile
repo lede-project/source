@@ -95,7 +95,7 @@ $(BIN_DIR)/$(SDK_NAME).tar.bz2: clean
 	rm -rf \
 		$(SDK_BUILD_DIR)/target/linux/*/files* \
 		$(SDK_BUILD_DIR)/target/linux/*/patches*
-	./convert-config.pl $(TOPDIR)/.config > $(SDK_BUILD_DIR)/Config-build.in
+	../convert-config.pl $(TOPDIR)/.config > $(SDK_BUILD_DIR)/Config-build.in
 	$(CP) -L \
 		$(TOPDIR)/LICENSE \
 		$(TOPDIR)/rules.mk \
@@ -109,6 +109,7 @@ $(BIN_DIR)/$(SDK_NAME).tar.bz2: clean
 		$(TOPDIR)/package/Makefile \
 		$(SDK_BUILD_DIR)/package/
 
+	$(SED) 's/^SDK_MINIMAL=y/# SDK_MINIMAL is not set/' $(SDK_BUILD_DIR)/.config
 	-rm -f $(SDK_BUILD_DIR)/feeds.conf.default
 	$(if $(BASE_FEED),echo "$(BASE_FEED)" > $(SDK_BUILD_DIR)/feeds.conf.default)
 	if [ -f $(TOPDIR)/feeds.conf ]; then \

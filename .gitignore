@@ -24,3 +24,5 @@ key-build*
 .emacs.desktop*
 TAGS*~
 git-src
+.minimal-sdk
+.nas

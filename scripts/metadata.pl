@@ -372,7 +372,9 @@ EOF
 	print "\tdefault \"\"\n";
 
 	my %kver;
+	my $minimal_sdk = 0;
 	foreach my $target (@target) {
+		$target->{minimal_sdk} and $minimal_sdk = 1;
 		my $v = kver($target->{version});
 		next if $kver{$v};
 		$kver{$v} = 1;
@@ -386,6 +388,16 @@ EOF
 	foreach my $def (sort keys %defaults) {
 		print "\tconfig DEFAULT_".$def."\n";
 		print "\t\tbool\n\n";
+	}
+
+	if ($minimal_sdk) {
+		print <<EOF;
+config SDK_MINIMAL
+	bool
+	default y
+	select SDK
+
+EOF
 	}
 }
 

@@ -29,6 +29,7 @@ define Package/usign
   CATEGORY:=Base system
   DEPENDS:=+libubox
   TITLE:=OpenWrt signature verification utility
+  DEFAULT:=m if SIGNED_PACKAGES
 endef
 
 CMAKE_OPTIONS += \

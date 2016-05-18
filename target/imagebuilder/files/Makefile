@@ -9,8 +9,11 @@
 TOPDIR:=${CURDIR}
 LC_ALL:=C
 LANG:=C
-export TOPDIR LC_ALL LANG
+export TOPDIR LC_ALL LANG IB
 export OPENWRT_VERBOSE=s
+
+IB:=1
+
 all: help
 
 include $(TOPDIR)/include/host.mk
@@ -194,6 +197,31 @@ endif
 		$(if $(FILES),USER_FILES="$(FILES)") \
 		$(if $(PACKAGES),USER_PACKAGES="$(PACKAGES)") \
 		$(if $(BIN_DIR),BIN_DIR="$(BIN_DIR)"))
+
+.config: ./scripts/config/conf
+	@+if [ \! -e .config ] || ! grep CONFIG_HAVE_DOT_CONFIG .config >/dev/null; then \
+		[ -e $(HOME)/.cshorewrt/defconfig ] && cp $(HOME)/.cshorewrt/defconfig .config; \
+		$(_SINGLE)$(NO_TRACE_MAKE) menuconfig $(PREP_MK); \
+	fi
+
+defconfig: scripts/config/conf FORCE
+	touch .config
+	@if [ -e $(HOME)/.cshorewrt/defconfig ]; then cp $(HOME)/.cshorewrt/defconfig .config; fi
+	$< --defconfig=.config Config.in
+
+confdefault-y=allyes
+confdefault-m=allmod
+confdefault-n=allno
+confdefault:=$(confdefault-$(CONFDEFAULT))
+
+oldconfig: scripts/config/conf FORCE
+	$< --$(if $(confdefault),$(confdefault),old)config Config.in
+
+menuconfig: scripts/config/mconf FORCE
+	if [ \! -e .config -a -e $(HOME)/.cshorewrt/defconfig ]; then \
+		cp $(HOME)/.cshorewrt/defconfig .config; \
+	fi
+	$< Config.in
 
 .SILENT: help info image
 

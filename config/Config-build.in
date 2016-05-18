@@ -17,6 +17,7 @@ menu "Global build settings"
 
 	config ALL
 		bool "Select all userspace packages by default"
+		depends on !SDK_MINIMAL
 		default n
 
 	config SIGNED_PACKAGES
