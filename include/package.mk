@@ -238,6 +238,20 @@ define Build/IncludeOverlay
   endef
 endef
 
+define Package/BusyBoxReplacement/Default
+  define Package/$(1)/postrm
+  #!/bin/sh
+  /bin/busybox $(4) -h 2>&1 | grep -q BusyBox && ln -sf $(if $(3),$(3)/)busybox $(2)/$(4)
+  $(5)
+  exit 0
+  endef
+  define Package/$(1)/install-location
+	$(INSTALL_DIR) $$(1)/$(2)
+	$(INSTALL_BIN) $(6) $$(1)/$(2)/$(4)
+	$(7)
+  endef
+endef
+
 define BuildPackage
   $(Build/IncludeOverlay)
   $(eval $(Package/Default))

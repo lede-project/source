@@ -23,10 +23,17 @@ install_bin() { # <file> [ <symlink> ... ]
 	install_file $files
 	shift
 	for link in "$@"; do {
-		dest="$RAM_ROOT/$link"
-		dir="$(dirname $dest)"
-		mkdir -p "$dir"
-		[ -f "$dest" ] || ln -s $src $dest
+		# handle case of using full version of commands
+		# rather than busybox versions
+		if [ -L $link ] && readlink "$link" | grep -q "$(basename "$src")"; then
+			dest="$RAM_ROOT/$link"
+			dir="$(dirname $dest)"
+			mkdir -p "$dir"
+			[ -f "$dest" ] || ln -s $src $dest
+		else
+			[ -x "$link" ] && files="$link $(libs $link)"
+			install_file $files
+		fi
 	}; done
 }
 
