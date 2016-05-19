@@ -53,6 +53,12 @@ define Package/bzip2/description
 	data compressor. This package provides the binary.
 endef
 
+define Package/bzip2/config
+	config HAS_BZIP2
+		bool
+		default y
+endef
+
 TARGET_CFLAGS += \
 	$(FPIC) \
 	$(TARGET_LDFLAGS)
