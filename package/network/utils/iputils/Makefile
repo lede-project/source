@@ -76,6 +76,17 @@ define Package/iputils-ping6/description
   Sends ICMP ECHO_REQUEST to network hosts (IPv6).
 endef
 
+define Package/iputils-busybox
+$(call Package/iputils/Default)
+  TITLE:=iptutils - full vs busybox
+  DEPENDS:= +iputils-ping +IPV6:iputils-ping6
+endef
+
+define Package/iputils-busybox/config
+	config HAS_IPUTILS
+		bool
+		default y
+endef
 
 define Package/iputils-tftpd
 $(call Package/iputils/Default)
@@ -171,6 +182,10 @@ define Package/iputils-traceroute6/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/traceroute6 $(1)/usr/bin/
 endef
 
+define Package/iputils-busybox/install
+	true
+endef
+
 $(eval $(call BuildPackage,iputils-arping))
 $(eval $(call BuildPackage,iputils-clockdiff))
 $(eval $(call BuildPackage,iputils-ping))
@@ -179,3 +194,4 @@ $(eval $(call BuildPackage,iputils-tracepath))
 $(eval $(call BuildPackage,iputils-ping6))
 $(eval $(call BuildPackage,iputils-tracepath6))
 $(eval $(call BuildPackage,iputils-traceroute6))
+$(eval $(call BuildPackage,iputils-busybox))
