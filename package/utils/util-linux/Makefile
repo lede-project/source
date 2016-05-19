@@ -35,6 +35,31 @@ define Package/util-linux/Default
   URL:=http://www.kernel.org/pub/linux/utils/util-linux/
 endef
 
+define Package/util-linux-busybox
+$(call Package/util-linux/Default)
+  TITLE:=Full util-linux commands instead of busybox replacements
+  DEPENDS:= \
++dmesg \
++hwclock \
++logger \
++mount-utils \
++swap-utils
+endef
+
+define Package/util-linux-busybox/description
+util-linux is a collection of system commands for Linux.
+
+This package selects the full versions of these commands
+for which busybox replacements are normally built
+into the system.
+endef
+
+define Package/util-linux-busybox/config
+	config HAS_UTIL_LINUX
+		bool
+		default y
+endef
+
 CONFIGURE_ARGS += \
 	--disable-rpath \
 	--disable-tls		\
@@ -647,6 +672,10 @@ define Package/wipefs/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/.libs/wipefs $(1)/usr/sbin/
 endef
 
+define Package/util-linux-busybox/install
+	true
+endef
+
 $(eval $(call BuildPackage,libblkid))
 $(eval $(call BuildPackage,libfdisk))
 $(eval $(call BuildPackage,libmount))
@@ -682,3 +711,4 @@ $(eval $(call BuildPackage,uuidgen))
 $(eval $(call BuildPackage,wall))
 $(eval $(call BuildPackage,whereis))
 $(eval $(call BuildPackage,wipefs))
+$(eval $(call BuildPackage,util-linux-busybox))
