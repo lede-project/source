@@ -32,12 +32,32 @@ define Package/iproute2/Default
   VARIANT:=$(1)
 endef
 
-define Package/ip
+define Package/ip-tiny
 $(call Package/iproute2/Default,tiny,Minimal)
   CONFLICTS:=ip-full
+  PROVIDES:=ip
 endef
 
-Package/ip-full=$(call Package/iproute2/Default,full,Full)
+define Package/ip-full
+$(call Package/iproute2/Default,full,Full)
+  PROVIDES:=ip
+endef
+
+define Package/iproute2-busybox
+  TITLE:=Routing control utility - full vs busybox
+  SECTION:=net
+  CATEGORY:=Network
+  URL:=http://www.linuxfoundation.org/collaborate/workgroups/networking/iproute2
+  SUBMENU:=Routing and Redirection
+  MAINTAINER:=Russell Senior <russell@personaltelco.net>
+  DEPENDS:= +ip
+endef
+
+define Package/iproute2-busybox/config
+	config HAS_IPROUTE2
+		bool
+		default y
+endef
 
 define Package/tc
 $(call Package/iproute2/Default)
@@ -101,7 +121,11 @@ define Build/InstallDev
 	$(CP) $(PKG_BUILD_DIR)/lib/libnetlink.a $(1)/usr/lib/
 endef
 
-define Package/ip/install
+define Package/iproute2-busybox/install
+	true
+endef
+
+define Package/ip-tiny/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ip/ip $(1)/usr/bin/
 endef
@@ -138,10 +162,11 @@ define Package/nstat/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/misc/nstat $(1)/usr/sbin/
 endef
 
-$(eval $(call BuildPackage,ip))
+$(eval $(call BuildPackage,ip-tiny))
 $(eval $(call BuildPackage,ip-full))
 $(eval $(call BuildPackage,tc))
 $(eval $(call BuildPackage,genl))
 $(eval $(call BuildPackage,ip-bridge))
 $(eval $(call BuildPackage,ss))
 $(eval $(call BuildPackage,nstat))
+$(eval $(call BuildPackage,iproute2-busybox))
