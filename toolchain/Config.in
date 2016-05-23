@@ -244,7 +244,7 @@ config GDB
 	bool
 	depends on !(aarch64 || aarch64_be)
 	prompt "Build gdb" if TOOLCHAINOPTS
-	default y if !EXTERNAL_TOOLCHAIN
+	default n if !EXTERNAL_TOOLCHAIN
 	help
 	  Enable if you want to build the gdb.
 
