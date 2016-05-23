@@ -1,6 +1,6 @@
 CC=gcc
 WFLAGS=-Wall
-CFLAGS=-O2
+CFLAGS=$(TARGET_CFLAGS)
 INCLUDES=-Iinclude
 
 LIBNAME=libnl-tiny.so
