@@ -49,11 +49,11 @@ supivot() { # <new_root> <old_root>
 run_ramfs() { # <command> [...]
 	install_bin /bin/busybox /bin/ash /bin/sh /bin/mount /bin/umount	\
 		/sbin/pivot_root /sbin/reboot /bin/sync /bin/dd	/bin/grep       \
-		/bin/cp /bin/mv /bin/tar /usr/bin/md5sum "/usr/bin/[" /bin/dd	\
-		/bin/vi /bin/ls /bin/cat /usr/bin/awk /usr/bin/hexdump		\
-		/bin/sleep /bin/zcat /usr/bin/bzcat /usr/bin/printf /usr/bin/wc \
-		/bin/cut /usr/bin/printf /bin/sync /bin/mkdir /bin/rmdir	\
-		/bin/rm /usr/bin/basename /bin/kill /bin/chmod
+		/bin/cp /bin/mv /bin/tar /bin/md5sum "/bin/[" /bin/dd	\
+		/bin/vi /bin/ls /bin/cat /bin/awk /bin/hexdump		\
+		/bin/sleep /bin/zcat /bin/bzcat /bin/printf /bin/wc \
+		/bin/cut /bin/sync /bin/mkdir /bin/rmdir	\
+		/bin/rm /bin/basename /bin/kill /bin/chmod
 
 	install_bin /bin/uclient-fetch /bin/wget
 	install_bin /sbin/mtd
