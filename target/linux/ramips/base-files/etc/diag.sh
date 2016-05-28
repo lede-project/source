@@ -200,6 +200,9 @@ get_status_led() {
 	wrtnode)
 		status_led="wrtnode:blue:indicator"
 		;;
+	widora)
+		status_led="$board:orange:wifi"
+		;;
 	esac
 }
 

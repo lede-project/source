@@ -502,6 +502,9 @@ ramips_board_detect() {
 	*"WZR-AGL300NH")
 		name="wzr-agl300nh"
 		;;
+	*"Widora-NEO")
+		name="widora"
+		;;
 	*"X5")
 		name="x5"
 		;;
