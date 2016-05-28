@@ -4,7 +4,7 @@
 
 define Device/LinkIt7688
   DTS := LINKIT7688
-  IMAGE_SIZE := $(ralink_default_fw_size_32M)
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := MediaTek LinkIt Smart 7688
   DEVICE_PACKAGES:= kmod-usb2 kmod-usb-ohci uboot-envtools
 endef
@@ -17,3 +17,11 @@ define Device/wrtnode2r
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci
 endef
 TARGET_DEVICES += wrtnode2r
+
+define Device/widora
+  DTS := WIDORA
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := Widora NEO
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci
+endef
+TARGET_DEVICES += widora

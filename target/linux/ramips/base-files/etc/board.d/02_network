@@ -45,6 +45,7 @@ ramips_setup_interfaces()
 	ht-tm02|\
 	linkits7688 | \
 	linkits7688d | \
+	widora | \
 	m2m|\
 	microwrt|\
 	mpr-a2|\
@@ -288,7 +289,8 @@ ramips_setup_macs()
 		wan_mac=$(macaddr_add "$lan_mac" 1)
 		;;
 	linkits7688 | \
-	linkits7688d)
+	linkits7688d| \
+	widora)
 		wan_mac=$(mtd_get_mac_binary factory 4)
 		lan_mac=$(mtd_get_mac_binary factory 46)
 		;;
