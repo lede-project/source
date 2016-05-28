@@ -238,6 +238,9 @@ ramips_board_detect() {
 			name="linkits7688"
 		fi
 		;;
+	*"Widora NEO")
+		name="widora"
+		;;
 	*"Memory 2 Move")
 		name="m2m"
 		;;

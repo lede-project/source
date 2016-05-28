@@ -72,6 +72,7 @@ platform_check_image() {
 	jhr-n926r|\
 	linkits7688|\
 	linkits7688d|\
+	widora|\
 	m2m|\
 	m3|\
 	m4|\
