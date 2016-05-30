@@ -400,6 +400,7 @@ routerstation|\
 tl-wr710n |\
 tl-wr720n-v3|\
 tl-wr810n |\
+wrtnode2q |\
 wpe72)
 	ucidef_set_interfaces_lan_wan "eth1" "eth0"
 	;;
