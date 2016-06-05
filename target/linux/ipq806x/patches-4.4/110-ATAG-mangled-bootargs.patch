@@ -1,0 +1,86 @@
+--- a/arch/arm/boot/compressed/atags_to_fdt.c
++++ b/arch/arm/boot/compressed/atags_to_fdt.c
+@@ -66,6 +66,55 @@ static uint32_t get_cell_size(const void
+ 	return cell_size;
+ }
+ 
++#if defined(CONFIG_MANGLE_BOOTARGS)
++
++static char *append_mangled_root(char *dest, char *str, int len)
++{
++	char *ptr, *end;
++	char *root="root=";
++	int i;
++	
++	//ARM doesn't have __HAVE_ARCH_STRSTR, so search manually
++	ptr=str-1;
++
++	do {
++		ptr++;
++		//first find an 'r' at the begining or after a space
++		do {
++			ptr=strchr(ptr, 'r');
++			if(!ptr) return dest;
++			
++		} while (ptr!=str && *(ptr-1)!=' ');
++	
++		//then check for the rest
++		for(i=1; i<=4;i++)
++			if(*(ptr+i)!=*(root+i)) break;
++
++	} while (i!=5);
++
++
++	end=strchr(ptr, ' ');
++	end= end ? (end-1) : (strchr(ptr, 0)-1);
++	
++	
++	//find partition number (assumes format root=/dev/mtdXX | /dev/mtdblockXX | yy:XX)
++	for(i=0;end >= ptr && *end >='0' && *end <='9' ; end--, i++);
++	ptr=end+1;
++
++
++	//append mangled_root=XX
++	len=COMMAND_LINE_SIZE-len ;
++	if (len + 19 + i +1  < COMMAND_LINE_SIZE) {
++		memcpy(dest," mangled_rootblock=", 19);
++		dest+=19;
++		memcpy(dest, ptr, i);
++		dest+=i;
++	}
++
++	return dest;
++}
++#endif
++
+ static void merge_fdt_bootargs(void *fdt, const char *fdt_cmdline)
+ {
+ 	char cmdline[COMMAND_LINE_SIZE];
+@@ -85,16 +134,27 @@ static void merge_fdt_bootargs(void *fdt
+ 
+ 	/* and append the ATAG_CMDLINE */
+ 	if (fdt_cmdline) {
++	
++#if defined(CONFIG_MANGLE_BOOTARGS)
++
++		//save original bootloader args 
++		//and append mangled_root with root partition number to current cmdline
++		setprop_string(fdt, "/chosen", "bootloader-args", fdt_cmdline);
++		ptr=append_mangled_root(ptr, fdt_cmdline, len);
++
++#else		
+ 		len = strlen(fdt_cmdline);
+ 		if (ptr - cmdline + len + 2 < COMMAND_LINE_SIZE) {
+ 			*ptr++ = ' ';
+ 			memcpy(ptr, fdt_cmdline, len);
+ 			ptr += len;
+ 		}
++#endif 
+ 	}
+ 	*ptr = '\0';
+ 
+ 	setprop_string(fdt, "/chosen", "bootargs", cmdline);
++	
+ }
+ 
+ /*
