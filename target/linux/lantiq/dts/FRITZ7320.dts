@@ -88,7 +88,6 @@
 
 		etop@E180000 {
 			phy-mode = "mii";
-			mac-address = [ 00 11 22 33 44 55 ];
 		};
 
 		ifxhcd@E101000 {
