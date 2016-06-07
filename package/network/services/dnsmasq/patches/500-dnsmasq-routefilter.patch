@@ -1,7 +1,17 @@
-diff -ruN dnsmasq/src/dnsmasq.h dnsmasq-2.75/src/dnsmasq.h
---- dnsmasq/src/dnsmasq.h	2016-02-22 09:31:39.592835467 +0800
-+++ dnsmasq-2.75/src/dnsmasq.h	2016-02-22 09:32:57.728070229 +0800
-@@ -1116,7 +1116,7 @@
+--- a/Makefile
++++ b/Makefile
+@@ -74,7 +74,7 @@ objs = cache.o rfc1035.o util.o option.o
+        helper.o tftp.o log.o conntrack.o dhcp6.o rfc3315.o \
+        dhcp-common.o outpacket.o radv.o slaac.o auth.o ipset.o \
+        domain.o dnssec.o blockdata.o tables.o loop.o inotify.o \
+-       poll.o rrfilter.o edns0.o arp.o
++       poll.o rrfilter.o edns0.o arp.o routefilter.o
+ 
+ hdrs = dnsmasq.h config.h dhcp-protocol.h dhcp6-protocol.h \
+        dns-protocol.h radv-protocol.h ip6addr.h
+--- a/src/dnsmasq.h
++++ b/src/dnsmasq.h
+@@ -1115,7 +1115,7 @@ size_t setup_reply(struct dns_header *he
  		   unsigned long local_ttl);
  int extract_addresses(struct dns_header *header, size_t qlen, char *namebuff, 
  		      time_t now, char **ipsets, int is_sign, int checkrebind,
@@ -9,11 +19,12 @@ diff -ruN dnsmasq/src/dnsmasq.h dnsmasq-2.75/src/dnsmasq.h
 +		      int no_cache, int secure, int *doctored, int check_inlist);
  size_t answer_request(struct dns_header *header, char *limit, size_t qlen,  
  		      struct in_addr local_addr, struct in_addr local_netmask, 
- 		      time_t now, int *ad_reqd, int *do_bit);
-@@ -1519,3 +1519,22 @@
- void poll_listen(int fd, short event);
- int do_poll(int timeout);
- 
+ 		      time_t now, int ad_reqd, int do_bit, int have_pseudoheader);
+@@ -1532,3 +1532,23 @@ int check_source(struct dns_header *head
+ /* arp.c */
+ int find_mac(union mysockaddr *addr, unsigned char *mac, int lazy, time_t now);
+ int do_arp_script_run(void);
++
 +/* routefilter.c */
 +typedef struct {
 +  int entries;
@@ -33,10 +44,9 @@ diff -ruN dnsmasq/src/dnsmasq.h dnsmasq-2.75/src/dnsmasq.h
 +extern int route_filter_enabled;
 +int parse_chnroute(char *chnroute_file);
 +int ip_check_in_iplist(struct in_addr ip);
-diff -ruN dnsmasq/src/forward.c dnsmasq-2.75/src/forward.c
---- dnsmasq/src/forward.c	2016-02-22 09:31:39.593835445 +0800
-+++ dnsmasq-2.75/src/forward.c	2016-02-22 08:59:24.383377902 +0800
-@@ -539,11 +539,11 @@
+--- a/src/forward.c
++++ b/src/forward.c
+@@ -555,11 +555,11 @@ static int forward_query(int udpfd, unio
  
  static size_t process_reply(struct dns_header *header, time_t now, struct server *server, size_t n, int check_rebind, 
  			    int no_cache, int cache_secure, int bogusanswer, int ad_reqd, int do_bit, int added_pheader, 
@@ -50,7 +60,7 @@ diff -ruN dnsmasq/src/forward.c dnsmasq-2.75/src/forward.c
    size_t plen; 
  
    (void)ad_reqd;
-@@ -640,8 +640,9 @@
+@@ -675,8 +675,9 @@ static size_t process_reply(struct dns_h
  	  SET_RCODE(header, NOERROR);
  	  cache_secure = 0;
  	}
@@ -62,7 +72,7 @@ diff -ruN dnsmasq/src/forward.c dnsmasq-2.75/src/forward.c
  	{
  	  my_syslog(LOG_WARNING, _("possible DNS-rebind attack detected: %s"), daemon->namebuff);
  	  munged = 1;
-@@ -688,6 +689,7 @@
+@@ -722,6 +723,7 @@ static size_t process_reply(struct dns_h
    /* the bogus-nxdomain stuff, doctor and NXDOMAIN->NODATA munging can all elide
       sections of the packet. Find the new length here and put back pseudoheader
       if it was removed. */
@@ -70,7 +80,7 @@ diff -ruN dnsmasq/src/forward.c dnsmasq-2.75/src/forward.c
    return resize_packet(header, n, pheader, plen);
  }
  
-@@ -704,6 +706,7 @@
+@@ -738,6 +740,7 @@ void reply_query(int fd, int family, tim
    size_t nn;
    struct server *server;
    void *hash;
@@ -78,7 +88,7 @@ diff -ruN dnsmasq/src/forward.c dnsmasq-2.75/src/forward.c
  #ifndef HAVE_DNSSEC
    unsigned int crc;
  #endif
-@@ -731,7 +734,9 @@
+@@ -765,7 +768,9 @@ void reply_query(int fd, int family, tim
    
    if (!server)
      return;
@@ -89,9 +99,9 @@ diff -ruN dnsmasq/src/forward.c dnsmasq-2.75/src/forward.c
  #ifdef HAVE_DNSSEC
    hash = hash_questions(header, n, daemon->namebuff);
  #else
-@@ -1094,8 +1099,15 @@
+@@ -1089,8 +1094,15 @@ void reply_query(int fd, int family, tim
        
-       if ((nn = process_reply(header, now, server, (size_t)n, check_rebind, no_cache_dnssec, cache_secure, bogusanswer, 
+       if ((nn = process_reply(header, now, forward->sentto, (size_t)n, check_rebind, no_cache_dnssec, cache_secure, bogusanswer, 
  			      forward->flags & FREC_AD_QUESTION, forward->flags & FREC_DO_QUESTION, 
 -			      forward->flags & FREC_ADDED_PHEADER, forward->flags & FREC_HAS_SUBNET, &forward->source)))
 +			      forward->flags & FREC_ADDED_PHEADER, forward->flags & FREC_HAS_SUBNET, &forward->source, check_inlist)))
@@ -105,36 +115,37 @@ diff -ruN dnsmasq/src/forward.c dnsmasq-2.75/src/forward.c
 +		}
  	  header->id = htons(forward->orig_id);
  	  header->hb4 |= HB4_RA; /* recursion if available */
- 	  send_from(forward->fd, option_bool(OPT_NOWILD) || option_bool (OPT_CLEVERBIND), daemon->packet, nn, 
-@@ -2140,7 +2152,7 @@
+ #ifdef HAVE_DNSSEC
+@@ -1946,7 +1958,7 @@ unsigned char *tcp_request(int confd, ti
  
  		      m = process_reply(header, now, last_server, (unsigned int)m, 
  					option_bool(OPT_NO_REBIND) && !norebind, no_cache_dnssec, cache_secure, bogusanswer,
--					ad_question, do_bit, added_pheader, check_subnet, &peer_addr); 
-+					ad_question, do_bit, added_pheader, check_subnet, &peer_addr, 0); 
+-					ad_reqd, do_bit, added_pheader, check_subnet, &peer_addr); 
++					ad_reqd, do_bit, added_pheader, check_subnet, &peer_addr, 0);
  		      
  		      break;
  		    }
-diff -ruN dnsmasq/src/option.c dnsmasq-2.75/src/option.c
---- dnsmasq/src/option.c	2016-02-22 09:31:39.599835309 +0800
-+++ dnsmasq-2.75/src/option.c	2016-02-21 18:45:10.372413720 +0800
-@@ -154,6 +154,7 @@
- #define LOPT_HOST_INOTIFY  342
- #define LOPT_DNSSEC_STAMP  343
- #define LOPT_TFTP_NO_FAIL  344
-+#define LOPT_FIL_IPLIST     345
- 
+--- a/src/option.c
++++ b/src/option.c
+@@ -159,7 +159,8 @@ struct myoption {
+ #define LOPT_SCRIPT_ARP    347
+ #define LOPT_DHCPTTL       348
+ #define LOPT_TFTP_MTU      349
+- 
++#define LOPT_FIL_IPLIST     350
++
  #ifdef HAVE_GETOPT_LONG
  static const struct option opts[] =  
-@@ -313,6 +314,7 @@
-     { "quiet-dhcp6", 0, 0, LOPT_QUIET_DHCP6 },
-     { "quiet-ra", 0, 0, LOPT_QUIET_RA },
+ #else
+@@ -323,6 +324,7 @@ static const struct myoption opts[] =
      { "dns-loop-detect", 0, 0, LOPT_LOOP_DETECT },
+     { "script-arp", 0, 0, LOPT_SCRIPT_ARP },
+     { "dhcp-ttl", 1, 0 , LOPT_DHCPTTL },
 +    { "filter-iplist", 2, 0, LOPT_FIL_IPLIST },
      { NULL, 0, 0, 0 }
    };
  
-@@ -3930,7 +3932,9 @@
+@@ -4045,7 +4047,9 @@ static int one_opt(int option, char *arg
  	break;
        }
  #endif
@@ -145,10 +156,9 @@ diff -ruN dnsmasq/src/option.c dnsmasq-2.75/src/option.c
      default:
        ret_err(_("unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support)"));
        
-diff -ruN dnsmasq/src/rfc1035.c dnsmasq-2.75/src/rfc1035.c
---- dnsmasq/src/rfc1035.c	2016-02-22 09:31:39.600835287 +0800
-+++ dnsmasq-2.75/src/rfc1035.c	2016-02-21 19:34:28.035216476 +0800
-@@ -878,7 +878,7 @@
+--- a/src/rfc1035.c
++++ b/src/rfc1035.c
+@@ -569,7 +569,7 @@ static int find_soa(struct dns_header *h
     expired and cleaned out that way. 
     Return 1 if we reject an address because it look like part of dns-rebinding attack. */
  int extract_addresses(struct dns_header *header, size_t qlen, char *name, time_t now, 
@@ -157,7 +167,7 @@ diff -ruN dnsmasq/src/rfc1035.c dnsmasq-2.75/src/rfc1035.c
  {
    unsigned char *p, *p1, *endrr, *namep;
    int i, j, qtype, qclass, aqtype, aqclass, ardlen, res, searched_soa = 0;
-@@ -973,7 +973,6 @@
+@@ -664,7 +664,6 @@ int extract_addresses(struct dns_header
  			    return 0; /* looped CNAMES, or DNSSEC, which we can't cache. */
  			  goto cname_loop;
  			}
@@ -165,7 +175,7 @@ diff -ruN dnsmasq/src/rfc1035.c dnsmasq-2.75/src/rfc1035.c
  		      cache_insert(name, &addr, now, cttl, name_encoding | secflag | F_REVERSE);
  		      found = 1; 
  		    }
-@@ -1102,7 +1101,10 @@
+@@ -793,7 +792,10 @@ int extract_addresses(struct dns_header
  			    }
  			}
  #endif
@@ -177,9 +187,8 @@ diff -ruN dnsmasq/src/rfc1035.c dnsmasq-2.75/src/rfc1035.c
  		      newc = cache_insert(name, &addr, now, attl, flags | F_FORWARD | secflag);
  		      if (newc && cpp)
  			{
-diff -ruN dnsmasq/src/routefilter.c dnsmasq-2.75/src/routefilter.c
---- dnsmasq/src/routefilter.c	1970-01-01 08:00:00.000000000 +0800
-+++ dnsmasq-2.75/src/routefilter.c	2016-02-22 08:53:10.975399858 +0800
+--- /dev/null
++++ b/src/routefilter.c
 @@ -0,0 +1,117 @@
 +/*  routefilter.c
 +    Copyrignt (C) 2016 GuoGuo<gch981213@gmail.com>
@@ -298,14 +307,3 @@ diff -ruN dnsmasq/src/routefilter.c dnsmasq-2.75/src/routefilter.c
 +  }
 +  return 1;
 +}
---- dnsmasq/Makefile  2016-02-22 09:31:39.567836032 +0800
-+++ dnsmasq-2.75/Makefile 2016-02-21 18:45:41.057976698 +0800
-@@ -73,7 +73,7 @@
-        dnsmasq.o dhcp.o lease.o rfc2131.o netlink.o dbus.o bpf.o \
-        helper.o tftp.o log.o conntrack.o dhcp6.o rfc3315.o \
-        dhcp-common.o outpacket.o radv.o slaac.o auth.o ipset.o \
--       domain.o dnssec.o blockdata.o tables.o loop.o inotify.o poll.o
-+       domain.o dnssec.o blockdata.o tables.o loop.o inotify.o poll.o routefilter.o
- 
- hdrs = dnsmasq.h config.h dhcp-protocol.h dhcp6-protocol.h \
-        dns-protocol.h radv-protocol.h ip6addr.h
