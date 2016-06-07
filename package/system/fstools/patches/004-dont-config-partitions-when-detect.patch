@@ -1,0 +1,41 @@
+--- a/block.c
++++ b/block.c
+@@ -584,7 +584,7 @@ static int print_block_info(struct blkid
+ 
+ 	return 0;
+ }
+-
++/*
+ static int print_block_uci(struct blkid_struct_probe *pr)
+ {
+ 	if (!strcmp(pr->id->name, "swap")) {
+@@ -602,7 +602,7 @@ static int print_block_uci(struct blkid_
+ 
+ 	return 0;
+ }
+-
++*/
+ static struct blkid_struct_probe* find_block_info(char *uuid, char *label, char *path)
+ {
+ 	struct blkid_struct_probe *pr = NULL;
+@@ -1321,7 +1321,7 @@ static int main_umount(int argc, char **
+ 
+ static int main_detect(int argc, char **argv)
+ {
+-	struct blkid_struct_probe *pr;
++//	struct blkid_struct_probe *pr;
+ 
+ 	cache_load(0);
+ 	printf("config 'global'\n");
+@@ -1331,9 +1331,9 @@ static int main_detect(int argc, char **
+ 	printf("\toption\tauto_mount\t'1'\n");
+ 	printf("\toption\tdelay_root\t'5'\n");
+ 	printf("\toption\tcheck_fs\t'0'\n\n");
+-	list_for_each_entry(pr, &devices, list)
++/*	list_for_each_entry(pr, &devices, list)
+ 		print_block_uci(pr);
+-
++*/
+ 	return 0;
+ }
+ 
