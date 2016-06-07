@@ -165,6 +165,7 @@ dnsmasq() {
 	append_parm "$cfg" "dhcp_boot" "--dhcp-boot"
 	append_parm "$cfg" "local_ttl" "--local-ttl"
 	append_parm "$cfg" "pxe_prompt" "--pxe-prompt"
+	append_parm "$cfg" "fil_iplist" "--filter-iplist"
 	config_list_foreach "$cfg" "pxe_service" append_pxe_service
 	config_get DOMAIN "$cfg" domain
 
