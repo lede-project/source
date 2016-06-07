@@ -1,0 +1,16 @@
+#!/bin/sh
+. /lib/functions.sh
+. /lib/functions/network.sh
+
+[ -h /etc/rc.d/S50qos_guoguo ] || exit 0
+
+sleep 1
+network_find_wan wan_net_name
+
+[ "$ACTION" = "ifup" ] && [ "$wan_net_name" = "$INTERFACE" ] && {
+	/etc/init.d/qos_guoguo start
+}
+
+[ "$ACTION" = "ifdown" ] && [ -z "wan_net_name" ] && {
+	/etc/init.d/qos_gargoyle stop
+}

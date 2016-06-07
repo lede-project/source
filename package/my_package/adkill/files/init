@@ -1,0 +1,97 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2015 GuoGuo <gch981213@gmail.com>
+# adv-kill 启动脚本
+START=90
+INDEX=1
+
+if_enabled() {
+	local cfg="$1"
+	config_get_bool enabled "$cfg" 'enabled' '0'
+	[ $enabled = '0' ] && {
+		echo "Ad-Killer is not enabled.Exit now."
+		exit 0
+	}
+}
+
+gen_placeholder() {
+	local str="a"
+	for i in $(seq 1 $1);do
+		str="$str,a"
+	done
+	echo $str
+}
+
+apply_rule_404() {
+	local cfg="$1"
+
+	config_get host "$cfg" 'host'
+	config_get url "$cfg" 'url'
+
+	echo D $INDEX $host $url $host $(gen_placeholder $(echo "$url" | tr -cd ',' | wc -c)) > /proc/advkill/advconf
+	let INDEX+=1
+}
+
+apply_rule_redirect() {
+	local cfg="$1"
+
+	config_get shost "$cfg" 'shost'
+	config_get surl "$cfg" 'surl'
+	config_get dhost "$cfg" 'dhost'
+	config_get durl "$cfg" 'durl'
+
+	echo R $INDEX $shost $surl $dhost $durl > /proc/advkill/advconf
+	let INDEX+=1
+}
+
+apply_rule_502() {
+	local cfg="$1"
+
+	config_get host "$cfg" 'host'
+	config_get url "$cfg" 'url'
+
+	echo G $INDEX $host $url $host $(gen_placeholder $(echo "$url" | tr -cd ',' | wc -c)) > /proc/advkill/advconf
+	let INDEX+=1
+}
+
+apply_rule_modify() {
+	local cfg="$1"
+
+	config_get host "$cfg" 'host'
+	config_get mark "$cfg" 'mark'
+	config_get val "$cfg" 'val'
+
+	echo M $INDEX $host $mark $host $val > /proc/advkill/advconf
+	let INDEX+=1
+}
+
+apply_rule_fake_pack() {
+	local cfg="$1"
+
+	config_get host "$cfg" 'host'
+	config_get url "$cfg" 'url'
+	config_get c_type "$cfg" 'type'
+	config_get content "$cfg" 'content'
+
+	echo F $INDEX $host $url $c_type $content > /proc/advkill/advconf
+	let INDEX+=1
+}
+
+start() {
+
+	config_load 'adkill'
+	config_foreach if_enabled 'adkill_base'
+
+	lsmod | grep -q 'adv_kill' && rmmod adv-kill
+	insmod adv-kill
+
+	config_foreach apply_rule_404 'rule_404'
+	config_foreach apply_rule_redirect 'rule_redirect'
+	config_foreach apply_rule_502 'rule_502'
+	config_foreach apply_rule_modify 'rule_modify'
+	config_foreach apply_rule_fake_pack 'rule_fakepack'
+}
+
+stop() {
+	rmmod adv-kill
+	return 0
+}
