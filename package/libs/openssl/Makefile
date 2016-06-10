@@ -36,7 +36,8 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_OPENSSL_WITH_DEPRECATED \
 	CONFIG_OPENSSL_WITH_COMPRESSION \
 	CONFIG_OPENSSL_WITH_NPN \
-	CONFIG_OPENSSL_WITH_PSK
+	CONFIG_OPENSSL_WITH_PSK \
+	CONFIG_OPENSSL_WITH_SRP
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -95,7 +96,7 @@ This package contains the OpenSSL command-line utility.
 endef
 
 
-OPENSSL_NO_CIPHERS:= no-idea no-md2 no-mdc2 no-rc5 no-sha0 no-camellia no-krb5 no-srp \
+OPENSSL_NO_CIPHERS:= no-idea no-md2 no-mdc2 no-rc5 no-sha0 no-camellia no-krb5 \
  no-whrlpool no-whirlpool no-bf no-ripemd no-seed no-cast no-cmac
 OPENSSL_OPTIONS:= shared no-err no-sse2 no-ssl2 no-ssl2-method no-heartbeats
 
@@ -140,6 +141,10 @@ endif
 
 ifndef CONFIG_OPENSSL_WITH_PSK
   OPENSSL_OPTIONS += no-psk
+endif
+
+ifndef CONFIG_OPENSSL_WITH_SRP
+  OPENSSL_OPTIONS += no-srp
 endif
 
 ifeq ($(CONFIG_x86_64),y)
