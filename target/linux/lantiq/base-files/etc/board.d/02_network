@@ -66,6 +66,11 @@ ARV4518PWR01*)
         ucidef_set_interface_lan 'eth0'
         ;;
 
+FRITZ7360SL)
+	ucidef_add_switch "switch0" \
+		"4:lan:1" "2:lan:2" "0:lan:3" "1:lan:4" "6t@eth0"
+	;;
+
 DGN3500*)
 	eth0_mac=$(mtd_get_mac_ascii uboot-env ethaddr)
 	nas0_mac=$(macaddr_add "$eth0_mac" 1)
