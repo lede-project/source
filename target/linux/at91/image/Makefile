@@ -153,16 +153,6 @@ define Image/BuildKernel
 	fi
 endef
 
-define Build/Clean
-	$(MAKE) -C u-boot clean
-endef
-
-define Build/Compile
-	if [ $(CONFIG_AT91_UBOOT) ]; then \
-		$(MAKE) -C u-boot compile; \
-	fi
-endef
-
 define Image/Prepare
 	cp $(LINUX_DIR)/arch/arm/boot/Image $(KDIR)/Image
 	cp $(LINUX_DIR)/arch/arm/boot/zImage $(KDIR)/zImage
