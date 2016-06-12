@@ -110,11 +110,13 @@ define Build/Compile
 endef
 
 define Package/busybox/install
-	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_DIR) $(1)/etc/init.d $(1)/usr/bin $(1)/usr/sbin
 	$(CP) $(PKG_INSTALL_DIR)/* $(1)/
 	$(INSTALL_BIN) ./files/cron $(1)/etc/init.d/cron
 	$(INSTALL_BIN) ./files/sysntpd $(1)/etc/init.d/sysntpd
 	$(INSTALL_BIN) ./files/ntpd-hotplug $(1)/usr/sbin/ntpd-hotplug
+	ln -sf ../../bin/env $(1)/usr/bin/env
+	ln -sf ../../bin/awk $(1)/usr/bin/awk
 	-rm -rf $(1)/lib64
 endef
 

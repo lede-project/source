@@ -8,6 +8,7 @@ while (<>) {
 		my $type = "bool";
 		$default =~ /^\"/ and $type = "string";
 		$default =~ /^\d/ and $type = "int";
+		( $2 eq 'INSTALL_NO_USR' ) and $default = "y";
 		print "config BUSYBOX_DEFAULT_$name\n\t$type\n\tdefault $default\n";
 	};
 }
