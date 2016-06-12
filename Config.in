@@ -19,6 +19,8 @@ source "target/Config.in"
 
 source "config/Config-images.in"
 
+source "config/Config-device.in"
+
 source "config/Config-build.in"
 
 source "config/Config-devel.in"
@@ -32,3 +34,5 @@ source "target/sdk/Config.in"
 source "target/toolchain/Config.in"
 
 source "tmp/.config-package.in"
+
+source "tmp/.config-defaults.in"

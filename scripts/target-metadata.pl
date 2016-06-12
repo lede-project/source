@@ -144,7 +144,6 @@ sub merge_package_lists($$) {
 sub gen_target_config() {
 	my $file = shift @ARGV;
 	my @target = parse_target_metadata($file);
-	my %defaults;
 
 	my @target_sort = sort {
 		target_name($a) cmp target_name($b);
@@ -187,6 +186,8 @@ EOF
 print <<EOF;
 endchoice
 
+EOF
+	print <<EOF;
 choice
 	prompt "Target Profile"
 
@@ -215,11 +216,6 @@ config TARGET_$target->{conf}_$profile->{id}
 	bool "$profile->{name}"
 	depends on TARGET_$target->{conf}
 EOF
-			my @pkglist = merge_package_lists($target->{packages}, $profile->{packages});
-			foreach my $pkg (@pkglist) {
-				print "\tselect DEFAULT_$pkg\n";
-				$defaults{$pkg} = 1;
-			}
 			my $help = $profile->{desc};
 			if ($help =~ /\w+/) {
 				$help =~ s/^\s*/\t  /mg;
@@ -247,11 +243,6 @@ config TARGET_DEVICE_$target->{conf}_$profile->{id}
 	bool "$profile->{name}"
 	depends on TARGET_$target->{conf}
 EOF
-			my @pkglist = merge_package_lists($target->{packages}, $profile->{packages});
-			foreach my $pkg (@pkglist) {
-				print "\tselect DEFAULT_$pkg\n";
-				$defaults{$pkg} = 1;
-			}
 		}
 	}
 
@@ -338,10 +329,6 @@ config LINUX_$v
 
 EOF
 	}
-	foreach my $def (sort keys %defaults) {
-		print "\tconfig DEFAULT_".$def."\n";
-		print "\t\tbool\n\n";
-	}
 }
 
 sub gen_profile_mk() {
@@ -353,7 +340,6 @@ sub gen_profile_mk() {
 		print "PROFILE_NAMES = ".join(" ", map { $_->{id} } @{$cur->{profiles}})."\n";
 		foreach my $profile (@{$cur->{profiles}}) {
 			print $profile->{id}.'_NAME:='.$profile->{name}."\n";
-			print $profile->{id}.'_PACKAGES:='.join(' ', @{$profile->{packages}})."\n";
 		}
 	}
 }
