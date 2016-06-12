@@ -114,6 +114,7 @@ ramips_setup_interfaces()
 	awm002-evb|\
 	awm003-evb|\
 	dir-645|\
+	c50 | \
 	dir-860l-b1|\
 	f5d8235-v1|\
 	f5d8235-v2|\
