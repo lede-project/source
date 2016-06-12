@@ -12,6 +12,7 @@ while (<>) {
 	next if /^(# )?CONFIG_USE_DEVICE_TYPE/;
 	next if /^(# )?CONFIG_DT_USE/;
 	next if /^(# )?CONFIG_DEFAULT/;
+	next if /^CONFIG_SDK_MINIMAL/;
 
 	if (/^CONFIG_([^=]+)=(.*)$/) {
 		$var = $1;

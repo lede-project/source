@@ -11,7 +11,7 @@ __defaults_inc=1
 
 # default device type
 DEVICE_TYPE:=$(if $(call qstrip,$(CONFIG_DEVICE_TYPE)),$(call qstrip,$(CONFIG_DEVICE_TYPE)),router)
-DEVICE_TYPES:=nas router bootloader developerboard other
+DEVICE_TYPES:=nas router bootloader developerboard other minimal_sdk
 
 # Default packages - the really basic set
 BASE_DEFAULT_PACKAGES:=base-files libc libgcc busybox opkg
@@ -22,6 +22,7 @@ DEFAULT_PACKAGES.nas:=block-mount fdisk lsblk mdadm $(DEFAULT_PACKAGES.device_co
 # For router targets
 DEFAULT_PACKAGES.router:=dnsmasq iptables ip6tables ppp ppp-mod-pppoe firewall odhcpd odhcp6c $(DEFAULT_PACKAGES.device_common)
 DEFAULT_PACKAGES.bootloader:=
+DEFAULT_PACKAGES.minimal_sdk:=
 DEFAULT_PACKAGES.other:=$(DEFAULT_PACKAGES.device_common)
 DEFAULT_PACKAGES.developerboard:=$(DEFAULT_PACKAGES.device_common)
 

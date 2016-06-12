@@ -20,6 +20,9 @@ config USE_DEVICE_TYPE_developerboard
 config USE_DEVICE_TYPE_other
 	bool
 
+config USE_DEVICE_TYPE_minimal_sdk
+	bool
+
 config DEFAULT_USE_DEVICE_TYPE_router
 	bool
 
@@ -45,6 +48,7 @@ choice
 	default DT_USE_DEVICE_TYPE_bootloader if DEFAULT_USE_DEVICE_TYPE_booloader
 	default DT_USE_DEVICE_TYPE_developerboard if DEFAULT_USE_DEVICE_TYPE_developerboard
 	default DT_USE_DEVICE_TYPE_other if DEFAULT_USE_DEVICE_TYPE_other
+	default DT_USE_DEVICE_TYPE_minimal_sdk if SDK_MINIMAL
 	help
 	  "Set default build options based on device type (e.g. router, nas)"
 
@@ -68,6 +72,11 @@ choice
 		bool "Other"
 		select USE_DEVICE_TYPE_other
 
+	config DT_USE_DEVICE_TYPE_minimal_sdk
+		bool "Minimal SDK"
+		select USE_DEVICE_TYPE_minimal_sdk
+
+
 endchoice
 
 config DEVICE_TYPE
@@ -77,3 +86,4 @@ config DEVICE_TYPE
 	default "bootloader" if USE_DEVICE_TYPE_bootloader
 	default "developerboard" if USE_DEVICE_TYPE_developerboard
 	default "other" if USE_DEVICE_TYPE_other
+	default "minimal_sdk" if USE_DEVICE_TYPE_minimal_sdk

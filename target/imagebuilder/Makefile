@@ -24,8 +24,8 @@ all: compile
 $(BIN_DIR)/$(IB_NAME).tar.bz2: clean
 	rm -rf $(PKG_BUILD_DIR)
 	mkdir -p $(IB_KDIR) $(IB_LDIR) $(PKG_BUILD_DIR)/staging_dir/host/lib \
-		$(PKG_BUILD_DIR)/target $(PKG_BUILD_DIR)/scripts $(IB_DTSDIR)
-	-cp $(TOPDIR)/.config $(PKG_BUILD_DIR)/.config
+		$(PKG_BUILD_DIR)/target $(IB_DTSDIR)
+	../convert-config.pl $(TOPDIR)/.config > $(PKG_BUILD_DIR)/Config-build.in
 	$(CP) \
 		$(INCLUDE_DIR) $(SCRIPT_DIR) \
 		$(TOPDIR)/rules.mk \
@@ -33,7 +33,14 @@ $(BIN_DIR)/$(IB_NAME).tar.bz2: clean
 		./files/repositories.conf \
 		$(TMP_DIR)/.targetinfo \
 		$(TMP_DIR)/.packageinfo \
+		./files/Config.in \
+		$(TOPDIR)/config/Config-images.in \
 		$(PKG_BUILD_DIR)/
+	$(CP) $(TOPDIR)/config/Config-device.in $(PKG_BUILD_DIR)/
+	if [ -r $(TOPDIR)/linux/$(BOARD)/image/Config.in ]; then \
+		$(CP) $(TOPDIR)/linux/$(BOARD)/image/Config.in $(PKG_BUILD_DIR)/Config-$(BOARD).in ; \
+		echo "\nsource \"Config-$(BOARD).in\"" >$(PKG_BUILD_DIR)/Config.in ; \
+	fi
 
 ifeq ($(CONFIG_IB_STANDALONE),)
 	echo '## Remote package repositories' >> $(PKG_BUILD_DIR)/repositories.conf
