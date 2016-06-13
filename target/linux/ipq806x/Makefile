@@ -10,7 +10,7 @@ CPU_TYPE:=cortex-a9
 CPU_SUBTYPE:=neon-vfpv4
 MAINTAINER:=John Crispin <john@phrozen.org>
 
-KERNEL_PATCHVER:=3.18
+KERNEL_PATCHVER:=4.4
 
 KERNELNAME:=zImage Image dtbs
 
@@ -20,6 +20,7 @@ DEFAULT_PACKAGES += \
 	kmod-ata-core kmod-ata-ahci kmod-ata-ahci-platform \
 	kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-ledtrig-usbdev \
 	kmod-usb3 kmod-usb-dwc3-qcom kmod-usb-phy-qcom-dwc3 \
-	kmod-ath10k ath10k-firmware-qca99x0 wpad-mini
+	kmod-ath10k ath10k-firmware-qca99x0 wpad-mini \
+	uboot-envtools
 
 $(eval $(call BuildTarget))

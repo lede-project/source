@@ -1,0 +1,39 @@
+--- a/init/main.c
++++ b/init/main.c
+@@ -360,11 +360,36 @@
+ {
+ 	char *rootdev;
+ 	char *rootfs;
++	char *end, *num;
++	int i;
+ 
+ 	rootdev = strstr(command_line, "root=/dev/mtdblock");
+ 
+ 	if (rootdev)
+ 		strncpy(rootdev, "mangled_rootblock=", 18);
++	
++	else { //find partition number in cases with short format (root=/dev/mtdXX || yy:XX)
++		rootdev = strstr(command_line, "root=");
++
++		if (rootdev) {
++			end = strchr(rootdev, ' ');
++			end = end ? (end-1) : (strchr(rootdev, 0)-1);
++			num = end;
++			for (i=0; num >= rootdev && *num >= '0' && *num <= '9' ; num--, i++);
++			num++;
++
++			if (i>0) {
++				strncpy(rootdev, "mglr=", 5);
++				rootdev += 5;
++				memcpy(rootdev, num, i);
++				num += i;
++				while (num < end) {
++					*num = ' ';
++					num++;
++				}
++			}
++		}
++	}
+ 
+ 	rootfs = strstr(command_line, "rootfstype");
+ 
