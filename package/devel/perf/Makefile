@@ -10,7 +10,7 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=perf
 PKG_VERSION:=$(LINUX_VERSION)
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_USE_MIPS16:=0
 PKG_BUILD_PARALLEL:=1
@@ -25,7 +25,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/perf
   SECTION:=devel
   CATEGORY:=Development
-  DEPENDS:= +libelf1 +libdw +libpthread +librt +objdump @!LINUX_3_18
+  DEPENDS:= +libelf1 +libdw +libpthread +librt +objdump +libunwind @!LINUX_3_18
   TITLE:=Linux performance monitoring tool
   VERSION:=$(LINUX_VERSION)-$(PKG_RELEASE)
   URL:=http://www.kernel.org
@@ -45,7 +45,6 @@ MAKE_FLAGS = \
 	NO_LIBPYTHON=1 \
 	NO_NEWT=1 \
 	NO_LZMA=1 \
-	NO_BACKTRACE=1 \
 	NO_LIBNUMA=1 \
 	NO_GTK2=1 \
 	NO_LIBAUDIT=1 \
