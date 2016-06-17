@@ -219,11 +219,6 @@ endef
 
 
 ### Kernel scripts ###
-define Build/append-dtb
-	$(call Image/BuildDTB,../dts/$(DEVICE_DTS).dts,$@.dtb)
-	cat $@.dtb >> $@
-endef
-
 define Build/mkbrncmdline
    mkbrncmdline -i $@ -o $@.new BRN-BOOT
    mv $@.new $@
@@ -243,11 +238,12 @@ define Device/Default
   FILESYSTEMS := squashfs
   DEVICE_PROFILE :=
   DEVICE_DTS = $$(DEVICE_PROFILE)
+  DEVICE_DTS_DIR := ../dts
   IMAGE_SIZE :=
   IMAGES := sysupgrade.bin
   IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE)
 endef
-DEVICE_VARS += DEVICE_PROFILE DEVICE_DTS IMAGE_SIZE
+DEVICE_VARS += DEVICE_PROFILE DEVICE_DTS DEVICE_DTS_DIR IMAGE_SIZE
 
 define Device/lantiqBrnImage
   KERNEL := kernel-bin | append-dtb | mkbrncmdline | lzma-no-dict
