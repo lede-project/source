@@ -18,23 +18,36 @@ ath10kcal_extract() {
 	local part=$1
 	local offset=$2
 	local count=$3
+	local of=$4
 	local mtd
+	[ -z "$4" ] && of=/lib/firmware/$FIRMWARE
 
 	mtd=$(find_mtd_chardev $part)
 	[ -n "$mtd" ] || \
 		ath10kcal_die "no mtd device found for partition $part"
 
-	dd if=$mtd of=/lib/firmware/$FIRMWARE bs=1 skip=$offset count=$count 2>/dev/null || \
+	dd if=$mtd of="$of" bs=1 skip=$offset count=$count 2>/dev/null || \
 		ath10kcal_die "failed to extract calibration data from $mtd"
 }
 
 ath10kcal_patch_mac() {
 	local mac=$1
+	local of=$2
+	[ -z "$2" ] && of=/lib/firmware/$FIRMWARE
 
 	[ -z "$mac" ] && return
 
-	macaddr_2bin $mac | dd of=/lib/firmware/$FIRMWARE conv=notrunc bs=1 seek=6 count=6
+	macaddr_2bin $mac | dd of="$of" conv=notrunc bs=1 seek=6 count=6
 }
+
+ath10kcal_patch_cksum() {
+	local of=$1
+	[ -z "$1" ] && of=/lib/firmware/$FIRMWARE
+
+	dd if=/dev/zero of="$of" conv=notrunc bs=1 seek=2 count=2
+	scksum -b "$of" | dd of="$of" conv=notrunc bs=1 seek=2 count=2
+}
+
 
 [ -e /lib/firmware/$FIRMWARE ] && exit 0
 
@@ -47,26 +60,32 @@ board=$(ipq806x_board_name)
 
 case "$FIRMWARE" in
 "ath10k/cal-pci-0000:01:00.0.bin")
+	tmp=/tmp/cal-pci-0000:01:00.0.bin
+
 	case $board in
 	c2600)
 		ath10kcal_extract "radio" 4096 12064
 # 		ath10kcal_patch_mac $(macaddr_add $(mtd_get_mac_binary default-mac 8) -1)
 		;;
 	ea8500)
-		hw_mac_addr=$(mtd_get_mac_ascii devinfo hw_mac_addr)
-		ath10kcal_extract "art" 4096 12064
+		ath10kcal_extract "art" 4096 12064 $tmp
+		ath10kcal_patch_mac $(macaddr_add $(mtd_get_mac_ascii devinfo hw_mac_addr) 1) $tmp
+		ath10kcal_patch_cksum $tmp
 		;;
 	esac
 	;;
 "ath10k/cal-pci-0001:01:00.0.bin")
+	tmp=/tmp/cal-pci-0001:01:00.0.bin
+
 	case $board in
 	c2600)
-		ath10kcal_extract "radio" 20480 12064
+		ath10kcal_extract "radio" 20480 12064 
 # 		ath10kcal_patch_mac $(macaddr_add $(mtd_get_mac_binary default-mac 8) -2)
 		;;
 	ea8500)
-		hw_mac_addr=$(mtd_get_mac_ascii devinfo hw_mac_addr)
-		ath10kcal_extract "art" 20480 12064
+		ath10kcal_extract "art" 20480 12064 $tmp
+		ath10kcal_patch_mac $(macaddr_add $(mtd_get_mac_ascii devinfo hw_mac_addr) 2) $tmp
+		ath10kcal_patch_cksum $tmp
 		;;
 	esac
 	;;
@@ -74,3 +93,8 @@ case "$FIRMWARE" in
 	exit 1
 	;;
 esac
+
+[ -f "$tmp" ] && {
+		cp -f $tmp /lib/firmware/$FIRMWARE
+		rm -f $tmp
+	}
