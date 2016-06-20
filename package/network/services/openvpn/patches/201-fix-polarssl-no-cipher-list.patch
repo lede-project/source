@@ -1,0 +1,23 @@
+--- a/src/openvpn/ssl.c
++++ b/src/openvpn/ssl.c
+@@ -561,7 +561,8 @@ init_ssl (const struct options *options,
+   tls_ctx_check_cert_time(new_ctx);
+ 
+   /* Allowable ciphers */
+-  tls_ctx_restrict_ciphers(new_ctx, options->cipher_list);
++  if (options->cipher_list)
++      tls_ctx_restrict_ciphers(new_ctx, options->cipher_list);
+ 
+ #ifdef ENABLE_CRYPTO_POLARSSL
+   /* Personalise the random by mixing in the certificate */
+--- a/src/openvpn/ssl_polarssl.c
++++ b/src/openvpn/ssl_polarssl.c
+@@ -176,7 +176,7 @@ tls_ctx_restrict_ciphers(struct tls_root
+ {
+   char *tmp_ciphers, *tmp_ciphers_orig, *token;
+   int i, cipher_count;
+-  int ciphers_len = strlen (ciphers);
++  int ciphers_len = ciphers ? strlen (ciphers) : 0;
+ 
+   ASSERT (NULL != ctx);
+   ASSERT (0 != ciphers_len);
