@@ -35,7 +35,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  extern void ltq_pmu_disable(unsigned int module);
  
 +/* allow the ethernet driver to load a flash mapped mac addr */
-+const u8* ltq_get_eth_mac(void);
++const u8 *ltq_get_eth_mac(void);
 +
  #endif /* CONFIG_SOC_TYPE_XWAY */
  #endif /* _LTQ_XWAY_H__ */
@@ -378,9 +378,9 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +static u8 eth_mac[6];
 +static int eth_mac_set;
 +
-+const u8* ltq_get_eth_mac(void)
++const u8 *ltq_get_eth_mac(void)
 +{
-+	return eth_mac;
++	return eth_mac_set ? eth_mac : NULL;
 +}
 +
 +static int __init setup_ethaddr(char *str)
@@ -413,7 +413,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +	}
 +	mac = ioremap(mac_res->start, resource_size(mac_res));
 +	memcpy_fromio(eth_mac, mac, 6);
-+
++	eth_mac_set = 1;
 +	if (!of_property_read_u32(np, "mac-increment", &mac_inc))
 +		eth_mac[5] += mac_inc;
 +
@@ -629,8 +629,8 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  		goto err_hw;
  
 -	memcpy(&mac, &priv->pldata->mac, sizeof(struct sockaddr));
-+	memcpy(&mac.sa_data, ltq_get_eth_mac(), ETH_ALEN);
-+
++	if (ltq_get_eth_mac())
++		memcpy(&mac.sa_data, ltq_get_eth_mac(), ETH_ALEN);
 +	if (priv->mac && !is_valid_ether_addr(mac.sa_data))
 +		memcpy(&mac.sa_data, priv->mac, ETH_ALEN);
 +

@@ -7,6 +7,9 @@ set_preinit_iface() {
 	board=$(lantiq_board_name)
 
 	case "$board" in
+	DGN3500*)
+		ifconfig eth0 hw ether $(mtd_get_mac_ascii uboot-env ethaddr)
+		;;
 	TDW8970)
 		ifname=eth0
 		;;
