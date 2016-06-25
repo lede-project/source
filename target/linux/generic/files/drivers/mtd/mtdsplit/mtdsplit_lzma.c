@@ -11,6 +11,7 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/slab.h>
+#include <linux/version.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/partitions.h>
 
@@ -27,9 +28,15 @@ struct lzma_header {
 	u8 size_high[4];
 };
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,5,0)
 static int mtdsplit_parse_lzma(struct mtd_info *master,
 			       struct mtd_partition **pparts,
 			       struct mtd_part_parser_data *data)
+#else
+static int mtdsplit_parse_lzma(struct mtd_info *master,
+			       const struct mtd_partition **pparts,
+			       struct mtd_part_parser_data *data)
+#endif
 {
 	struct lzma_header hdr;
 	size_t hdr_len, retlen;

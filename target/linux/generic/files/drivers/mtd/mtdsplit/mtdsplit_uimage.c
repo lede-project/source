@@ -13,6 +13,7 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/slab.h>
+#include <linux/version.h>
 #include <linux/vmalloc.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/partitions.h>
@@ -80,10 +81,17 @@ read_uimage_header(struct mtd_info *mtd, size_t offset, u_char *buf,
  * @find_header: function to call for a block of data that will return offset
  *      of a valid uImage header if found
  */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,5,0)
 static int __mtdsplit_parse_uimage(struct mtd_info *master,
 				   struct mtd_partition **pparts,
 				   struct mtd_part_parser_data *data,
 				   ssize_t (*find_header)(u_char *buf, size_t len))
+#else
+static int __mtdsplit_parse_uimage(struct mtd_info *master,
+				   const struct mtd_partition **pparts,
+				   struct mtd_part_parser_data *data,
+				   ssize_t (*find_header)(u_char *buf, size_t len))
+#endif
 {
 	struct mtd_partition *parts;
 	u_char *buf;
@@ -230,10 +238,17 @@ static ssize_t uimage_verify_default(u_char *buf, size_t len)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,5,0)
 static int
 mtdsplit_uimage_parse_generic(struct mtd_info *master,
 			      struct mtd_partition **pparts,
 			      struct mtd_part_parser_data *data)
+#else
+static int
+mtdsplit_uimage_parse_generic(struct mtd_info *master,
+			      const struct mtd_partition **pparts,
+			      struct mtd_part_parser_data *data)
+#endif
 {
 	return __mtdsplit_parse_uimage(master, pparts, data,
 				      uimage_verify_default);
@@ -285,10 +300,17 @@ static ssize_t uimage_verify_wndr3700(u_char *buf, size_t len)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,5,0)
 static int
 mtdsplit_uimage_parse_netgear(struct mtd_info *master,
 			      struct mtd_partition **pparts,
 			      struct mtd_part_parser_data *data)
+#else
+static int
+mtdsplit_uimage_parse_netgear(struct mtd_info *master,
+			      const struct mtd_partition **pparts,
+			      struct mtd_part_parser_data *data)
+#endif
 {
 	return __mtdsplit_parse_uimage(master, pparts, data,
 				      uimage_verify_wndr3700);
@@ -333,10 +355,17 @@ static ssize_t uimage_find_edimax(u_char *buf, size_t len)
 	return FW_EDIMAX_OFFSET;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,5,0)
 static int
 mtdsplit_uimage_parse_edimax(struct mtd_info *master,
 			      struct mtd_partition **pparts,
 			      struct mtd_part_parser_data *data)
+#else
+static int
+mtdsplit_uimage_parse_edimax(struct mtd_info *master,
+			      const struct mtd_partition **pparts,
+			      struct mtd_part_parser_data *data)
+#endif
 {
 	return __mtdsplit_parse_uimage(master, pparts, data,
 				       uimage_find_edimax);
