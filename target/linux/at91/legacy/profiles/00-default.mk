@@ -7,6 +7,7 @@
 
 define Profile/Default
 	NAME:=Default Profile
+	PRIORITY:=1
 endef
 
 define Profile/Default/Description

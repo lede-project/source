@@ -12,7 +12,7 @@ include $(INCLUDE_DIR)/image.mk
 
 
 define Image/Prepare
-	$(LINUX_DIR)/scripts/dtc/dtc -O dtb -R 4 -S 0x20000 $(DTS_DIR)/canyonlands.dts > $(KDIR)/openwrt-canyonlands.dtb
+	$(LINUX_DIR)/scripts/dtc/dtc -O dtb -R 4 -S 0x20000 $(DTS_DIR)/canyonlands.dts > $(KDIR)/lede-canyonlands.dtb
 endef
 
 define Image/BuildKernel

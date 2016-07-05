@@ -27,7 +27,11 @@
 #include <linux/io.h>
 #include <linux/types.h>
 #include <linux/cdev.h>
-#include <gpio.h>
+#include <linux/gpio.h>
+#include <asm/mach-ar7/ar7.h>
+
+#define AR7_GPIO_MAX 32
+#define TITAN_GPIO_MAX 51
 
 #define DRVNAME "ar7_gpio"
 #define LONGNAME "TI AR7 GPIOs Driver"

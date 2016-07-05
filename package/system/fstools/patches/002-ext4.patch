@@ -1,0 +1,86 @@
+From patchwork Wed Jun 29 10:45:40 2016
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: [LEDE-DEV,2/2] mount_root: Don't mount ext4 rootfs twice
+From: Josua Mayer <josua.mayer97@gmail.com>
+X-Patchwork-Id: 641981
+X-Patchwork-Delegate: blogic@openwrt.org
+Message-Id: <1467197140-8004-2-git-send-email-josua.mayer97@gmail.com>
+To: lede-dev@lists.infradead.org
+Cc: josua.mayer97@gmail.com
+Date: Wed, 29 Jun 2016 12:45:40 +0200
+
+From: Josua Mayer <josua.mayer97@gmail.com>
+
+When there is a) no rootfs_data overlay partition,
+and b) /dev/root points to an ext4 partition
+the partition would be mounted twice, once as / and then as /overlay.
+The essence of this change is to return before mounting /overlay,
+if /dev/root has been mounted as /.
+
+Signed-off-by: Josua Mayer <josua.mayer97@gmail.com>
+---
+ mount_root.c | 40 ++++++++++++++++++++++++++++++----------
+ 1 file changed, 30 insertions(+), 10 deletions(-)
+
+diff --git a/mount_root.c b/mount_root.c
+index 608ce5d..13e5772 100644
+--- a/mount_root.c
++++ b/mount_root.c
+@@ -37,25 +37,45 @@ start(int argc, char *argv[1])
+ 	if (!getenv("PREINIT") && stat("/tmp/.preinit", &s))
+ 		return -1;
+ 
++	/*
++	 * When the default overlay partition name rootfs_data can not be found,
++	 * fall back to the special /dev/root device.
++	 */
+ 	if (!data) {
+ 		root = volume_find("rootfs");
+ 		volume_init(root);
++
++		// mount /dev/root at /
+ 		ULOG_NOTE("mounting /dev/root\n");
+ 		mount("/dev/root", "/", NULL, MS_NOATIME | MS_REMOUNT, 0);
+-	}
+ 
+-	/*
+-	 * Before trying to mount and use "rootfs_data" let's check if there is
+-	 * extroot configured. Following call will handle reading config from
+-	 * the "rootfs_data" on its own.
+-	 */
+-	extroot_prefix = "";
+-	if (!mount_extroot()) {
+-		ULOG_NOTE("switched to extroot\n");
++		/*
++		 * Now that / has been mounted, and there is no overlay device,
++		 * see if extroot is configured.
++		 * 
++		 * The following call will handle reading configuration from
++		 * rootfs on its own.
++		 */
++		extroot_prefix = "";
++		if (!mount_extroot()) {
++			ULOG_NOTE("switched to extroot\n");
++			/*
++			 * extroot succeeded mounting an overlay partition, return.
++			 */
++			return 0;
++		}
++
++		/*
++		 * Even if extroot was not configured, considering that no overlay
++		 * partition was found, and / was mounted, return now.
++		 */
+ 		return 0;
+ 	}
+ 
+-	/* There isn't extroot, so just try to mount "rootfs_data" */
++	/*
++	 * neither /dev/root nor extroot were used.
++	 * Attempt to mount the overlay partition.
++	 */
+ 	switch (volume_identify(data)) {
+ 	case FS_NONE:
+ 		ULOG_WARN("no usable overlay filesystem found, using tmpfs overlay\n");

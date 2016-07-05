@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Create a new openwrt tree with symlinks pointing at the current tree
+# Create a new lede tree with symlinks pointing at the current tree
 # Usage: ./scripts/symlink-tree.sh <destination>
 
 FILES="
