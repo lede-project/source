@@ -173,6 +173,15 @@ endef
 
 $(eval $(call KernelPackage,udptunnel6))
 
+define KernelPackage/fou
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=IP Foo tunneling support
+  KCONFIG:=CONFIG_NET_FOU CONFIG_NET_FOU_IP_TUNNELS
+  FILES:=$(LINUX_DIR)/net/ipv4/fou.ko
+  AUTOLOAD:=$(call AutoLoad,33,fou)
+endef
+
+$(eval $(call KernelPackage,fou))
 
 define KernelPackage/vxlan
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
