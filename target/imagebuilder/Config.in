@@ -14,3 +14,12 @@ config IB_STANDALONE
 	  Disabling this option will cause the ImageBuilder to embed only
 	  toolchain and kmod packages while all other ipk archives will be
 	  fetched from online repositories.
+
+config IB_NO_CORE_IMAGE
+	bool "Don't build images in core (only in ImageBuilder)"
+	default n
+	depends on IB
+	help
+	  Enabling this option prevents images from being generated
+	  by core buildroot, which mean images are only created via
+	  ImageBuilder.

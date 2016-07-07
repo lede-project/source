@@ -9,8 +9,11 @@
 TOPDIR:=${CURDIR}
 LC_ALL:=C
 LANG:=C
-export TOPDIR LC_ALL LANG
+export TOPDIR LC_ALL LANG IB
 export OPENWRT_VERBOSE=s
+
+IB:=1
+
 all: help
 
 include $(TOPDIR)/include/host.mk
@@ -25,7 +28,15 @@ include $(INCLUDE_DIR)/debug.mk
 include $(INCLUDE_DIR)/depends.mk
 
 include $(INCLUDE_DIR)/version.mk
+
+ifneq ($(BUILD_IMAGE),)
+  -include .config
+endif
+
 export REVISION
+
+SCAN_COOKIE?=$(shell echo $$$$)
+export SCAN_COOKIE
 
 define Helptext
 Available Commands:
@@ -33,6 +44,7 @@ Available Commands:
 	info:	Show a list of available target profiles
 	clean:	Remove images and temporary build files
 	image:	Build an image (see below for more information).
+	menuconfig: Configure image generation
 
 Building images:
 	By default 'make image' will create an image with the default
@@ -73,15 +85,22 @@ OPKG:= \
 	--add-arch $(ARCH_PACKAGES):200
 
 include $(INCLUDE_DIR)/target.mk
--include .profiles.mk
+
+ifneq ($(USE_PROFILES),)
+  -include .profiles.mk
+endif
 
 USER_PROFILE ?= $(firstword $(PROFILE_NAMES))
 PROFILE_LIST = $(foreach p,$(PROFILE_NAMES), \
 	echo '$(p):'; $(if $($(p)_NAME),echo '    $($(p)_NAME)'; ) echo '    Packages: $($(p)_PACKAGES)'; \
 )
 
-.profiles.mk: .targetinfo
+.profiles.mk: $(TOPDIR)/tmp/.targetinfo
 	$(SCRIPT_DIR)/target-metadata.pl profile_mk $< '$(BOARD)$(if $(SUBTARGET),/$(SUBTARGET))' > $@
+
+$(TOPDIR)/tmp/.targetinfo:
+	mkdir -p tmp/info
+	$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f include/scan.mk SCAN_TARGET="targetinfo" SCAN_DIR="target/linux" SCAN_NAME="target" SCAN_DEPS="image/Makefile profiles/*.mk $(TOPDIR)/include/kernel*.mk $(TOPDIR)/include/target.mk" SCAN_DEPTH=2 SCAN_EXTRA="" SCAN_MAKEOPTS="TARGET_BUILD=1"
 
 staging_dir/host/.prereq-build: include/prereq-build.mk
 	mkdir -p tmp
@@ -178,9 +197,9 @@ clean:
 
 
 info:
-	(unset PROFILE FILES PACKAGES MAKEFLAGS; $(MAKE) -s _call_info)
+	(unset PROFILE FILES PACKAGES MAKEFLAGS; $(MAKE) USE_PROFILES=1 -s _call_info)
 
-image:
+image_target:
 ifneq ($(PROFILE),)
   ifeq ($(filter $(PROFILE),$(PROFILE_NAMES)),)
 	@echo 'Profile "$(PROFILE)" does not exist!'
@@ -194,6 +213,34 @@ endif
 		$(if $(FILES),USER_FILES="$(FILES)") \
 		$(if $(PACKAGES),USER_PACKAGES="$(PACKAGES)") \
 		$(if $(BIN_DIR),BIN_DIR="$(BIN_DIR)"))
+
+image: .config
+	$(MAKE) image_target PROFILE=$(PROFILE) PACKAGES="$(PACKAGES)" FILES="$(FILES)" BIN_DIR="$(BIN_DIR)" EXTRA_IMAGE_NAME="$(EXTRA_IMAGE_NAME)" USE_PROFILES=1 BUILD_IMAGE=1
+
+.config: ./scripts/config/conf
+	@+if [ \! -e .config ] || ! grep CONFIG_HAVE_DOT_CONFIG .config >/dev/null; then \
+		[ -e $(HOME)/.cshorewrt/defconfig ] && cp $(HOME)/.cshorewrt/defconfig .config; \
+		$(_SINGLE)$(NO_TRACE_MAKE) menuconfig $(PREP_MK); \
+	fi
+
+defconfig: scripts/config/conf FORCE
+	touch .config
+	@if [ -e $(HOME)/.cshorewrt/defconfig ]; then cp $(HOME)/.cshorewrt/defconfig .config; fi
+	$< --defconfig=.config Config.in
+
+confdefault-y=allyes
+confdefault-m=allmod
+confdefault-n=allno
+confdefault:=$(confdefault-$(CONFDEFAULT))
+
+oldconfig: scripts/config/conf FORCE
+	$< --$(if $(confdefault),$(confdefault),old)config Config.in
+
+menuconfig: scripts/config/mconf FORCE
+	if [ \! -e .config -a -e $(HOME)/.cshorewrt/defconfig ]; then \
+		cp $(HOME)/.cshorewrt/defconfig .config; \
+	fi
+	$< Config.in
 
 .SILENT: help info image
 

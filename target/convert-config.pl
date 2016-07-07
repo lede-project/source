@@ -8,6 +8,7 @@ while (<>) {
 	my $type;
 	chomp;
 	next if /^CONFIG_SIGNED_PACKAGES/;
+	next if /^IB_NO_CORE_IMAGE/;
 
 	if (/^CONFIG_([^=]+)=(.*)$/) {
 		$var = $1;
