@@ -23,7 +23,7 @@ DEFAULT_PACKAGES += \
 	kmod-ata-core kmod-ata-oxnas-sata kmod-button-hotplug \
 	kmod-input-gpio-keys-polled kmod-ledtrig-usbdev kmod-leds-gpio \
 	kmod-usb2-oxnas kmod-usb-storage uboot-envtools \
-	uboot-oxnas-ox820
+	uboot-oxnas-ox820 collection-nas
 
 KERNELNAME:=zImage dtbs
 

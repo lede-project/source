@@ -23,4 +23,6 @@ define Target/Description
 	Synopsys DesignWare boards
 endef
 
+DEFAULT_PACKAGES += collection-common-device
+
 $(eval $(call BuildTarget))

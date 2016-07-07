@@ -425,7 +425,7 @@ endef
 define Device/DumpInfo
 Target-Profile: DEVICE_$(1)
 Target-Profile-Name: $(DEVICE_TITLE)
-Target-Profile-Packages: $(DEVICE_PACKAGES)
+Target-Profile-Packages: $(call DEFAULT_COLLECTION,$(DEVICE_PACKAGES))
 Target-Profile-Description:
 $(DEVICE_DESCRIPTION)
 @@

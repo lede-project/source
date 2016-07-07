@@ -123,7 +123,7 @@ TARGET_DEVICES += wndr3700 wndr3700v2 wndr3800 wndr3800ch wndrmac wndrmacv2
 
 define Device/cap324
   DEVICE_TITLE := PowerCloud CAP324 Cloud AP
-  DEVICE_PACKAGES := uboot-envtools
+  DEVICE_PACKAGES := uboot-envtools collection-ap-bridge
   BOARDNAME := CAP324
   DEVICE_PROFILE := CAP324
   IMAGE_SIZE = 15296k
@@ -134,7 +134,7 @@ TARGET_DEVICES += cap324
 
 define Device/cap324-nocloud
   DEVICE_TITLE := PowerCloud CAP324 Cloud AP
-  DEVICE_PACKAGES := uboot-envtools
+  DEVICE_PACKAGES := uboot-envtools collection-ap-bridge
   BOARDNAME := CAP324
   DEVICE_PROFILE := CAP324
   IMAGE_SIZE = 16000k
@@ -423,7 +423,7 @@ endef
 define Device/hiwifi-hc6361
   DEVICE_TITLE := HiWiFi HC6361
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage \
-	kmod-fs-ext4 kmod-nls-iso8859-1 e2fsprogs
+	kmod-fs-ext4 kmod-nls-iso8859-1 e2fsprogs collection-nas
   BOARDNAME := HiWiFi-HC6361
   DEVICE_PROFILE := HIWIFI_HC6361
   IMAGE_SIZE := 16128k
@@ -485,7 +485,7 @@ endef
 define Device/mynet-n600
 $(Device/seama)
   DEVICE_TITLE := Western Digital My Net N600
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 collection-nas
   BOARDNAME = MYNET-N600
   IMAGE_SIZE = 15808k
   MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,64k(devdata)ro,64k(devconf)ro,15872k(firmware),64k(radiocfg)ro
@@ -495,7 +495,7 @@ endef
 define Device/mynet-n750
 $(Device/seama)
   DEVICE_TITLE := Western Digital My Net N750
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 collection-nas
   BOARDNAME = MYNET-N750
   IMAGE_SIZE = 15808k
   MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,64k(devdata)ro,64k(devconf)ro,15872k(firmware),64k(radiocfg)ro

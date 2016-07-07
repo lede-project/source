@@ -167,7 +167,7 @@ LEGACY_DEVICES += F9K1115V2
 
 define LegacyDevice/BXU2000N2
 	DEVICE_TITLE := BHU BXU2000n-2
-	DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-storage
+	DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-storage collection-nas
 endef
 LEGACY_DEVICES += BXU2000N2
 
@@ -397,7 +397,7 @@ define LegacyDevice/EWDORIN
 	DEVICE_TITLE := Embedded Wireless Dorin Platform
 	DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-ledtrig-usbdev kmod-usb-storage \
 		kmod-fs-vfat kmod-fs-msdos kmod-fs-ntfs kmod-fs-ext4 \
-		kmod-nls-cp437 kmod-nls-cp850 kmod-nls-cp852 kmod-nls-iso8859-1 kmod-nls-utf8
+		kmod-nls-cp437 kmod-nls-cp850 kmod-nls-cp852 kmod-nls-iso8859-1 kmod-nls-utf8 collection-nas
 endef
 LEGACY_DEVICES += EWDORIN
 
@@ -448,6 +448,7 @@ LEGACY_DEVICES += SMART-300
 
 define LegacyDevice/WNDAP360
         DEVICE_TITLE := NETGEAR WNDAP360
+        DEVICE_PACKAGES := collection-ap-bridge
 endef
 LEGACY_DEVICES += WNDAP360
 
@@ -522,6 +523,7 @@ LEGACY_DEVICES += OPENMESH
 
 define LegacyDevice/UBDEV01
 	DEVICE_TITLE := PowerCloud Systems ubdev01 model
+	DEVICE_PACKAGES:= collection-ap-bridge
 endef
 LEGACY_DEVICES += UBDEV01
 
@@ -550,7 +552,7 @@ LEGACY_DEVICES += RW2458N
 
 define LegacyDevice/CAP4200AG
 	DEVICE_TITLE := Senao CAP4200AG
-	DEVICE_PACKAGES := kmod-ath9k
+	DEVICE_PACKAGES := kmod-ath9k collection-ap-bridge
 endef
 LEGACY_DEVICES += CAP4200AG
 
@@ -604,13 +606,13 @@ LEGACY_DEVICES += DR344
 
 define LegacyDevice/MYNETREXT
 	DEVICE_TITLE := WD My Net Wi-Fi Range Extender
-	DEVICE_PACKAGES := rssileds
+	DEVICE_PACKAGES := rssileds collection-ap-bridge
 endef
 LEGACY_DEVICES += MYNETREXT
 
 define LegacyDevice/WRTNODE2Q
 	DEVICE_TITLE := WRTnode2Q board
-	DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage
+	DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage collection-nas
 endef
 LEGACY_DEVICES += WRTNODE2Q
 

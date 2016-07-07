@@ -23,6 +23,8 @@ define Target/Description
 	Build multi-platform images for the ARMv8 instruction set architecture
 endef
 
+DEFAULT_PACKAGES += collection-common-device
+
 KERNELNAME:=Image dtbs
 
 $(eval $(call BuildTarget))
