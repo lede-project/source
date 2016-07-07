@@ -30,6 +30,7 @@ define Package/libnettle
   TITLE:=GNU crypto library
   URL:=http://www.lysator.liu.se/~nisse/nettle/
   DEPENDS+= +!LIBNETTLE_MINI:libgmp
+  DEFAULT:=n if CRYPTO_DEFAULT_NONE, m if ALL
 endef
 
 define Package/libnettle/config
