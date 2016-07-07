@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 ARCH:=arm
 BOARD:=oxnas
 BOARDNAME:=PLXTECH/Oxford NAS782x/OX82x
-DEVICE_TYPE:=nas
+TARGET_DEVICE_TYPE:=nas
 FEATURES:=gpio nand pcie usb ramdisk rtc squashfs ubifs
 CPU_TYPE:=mpcore
 

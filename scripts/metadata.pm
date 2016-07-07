@@ -2,7 +2,7 @@ package metadata;
 use base 'Exporter';
 use strict;
 use warnings;
-our @EXPORT = qw(%package %srcpackage %category %subdir %preconfig %features %overrides clear_packages parse_package_metadata parse_target_metadata get_multiline @ignore);
+our @EXPORT = qw(%package %srcpackage %category %subdir %preconfig %features %overrides clear_packages parse_package_metadata parse_target_metadata parse_defaults_metadata get_multiline @ignore %devicetypes $defaultpackages @defaultstargets);
 
 our %package;
 our %preconfig;
@@ -11,6 +11,9 @@ our %category;
 our %subdir;
 our %features;
 our %overrides;
+our %devicetypes;
+our $defaultpackages;
+our @defaultstargets;
 our @ignore;
 
 sub get_multiline {
@@ -72,6 +75,7 @@ sub parse_target_metadata($) {
 		/^Target-Arch-Packages:\s*(.+)\s*$/ and $target->{arch_packages} = $1;
 		/^Target-Features:\s*(.+)\s*$/ and $target->{features} = [ split(/\s+/, $1) ];
 		/^Target-Depends:\s*(.+)\s*$/ and $target->{depends} = [ split(/\s+/, $1) ];
+		/^Target-Device-Type:\s*(.+)\s*$/ and $target->{device_type} = $1;
 		/^Target-Description:/ and $target->{desc} = get_multiline(*FILE);
 		/^Target-Optimization:\s*(.+)\s*$/ and $target->{cflags} = $1;
 		/^CPU-Type:\s*(.+)\s*$/ and $target->{cputype} = $1;
@@ -79,7 +83,6 @@ sub parse_target_metadata($) {
 		/^Linux-Release:\s*(.+)\s*$/ and $target->{release} = $1;
 		/^Linux-Kernel-Arch:\s*(.+)\s*$/ and $target->{karch} = $1;
 		/^Default-Subtarget:\s*(.+)\s*$/ and $target->{def_subtarget} = $1;
-		/^Default-Packages:\s*(.+)\s*$/ and $target->{packages} = [ split(/\s+/, $1) ];
 		/^Target-Profile:\s*(.+)\s*$/ and do {
 			$profile = {
 				id => $1,
@@ -95,7 +98,7 @@ sub parse_target_metadata($) {
 			$profile->{priority} = $1;
 			$target->{sort} = 1;
 		};
-		/^Target-Profile-Packages:\s*(.*)\s*$/ and $profile->{packages} = [ split(/\s+/, $1) ];
+		/^Target-Profile-Device-Type:\s*(.+)\s*$/ and $profile->{device_type} = $1;
 		/^Target-Profile-Description:\s*(.*)\s*/ and $profile->{desc} = get_multiline(*FILE);
 	}
 	close FILE;
@@ -118,6 +121,79 @@ sub parse_target_metadata($) {
 		} @{$target->{profiles}};
 	}
 	return @target;
+}
+
+sub parse_defaults_metadata($) {
+	my $file = shift;
+	my $target;
+	my $profile;
+	my %target;
+	my $devicetype;
+	my $devicetypes = \%devicetypes;
+	my $makefile;
+
+	open FILE, "<$file" or do {
+		warn "Can't open file '$file': $!\n";
+		return;
+	};
+	while (<FILE>) {
+		chomp;
+		/^Device-Type:\s*(.+)\s*$/ and do {
+			$devicetype = {
+				id => $1,
+				packages => []
+			};
+			$devicetypes{$devicetype->{id}} = $devicetype;
+		};
+		/^Device-Type-Conf:\s*(.+)\s*$/ and $devicetype->{conf} = $1;
+		/^Device-Type-Packages:\s*(.+)\s*$/ and $devicetype->{packages} = [ split(/\s+/, $1) ];
+		/^Base-Default-Packages:\s*(.+)/ and $defaultpackages = [ split(/\s+/, $1) ];
+		/^Target:\s*(.+)\s*$/ and do {
+			my $name = $1;
+			$target = {
+				id => $name,
+				profiles => [],
+				conf => confstr($name),
+				subtargets => []
+			};
+			push @defaultstargets, $target;
+			$target{$name} = $target;
+			if ($name =~ /([^\/]+)\/([^\/]+)/) {
+				push @{$target{$1}->{subtargets}}, $2;
+				$target->{subtarget} = 1;
+				$target->{parent} = $target{$1};
+			}
+		};
+		/^Target-Name:\s*(.+)\s*$/ and $target->{name} = $1;
+		/^Default-Packages:\s*(.+)\s*$/ and $target->{packages} = [ split(/\s+/, $1) ];
+		/^Target-Profile:\s*(.+)\s*$/ and do {
+			$profile = {
+				id => $1,
+				name => $1,
+				packages => []
+			};
+			$1 =~ /^DEVICE_/ and $target->{has_devices} = 1;
+			push @{$target->{profiles}}, $profile;
+		};
+		/^Target-Profile-Name:\s*(.+)\s*$/ and $profile->{name} = $1;
+		/^Target-Profile-Packages:\s*(.*)\s*$/ and $profile->{packages} = [ split(/\s+/, $1) ];
+	}
+	close FILE;
+	foreach my $target (@defaultstargets) {
+		if (@{$target->{subtargets}} > 0) {
+			$target->{profiles} = [];
+			next;
+                }
+		@{$target->{profiles}} > 0 or $target->{profiles} = [
+			{
+				id => 'Default',
+				name => 'Default',
+				packages => []
+			}
+		];
+	}
+
+	return;
 }
 
 sub clear_packages() {

@@ -6,4 +6,12 @@ config SDK
 	  with a precompiled toolchain. It can be used to develop and
 	  test packages for LEDE before including them in the buildroot
 
+config SDK_MINIMAL
+	bool "Build a minimal LEDE SDK"
+	depends on SDK
+	default n
+	help
+	  Builds the minimum set of packages necessary to create an
+          SDK and ImageBuilder combo capable of building images for
+	  the desired boards.
 

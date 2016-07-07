@@ -14,7 +14,7 @@ SUBTARGETS:=qi_lb60
 
 KERNEL_PATCHVER:=3.18
 
-DEVICE_TYPE=other
+TARGET_DEVICE_TYPE=other
 
 include $(INCLUDE_DIR)/target.mk
 
