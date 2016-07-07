@@ -1,2 +1,3 @@
 source "Config-build.in"
 source "Config-images.in"
+source "tmp/.config-targets.in"

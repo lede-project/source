@@ -142,7 +142,8 @@ sub merge_package_lists($$) {
 	return sort(@l);
 }
 
-sub gen_target_config() {
+sub gen_target_config($$) {
+	my $profilesonly = shift;
 	my $file = shift @ARGV;
 	my @target = parse_target_metadata($file);
 	my %defaults;
@@ -152,7 +153,8 @@ sub gen_target_config() {
 	} @target;
 
 
-	print <<EOF;
+	if not $profilesonly {
+		print <<EOF;
 choice
 	prompt "Target System"
 	default TARGET_ar71xx
@@ -160,34 +162,39 @@ choice
 	
 EOF
 
-	foreach my $target (@target_sort) {
-		next if $target->{subtarget};
-		print_target($target);
-	}
+		foreach my $target (@target_sort) {
+			next if $target->{subtarget};
+			print_target($target);
+		}
 
-	print <<EOF;
+		print <<EOF;
 endchoice
 
 choice
 	prompt "Subtarget" if HAS_SUBTARGETS
 EOF
-	foreach my $target (@target) {
-		next unless $target->{def_subtarget};
-		print <<EOF;
+		foreach my $target (@target) {
+			next unless $target->{def_subtarget};
+			print <<EOF;
 	default TARGET_$target->{conf}_$target->{def_subtarget} if TARGET_$target->{conf}
 EOF
-	}
-	print <<EOF;
+		}
+		print <<EOF;
 
 EOF
-	foreach my $target (@target) {
-		next unless $target->{subtarget};
-		print_target($target);
-	}
+		foreach my $target (@target) {
+			next unless $target->{subtarget};
+			print_target($target);
+		}
 
-print <<EOF;
+	print <<EOF;
 endchoice
 
+EOF
+
+	}
+
+	print <<EOF;
 choice
 	prompt "Target Profile"
 
@@ -270,19 +277,22 @@ config TARGET_BOARD
 	string
 
 EOF
-	foreach my $target (@target) {
-		$target->{subtarget} or	print "\t\tdefault \"".$target->{board}."\" if TARGET_".$target->{conf}."\n";
+
+	if not $profilesonly {
+		foreach my $target (@target) {
+			$target->{subtarget} or	print "\t\tdefault \"".$target->{board}."\" if TARGET_".$target->{conf}."\n";
 	}
-	print <<EOF;
+		print <<EOF;
 config TARGET_SUBTARGET
 	string
 	default "generic" if !HAS_SUBTARGETS
 
 EOF
 
-	foreach my $target (@target) {
-		foreach my $subtarget (@{$target->{subtargets}}) {
-			print "\t\tdefault \"$subtarget\" if TARGET_".$target->{conf}."_$subtarget\n";
+		foreach my $target (@target) {
+			foreach my $subtarget (@{$target->{subtargets}}) {
+				print "\t\tdefault \"$subtarget\" if TARGET_".$target->{conf}."_$subtarget\n";
+			}
 		}
 	}
 	print <<EOF;
@@ -308,37 +318,45 @@ EOF
 	}
 	print <<EOF;
 
+EOF
+
+	if not $profilesonly {
+
+		print <<EOF;
 config DEFAULT_TARGET_OPTIMIZATION
 	string
 EOF
-	foreach my $target (@target) {
-		next if @{$target->{subtargets}} > 0;
-		print "\tdefault \"".$target->{cflags}."\" if TARGET_".$target->{conf}."\n";
-	}
-	print "\tdefault \"-Os -pipe -funit-at-a-time\"\n";
-	print <<EOF;
+		foreach my $target (@target) {
+			next if @{$target->{subtargets}} > 0;
+			print "\tdefault \"".$target->{cflags}."\" if TARGET_".$target->{conf}."\n";
+		}
+		print "\tdefault \"-Os -pipe -funit-at-a-time\"\n";
+		print <<EOF;
 
 config CPU_TYPE
 	string
 EOF
-	foreach my $target (@target) {
-		next if @{$target->{subtargets}} > 0;
-		print "\tdefault \"".$target->{cputype}."\" if TARGET_".$target->{conf}."\n";
-	}
-	print "\tdefault \"\"\n";
+		foreach my $target (@target) {
+			next if @{$target->{subtargets}} > 0;
+			print "\tdefault \"".$target->{cputype}."\" if TARGET_".$target->{conf}."\n";
+		}
+		print "\tdefault \"\"\n";
 
-	my %kver;
-	foreach my $target (@target) {
-		my $v = kver($target->{version});
-		next if $kver{$v};
-		$kver{$v} = 1;
-		print <<EOF;
+		my %kver;
+
+		foreach my $target (@target) {
+			my $v = kver($target->{version});
+			next if $kver{$v};
+			$kver{$v} = 1;
+			print <<EOF;
 
 config LINUX_$v
 	bool
 
 EOF
+		}
 	}
+
 	foreach my $def (sort keys %defaults) {
 		print "\tconfig DEFAULT_".$def."\n";
 		print "\t\tbool\n\n";
@@ -351,7 +369,6 @@ sub gen_profile_mk() {
 	my @targets = parse_target_metadata($file);
 	foreach my $cur (@targets) {
 		next unless $cur->{id} eq $target;
-		print "PROFILE_NAMES = ".join(" ", map { $_->{id} } @{$cur->{profiles}})."\n";
 		foreach my $profile (@{$cur->{profiles}}) {
 			print $profile->{id}.'_NAME:='.$profile->{name}."\n";
 			print $profile->{id}.'_PACKAGES:='.join(' ', @{$profile->{packages}})."\n";
@@ -363,12 +380,14 @@ sub parse_command() {
 	GetOptions("ignore=s", \@ignore);
 	my $cmd = shift @ARGV;
 	for ($cmd) {
-		/^config$/ and return gen_target_config();
+		/^config$/ and return gen_target_config(0);
+		/^profile_config$/ and return gen_target_config(1);
 		/^profile_mk$/ and return gen_profile_mk();
 	}
 	die <<EOF
 Available Commands:
 	$0 config [file] 			Target metadata in Kconfig format
+	$0 profile_config [file] [target]	Profile metadata in Kconfig format
 	$0 profile_mk [file] [target]		Profile metadata in makefile format
 
 EOF

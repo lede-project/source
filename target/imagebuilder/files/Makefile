@@ -48,10 +48,9 @@ Available Commands:
 
 Building images:
 	By default 'make image' will create an image with the default
-	target profile and package set. You can use the following parameters
-	to change that:
+	target profile and package set. You can use menuconfig as well as
+	the following variable to to change that:
 
-	make image PROFILE="<profilename>" # override the default target profile
 	make image PACKAGES="<pkg1> [<pkg2> [<pkg3> ...]]" # include extra packages
 	make image FILES="<path>" # include extra files from <path>
 	make image BIN_DIR="<path>" # alternative output directory for the images
@@ -90,13 +89,13 @@ ifneq ($(USE_PROFILES),)
   -include .profiles.mk
 endif
 
-USER_PROFILE ?= $(firstword $(PROFILE_NAMES))
-PROFILE_LIST = $(foreach p,$(PROFILE_NAMES), \
-	echo '$(p):'; $(if $($(p)_NAME),echo '    $($(p)_NAME)'; ) echo '    Packages: $($(p)_PACKAGES)'; \
-)
-
 .profiles.mk: $(TOPDIR)/tmp/.targetinfo
 	$(SCRIPT_DIR)/target-metadata.pl profile_mk $< '$(BOARD)$(if $(SUBTARGET),/$(SUBTARGET))' > $@
+$(TOPDIR)/tmp/.config-targets.in: $(TOPDIR)/tmp/.targetinfo
+	$(SCRIPT_DIR)/target-metadata.pl profile_config $< '$(BOARD)$(if $(SUBTARGET),/$(SUBTARGET))' > $@
+
+$(TOPDIR)/tmp/.config-targets.in: $(TOPDIR)/tmp/.targetinfo
+	$(SCRIPT_DIR)/target-metadata.pl profile_config $< '$(BOARD)$(if $(SUBTARGET),/$(SUBTARGET))' > $@
 
 $(TOPDIR)/tmp/.targetinfo:
 	mkdir -p tmp/info
@@ -120,16 +119,15 @@ staging_dir/host/.prereq-build: include/prereq-build.mk
 _call_info: FORCE
 	echo 'Current Target: "$(BOARD)$(if $(SUBTARGET), ($(BOARDNAME)))"'
 	echo 'Default Packages: $(DEFAULT_PACKAGES)'
-	echo 'Available Profiles:'
-	echo; $(PROFILE_LIST)
+	echo 'Profile Packages: $($(PROFILE)_PACKAGES)'
 
-BUILD_PACKAGES:=$(USER_PACKAGES) $(sort $(DEFAULT_PACKAGES) $($(USER_PROFILE)_PACKAGES) kernel)
+BUILD_PACKAGES:=$(USER_PACKAGES) $(sort $(DEFAULT_PACKAGES) $($(PROFILE)_PACKAGES) kernel)
 # "-pkgname" in the package list means remove "pkgname" from the package list
 BUILD_PACKAGES:=$(filter-out $(filter -%,$(BUILD_PACKAGES)) $(patsubst -%,%,$(filter -%,$(BUILD_PACKAGES))),$(BUILD_PACKAGES))
 PACKAGES:=
 
 _call_image: staging_dir/host/.prereq-build
-	echo 'Building images for $(BOARD)$(if $($(USER_PROFILE)_NAME), - $($(USER_PROFILE)_NAME))'
+	echo 'Building images for $(BOARD)$(if $($(PROFILE)_NAME), - $($(PROFILE)_NAME))'
 	echo 'Packages: $(BUILD_PACKAGES)'
 	echo
 	rm -rf $(TARGET_DIR)
@@ -190,32 +188,23 @@ build_image: FORCE
 	@echo
 	@echo Building images...
 	$(NO_TRACE_MAKE) -C target/linux/$(BOARD)/image install TARGET_BUILD=1 IB=1 EXTRA_IMAGE_NAME="$(EXTRA_IMAGE_NAME)" \
-		$(if $(USER_PROFILE),PROFILE="$(USER_PROFILE)")
 
 clean:
 	rm -rf $(TMP_DIR) $(DL_DIR) $(TARGET_DIR) $(BIN_DIR)
 
 
 info:
-	(unset PROFILE FILES PACKAGES MAKEFLAGS; $(MAKE) USE_PROFILES=1 -s _call_info)
+	(unset FILES PACKAGES MAKEFLAGS; $(MAKE) USE_PROFILES=1 -s _call_info)
 
 image_target:
-ifneq ($(PROFILE),)
-  ifeq ($(filter $(PROFILE),$(PROFILE_NAMES)),)
-	@echo 'Profile "$(PROFILE)" does not exist!'
-	@echo 'Use "make info" to get a list of available profile names.'
-	@exit 1
-  endif
-endif
-	(unset PROFILE FILES PACKAGES MAKEFLAGS; \
+	(unset FILES PACKAGES MAKEFLAGS; \
 	$(MAKE) _call_image \
-		$(if $(PROFILE),USER_PROFILE="$(PROFILE)") \
 		$(if $(FILES),USER_FILES="$(FILES)") \
 		$(if $(PACKAGES),USER_PACKAGES="$(PACKAGES)") \
 		$(if $(BIN_DIR),BIN_DIR="$(BIN_DIR)"))
 
 image: .config
-	$(MAKE) image_target PROFILE=$(PROFILE) PACKAGES="$(PACKAGES)" FILES="$(FILES)" BIN_DIR="$(BIN_DIR)" EXTRA_IMAGE_NAME="$(EXTRA_IMAGE_NAME)" USE_PROFILES=1 BUILD_IMAGE=1
+	$(MAKE) image_target PACKAGES="$(PACKAGES)" FILES="$(FILES)" BIN_DIR="$(BIN_DIR)" EXTRA_IMAGE_NAME="$(EXTRA_IMAGE_NAME)" USE_PROFILES=1 BUILD_IMAGE=1
 
 .config: ./scripts/config/conf
 	@+if [ \! -e .config ] || ! grep CONFIG_HAVE_DOT_CONFIG .config >/dev/null; then \
@@ -223,7 +212,7 @@ image: .config
 		$(_SINGLE)$(NO_TRACE_MAKE) menuconfig $(PREP_MK); \
 	fi
 
-defconfig: scripts/config/conf FORCE
+defconfig: scripts/config/conf $(TOPDIR)/tmp/.config-targets.in FORCE
 	touch .config
 	@if [ -e $(HOME)/.cshorewrt/defconfig ]; then cp $(HOME)/.cshorewrt/defconfig .config; fi
 	$< --defconfig=.config Config.in
@@ -233,14 +222,13 @@ confdefault-m=allmod
 confdefault-n=allno
 confdefault:=$(confdefault-$(CONFDEFAULT))
 
-oldconfig: scripts/config/conf FORCE
+oldconfig: scripts/config/conf $(TOPDIR)/tmp/.config-targets.in FORCE
 	$< --$(if $(confdefault),$(confdefault),old)config Config.in
 
-menuconfig: scripts/config/mconf FORCE
+menuconfig: scripts/config/mconf $(TOPDIR)/tmp/.config-targets.in FORCE
 	if [ \! -e .config -a -e $(HOME)/.cshorewrt/defconfig ]; then \
 		cp $(HOME)/.cshorewrt/defconfig .config; \
 	fi
 	$< Config.in
 
 .SILENT: help info image
-
