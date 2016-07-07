@@ -41,7 +41,7 @@ while (<>) {
 		# Also we want avoid preserving image generation settings
 		# because we set those while in ImageBuilder
 		next if /^(# )?CONFIG_PACKAGE/;
-		next if /^(# )?CONFIG_TARGET/;
+		next if /^(# )?CONFIG_IMAGE/;
 		if (/^# CONFIG_(.*) is not set/) {
 			$var = $1;
 			$val = 'n';

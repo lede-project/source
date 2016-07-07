@@ -29,7 +29,7 @@ endef
 define NANDProfile
   define Image/BuildKernel/Profile/$(1)
 	$(call Image/Build/DTB,$(2))
-    ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+    ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 	$(call Image/Build/Profile,$(1)/Initramfs)
     endif
   endef
@@ -56,7 +56,7 @@ endef
 define UBINORProfile
   define Image/BuildKernel/Profile/$(1)
 	$(call Image/Build/DTB,$(2))
-    ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+    ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 	$(call Image/Build/Profile,$(1)/Initramfs)
     endif
   endef
@@ -78,7 +78,7 @@ endef
 define NORProfile
   define Image/BuildKernel/Profile/$(1)
 	$(call Image/Build/DTB,$(2))
-    ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+    ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 	$(call Image/Build/Profile,$(1)/Initramfs)
     endif
   endef
@@ -104,7 +104,7 @@ define MMCProfile
 	$(call Image/Build/DTB,$(2))
 	cp $(KDIR)/zImage-$(2) $(BIN_DIR)/zImage-$(1);
 	cp $(DTS_DIR)/$(2).dtb $(BIN_DIR)/$(1).dtb;
-    ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+    ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 	$(call Image/Build/Profile,$(1)/Initramfs)
     endif
   endef
@@ -239,7 +239,7 @@ endef
 define Image/Build
 	$(call Image/Build/$(1))
 	$(call Image/Build/Profile/$(PROFILE)/BuildSysupgrade,$(1))
-ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 	$(call Image/Build/Profile/$(PROFILE)/Initramfs)
 endif
 endef

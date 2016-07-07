@@ -39,8 +39,8 @@ endef
 
 define Build/sdcard-img
 	./gen_rpi_sdcard_img.sh $@ $@.boot $(word 2,$^) \
-		$(CONFIG_BRCM2708_SD_BOOT_PARTSIZE) $(CONFIG_TARGET_ROOTFS_PARTSIZE)
-	$(if $(CONFIG_TARGET_IMAGES_GZIP),gzip -9n -c $@ > $(BIN_DIR)/$(notdir $@).gz)
+		$(CONFIG_BRCM2708_SD_BOOT_PARTSIZE) $(CONFIG_IMAGE_ROOTFS_PARTSIZE)
+	$(if $(CONFIG_IMAGE_IMAGES_GZIP),gzip -9n -c $@ > $(BIN_DIR)/$(notdir $@).gz)
 endef
 
 ### Devices ###

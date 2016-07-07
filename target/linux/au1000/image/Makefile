@@ -66,7 +66,7 @@ define Image/Build
 	$(CP) $(BIN_DIR)/$(IMG_PREFIX)-$(1).fs $(TMP_DIR)/$(IMG_PREFIX)-root.fs
 	tar -C $(BIN_DIR) -cvzf $(BIN_DIR)/$(IMG_PREFIX)-$(1)-sysupgrade.bin \
 		$(IMG_PREFIX)-vmlinux.bin -C $(TMP_DIR) $(IMG_PREFIX)-root.fs
-ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
+ifeq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),y)
 	$(call Image/Build/Initramfs)
 endif
 endef

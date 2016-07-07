@@ -49,7 +49,7 @@ define Image/BuildKernel
 	cp $(KDIR)/vmlinux $(VMLINUX).bin
 	$(call CompressGzip,$(KDIR)/vmlinux,$(KDIR)/vmlinux.bin.gz)
 	$(call MkImage,gzip,,$(KDIR)/vmlinux.bin.gz,$(BIN_DIR)/$(UIMAGE)-gzip.bin)
-ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
+ifeq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),y)
 	cp $(KDIR)/vmlinux-initramfs.elf $(VMLINUX)-initramfs.elf
 	cp $(KDIR)/vmlinux $(VMLINUX)-initramfs.bin
 	$(call CompressGzip,$(KDIR)/vmlinux-initramfs,$(KDIR)/vmlinux-initramfs.bin.gz)

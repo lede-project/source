@@ -19,7 +19,7 @@ define Image/BuildKernel
 		-n 'ARM OpenWrt Linux-$(LINUX_VERSION)' \
 		-d $(KDIR)/zImage $(BIN_DIR)/$(IMG_PREFIX)-uImage
 
-    ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+    ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 	$(CP) $(KDIR)/zImage-initramfs $(BIN_DIR)/$(IMG_PREFIX)-zImage-initramfs
 	echo -ne '\x00\x00\x00\x00' >> $(BIN_DIR)/$(IMG_PREFIX)-zImage-initramfs
 	$(call Image/BuildKernel/MkuImage, \
@@ -43,10 +43,10 @@ define Image/Build/SDCard
 		$(KDIR_TMP)/$(IMG_PREFIX)-$(PROFILE)-boot.img \
 		$(KDIR)/root.$(1) \
 		$(CONFIG_SUNXI_SD_BOOT_PARTSIZE) \
-		$(CONFIG_TARGET_ROOTFS_PARTSIZE) \
+		$(CONFIG_IMAGE_ROOTFS_PARTSIZE) \
 		$(KDIR)/uboot-sunxi-$(PROFILE)-u-boot-with-spl.bin
 
-  ifneq ($(CONFIG_TARGET_IMAGES_GZIP),)
+  ifneq ($(CONFIG_IMAGE_IMAGES_GZIP),)
 	gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-$(PROFILE)-sdcard-vfat-$(1).img
   endif
 endef

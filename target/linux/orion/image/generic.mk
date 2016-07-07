@@ -36,11 +36,11 @@ define Image/BuildKernel
  ## Netgear WN802T: mach id 3306 (0x0cea)
 $(call Image/BuildKernel/ARM/zImage,wn802t,"\x0c\x1c\xa0\xe3\xea\x10\x81\xe3")
 $(call Image/BuildKernel/ARM/uImage,wn802t)
-ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
+ifeq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),y)
 $(call Image/BuildKernel/ARM/zImage,wn802t,"\x0c\x1c\xa0\xe3\xea\x10\x81\xe3",-initramfs)
 $(call Image/BuildKernel/ARM/uImage,wn802t,-initramfs)
 endif
- ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)  # nothing more to do for a ramdisk build
+ ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),y)  # nothing more to do for a ramdisk build
 $(call Image/BuildKernel/JFFS2uImage,wn802t,$(ERASE_SIZE_64K),uImage)
 $(call Image/Default/FileSizeCheck,$(KDIR)/wn802t-uImage.jffs2,$(shell expr $(KERNEL_MTD_SIZE) \* 1024))
  endif
@@ -48,11 +48,11 @@ $(call Image/Default/FileSizeCheck,$(KDIR)/wn802t-uImage.jffs2,$(shell expr $(KE
  ## Netgear WNR854T: mach id 1801 (0x0709)
 $(call Image/BuildKernel/ARM/zImage,wnr854t,"\x07\x1c\xa0\xe3\x09\x10\x81\xe3")
 $(call Image/BuildKernel/ARM/uImage,wnr854t)
-ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
+ifeq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),y)
 $(call Image/BuildKernel/ARM/zImage,wnr854t,"\x07\x1c\xa0\xe3\x09\x10\x81\xe3",-initramfs)
 $(call Image/BuildKernel/ARM/uImage,wnr854t,-initramfs)
 endif
- ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)  # nothing more to do for a ramdisk build
+ ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),y)  # nothing more to do for a ramdisk build
 $(call Image/BuildKernel/JFFS2uImage,wnr854t,$(ERASE_SIZE_128K),uImage)
 $(call Image/Default/FileSizeCheck,$(KDIR)/wnr854t-uImage.jffs2,$(shell expr $(KERNEL_MTD_SIZE) \* 1024))
  endif
@@ -60,11 +60,11 @@ $(call Image/Default/FileSizeCheck,$(KDIR)/wnr854t-uImage.jffs2,$(shell expr $(K
  ## Linksys WRT350N v2: mach id 1633 (0x0661)
 $(call Image/BuildKernel/ARM/zImage,wrt350nv2,"\x06\x1c\xa0\xe3\x61\x10\x81\xe3")
 $(call Image/BuildKernel/ARM/uImage,wrt350nv2)
-ifeq ($($CONFIG_TARGET_ROOTFS_INITRAMFS),y)
+ifeq ($($CONFIG_IMAGE_ROOTFS_INITRAMFS),y)
 $(call Image/BuildKernel/ARM/zImage,wrt350nv2,"\x06\x1c\xa0\xe3\x61\x10\x81\xe3",-initramfs)
 $(call Image/BuildKernel/ARM/uImage,wrt350nv2-initramfs)
 endif
- ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)  # nothing more to do for a ramdisk build
+ ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),y)  # nothing more to do for a ramdisk build
 $(call Image/Default/FileSizeCheck,$(KDIR)/wrt350nv2-uImage,$(shell expr $(KERNEL_MTD_SIZE) \* 1024))
  endif
 endef

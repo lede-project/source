@@ -41,7 +41,7 @@ ifneq ($(GRUB_TERMINALS),)
 endif
 
 SIGNATURE:=$(shell perl -e 'printf("%08x", rand(0xFFFFFFFF))')
-ROOTPART:=$(call qstrip,$(CONFIG_TARGET_ROOTFS_PARTNAME))
+ROOTPART:=$(call qstrip,$(CONFIG_IMAGE_ROOTFS_PARTNAME))
 ROOTPART:=$(if $(ROOTPART),$(ROOTPART),PARTUUID=$(SIGNATURE)-02)
 
 GRUB_TIMEOUT:=$(call qstrip,$(CONFIG_GRUB_TIMEOUT))
@@ -84,10 +84,10 @@ ifneq ($(CONFIG_GRUB_IMAGES),)
 		-e 's#@CMDLINE@#$(strip $(call Image/cmdline/$(1)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
 		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
 		./grub.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
-	PADDING="$(CONFIG_TARGET_IMAGES_PAD)" SIGNATURE="$(SIGNATURE)" PATH="$(TARGET_PATH)" ./gen_image_generic.sh \
+	PADDING="$(CONFIG_IMAGE_IMAGES_PAD)" SIGNATURE="$(SIGNATURE)" PATH="$(TARGET_PATH)" ./gen_image_generic.sh \
 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
-		$(CONFIG_TARGET_KERNEL_PARTSIZE) $(KDIR)/root.grub \
-		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(KDIR)/root.$(1) \
+		$(CONFIG_IMAGE_KERNEL_PARTSIZE) $(KDIR)/root.grub \
+		$(CONFIG_IMAGE_ROOTFS_PARTSIZE) $(KDIR)/root.$(1) \
 		256
 	grub-bios-setup \
 		--device-map="$(KDIR)/grub2/device.map" \
@@ -153,11 +153,11 @@ define Image/Build/gzip
 	gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
 endef
 
-ifneq ($(CONFIG_TARGET_IMAGES_GZIP),)
+ifneq ($(CONFIG_IMAGE_IMAGES_GZIP),)
   define Image/Build/gzip/ext4
 	$(call Image/Build/gzip,ext4)
   endef
-  ifneq ($(CONFIG_TARGET_IMAGES_PAD),)
+  ifneq ($(CONFIG_IMAGE_IMAGES_PAD),)
     define Image/Build/gzip/squashfs
 	$(call Image/Build/gzip,squashfs)
     endef
@@ -195,7 +195,7 @@ define Image/Build
 	$(CP) $(KDIR)/bzImage $(BIN_DIR)/$(IMG_PREFIX)-vmlinuz
 	$(call Image/Build/gzip/$(1))
 	$(call Image/Build/Profile/$(PROFILE),$(1))
-ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
+ifeq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),y)
 	$(call Image/Build/Initramfs)
 endif
 endef

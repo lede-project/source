@@ -1,4 +1,4 @@
-config TARGET_BOOTFS_PARTSIZE
+config IMAGE_BOOTFS_PARTSIZE
 	int "Boot (SD Card) filesystem partition size (in MB)"
 	depends on TARGET_mxs_olinuxino-maxi || TARGET_mxs_olinuxino-micro
 	default 8

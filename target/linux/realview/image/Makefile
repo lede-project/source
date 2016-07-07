@@ -29,7 +29,7 @@ define Build/sdcard-img
 	./gen_realview_sdcard_img.sh \
 	$(BIN_DIR)/$(IMG_PREFIX)-$(PROFILE)sdcard.img \
 	$(KDIR)/root.ext4 \
-	$(CONFIG_TARGET_ROOTFS_PARTSIZE)
+	$(CONFIG_IMAGE_ROOTFS_PARTSIZE)
 endef
 
 

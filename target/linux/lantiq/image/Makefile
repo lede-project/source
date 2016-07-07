@@ -124,7 +124,7 @@ define Image/Build/jffs2-256k
 	cat $(KDIR)/uImage-$(2)-$(1) $(KDIR)/root.$(1) > $(BIN_DIR)/$(IMG_PREFIX)-$(2)-$(1).image
 endef
 
-ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
   define Image/BuildKernel/InitramfsTemplate
 	$(call PatchKernelLzma,$(1),-initramfs)
 	$(call MkImageLzma,$(1),-initramfs)
@@ -139,7 +139,7 @@ define Image/BuildKernel/Template
 	$(Image/BuildKernel/InitramfsTemplate)
 endef
 
-ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
   define Image/BuildKernelLoader/InitramfsTemplate
 	$(CP) $(KDIR)/loader-initramfs-$(1).bin $(BIN_DIR)/$(IMG_PREFIX)-$(1)-vmlinux-initramfs-loader
 	$(CP) $(KDIR)/vmlinux-initramfs-$(1) $(BIN_DIR)/$(IMG_PREFIX)-$(1)-vmlinux-initramfs
@@ -152,7 +152,7 @@ define Image/BuildKernelLoader/Template
 	$(Image/BuildKernelLoader/InitramfsTemplate)
 endef
 
-ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
   define Image/Prepare/InitramfsTemplate
 	$(call PatchKernelLzma,$(1),-initramfs)
 	$(call Image/BuildLoader/Template,$(1),-initramfs)
