@@ -14,9 +14,8 @@ PKG_LICENSE:=GPL-2
 include $(INCLUDE_DIR)/package.mk
 
 define Package/collections/Default
-  SECTION:=base
-  CATEGORY:=Base system
-  SUBMENU:=Collections
+  SECTION:=utils
+  CATEGORY:=Collections
   MAINTAINER:=Daniel Dickinson <lede@daniel.thecshore.com>
 endef
 
@@ -36,6 +35,15 @@ endef
 
 define Package/collections-router/description
   Metapackage for selecting packages that should be included on most routers.
+endef
+
+define Package/collections-ap-bridge
+  TITLE:=Packages useful on most APs in bridge mode
+  DEPENDS:=+iptables +IPV6:ip6tables +firewall +IPV6:odhcp6c +collections-common-device
+endef
+
+define Package/collections-ap-bridge/description
+  Metapackage for selecting packages that should be included on most access points acting as bridges.
 endef
 
 define Package/collections-nas
@@ -64,8 +72,10 @@ define Package/collections-common-device/install
 endef
 
 Package/collections-router/install=$(Package/collections-common-device/install)
+Package/collections-ap-bridge/install=$(Package/collections-common-device/install)
 Package/collections-nas/install=$(Package/collections-common-device/install)
 
 $(eval $(call BuildPackage,collections-common-device))
 $(eval $(call BuildPackage,collections-router))
+$(eval $(call BuildPackage,collections-ap-bridge))
 $(eval $(call BuildPackage,collections-nas))
