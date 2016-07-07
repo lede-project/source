@@ -92,6 +92,7 @@ $(BIN_DIR)/$(SDK_NAME).tar.bz2: clean
 
 	mkdir -p $(SDK_BUILD_DIR)/target/linux
 	$(CP) $(GENERIC_PLATFORM_DIR) $(PLATFORM_DIR) $(SDK_BUILD_DIR)/target/linux/
+	$(CP) $(TOPDIR)/config/Config-device.in $(SDK_BUILD_DIR)/
 	rm -rf \
 		$(SDK_BUILD_DIR)/target/linux/*/files* \
 		$(SDK_BUILD_DIR)/target/linux/*/patches*

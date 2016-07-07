@@ -1,0 +1,76 @@
+# Copyright (C) 2006-2013 OpenWrt.org
+# Copyright (C) 2016 LEDE Project
+#
+# This is free software, licensed under the GNU General Public License v2.
+# See /LICENSE for more information.
+#
+
+config USE_DEVICE_TYPE_router
+	bool
+
+config USE_DEVICE_TYPE_nas
+	bool
+
+config USE_DEVICE_TYPE_bootloader
+	bool
+
+config USE_DEVICE_TYPE_developerboard
+	bool
+
+config USE_DEVICE_TYPE_other
+	bool
+
+config DEFAULT_USE_DEVICE_TYPE_router
+	bool
+
+config DEFAULT_USE_DEVICE_TYPE_nas
+	bool
+
+config DEFAULT_USE_DEVICE_TYPE_bootloader
+	bool
+
+config DEFAULT_USE_DEVICE_TYPE_developerboard
+	bool
+
+config DEFAULT_USE_DEVICE_TYPE_other
+	bool
+
+choice
+	prompt "Device Type"
+	default DT_USE_DEVICE_TYPE_router if DEFAULT_USE_DEVICE_TYPE_router
+	default DT_USE_DEVICE_TYPE_nas if DEFAULT_USE_DEVICE_TYPE_nas
+	default DT_USE_DEVICE_TYPE_bootloader if DEFAULT_USE_DEVICE_TYPE_booloader
+	default DT_USE_DEVICE_TYPE_developerboard if DEFAULT_USE_DEVICE_TYPE_developerboard
+	default DT_USE_DEVICE_TYPE_other if DEFAULT_USE_DEVICE_TYPE_other
+	help
+	  "Set default build options based on device type (e.g. router, nas)"
+
+	config DT_USE_DEVICE_TYPE_router
+		bool "Router"
+		select USE_DEVICE_TYPE_router
+
+	config DT_USE_DEVICE_TYPE_nas
+		bool "NAS"
+		select USE_DEVICE_TYPE_nas
+
+	config DT_USE_DEVICE_TYPE_bootloader
+		bool "Bootloader"
+		select USE_DEVICE_TYPE_bootloader
+
+	config DT_USE_DEVICE_TYPE_developerboard
+		bool "Developer Board"
+		select USE_DEVICE_TYPE_developerboard
+
+	config DT_USE_DEVICE_TYPE_other
+		bool "Other"
+		select USE_DEVICE_TYPE_other
+
+endchoice
+
+config DEVICE_TYPE
+	string
+	default "router" if USE_DEVICE_TYPE_router
+	default "nas" if USE_DEVICE_TYPE_nas
+	default "bootloader" if USE_DEVICE_TYPE_bootloader
+	default "developerboard" if USE_DEVICE_TYPE_developerboard
+	default "other" if USE_DEVICE_TYPE_other

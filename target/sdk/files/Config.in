@@ -19,5 +19,7 @@ config MODULES
 	default y
 	option modules
 
+source "Config-device.in"
 source "Config-build.in"
 source "tmp/.config-package.in"
+source "tmp/.config-defaults.in"

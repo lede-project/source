@@ -47,10 +47,14 @@ $(OVERRIDELIST):
 	rm -f $(TMP_DIR)/info/.overrides-$(SCAN_TARGET)-*
 	touch $@
 
+ifeq ($(SCAN_NAME),defaults)
+  GREP_STRING=BuildTarget
+else
 ifeq ($(SCAN_NAME),target)
   GREP_STRING=BuildTarget
 else
   GREP_STRING=(Build/DefaultTargets|BuildPackage|.+Package)
+endif
 endif
 
 $(FILELIST): $(OVERRIDELIST)
@@ -82,7 +86,7 @@ $(TMP_DIR)/info/.files-$(SCAN_TARGET).mk: $(FILELIST)
 
 $(TARGET_STAMP)::
 	+( \
-		$(NO_TRACE_MAKE) $(FILELIST); \
+		$(NO_TRACE_MAKE) -f $(TOPDIR)/include/scan.mk $(FILELIST); \
 		MD5SUM=$$(cat $(FILELIST) $(OVERRIDELIST) | (md5sum || md5) 2>/dev/null | awk '{print $$1}'); \
 		[ -f "$@.$$MD5SUM" ] || { \
 			rm -f $@.*; \

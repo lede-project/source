@@ -15,7 +15,7 @@ SUBTARGETS:=generic
 
 KERNEL_PATCHVER:=4.4
 
-DEVICE_TYPE:=developerboard
+TARGET_DEVICE_TYPE:=developerboard
 
 include $(INCLUDE_DIR)/target.mk
 

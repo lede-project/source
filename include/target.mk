@@ -10,15 +10,42 @@ ifneq ($(__target_inc),1)
 __target_inc=1
 
 # default device type
-DEVICE_TYPE?=router
+DEVICE_TYPE:=$(if $(call qstrip,$(CONFIG_DEVICE_TYPE)),$(call qstrip,$(CONFIG_DEVICE_TYPE)),router)
+DEVICE_TYPES:=nas router bootloader developerboard other
 
 # Default packages - the really basic set
-DEFAULT_PACKAGES:=base-files libc libgcc busybox dropbear mtd uci opkg netifd fstools uclient-fetch logd
+BASE_DEFAULT_PACKAGES:=base-files libc libgcc busybox opkg dropbear mtd uci netifd fstools uclient-fetch logd
+
 # For nas targets
 DEFAULT_PACKAGES.nas:=block-mount fdisk lsblk mdadm
 # For router targets
 DEFAULT_PACKAGES.router:=dnsmasq iptables ip6tables ppp ppp-mod-pppoe firewall odhcpd odhcp6c
 DEFAULT_PACKAGES.bootloader:=
+DEFAULT_PACKAGES.other:=
+DEFAULT_PACKAGES.developerboard:=
+
+filter_packages = $(filter-out -% $(patsubst -%,%,$(filter -%,$(1))),$(1))
+extra_packages = $(if $(filter wpad-mini wpad nas,$(1)),iwinfo)
+
+ifneq ($(DUMP_DEFAULTS_BASE),)
+
+define DeviceTypeDefaults
+	echo 'Device-Type: $(1)'; \
+	echo 'Device-Type-Conf: USE_DEVICE_TYPE_$(1)'; \
+	echo 'Device-Type-Packages: $(DEFAULT_PACKAGES.$(1)) $(call extra_packages,$(DEFAULT_PACKAGES.$(1)))' ; \
+	echo '@@' ;
+endef
+
+define BuildDefaults/DumpCurrent
+  all:
+	@echo 'Base-Default-Packages: $(BASE_DEFAULT_PACKAGES)'; \
+	 echo '@@' ; \
+	 $(foreach dt,$(DEVICE_TYPES),$(call DeviceTypeDefaults,$(dt)))
+endef
+
+$(eval $(call BuildDefaults/DumpCurrent))
+
+else
 
 ifneq ($(DUMP),)
   all: dumpinfo
@@ -51,12 +78,6 @@ else
   endif
 endif
 
-# Add device specific packages (here below to allow device type set from subtarget)
-DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.$(DEVICE_TYPE))
-
-filter_packages = $(filter-out -% $(patsubst -%,%,$(filter -%,$(1))),$(1))
-extra_packages = $(if $(filter wpad-mini wpad nas,$(1)),iwinfo)
-
 define ProfileDefault
   NAME:=
   PRIORITY:=
@@ -68,11 +89,16 @@ define Profile
   $(eval $(call ProfileDefault))
   $(eval $(call Profile/$(1)))
   dumpinfo : $(call shexport,Profile/$(1)/Description)
+  PKGDUMPINFO += \
+	echo "Target-Profile: $(1)"; \
+	echo "Target-Profile-Packages: $(PACKAGES) $(call extra_packages,$(DEFAULT_PACKAGES) $(PACKAGES))"; \
+	echo "@@"; \
+	echo;
   DUMPINFO += \
 	echo "Target-Profile: $(1)"; \
 	$(if $(PRIORITY), echo "Target-Profile-Priority: $(PRIORITY)"; ) \
 	echo "Target-Profile-Name: $(NAME)"; \
-	echo "Target-Profile-Packages: $(PACKAGES) $(call extra_packages,$(DEFAULT_PACKAGES) $(PACKAGES))"; \
+	echo "Target-Profile-Device-Type: $(if $(TARGET_DEVICE_TYPE),$(TARGET_DEVICE_TYPE),router)"; \
 	echo "Target-Profile-Description:"; \
 	echo "$$$$$$$$$(call shvar,Profile/$(1)/Description)"; \
 	echo "@@"; \
@@ -153,7 +179,7 @@ LINUX_RECONF_CMD = $(call __linux_confcmd,$(LINUX_RECONFIG_LIST),)
 LINUX_RECONF_DIFF = $(call __linux_confcmd,$(filter-out $(LINUX_RECONFIG_TARGET),$(LINUX_RECONFIG_LIST)),'>')
 
 ifeq ($(DUMP),1)
-  BuildTarget=$(BuildTargets/DumpCurrent)
+  BuildTarget=$(if $(SCAN_DEFAULTS),$(BuildDefaults/DumpCurrent),$(BuildTargets/DumpCurrent))
 
   ifneq ($(BOARD),)
     TMP_CONFIG:=$(TMP_DIR)/.kconfig-$(call target_conf,$(TARGETID))
@@ -280,6 +306,7 @@ define BuildTargets/DumpCurrent
 	 echo 'Target-Arch: $(ARCH)'; \
 	 echo 'Target-Arch-Packages: $(if $(ARCH_PACKAGES),$(ARCH_PACKAGES),$(ARCH)$(if $(CPU_TYPE),_$(CPU_TYPE))$(if $(CPU_SUBTYPE),_$(CPU_SUBTYPE)))'; \
 	 echo 'Target-Features: $(FEATURES)'; \
+	 echo 'Target-Device-Type: $(if $(TARGET_DEVICE_TYPE),$(TARGET_DEVICE_TYPE),router)'; \
 	 echo 'Target-Depends: $(DEPENDS)'; \
 	 echo 'Target-Optimization: $(if $(CFLAGS),$(CFLAGS),$(DEFAULT_CFLAGS))'; \
 	 echo 'CPU-Type: $(CPU_TYPE)$(if $(CPU_SUBTYPE),+$(CPU_SUBTYPE))'; \
@@ -290,7 +317,6 @@ define BuildTargets/DumpCurrent
 	 echo 'Target-Description:'; \
 	 echo "$$$$DESCRIPTION"; \
 	 echo '@@'; \
-	 echo 'Default-Packages: $(DEFAULT_PACKAGES) $(call extra_packages,$(DEFAULT_PACKAGES))'; \
 	 $(DUMPINFO)
 	$(if $(CUR_SUBTARGET),$(SUBMAKE) -r --no-print-directory -C image -s DUMP=1 SUBTARGET=$(CUR_SUBTARGET))
 	$(if $(SUBTARGET),,@$(foreach SUBTARGET,$(SUBTARGETS),$(SUBMAKE) -s DUMP=1 SUBTARGET=$(SUBTARGET); ))
@@ -302,4 +328,5 @@ ifeq ($(TARGET_BUILD),1)
   BuildTarget?=$(BuildKernel)
 endif
 
+endif #DUMP_DEFAULTS_BASE
 endif #__target_inc
