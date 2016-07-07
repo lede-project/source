@@ -9,16 +9,7 @@
 ifneq ($(__target_inc),1)
 __target_inc=1
 
-# default device type
-DEVICE_TYPE?=router
-
-# Default packages - the really basic set
-DEFAULT_PACKAGES:=base-files libc libgcc busybox dropbear mtd uci opkg netifd fstools uclient-fetch logd
-# For nas targets
-DEFAULT_PACKAGES.nas:=block-mount fdisk lsblk mdadm
-# For router targets
-DEFAULT_PACKAGES.router:=dnsmasq iptables ip6tables ppp ppp-mod-pppoe firewall odhcpd odhcp6c
-DEFAULT_PACKAGES.bootloader:=
+DEFAULT_PACKAGES:=base-files libc libgcc busybox
 
 ifneq ($(DUMP),)
   all: dumpinfo
@@ -50,9 +41,6 @@ else
     -include ./$(SUBTARGET)/target.mk
   endif
 endif
-
-# Add device specific packages (here below to allow device type set from subtarget)
-DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.$(DEVICE_TYPE))
 
 filter_packages = $(filter-out -% $(patsubst -%,%,$(filter -%,$(1))),$(1))
 extra_packages = $(if $(filter wpad-mini wpad nas,$(1)),iwinfo)
