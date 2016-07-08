@@ -313,7 +313,7 @@ yun_mtdlayout_8M=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,6464k(rootfs),
 yun_mtdlayout_16M=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,14656k(rootfs),1280k(kernel),64k(nvram),64k(art),15936k@0x50000(firmware)
 wrtnode2q_mtdlayout=mtdparts=spi0.0:192k(u-boot),64k(u-boot-env),64k(art),1472k(kernel),14592k(rootfs),16064k@0x50000(firmware),16384k@0x0(fullflash)
 
-define Image/BuildKernel
+define Image/BuildKernel/Default
 	cp $(KDIR)/vmlinux.elf $(VMLINUX).elf
 	cp $(KDIR)/vmlinux $(VMLINUX).bin
 	dd if=$(KDIR)/vmlinux.bin.lzma of=$(VMLINUX).lzma bs=65536 conv=sync
@@ -323,6 +323,10 @@ define Image/BuildKernel
 	cp $(KDIR)/loader-generic.elf $(VMLINUX)-lzma.elf
 	-mkdir -p $(KDIR_TMP)
 	$(call Image/Build/Profile/$(IMAGE_PROFILE),buildkernel)
+endef
+
+define Image/BuildKernel/Profile
+	$(if $(_PROFILE_SET),$(call Image/BuildKernel/Default))
 endef
 
 define Image/BuildKernel/Initramfs
