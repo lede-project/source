@@ -11,10 +11,12 @@ use strict;
 use warnings;
 use File::Basename;
 use File::Copy;
+use File::Path qw/make_path/;
 
-@ARGV > 2 or die "Syntax: $0 <target dir> <filename> <hash> <url filename> [<mirror> ...]\n";
+@ARGV > 2 or die "Syntax: $0 <dl_info_file> <target dir> <filename> <hash> <url filename> [<mirror> ...]\n";
 
 my $url_filename;
+my $dl_info_file = shift @ARGV;
 my $target = shift @ARGV;
 my $filename = shift @ARGV;
 my $file_hash = shift @ARGV;
@@ -156,6 +158,11 @@ sub download
 			cleanup();
 			return;
 		}
+
+		make_path(dirname($dl_info_file));
+		open(my $fh, '>>', "$dl_info_file") or die "Could not open file '$dl_info_file' !";
+		print $fh "Url: $mirror File: $url_filename Md5sum: $sum\n";
+		close $fh;
 	};
 
 	unlink "$target/$filename";
