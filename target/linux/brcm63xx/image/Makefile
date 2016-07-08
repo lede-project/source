@@ -108,7 +108,8 @@ define Build/cfe-bin
 		--info1 "$(call Image/LimitName16,$(DEVICE_NAME))" \
 		--info2 "$(call Image/FileSystemStrip,$(word 2,$^))" \
 		$(call rootfspad/$(call Image/FileSystemStrip,$(word 2,$^))) \
-		$(CFE_EXTRAS) $(1)
+		--image-offset $(if $(IMAGE_OFFSET),$(IMAGE_OFFSET),$(BLOCK_SIZE)) \
+		--block-size $(BLOCK_SIZE) $(CFE_EXTRAS) $(1)
 endef
 
 define Build/cfe-old-bin
@@ -124,7 +125,8 @@ define Build/cfe-spw303v-bin
 		--output $@ --boardid $(CFE_BOARD_ID) --chipid $(CFE_CHIP_ID) \
 		--entry $(LOADER_ENTRY) --load-addr $(LOADER_ENTRY) \
 		$(call rootfspad/$(call Image/FileSystemStrip,$(word 2,$^))) \
-		$(CFE_EXTRAS) $(1)
+		--image-offset $(if $(IMAGE_OFFSET),$(IMAGE_OFFSET),$(BLOCK_SIZE)) \
+		--block-size $(BLOCK_SIZE) $(CFE_EXTRAS) $(1)
 endef
 
 define Build/spw303v-bin
