@@ -21,7 +21,7 @@ qosmon: qosmon.o
 	$(CC) $(LDFLAGS) $^ $(TCOBJS) -o $@ $(LDLIBS)
 
 qosmon.o: qosmon.c
-	$(CC) -D ONLYBG $(CFLAGS) -I $(TCDIR)/include -I $(TCDIR)/tc -c $^ -o $@
+	$(CC) -D ONLYBG -D_GNU_SOURCE $(CFLAGS) -I $(TCDIR)/include -I $(TCDIR)/tc -c $^ -o $@
 
 install: all uninstall
 	-mkdir -p $(BINDIR)

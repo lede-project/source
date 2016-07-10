@@ -34,6 +34,8 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#include <limits.h>
+#include <sys/param.h>
 
 #include "utils.h"
 #include "tc_util.h"
@@ -47,6 +49,8 @@
 #include <ncurses.h>
 #endif
 
+//musl workaround
+#define __sighandler_t sighandler_t
 
 #define MAXPACKET   100   /* max packet size */
 #define BACKGROUND  3     /* Detact and run in the background */
