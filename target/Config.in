@@ -63,11 +63,17 @@ config USES_TARGZ
 config USES_CPIOGZ
 	bool
 
+config USES_MINOR
+	bool
+
 config USES_UBIFS
 	bool
 	select NAND_SUPPORT
 
 config LOW_MEMORY_FOOTPRINT
+	bool
+
+config SMALL_FLASH
 	bool
 
 config NOMMU

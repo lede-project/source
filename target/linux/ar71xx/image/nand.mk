@@ -7,6 +7,8 @@ define Build/MerakiNAND
 endef
 
 define Device/mr18
+  DEVICE_TITLE := Meraki MR18
+  DEVICE_PACKAGES := kmod-spi-gpio kmod-ath9k
   BOARDNAME = MR18
   BLOCKSIZE := 64k
   CONSOLE = ttyS0,115200
@@ -17,3 +19,21 @@ define Device/mr18
   IMAGE/sysupgrade.tar := sysupgrade-nand
 endef
 TARGET_DEVICES += mr18
+
+define LegacyDevice/R6100
+	DEVICE_TITLE := NETGEAR R6100
+	DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-ledtrig-usbdev
+endef
+LEGACY_DEVICES += R6100
+
+define LegacyDevice/WNDR4300
+	DEVICE_TITLE := NETGEAR WNDR3700v4/WNDR4300
+	DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-ledtrig-usbdev
+endef
+LEGACY_DEVICES += WNDR4300
+
+define LegacyDevice/NBG6716
+	DEVICE_TITLE := Zyxel NBG 6716
+	DEVICE_PACKAGES := kmod-rtc-pcf8563 kmod-ath10k
+endef
+LEGACY_DEVICES += NBG6716

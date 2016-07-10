@@ -50,6 +50,15 @@ define Device/ArcherC20i
 endef
 TARGET_DEVICES += ArcherC20i
 
+define Device/ArcherC50
+  DTS := ArcherC50
+  KERNEL := $(KERNEL_DTB)
+  KERNEL_INITRAMFS := $(KERNEL_DTB) | tplink-header ArcherC50 -c
+  IMAGE/sysupgrade.bin := append-kernel | tplink-header ArcherC50 -j -r $(KDIR)/root.squashfs
+  DEVICE_TITLE := TP-Link ArcherC50
+endef
+TARGET_DEVICES += ArcherC50
+
 ex2700_mtd_size=3866624
 define Device/ex2700
   DTS := EX2700
@@ -366,6 +375,14 @@ define Device/youku-yk1
   DEVICE_TITLE := YOUKU YK1
 endef
 TARGET_DEVICES += youku-yk1
+
+define Device/zbt-ape522ii
+  DTS := ZBT-APE522II
+  IMAGE_SIZE := $(ralink_default_fw_size_8M)
+  DEVICE_TITLE := Zbtlink ZBT-APE522II
+  DEVICE_PACKAGES := kmod-mt76
+endef
+TARGET_DEVICES += zbt-ape522ii
 
 define Device/zbt-wa05
   DTS := ZBT-WA05

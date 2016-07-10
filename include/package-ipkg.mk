@@ -5,7 +5,9 @@
 # See /LICENSE for more information.
 #
 
-include $(INCLUDE_DIR)/feeds.mk
+ifndef DUMP
+  include $(INCLUDE_DIR)/feeds.mk
+endif
 
 # invoke ipkg-build with some default options
 IPKG_BUILD:= \
@@ -154,7 +156,7 @@ Package: $(1)
 Version: $(VERSION)
 $$(call addfield,Depends,$$(Package/$(1)/DEPENDS)
 )$$(call addfield,Conflicts,$$(call mergelist,$(CONFLICTS))
-)$$(call addfield,Provides,$(PROVIDES)
+)$$(call addfield,Provides,$$(call mergelist,$(PROVIDES))
 )$$(call addfield,Source,$(SOURCE)
 )$$(call addfield,License,$$(PKG_LICENSE)
 )$$(call addfield,LicenseFiles,$$(PKG_LICENSE_FILES)

@@ -1,7 +1,7 @@
-From e995023b752af4cc6f6863d5beaaf4a3b9144b20 Mon Sep 17 00:00:00 2001
+From 05c2e0a07f9b7f7f348f05f127871be618b66ad8 Mon Sep 17 00:00:00 2001
 From: wm4 <wm4@nowhere>
 Date: Wed, 13 Jan 2016 19:41:45 +0100
-Subject: [PATCH 126/304] bcm2835: extend allowed range of channels and
+Subject: [PATCH 126/423] bcm2835: extend allowed range of channels and
  samplerates
 
 Allow everything the videocore accepts.

@@ -27,6 +27,9 @@ board_config_update
 board=$(lantiq_board_name)
 
 case "$board" in
+ARV7506PW11)
+	ucidef_set_led_wlan "wifi" "wifi" "arv7506pw11:green:wlan" "phy0radio"
+	;;
 BTHOMEHUBV5A)
 	ucidef_set_led_default "dimmed" "dimmed" "dimmed" "0"
 	;;
@@ -41,6 +44,19 @@ P2812HNUF*)
 	;;
 ARV7519RW22)
 	ucidef_set_led_netdev "lan" "lan" "arv7519rw22:green:lan" "eth0.1"
+	;;
+FRITZ7320)
+	ucidef_set_led_netdev "wifi" "wifi" "fritz7320:green:wlan" "wlan0"
+	;;
+ARV4525PW)
+	ucidef_set_led_netdev "wifi" "wifi" "arv4525pw:green:wlan" "wlan0"
+	;;
+WBMR300)
+	ucidef_set_led_switch "lan1" "LAN1" "wbmr300:green:lan1" "switch0" "0x08"
+	ucidef_set_led_switch "lan2" "LAN2" "wbmr300:green:lan2" "switch0" "0x04"
+	ucidef_set_led_switch "wan" "WAN" "wbmr300:green:wan" "switch0" "0x10"
+	ucidef_set_led_switch "lan3" "LAN3" "wbmr300:green:lan3" "switch0" "0x20"
+	ucidef_set_led_default "router" "router" "wbmr300:green:router" "1"
 	;;
 *)
 	;;

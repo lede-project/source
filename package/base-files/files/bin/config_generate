@@ -5,6 +5,7 @@ CFG=/etc/board.json
 . /usr/share/libubox/jshn.sh
 
 [ -f $CFG ] || exit 1
+[ -f /etc/config/network -a -f /etc/config/system ] && exit 0
 
 generate_static_network() {
 	uci -q batch <<-EOF
@@ -220,6 +221,52 @@ generate_switch() {
 	json_select ..
 }
 
+
+generate_static_system() {
+	uci -q batch <<-EOF
+		delete system.@system[0]
+		add system system
+		set system.@system[-1].hostname='lede'
+		set system.@system[-1].timezone='UTC'
+		set system.@system[-1].ttylogin='0'
+		set system.@system[-1].log_size='64'
+		set system.@system[-1].urandom_seed='0'
+
+		delete system.ntp
+		set system.ntp='timeserver'
+		set system.ntp.enabled='1'
+		set system.ntp.enable_server='0'
+		add_list system.ntp.server='0.lede.pool.ntp.org'
+		add_list system.ntp.server='1.lede.pool.ntp.org'
+		add_list system.ntp.server='2.lede.pool.ntp.org'
+		add_list system.ntp.server='3.lede.pool.ntp.org'
+	EOF
+
+	if json_is_a system object; then
+		json_select system
+			local hostname
+			if json_get_var hostname hostname; then
+				uci -q set "system.@system[-1].hostname=$hostname"
+			fi
+
+			if json_is_a ntpserver array; then
+				local keys key
+				json_get_keys keys ntpserver
+				json_select ntpserver
+					uci -q delete "system.ntp.server"
+
+					for key in $keys; do
+						local server
+						if json_get_var server "$key"; then
+							uci -q add_list "system.ntp.server=$server"
+						fi
+					done
+				json_select ..
+			fi
+		json_select ..
+	fi
+}
+
 generate_rssimon() {
 	local key="$1"
 	local cfg="rssid_$key"
@@ -310,6 +357,14 @@ generate_led() {
 			EOF
 		;;
 
+		portstate)
+			local port_state
+			json_get_vars port_state
+			uci -q batch <<-EOF
+				set system.$cfg.port_state='$port_state'
+			EOF
+		;;
+
 		timer|oneshot)
 			local delayon delayoff
 			json_get_vars delayon delayoff
@@ -346,21 +401,28 @@ generate_gpioswitch() {
 json_init
 json_load "$(cat ${CFG})"
 
-generate_static_network
+if [ ! -f /etc/config/network ]; then
+	touch /etc/config/network
+	generate_static_network
 
-json_get_keys keys network
-for key in $keys; do generate_network $key; done
+	json_get_keys keys network
+	for key in $keys; do generate_network $key; done
 
-json_get_keys keys switch
-for key in $keys; do generate_switch $key; done
+	json_get_keys keys switch
+	for key in $keys; do generate_switch $key; done
+fi
 
-json_get_keys keys rssimon
-for key in $keys; do generate_rssimon $key; done
+if [ ! -f /etc/config/system ]; then
+	touch /etc/config/system
+	generate_static_system
 
-json_get_keys keys gpioswitch
-for key in $keys; do generate_gpioswitch $key; done
+	json_get_keys keys rssimon
+	for key in $keys; do generate_rssimon $key; done
 
-json_get_keys keys led
-for key in $keys; do generate_led $key; done
+	json_get_keys keys gpioswitch
+	for key in $keys; do generate_gpioswitch $key; done
 
+	json_get_keys keys led
+	for key in $keys; do generate_led $key; done
+fi
 uci commit

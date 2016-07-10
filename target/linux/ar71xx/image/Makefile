@@ -20,6 +20,7 @@ ifeq ($(SUBTARGET),generic)
 include ./tp-link.mk
 include ./ubnt.mk
 include ./generic.mk
+include ./legacy-devices.mk
 endif
 ifeq ($(SUBTARGET),nand)
 include ./nand.mk
@@ -88,7 +89,6 @@ define Device/Default
   DEVICE_PROFILE = $$(BOARDNAME)
   PROFILES = Default Minimal $$(DEVICE_PROFILE)
   MTDPARTS :=
-  IMAGES := sysupgrade.bin
   BLOCKSIZE := 64k
   FILESYSTEMS = $(filter-out jffs2-%,$(TARGET_FILESYSTEMS)) jffs2-$$(BLOCKSIZE)
   CONSOLE = ttyS0,115200

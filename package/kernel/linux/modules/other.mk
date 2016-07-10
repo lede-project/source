@@ -825,6 +825,23 @@ endef
 $(eval $(call KernelPackage,pps-gpio))
 
 
+define KernelPackage/pps-ldisc
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=PPS line discipline
+  DEPENDS:=+kmod-pps
+  KCONFIG:=CONFIG_PPS_CLIENT_LDISC
+  FILES:=$(LINUX_DIR)/drivers/pps/clients/pps-ldisc.ko
+  AUTOLOAD:=$(call AutoLoad,18,pps-ldisc,1)
+endef
+
+define KernelPackage/pps-ldisc/description
+ Support for a PPS source connected with the CD (Carrier
+ Detect) pin of your serial port.
+endef
+
+$(eval $(call KernelPackage,pps-ldisc))
+
+
 define KernelPackage/ptp
   SUBMENU:=$(OTHER_MENU)
   TITLE:=PTP clock support
@@ -990,3 +1007,51 @@ define KernelPackage/echo/description
 endef
 
 $(eval $(call KernelPackage,echo))
+
+
+define KernelPackage/bmp085
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=BMP085/BMP18x pressure sensor
+  DEPENDS:= +kmod-regmap @!LINUX_3_18 @!LINUX_4_1
+  KCONFIG:= CONFIG_BMP085
+  FILES:= $(LINUX_DIR)/drivers/misc/bmp085.ko
+endef
+
+define KernelPackage/bmp085/description
+ This driver adds support for Bosch Sensortec's digital pressure
+ sensors BMP085 and BMP18x.
+endef
+
+$(eval $(call KernelPackage,bmp085))
+
+
+define KernelPackage/bmp085-i2c
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=BMP085/BMP18x pressure sensor I2C
+  DEPENDS:= +kmod-bmp085
+  KCONFIG:= CONFIG_BMP085_I2C
+  FILES:= $(LINUX_DIR)/drivers/misc/bmp085-i2c.ko
+  AUTOLOAD:=$(call AutoProbe,bmp085-i2c)
+endef
+define KernelPackage/bmp085-i2c/description
+ This driver adds support for Bosch Sensortec's digital pressure
+ sensor connected via I2C.
+endef
+
+$(eval $(call KernelPackage,bmp085-i2c))
+
+
+define KernelPackage/bmp085-spi
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=BMP085/BMP18x pressure sensor SPI
+  DEPENDS:= +kmod-bmp085
+  KCONFIG:= CONFIG_BMP085_SPI
+  FILES:= $(LINUX_DIR)/drivers/misc/bmp085-spi.ko
+  AUTOLOAD:=$(call AutoProbe,bmp085-spi)
+endef
+define KernelPackage/bmp085-spi/description
+ This driver adds support for Bosch Sensortec's digital pressure
+ sensor connected via SPI.
+endef
+
+$(eval $(call KernelPackage,bmp085-spi))

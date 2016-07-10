@@ -19,6 +19,7 @@ get_status_led() {
 	asl26555|\
 	br-6425|\
 	br-6475nd|\
+	dir-860l-b1|\
 	e1700|\
 	fonera20n|\
 	mzk-750dhp|\
@@ -82,6 +83,9 @@ get_status_led() {
 	sk-wb8|\
 	wrh-300cr)
 		status_led="$board:green:wps"
+		;;
+	c50)
+		status_led="tp-link:blue:power"
 		;;
 	cf-wr800n|\
 	psg1208)

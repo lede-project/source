@@ -23,7 +23,7 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
     endif
   endif
 endif
-ifneq ($(CONFIG_PACKAGE_kmod-b43)$(CONFIG_PACKAGE_b43legacy-firmware)$(CONFIG_BRCMSMAC_USE_FW_FROM_WL),)
+ifneq ($(CONFIG_SDK)$(CONFIG_PACKAGE_kmod-b43)$(CONFIG_PACKAGE_b43legacy-firmware)$(CONFIG_BRCMSMAC_USE_FW_FROM_WL),)
   BUILD_B43_TOOLS = y
 endif
 
@@ -36,8 +36,9 @@ tools-$(CONFIG_TARGET_orion_generic) += wrt350nv2-builder upslug2
 tools-$(CONFIG_powerpc) += upx
 tools-$(CONFIG_TARGET_x86) += qemu
 tools-$(CONFIG_TARGET_mxs) += elftosb sdimage
-tools-$(CONFIG_TARGET_brcm2708)$(CONFIG_TARGET_sunxi)$(CONFIG_TARGET_mxs) += mtools dosfstools
+tools-$(CONFIG_TARGET_brcm2708)$(CONFIG_TARGET_sunxi)$(CONFIG_TARGET_mxs)$(CONFIG_TARGET_omap) += mtools dosfstools
 tools-$(CONFIG_TARGET_ar71xx) += lzma-old squashfs
+tools-$(CONFIG_USES_MINOR) += kernel2minor
 tools-y += lzma squashfs4
 tools-$(BUILD_B43_TOOLS) += b43-tools
 tools-$(BUILD_PPL_CLOOG) += ppl cloog
@@ -77,6 +78,11 @@ $(curdir)/bc/compile := $(curdir)/bison/install
 $(curdir)/findutils/compile := $(curdir)/bison/install
 $(curdir)/gengetopt/compile := $(curdir)/libtool/install
 $(curdir)/patchelf/compile := $(curdir)/libtool/install
+ifeq ($(HOST_OS),Darwin)
+tools-y += libressl
+$(curdir)/mkimage/compile += $(curdir)/libressl/install
+$(curdir)/firmware-utils/compile += $(curdir)/libressl/install
+endif
 
 ifneq ($(CONFIG_CCACHE)$(CONFIG_SDK),)
 $(foreach tool, $(filter-out patch,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/install))

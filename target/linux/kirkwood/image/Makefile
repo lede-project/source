@@ -18,6 +18,8 @@ define Device/Default
   KERNEL_DEPENDS = $$(wildcard $(DTS_DIR)/$$(DEVICE_DTS).dts)
   KERNEL := kernel-bin | append-dtb | uImage none
   KERNEL_NAME := zImage
+  KERNEL_SUFFIX  := -uImage
+  KERNEL_INSTALL := 1
   KERNEL_IN_UBI :=
 endef
 
@@ -71,10 +73,6 @@ define Device/linksys-viper
   IMAGES := factory.bin sysupgrade.tar
   IMAGE/factory.bin := append-kernel $$$$(KERNEL_SIZE) | append-ubi
   IMAGE/sysupgrade.tar := sysupgrade-nand
-endef
-
-define Build/append-dtb
-	cat $(DTS_DIR)/$(DEVICE_DTS).dtb >> $@
 endef
 
 define Image/BuildKernel/Template

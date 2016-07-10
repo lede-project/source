@@ -1,7 +1,7 @@
-From 8fc1dbc4b294803d2a6794b1ede681641da45711 Mon Sep 17 00:00:00 2001
+From cdc262a3377780a97c4bf2054d55ec8752d80e89 Mon Sep 17 00:00:00 2001
 From: Phil Elwell <phil@raspberrypi.org>
 Date: Tue, 19 Jan 2016 16:28:05 +0000
-Subject: [PATCH 139/304] FIXUP i2c_bcm2708: Don't change module baudrate
+Subject: [PATCH 139/423] FIXUP i2c_bcm2708: Don't change module baudrate
  parameter
 
 Overwriting the baudrate module parameter creates an apparent

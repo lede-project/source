@@ -11,7 +11,7 @@ include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/version.mk
 
 PKG_NAME:=base-files
-PKG_RELEASE:=168
+PKG_RELEASE:=170
 PKG_FLAGS:=nonshared
 
 PKG_FILE_DEPENDS:=$(PLATFORM_DIR)/ $(GENERIC_PLATFORM_DIR)/base-files/
@@ -138,11 +138,13 @@ define Package/base-files/install
 
 	$(VERSION_SED) \
 		$(1)/etc/banner \
-		$(1)/etc/openwrt_version
+		$(1)/etc/openwrt_version \
+		$(1)/usr/lib/os-release
 
 	$(VERSION_SED_SCRIPT) \
 		$(1)/etc/openwrt_release \
-		$(1)/etc/device_info
+		$(1)/etc/device_info \
+		$(1)/usr/lib/os-release
 
 	$(SED) "s#%PATH%#$(TARGET_INIT_PATH)#g" \
 		$(1)/sbin/hotplug-call \
@@ -169,7 +171,7 @@ define Package/base-files/install
 	rm -f $(1)/var
 	$(LN) /tmp $(1)/var
 	mkdir -p $(1)/etc
-	$(LN) /tmp/resolv.conf /tmp/fstab /tmp/TZ /tmp/localtime $(1)/etc/
+	$(LN) /tmp/resolv.conf /tmp/TZ /tmp/localtime $(1)/etc/
 
 	chmod 0600 $(1)/etc/shadow
 	chmod 1777 $(1)/tmp

@@ -1,7 +1,7 @@
-From 65fc8b10fa17a19d8c92a1b7a601e47a749060b6 Mon Sep 17 00:00:00 2001
+From 50d8450a9fd5b05873e3b404e2089067920d53c1 Mon Sep 17 00:00:00 2001
 From: popcornmix <popcornmix@gmail.com>
 Date: Sun, 12 May 2013 12:24:19 +0100
-Subject: [PATCH 027/304] Main bcm2708/bcm2709 linux port
+Subject: [PATCH 027/423] Main bcm2708/bcm2709 linux port
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -75,7 +75,7 @@ Signed-off-by: Noralf Trønnes <noralf@tronnes.org>
 
 --- a/arch/arm/Kconfig
 +++ b/arch/arm/Kconfig
-@@ -317,6 +317,52 @@ choice
+@@ -318,6 +318,52 @@ choice
  	default ARCH_VERSATILE if !MMU
  	default ARCH_MULTIPLATFORM if MMU
  
@@ -128,7 +128,7 @@ Signed-off-by: Noralf Trønnes <noralf@tronnes.org>
  config ARCH_MULTIPLATFORM
  	bool "Allow multiple platforms to be selected"
  	depends on MMU
-@@ -808,6 +854,9 @@ config ARCH_VIRT
+@@ -809,6 +855,9 @@ config ARCH_VIRT
  # Kconfigs may be included either alphabetically (according to the
  # plat- suffix) or along side the corresponding mach-* source.
  #

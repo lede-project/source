@@ -1,7 +1,7 @@
-From fb9b7c60bed82b9a4c6ed329b349e6e5b8a60db9 Mon Sep 17 00:00:00 2001
+From 8aa6bca1b7f62cc2b953d6384138bb262dc16434 Mon Sep 17 00:00:00 2001
 From: wm4 <wm4@nowhere>
 Date: Wed, 13 Jan 2016 19:43:35 +0100
-Subject: [PATCH 130/304] bcm2835: access controls under the audio mutex
+Subject: [PATCH 130/423] bcm2835: access controls under the audio mutex
 
 I don't think the ALSA framework provides any kind of automatic
 synchronization within the control callbacks. We most likely need

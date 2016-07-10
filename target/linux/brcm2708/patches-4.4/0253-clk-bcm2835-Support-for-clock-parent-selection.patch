@@ -1,7 +1,7 @@
-From f875d2424d83a76d4b3942263291917853d56158 Mon Sep 17 00:00:00 2001
+From 29085f56d20e9c563b183a003f39f7cfc7884b17 Mon Sep 17 00:00:00 2001
 From: Remi Pommarel <repk@triplefau.lt>
 Date: Sun, 6 Dec 2015 17:22:47 +0100
-Subject: [PATCH 253/304] clk: bcm2835: Support for clock parent selection
+Subject: [PATCH 253/423] clk: bcm2835: Support for clock parent selection
 
 Some bcm2835 clocks used by hardware (like "PWM" or "H264") can have multiple
 parent clocks. These clocks divide the rate of a parent which can be selected by
@@ -24,7 +24,7 @@ Signed-off-by: Michael Turquette <mturquette@baylibre.com>
 
 --- a/drivers/clk/bcm/clk-bcm2835.c
 +++ b/drivers/clk/bcm/clk-bcm2835.c
-@@ -1205,16 +1205,6 @@ static long bcm2835_clock_rate_from_divi
+@@ -1216,16 +1216,6 @@ static long bcm2835_clock_rate_from_divi
  	return temp;
  }
  
@@ -41,7 +41,7 @@ Signed-off-by: Michael Turquette <mturquette@baylibre.com>
  static unsigned long bcm2835_clock_get_rate(struct clk_hw *hw,
  					    unsigned long parent_rate)
  {
-@@ -1286,13 +1276,75 @@ static int bcm2835_clock_set_rate(struct
+@@ -1297,13 +1287,75 @@ static int bcm2835_clock_set_rate(struct
  	return 0;
  }
  
@@ -118,7 +118,7 @@ Signed-off-by: Michael Turquette <mturquette@baylibre.com>
  };
  
  static int bcm2835_vpu_clock_is_on(struct clk_hw *hw)
-@@ -1308,7 +1360,9 @@ static const struct clk_ops bcm2835_vpu_
+@@ -1319,7 +1371,9 @@ static const struct clk_ops bcm2835_vpu_
  	.is_prepared = bcm2835_vpu_clock_is_on,
  	.recalc_rate = bcm2835_clock_get_rate,
  	.set_rate = bcm2835_clock_set_rate,
@@ -129,7 +129,7 @@ Signed-off-by: Michael Turquette <mturquette@baylibre.com>
  };
  
  static struct clk *bcm2835_register_pll(struct bcm2835_cprman *cprman,
-@@ -1402,45 +1456,23 @@ static struct clk *bcm2835_register_cloc
+@@ -1413,45 +1467,23 @@ static struct clk *bcm2835_register_cloc
  {
  	struct bcm2835_clock *clock;
  	struct clk_init_data init;

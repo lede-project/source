@@ -20,7 +20,7 @@
 +#endif
 --- a/init/Kconfig
 +++ b/init/Kconfig
-@@ -1286,6 +1286,10 @@ config RELAY
+@@ -1296,6 +1296,10 @@ config RELAY
  
  	  If unsure, say N.
  
@@ -46,7 +46,7 @@
 @@ -0,0 +1,181 @@
 +/*
 + * Crash information logger
-+ * Copyright (C) 2010 Felix Fietkau <nbd@openwrt.org>
++ * Copyright (C) 2010 Felix Fietkau <nbd@nbd.name>
 + *
 + * Based on ramoops.c
 + *   Copyright (C) 2010 Marco Stornelli <marco.stornelli@gmail.com>

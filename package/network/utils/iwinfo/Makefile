@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010-2016 Jo-Philipp Wich <jow@openwrt.org>
+# Copyright (C) 2010-2016 Jo-Philipp Wich <jo@mein.io>
 #
 # This is free software, licensed under the GPL 2 license.
 #
@@ -7,15 +7,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libiwinfo
-PKG_VERSION:=2016-01-25
+PKG_VERSION:=2016-07-04
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(OPENWRT_GIT)/project/iwinfo.git
+PKG_SOURCE_URL=$(LEDE_GIT)/project/iwinfo.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=e4aca3910dff532ed878d0ceaf1ab6e8ad7719bf
+PKG_SOURCE_VERSION:=96d322d5941c57be58f8e8d5c6e2b28e90ed3598
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
-PKG_MAINTAINER:=Jo-Philipp Wich <jow@openwrt.org>
+PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=GPL-2.0
 
 PKG_CONFIG_DEPENDS := \

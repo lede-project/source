@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010-2015 Jo-Philipp Wich <jow@openwrt.org>
+# Copyright (C) 2010-2015 Jo-Philipp Wich <jo@mein.io>
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,15 +8,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=uhttpd
-PKG_VERSION:=2015-11-08
+PKG_VERSION:=2016-06-16
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(OPENWRT_GIT)/project/uhttpd.git
+PKG_SOURCE_URL=$(LEDE_GIT)/project/uhttpd.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=fe01ef3f52adae9da38ef47926cd50974af5d6b7
+PKG_SOURCE_VERSION:=9d9f07142bbef1c63a79620967a847a9493105e5
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
-PKG_MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
+PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=ISC
 
 PKG_BUILD_DEPENDS = ustream-ssl

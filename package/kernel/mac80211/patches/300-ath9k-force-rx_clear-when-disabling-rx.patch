@@ -6,7 +6,7 @@ This makes stopping Rx more reliable and should reduce the frequency of
 Rx related DMA stop warnings. Don't use rx_clear in TX99 mode.
 
 Cc: stable@vger.kernel.org
-Signed-off-by: Felix Fietkau <nbd@openwrt.org>
+Signed-off-by: Felix Fietkau <nbd@nbd.name>
 Signed-off-by: Helmut Schaa <helmut.schaa@googlemail.com>
 ---
 

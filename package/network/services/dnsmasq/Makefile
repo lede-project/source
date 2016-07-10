@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dnsmasq
 PKG_VERSION:=2.76
-PKG_RELEASE:=1
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=http://thekelleys.org.uk/dnsmasq
@@ -26,7 +26,8 @@ PKG_CONFIG_DEPENDS:=CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_dhcpv6 \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_dnssec \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_auth \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_ipset \
-	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_conntrack
+	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_conntrack \
+	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_broken_rtc
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -100,6 +101,9 @@ define Package/dnsmasq-full/config
 	config PACKAGE_dnsmasq_full_conntrack
 		bool "Build with Conntrack support."
 		default y
+	config PACKAGE_dnsmasq_full_broken_rtc
+		bool "Build with HAVE_BROKEN_RTC."
+		default n
 	endif
 endef
 
@@ -120,7 +124,8 @@ ifeq ($(BUILD_VARIANT),full)
 		$(if $(CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_dnssec),-DHAVE_DNSSEC) \
 		$(if $(CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_auth),,-DNO_AUTH) \
 		$(if $(CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_ipset),,-DNO_IPSET) \
-		$(if $(CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_conntrack),-DHAVE_CONNTRACK,)
+		$(if $(CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_conntrack),-DHAVE_CONNTRACK,) \
+		$(if $(CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_broken_rtc),-DHAVE_BROKEN_RTC)
 	COPTS += $(if $(CONFIG_LIBNETTLE_MINI),-DNO_GMP,)
 else
 	COPTS += -DNO_AUTH
@@ -143,6 +148,8 @@ define Package/dnsmasq/install
 	$(INSTALL_BIN) ./files/dnsmasq.init $(1)/etc/init.d/dnsmasq
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/iface
 	$(INSTALL_DATA) ./files/dnsmasq.hotplug $(1)/etc/hotplug.d/iface/25-dnsmasq
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/ntp
+	$(INSTALL_DATA) ./files/dnsmasqsec.hotplug $(1)/etc/hotplug.d/ntp/25-dnsmasqsec
 endef
 
 Package/dnsmasq-dhcpv6/install = $(Package/dnsmasq/install)
@@ -152,8 +159,6 @@ $(call Package/dnsmasq/install,$(1))
 ifneq ($(CONFIG_PACKAGE_dnsmasq_full_dnssec),)
 	$(INSTALL_DIR) $(1)/usr/share/dnsmasq
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/trust-anchors.conf $(1)/usr/share/dnsmasq
-	$(INSTALL_DIR) $(1)/lib/upgrade
-	$(INSTALL_BIN) ./files/dnsmasqsec-add-conffiles.sh $(1)/lib/upgrade
 endif
 endef
 

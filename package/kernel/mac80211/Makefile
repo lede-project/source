@@ -10,17 +10,17 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=mac80211
 
-PKG_VERSION:=2016-05-12
+PKG_VERSION:=2016-06-20
 PKG_RELEASE:=1
 PKG_SOURCE_URL:=http://mirror2.openwrt.org/sources
 PKG_BACKPORT_VERSION:=
-PKG_MD5SUM:=2142cf38509896dca108624e7c193611
+PKG_MD5SUM:=29c79bdc3928ef5113b17042ebda9237
 
 PKG_SOURCE:=compat-wireless-$(PKG_VERSION)$(PKG_BACKPORT_VERSION).tar.bz2
 PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/compat-wireless-$(PKG_VERSION)
 PKG_BUILD_PARALLEL:=1
 
-PKG_MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
+PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
 PKG_DRIVERS = \
 	adm8211 \
@@ -80,7 +80,7 @@ WMENU:=Wireless Drivers
 define KernelPackage/mac80211/Default
   SUBMENU:=$(WMENU)
   URL:=https://wireless.wiki.kernel.org/
-  MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
+  MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 endef
 
 define KernelPackage/cfg80211
@@ -219,6 +219,7 @@ define KernelPackage/ath9k-common
   $(call KernelPackage/mac80211/Default)
   TITLE:=Atheros 802.11n wireless devices (common code for ath9k and ath9k_htc)
   URL:=https://wireless.wiki.kernel.org/en/users/drivers/ath9k
+  HIDDEN:=1
   DEPENDS+= @PCI_SUPPORT||USB_SUPPORT||TARGET_ar71xx +kmod-ath +@DRIVER_11N_SUPPORT +@DRIVER_11W_SUPPORT +@KERNEL_RELAY
   FILES:= \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath9k/ath9k_common.ko \
@@ -1061,33 +1062,6 @@ define KernelPackage/mwifiex-pcie/description
  Kernel modules for Marvell 802.11n/802.11ac PCIe Wireless cards
 endef
 
-
-# Prism54 drivers
-P54PCIFW:=2.13.12.0.arm
-P54USBFW:=2.13.24.0.lm87.arm
-P54SPIFW:=2.13.0.0.a.13.14.arm
-
-define Download/p54usb
-  FILE:=$(P54USBFW)
-  URL:=http://daemonizer.de/prism54/prism54-fw/fw-usb
-  MD5SUM:=8e8ab005a4f8f0123bcdc51bc25b47f6
-endef
-$(eval $(call Download,p54usb))
-
-define Download/p54pci
-  FILE:=$(P54PCIFW)
-  URL:=http://daemonizer.de/prism54/prism54-fw/fw-softmac
-  MD5SUM:=ff7536af2092b1c4b21315bd103ef4c4
-endef
-$(eval $(call Download,p54pci))
-
-define Download/p54spi
-  FILE:=$(P54SPIFW)
-  URL:=http://daemonizer.de/prism54/prism54-fw/stlc4560
-  MD5SUM:=42661f8ecbadd88012807493f596081d
-endef
-$(eval $(call Download,p54spi))
-
 define KernelPackage/p54/Default
   $(call KernelPackage/mac80211/Default)
   TITLE:=Prism54 Drivers
@@ -1107,7 +1081,7 @@ endef
 define KernelPackage/p54-pci
   $(call KernelPackage/p54/Default)
   TITLE+= (PCI)
-  DEPENDS+= @PCI_SUPPORT +kmod-p54-common
+  DEPENDS+= @PCI_SUPPORT +kmod-p54-common +p54-pci-firmware
   FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/intersil/p54/p54pci.ko
   AUTOLOAD:=$(call AutoProbe,p54pci)
 endef
@@ -1115,7 +1089,7 @@ endef
 define KernelPackage/p54-usb
   $(call KernelPackage/p54/Default)
   TITLE+= (USB)
-  DEPENDS+= @USB_SUPPORT +kmod-usb-core +kmod-p54-common
+  DEPENDS+= @USB_SUPPORT +kmod-usb-core +kmod-p54-common +p54-usb-firmware
   FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/intersil/p54/p54usb.ko
   AUTOLOAD:=$(call AutoProbe,p54usb)
 endef
@@ -1123,7 +1097,7 @@ endef
 define KernelPackage/p54-spi
   $(call KernelPackage/p54/Default)
   TITLE+= (SPI)
-  DEPENDS+= @TARGET_omap24xx +kmod-p54-common
+  DEPENDS+= @TARGET_omap24xx +kmod-p54-common +p54-spi-firmware
   FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/intersil/p54/p54spi.ko
   AUTOLOAD:=$(call AutoProbe,p54spi)
 endef
@@ -1769,21 +1743,6 @@ endef
 define KernelPackage/ipw2200/install
 	$(INSTALL_DIR) $(1)/lib/firmware
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/$(IPW2200_NAME)-$(IPW2200_VERSION)/ipw2200*.fw $(1)/lib/firmware
-endef
-
-define KernelPackage/p54-pci/install
-	$(INSTALL_DIR) $(1)/lib/firmware
-	$(INSTALL_DATA) $(DL_DIR)/$(P54PCIFW) $(1)/lib/firmware/isl3886pci
-endef
-
-define KernelPackage/p54-usb/install
-	$(INSTALL_DIR) $(1)/lib/firmware
-	$(INSTALL_DATA) $(DL_DIR)/$(P54USBFW) $(1)/lib/firmware/isl3887usb
-endef
-
-define KernelPackage/p54-spi/install
-	$(INSTALL_DIR) $(1)/lib/firmware
-	$(INSTALL_DATA) $(DL_DIR)/$(P54SPIFW) $(1)/lib/firmware/3826.arm
 endef
 
 define KernelPackage/zd1211rw/install

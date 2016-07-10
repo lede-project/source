@@ -1,7 +1,7 @@
-From 6273867fcddb010a62be4d1d5dcba124b1661681 Mon Sep 17 00:00:00 2001
+From f736b53bdc910c364e8f2cd0f0c1bf1edf41f048 Mon Sep 17 00:00:00 2001
 From: Dave Stevenson <6by9@users.noreply.github.com>
 Date: Fri, 1 Apr 2016 15:28:46 +0100
-Subject: [PATCH 231/304] RPi config: Add CONFIG_PWM_PCA9685 for NXP PCA9685
+Subject: [PATCH 231/423] RPi config: Add CONFIG_PWM_PCA9685 for NXP PCA9685
  driver over I2C
 
 Includes DT overlay to configure it.

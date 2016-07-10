@@ -6,7 +6,7 @@ Enable access to GPIO chip and its pins for Atheros AR92xx
 wireless devices. For now AR9285 and AR9287 are supported.
 
 Signed-off-by: Michal Cieslakiewicz <michal.cieslakiewicz@wp.pl>
-Signed-off-by: Felix Fietkau <nbd@openwrt.org>
+Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/drivers/net/wireless/ath/ath9k/ath9k.h
 +++ b/drivers/net/wireless/ath/ath9k/ath9k.h
@@ -18,7 +18,7 @@ Signed-off-by: Felix Fietkau <nbd@openwrt.org>
  
  #include "common.h"
  #include "debug.h"
-@@ -959,6 +960,14 @@ struct ath_led {
+@@ -962,6 +963,14 @@ struct ath_led {
  	struct led_classdev cdev;
  };
  
@@ -33,7 +33,7 @@ Signed-off-by: Felix Fietkau <nbd@openwrt.org>
  struct ath_softc {
  	struct ieee80211_hw *hw;
  	struct device *dev;
-@@ -1013,6 +1022,9 @@ struct ath_softc {
+@@ -1016,6 +1025,9 @@ struct ath_softc {
  #ifdef CPTCFG_MAC80211_LEDS
  	const char *led_default_trigger;
  	struct list_head leds;
@@ -45,7 +45,7 @@ Signed-off-by: Felix Fietkau <nbd@openwrt.org>
  #ifdef CPTCFG_ATH9K_DEBUGFS
 --- a/drivers/net/wireless/ath/ath9k/gpio.c
 +++ b/drivers/net/wireless/ath/ath9k/gpio.c
-@@ -16,13 +16,138 @@
+@@ -16,13 +16,135 @@
  
  #include "ath9k.h"
  #include <linux/ath9k_platform.h>
@@ -117,15 +117,7 @@ Signed-off-by: Felix Fietkau <nbd@openwrt.org>
 +static void ath9k_register_gpio_chip(struct ath_softc *sc)
 +{
 +	struct ath9k_gpio_chip *gc;
-+	u16 ng;
-+
-+	/* for now only AR9285 and AR9287 are recognized */
-+	if (AR_SREV_9287(sc->sc_ah))
-+		ng = AR9287_NUM_GPIO;
-+	else if (AR_SREV_9285(sc->sc_ah))
-+		ng = AR9285_NUM_GPIO;
-+	else
-+		return;
++	struct ath_hw *ah = sc->sc_ah;
 +
 +	gc = kzalloc(sizeof(struct ath9k_gpio_chip), GFP_KERNEL);
 +	if (!gc)
@@ -133,9 +125,14 @@ Signed-off-by: Felix Fietkau <nbd@openwrt.org>
 +
 +	snprintf(gc->label, sizeof(gc->label), "ath9k-%s",
 +		 wiphy_name(sc->hw->wiphy));
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,5,0)
++	gc->gchip.parent = sc->dev;
++#else
++	gc->gchip.dev = sc->dev;
++#endif
 +	gc->gchip.label = gc->label;
 +	gc->gchip.base = -1;	/* determine base automatically */
-+	gc->gchip.ngpio = ng;
++	gc->gchip.ngpio = ah->caps.num_gpio_pins;
 +	gc->gchip.direction_input = ath9k_gpio_pin_cfg_input;
 +	gc->gchip.direction_output = ath9k_gpio_pin_cfg_output;
 +	gc->gchip.get_direction = ath9k_gpio_pin_get_dir;
@@ -186,7 +183,7 @@ Signed-off-by: Felix Fietkau <nbd@openwrt.org>
  static void ath_fill_led_pin(struct ath_softc *sc)
  {
  	struct ath_hw *ah = sc->sc_ah;
-@@ -80,6 +205,12 @@ static int ath_add_led(struct ath_softc
+@@ -80,6 +202,12 @@ static int ath_add_led(struct ath_softc
  	else
  		ath9k_hw_set_gpio(sc->sc_ah, gpio->gpio, gpio->active_low);
  
@@ -199,7 +196,7 @@ Signed-off-by: Felix Fietkau <nbd@openwrt.org>
  	return 0;
  }
  
-@@ -136,12 +267,18 @@ void ath_deinit_leds(struct ath_softc *s
+@@ -136,12 +264,18 @@ void ath_deinit_leds(struct ath_softc *s
  
  	while (!list_empty(&sc->leds)) {
  		led = list_first_entry(&sc->leds, struct ath_led, list);
@@ -218,7 +215,7 @@ Signed-off-by: Felix Fietkau <nbd@openwrt.org>
  }
  
  void ath_init_leds(struct ath_softc *sc)
-@@ -158,6 +295,8 @@ void ath_init_leds(struct ath_softc *sc)
+@@ -158,6 +292,8 @@ void ath_init_leds(struct ath_softc *sc)
  
  	ath_fill_led_pin(sc);
  
@@ -227,7 +224,7 @@ Signed-off-by: Felix Fietkau <nbd@openwrt.org>
  	if (pdata && pdata->led_name)
  		strncpy(led_name, pdata->led_name, sizeof(led_name));
  	else
-@@ -178,6 +317,7 @@ void ath_init_leds(struct ath_softc *sc)
+@@ -178,6 +314,7 @@ void ath_init_leds(struct ath_softc *sc)
  	for (i = 0; i < pdata->num_leds; i++)
  		ath_create_platform_led(sc, &pdata->leds[i]);
  }

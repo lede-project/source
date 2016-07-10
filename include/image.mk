@@ -10,6 +10,7 @@ include $(INCLUDE_DIR)/prereq.mk
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/host.mk
 include $(INCLUDE_DIR)/version.mk
+include $(INCLUDE_DIR)/image-commands.mk
 
 override MAKE:=$(_SINGLE)$(SUBMAKE)
 override NO_TRACE_MAKE:=$(_SINGLE)$(NO_TRACE_MAKE)
@@ -283,7 +284,7 @@ define Image/Checksum
 endef
 
 define BuildImage/mkfs
-  install: mkfs-$(1)
+  install-images: mkfs-$(1)
   .PHONY: mkfs-$(1)
   mkfs-$(1): kernel_prepare
 	$(Image/mkfs/$(1))
@@ -293,162 +294,15 @@ define BuildImage/mkfs
 
 endef
 
-# Build commands that can be called from Device/* templates
-define Build/uImage
-	mkimage -A $(LINUX_KARCH) \
-		-O linux -T kernel \
-		-C $(1) -a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
-		-n '$(call toupper,$(LINUX_KARCH)) LEDE Linux-$(LINUX_VERSION)' -d $@ $@.new
-	@mv $@.new $@
-endef
-
-define Build/netgear-chk
-	$(STAGING_DIR_HOST)/bin/mkchkimg \
-		-o $@.new \
-		-k $@ \
-		-b $(NETGEAR_BOARD_ID) \
-		-r $(NETGEAR_REGION)
-	mv $@.new $@
-endef
-
-define Build/netgear-dni
-	$(STAGING_DIR_HOST)/bin/mkdniimg \
-		-B $(NETGEAR_BOARD_ID) -v LEDE.$(REVISION) \
-		$(if $(NETGEAR_HW_ID),-H $(NETGEAR_HW_ID)) \
-		-r "$(1)" \
-		-i $@ -o $@.new
-	mv $@.new $@
-endef
-
-define Build/tplink-safeloader
-       -$(STAGING_DIR_HOST)/bin/tplink-safeloader \
-		-B $(TPLINK_BOARD_NAME) \
-		-V $(REVISION) \
-		-k $(word 1,$^) \
-		-r $@ \
-		-o $@.new \
-		-j \
-		$(wordlist 2,$(words $(1)),$(1)) \
-		$(if $(findstring sysupgrade,$(word 1,$(1))),-S) && mv $@.new $@ || rm -f $@
-endef
-
-define Build/fit
-	$(TOPDIR)/scripts/mkits.sh \
-		-D $(DEVICE_NAME) -o $@.its -k $@ \
-		$(if $(word 2,$(1)),-d $(word 2,$(1))) -C $(word 1,$(1)) \
-		-a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
-		-A $(ARCH) -v $(LINUX_VERSION)
-	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage -f $@.its $@.new
-	@mv $@.new $@
-endef
-
-define Build/lzma
-	$(call Build/lzma-no-dict,-lc1 -lp2 -pb2 $(1))
-endef
-
-define Build/lzma-no-dict
-	$(STAGING_DIR_HOST)/bin/lzma e $@ $(1) $@.new
-	@mv $@.new $@
-endef
-
-define Build/gzip
-	gzip -9n -c $@ $(1) > $@.new
-	@mv $@.new $@
-endef
-
-define Build/jffs2
-	rm -rf $(KDIR_TMP)/$(DEVICE_NAME)/jffs2 && \
-		mkdir -p $(KDIR_TMP)/$(DEVICE_NAME)/jffs2/$$(dirname $(1)) && \
-		cp $@ $(KDIR_TMP)/$(DEVICE_NAME)/jffs2/$(1) && \
-		$(STAGING_DIR_HOST)/bin/mkfs.jffs2 --pad \
-			$(if $(CONFIG_BIG_ENDIAN),--big-endian,--little-endian) \
-			--squash-uids -v -e $(patsubst %k,%KiB,$(BLOCKSIZE)) \
-			-o $@.new \
-			-d $(KDIR_TMP)/$(DEVICE_NAME)/jffs2 \
-			2>&1 1>/dev/null | awk '/^.+$$$$/' && \
-		$(STAGING_DIR_HOST)/bin/padjffs2 $@.new -J $(patsubst %k,,$(BLOCKSIZE))
-	-rm -rf $(KDIR_TMP)/$(DEVICE_NAME)/jffs2/
-	@mv $@.new $@
-endef
-
-define Build/kernel-bin
-	rm -f $@
-	cp $< $@
-endef
-
-define Build/patch-cmdline
-	$(STAGING_DIR_HOST)/bin/patch-cmdline $@ '$(CMDLINE)'
-endef
-
-define Build/append-kernel
-	dd if=$(word 1,$^) $(if $(1),bs=$(1) conv=sync) >> $@
-endef
-
-define Build/append-rootfs
-	dd if=$(word 2,$^) $(if $(1),bs=$(1) conv=sync) >> $@
-endef
-
-define Build/append-ubi
-	sh $(TOPDIR)/scripts/ubinize-image.sh \
-		$(if $(UBOOTENV_IN_UBI),--uboot-env) \
-		$(if $(KERNEL_IN_UBI),--kernel $(word 1,$^)) \
-		$(word 2,$^) \
-		$@.tmp \
-		-p $(BLOCKSIZE) -m $(PAGESIZE) -E 5 \
-		$(if $(SUBPAGESIZE),-s $(SUBPAGESIZE))
-	cat $@.tmp >> $@
-	rm $@.tmp
-endef
-
-define Build/pad-to
-	dd if=$@ of=$@.new bs=$(1) conv=sync
-	mv $@.new $@
-endef
-
-define Build/pad-rootfs
-	$(call prepare_generic_squashfs,$@ $(1))
-endef
-
-define Build/pad-offset
-	let \
-		size="$$(stat -c%s $@)" \
-		pad="$(word 1, $(1))" \
-		offset="$(word 2, $(1))" \
-		pad="(pad - ((size + offset) % pad)) % pad" \
-		newsize='size + pad'; \
-		dd if=$@ of=$@.new bs=$$newsize count=1 conv=sync
-	mv $@.new $@
-endef
-
-define Build/check-size
-	@[ $$(($(subst k,* 1024,$(subst m, * 1024k,$(1))))) -ge "$$(stat -c%s $@)" ] || { \
-		echo "WARNING: Image file $@ is too big" >&2; \
-		rm -f $@; \
-	}
-endef
-
-define Build/combined-image
-	-sh $(TOPDIR)/scripts/combined-image.sh \
-		"$(word 1,$^)" \
-		"$@" \
-		"$@.new"
-	@mv $@.new $@
-endef
-
-define Build/sysupgrade-nand
-	sh $(TOPDIR)/scripts/sysupgrade-nand.sh \
-		--board $(if $(BOARD_NAME),$(BOARD_NAME),$(DEVICE_NAME)) \
-		--kernel $(word 1,$^) \
-		--rootfs $(word 2,$^) \
-		$@
-endef
-
-define Device/Init
+define Device/InitProfile
   PROFILES := $(PROFILE)
-  DEVICE_NAME := $(1)
   DEVICE_TITLE :=
   DEVICE_PACKAGES :=
   DEVICE_DESCRIPTION = Build firmware images for $$(DEVICE_TITLE)
+endef
+
+define Device/Init
+  DEVICE_NAME := $(1)
   KERNEL:=
   KERNEL_INITRAMFS = $$(KERNEL)
   KERNEL_SIZE:=
@@ -456,11 +310,12 @@ define Device/Init
 
   IMAGE_PREFIX := $(IMG_PREFIX)-$(1)
   IMAGE_NAME = $$(IMAGE_PREFIX)-$$(1)-$$(2)
-  KERNEL_PREFIX = $(1)
+  KERNEL_PREFIX = $$(IMAGE_PREFIX)
   KERNEL_SUFFIX := -kernel.bin
+  KERNEL_INITRAMFS_SUFFIX = $$(KERNEL_SUFFIX)
   KERNEL_IMAGE = $$(KERNEL_PREFIX)$$(KERNEL_SUFFIX)
   KERNEL_INITRAMFS_PREFIX = $$(IMAGE_PREFIX)-initramfs
-  KERNEL_INITRAMFS_IMAGE = $$(KERNEL_INITRAMFS_PREFIX)$$(KERNEL_SUFFIX)
+  KERNEL_INITRAMFS_IMAGE = $$(KERNEL_INITRAMFS_PREFIX)$$(KERNEL_INITRAMFS_SUFFIX)
   KERNEL_INITRAMFS_NAME = $$(KERNEL_NAME)-initramfs
   KERNEL_INSTALL :=
   KERNEL_NAME := vmlinux
@@ -482,12 +337,12 @@ endef
 ifdef IB
   DEVICE_CHECK_PROFILE = $(filter $(1),$(PROFILE))
 else
-  DEVICE_CHECK_PROFILE = $(CONFIG_TARGET_$(call target_conf,$(BOARD)$(if $(SUBTARGET),_$(SUBTARGET)))_$(1))
+  DEVICE_CHECK_PROFILE = $(CONFIG_TARGET_$(if $(CONFIG_TARGET_MULTI_PROFILE),DEVICE_)$(call target_conf,$(BOARD)$(if $(SUBTARGET),_$(SUBTARGET)))_$(1))
 endif
 
 define Device/Check
   _PROFILE_SET = $$(strip $$(foreach profile,$$(PROFILES) DEVICE_$(1),$$(call DEVICE_CHECK_PROFILE,$$(profile))))
-  _TARGET := $$(if $$(_PROFILE_SET),install,install-disabled)
+  _TARGET := $$(if $$(_PROFILE_SET),install-images,install-disabled)
   ifndef IB
     _COMPILE_TARGET := $$(if $(CONFIG_IB)$$(_PROFILE_SET),compile,compile-disabled)
   endif
@@ -496,7 +351,7 @@ endef
 ifndef IB
 define Device/Build/initramfs
   $(call Device/Export,$(KDIR)/tmp/$$(KERNEL_INITRAMFS_IMAGE),$(1))
-  $$(_TARGET): $(BIN_DIR)/$$(KERNEL_INITRAMFS_IMAGE)
+  $$(_TARGET): $$(if $$(KERNEL_INITRAMFS),$(BIN_DIR)/$$(KERNEL_INITRAMFS_IMAGE))
 
   $(KDIR)/$$(KERNEL_INITRAMFS_NAME):: image_prepare
   $(BIN_DIR)/$$(KERNEL_INITRAMFS_IMAGE): $(KDIR)/tmp/$$(KERNEL_INITRAMFS_IMAGE)
@@ -580,13 +435,51 @@ endef
 define Device/Dump
 $$(eval $$(if $$(DEVICE_TITLE),$$(info $$(call Device/DumpInfo,$(1)))))
 endef
+LegacyDevice/Dump = $(Device/Dump)
 
 define Device
+  $(call Device/InitProfile,$(1))
   $(call Device/Init,$(1))
   $(call Device/Default,$(1))
   $(call Device/$(1),$(1))
   $(call Device/Check,$(1))
   $(call Device/$(if $(DUMP),Dump,Build),$(1))
+
+endef
+
+define LegacyDevice/Check
+  _PROFILE_SET = $$(strip $$(foreach profile,$$(PROFILES) DEVICE_$(1),$$(call DEVICE_CHECK_PROFILE,$$(profile))))
+  _TARGET_PREPARE := $$(if $$(_PROFILE_SET),legacy-images-prepare,prepare-disabled)
+  _TARGET := $$(if $$(_PROFILE_SET),legacy-images,install-disabled)
+  $$(if $$(_PROFILE_SET),install: legacy-images-make)
+  ifndef IB
+    $$(if $$(_PROFILE_SET),mkfs_prepare: legacy-images-prepare-make)
+  endif
+endef
+
+define LegacyDevice/Build
+  $$(_TARGET): legacy-image-$(1)
+  $$(_TARGET_PREPARE): legacy-image-prepare-$(1)
+  .PHONY: legacy-image-prepare-$(1) legacy-image-$(1)
+
+  legacy-image-prepare-$(1):
+	$$(call Image/Prepare/Profile,$(1))
+
+  legacy-image-$(1):
+	$$(call Image/BuildKernel/Profile,$(1))
+	$(foreach fs,$(TARGET_FILESYSTEMS),
+		$$(call Image/Build/Profile,$(1),$(fs))
+	)
+
+endef
+
+define LegacyDevice
+  $(call Device/InitProfile,$(1))
+  $(call Device/Default,$(1))
+  $(call LegacyDevice/Default,$(1))
+  $(call LegacyDevice/$(1),$(1))
+  $(call LegacyDevice/Check,$(1))
+  $(call LegacyDevice/$(if $(DUMP),Dump,Build),$(1))
 
 endef
 
@@ -602,10 +495,12 @@ define BuildImage
   prepare:
   compile:
   clean:
+  legacy-images-prepare:
+  legacy-images:
   image_prepare:
 
   ifeq ($(IB),)
-    .PHONY: download prepare compile clean image_prepare mkfs_prepare kernel_prepare install
+    .PHONY: download prepare compile clean image_prepare mkfs_prepare kernel_prepare install install-images
     compile:
 		$(call Build/Compile)
 
@@ -615,6 +510,10 @@ define BuildImage
     image_prepare: compile
 		mkdir -p $(BIN_DIR) $(KDIR)/tmp
 		$(call Image/Prepare)
+
+    legacy-images-prepare-make: image_prepare
+		$(MAKE) legacy-images-prepare
+
   else
     image_prepare:
 		mkdir -p $(BIN_DIR) $(KDIR)/tmp
@@ -629,13 +528,19 @@ define BuildImage
 	$(call Image/InstallKernel)
 
   $(foreach device,$(TARGET_DEVICES),$(call Device,$(device)))
+  $(foreach device,$(LEGACY_DEVICES),$(call LegacyDevice,$(device)))
   $(foreach fs,$(TARGET_FILESYSTEMS) $(fs-subtypes-y),$(call BuildImage/mkfs,$(fs)))
 
-  install: kernel_prepare
+  install-images: kernel_prepare
 	$(foreach fs,$(TARGET_FILESYSTEMS),
 		$(call Image/Build,$(fs))
 	)
 	$(call Image/mkfs/ubifs)
+
+  legacy-images-make: install-images
+	$(MAKE) legacy-images
+
+  install: install-images
 	$(call Image/Checksum,md5sum --binary,md5sums)
 	$(call Image/Checksum,openssl dgst -sha256,sha256sums)
 

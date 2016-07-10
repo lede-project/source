@@ -1,7 +1,7 @@
-From 4d033ce157ae8cce859a038c47aa955d4a5c37cd Mon Sep 17 00:00:00 2001
+From dbf8f761e366f4c93e8c2c2a1558561faa762f9f Mon Sep 17 00:00:00 2001
 From: Phil Elwell <phil@raspberrypi.org>
 Date: Thu, 18 Feb 2016 15:28:14 +0000
-Subject: [PATCH 149/304] BCM270X_DT: at86rf233 overlay - drop to 3MHz
+Subject: [PATCH 149/423] BCM270X_DT: at86rf233 overlay - drop to 3MHz
 
 The consensus is that 6MHz is too fast, but that 3MHz is OK.
 

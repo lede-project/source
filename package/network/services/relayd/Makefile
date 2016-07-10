@@ -13,11 +13,11 @@ PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_URL=$(OPENWRT_GIT)/project/relayd.git
+PKG_SOURCE_URL=$(LEDE_GIT)/project/relayd.git
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_VERSION:=ad0b25ad74345d367c62311e14b279f5ccb8ef13
 
-PKG_MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
+PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=GPL-2.0
 
 include $(INCLUDE_DIR)/package.mk

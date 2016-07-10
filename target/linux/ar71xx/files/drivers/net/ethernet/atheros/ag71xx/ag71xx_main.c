@@ -453,9 +453,12 @@ static void ag71xx_hw_stop(struct ag71xx *ag)
 static void ag71xx_hw_setup(struct ag71xx *ag)
 {
 	struct ag71xx_platform_data *pdata = ag71xx_get_pdata(ag);
+	u32 init = MAC_CFG1_INIT;
 
 	/* setup MAC configuration registers */
-	ag71xx_wr(ag, AG71XX_REG_MAC_CFG1, MAC_CFG1_INIT);
+	if (pdata->use_flow_control)
+		init |= MAC_CFG1_TFC | MAC_CFG1_RFC;
+	ag71xx_wr(ag, AG71XX_REG_MAC_CFG1, init);
 
 	ag71xx_sb(ag, AG71XX_REG_MAC_CFG2,
 		  MAC_CFG2_PAD_CRC_EN | MAC_CFG2_LEN_CHECK);
@@ -905,12 +908,12 @@ static void ag71xx_tx_timeout(struct net_device *dev)
 	if (netif_msg_tx_err(ag))
 		pr_info("%s: tx timeout\n", ag->dev->name);
 
-	schedule_work(&ag->restart_work);
+	schedule_delayed_work(&ag->restart_work, 1);
 }
 
 static void ag71xx_restart_work_func(struct work_struct *work)
 {
-	struct ag71xx *ag = container_of(work, struct ag71xx, restart_work);
+	struct ag71xx *ag = container_of(work, struct ag71xx, restart_work.work);
 
 	rtnl_lock();
 	ag71xx_hw_disable(ag);
@@ -947,6 +950,7 @@ static int ag71xx_tx_packets(struct ag71xx *ag, bool flush)
 {
 	struct ag71xx_ring *ring = &ag->tx_ring;
 	struct ag71xx_platform_data *pdata = ag71xx_get_pdata(ag);
+	bool dma_stuck = false;
 	int ring_mask = BIT(ring->order) - 1;
 	int ring_size = BIT(ring->order);
 	int sent = 0;
@@ -962,8 +966,10 @@ static int ag71xx_tx_packets(struct ag71xx *ag, bool flush)
 
 		if (!flush && !ag71xx_desc_empty(desc)) {
 			if (pdata->is_ar724x &&
-			    ag71xx_check_dma_stuck(ag, ring->buf[i].timestamp))
-				schedule_work(&ag->restart_work);
+			    ag71xx_check_dma_stuck(ag, ring->buf[i].timestamp)) {
+				schedule_delayed_work(&ag->restart_work, HZ / 2);
+				dma_stuck = true;
+			}
 			break;
 		}
 
@@ -999,6 +1005,9 @@ static int ag71xx_tx_packets(struct ag71xx *ag, bool flush)
 	netdev_completed_queue(ag->dev, sent, bytes_compl);
 	if ((ring->curr - ring->dirty) < (ring_size * 3) / 4)
 		netif_wake_queue(ag->dev);
+
+	if (!dma_stuck)
+		cancel_delayed_work(&ag->restart_work);
 
 	return sent;
 }
@@ -1318,7 +1327,7 @@ static int ag71xx_probe(struct platform_device *pdev)
 	dev->netdev_ops = &ag71xx_netdev_ops;
 	dev->ethtool_ops = &ag71xx_ethtool_ops;
 
-	INIT_WORK(&ag->restart_work, ag71xx_restart_work_func);
+	INIT_DELAYED_WORK(&ag->restart_work, ag71xx_restart_work_func);
 
 	init_timer(&ag->oom_timer);
 	ag->oom_timer.data = (unsigned long) dev;
