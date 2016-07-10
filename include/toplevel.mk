@@ -66,6 +66,8 @@ SUBMAKE:=umask 022; $(SUBMAKE)
 
 ULIMIT_FIX=_limit=`ulimit -n`; [ "$$_limit" = "unlimited" -o "$$_limit" -ge 1024 ] || ulimit -n 1024;
 
+DEFAULT_COLLECTION:=$(if $(filter collection-%,$(1)),$(1),collection-router $(1))
+
 prepare-mk: FORCE ;
 
 ifdef SDK

@@ -15,8 +15,6 @@ MAINTAINER:=Florian Fainelli <florian@openwrt.org>
 
 KERNEL_PATCHVER:=3.18
 
-DEVICE_TYPE:=other
-
 include $(INCLUDE_DIR)/target.mk
 
 DEFAULT_PACKAGES := $(filter-out ppp%,$(DEFAULT_PACKAGES)) \
@@ -24,7 +22,7 @@ DEFAULT_PACKAGES := $(filter-out ppp%,$(DEFAULT_PACKAGES)) \
 		  kmod-usb-storage kmod-fs-vfat \
 		  kmod-nls-cp437 kmod-nls-iso8859-1 kmod-nls-iso8859-15 \
 		  kmod-nls-utf8 \
-		  kmod-mcs814x-wdt kmod-ledtrig-usbdev
+		  kmod-mcs814x-wdt kmod-ledtrig-usbdev collection-nas
 
 KERNELNAME:=zImage dtbs
 

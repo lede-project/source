@@ -8,7 +8,7 @@
 define Profile/DOCKSTAR
   NAME:=Seagate FreeAgent Dockstar
   PACKAGES:= \
-	kmod-rtc-marvell kmod-usb2 kmod-usb-storage
+	kmod-rtc-marvell kmod-usb2 kmod-usb-storage collection-nas
 endef
 
 define Profile/DOCKSTAR/Description
@@ -22,7 +22,7 @@ define Profile/GOFLEXHOME
   PACKAGES:= \
 	kmod-ata-core kmod-ata-marvell-sata \
 	kmod-rtc-marvell kmod-usb2 kmod-usb-storage \
-	uboot-envtools
+	uboot-envtools collection-nas
 endef
 
 define Profile/GOFLEXHOME/Description
@@ -35,7 +35,7 @@ define Profile/GOFLEXNET
   NAME:=Seagate GoFlexNet
   PACKAGES:= \
 	kmod-ata-core kmod-ata-marvell-sata \
-	kmod-usb2 kmod-usb-storage
+	kmod-usb2 kmod-usb-storage collection-nas
 endef
 
 define Profile/GOFLEXNET/Description
@@ -48,7 +48,7 @@ define Profile/IB62X0
   NAME:=RaidSonic ICY BOX IB-NAS62x0
   PACKAGES:= \
 	kmod-ata-core kmod-ata-marvell-sata \
-	kmod-rtc-marvell kmod-usb2 kmod-usb-storage
+	kmod-rtc-marvell kmod-usb2 kmod-usb-storage collection-nas
 endef
 
 define Profile/IB62X0/Description
@@ -73,7 +73,7 @@ define Profile/IOMEGA_IX2_200
   NAME:=Iomega StorCenter ix2-200
   PACKAGES:= \
 	kmod-ata-core kmod-ata-marvell-sata \
-	kmod-usb2 kmod-usb-storage
+	kmod-usb2 kmod-usb-storage collection-nas
 endef
 
 define Profile/IOMEGA_IX2_200/Description
@@ -86,7 +86,7 @@ define Profile/NSA310S
   NAME:=ZyXEL NSA310S
   PACKAGES:= \
 	kmod-ata-core kmod-ata-marvell-sata \
-	kmod-rtc-marvell kmod-usb2 kmod-usb-storage
+	kmod-rtc-marvell kmod-usb2 kmod-usb-storage collection-nas
 endef
 
 define Profile/NSA310S/Description
@@ -98,7 +98,7 @@ $(eval $(call Profile,NSA310S))
 define Profile/POGOE02
   NAME:=Cloud Engines Pogoplug E02
   PACKAGES:= \
-	kmod-usb2 kmod-usb-storage
+	kmod-usb2 kmod-usb-storage collection-nas
 endef
 
 define Profile/POGOE02/Description

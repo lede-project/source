@@ -16,13 +16,13 @@ MAINTAINER:=Florian Fainelli <florian@openwrt.org>
 
 KERNEL_PATCHVER:=4.4
 
-DEVICE_TYPE:=developerboard
-
 include $(INCLUDE_DIR)/target.mk
 
 define Target/Description
 	Build images for ARM Ltd. Realview boards to be run with qemu
 endef
+
+DEFAULT_PACKAGES += collection-common-device
 
 KERNELNAME:=zImage
 

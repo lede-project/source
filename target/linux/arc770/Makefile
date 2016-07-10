@@ -14,12 +14,12 @@ SUBTARGETS:=generic
 
 KERNEL_PATCHVER:=4.4
 
-DEVICE_TYPE:=developerboard
-
 include $(INCLUDE_DIR)/target.mk
 
 define Target/Description
 	Synopsys DesignWare boards
 endef
+
+DEFAULT_PACKAGES += collection-common-device
 
 $(eval $(call BuildTarget))
