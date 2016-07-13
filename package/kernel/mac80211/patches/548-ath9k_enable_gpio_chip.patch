@@ -138,13 +138,13 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +	gc->gchip.get_direction = ath9k_gpio_pin_get_dir;
 +	gc->gchip.get = ath9k_gpio_pin_get;
 +	gc->gchip.set = ath9k_gpio_pin_set;
-+	gc->gchip.owner = THIS_MODULE;
 +
 +	if (gpiochip_add(&gc->gchip)) {
 +		kfree(gc);
 +		return;
 +	}
 +
++	gc->gchip.owner = NULL;
 +	sc->gpiochip = gc;
 +	gc->sc = sc;
 +}

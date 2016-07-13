@@ -95,6 +95,7 @@ platform_check_image() {
 	mzk-w300nh2|\
 	mzk-wdpr|\
 	nbg-419n|\
+	nixcore|\
 	nw718|\
 	oy-0001|\
 	pbr-m1|\
@@ -192,6 +193,7 @@ platform_check_image() {
 		return 0
 		;;
 	cy-swr1100|\
+	dch-m225|\
 	dir-610-a1|\
 	dir-645|\
 	dir-860l-b1)
