@@ -505,6 +505,9 @@ ar71xx_board_detect() {
 	*DR344)
 		name="dr344"
 		;;
+	*DR531)
+		name="dr531"
+		;;
 	*"Dragino v2")
 		name="dragino2"
 		;;
@@ -562,6 +565,9 @@ ar71xx_board_detect() {
 		;;
 	*JWAP003)
 		name="jwap003"
+		;;
+	*JWAP230)
+		name="jwap230"
 		;;
 	*"Hornet-UB")
 		local size

@@ -67,6 +67,15 @@ define Device/gl-domino
 endef
 TARGET_DEVICES += gl-domino
 
+define Device/dr531
+  DEVICE_TITLE := Wallys DR531
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
+  BOARDNAME = DR531
+  IMAGE_SIZE = 7808k
+  MTDPARTS = spi0.0:192k(u-boot)ro,64k(u-boot-env),64k(partition-table)ro,7808k(firmware),64k(art)ro
+endef
+TARGET_DEVICES += dr531
+
 define Device/wndr3700
   DEVICE_TITLE := NETGEAR WNDR3700
   DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-ledtrig-usbdev kmod-leds-wndr3700-usb
@@ -258,6 +267,15 @@ define Device/gl-inet-6416A-v1
   CONSOLE := ttyATH0,115200
 endef
 TARGET_DEVICES += gl-inet-6408A-v1 gl-inet-6416A-v1
+
+define Device/jwap230
+    DEVICE_TITLE := jjPlus JWAP230
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2
+    BOARDNAME = JWAP230
+    IMAGE_SIZE = 16000k
+    MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env),16000k(firmware),64k(art)ro
+endef
+TARGET_DEVICES += jwap230
 
 define Device/rnx-n360rt
   $(Device/tplink-4m)
