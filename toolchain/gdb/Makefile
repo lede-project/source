@@ -15,16 +15,15 @@ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://github.com/foss-for-synopsys-dwc-arc-processors/binutils-gdb/archive/arc-2016.03-gdb
 PKG_MD5SUM:=775caaf6385c16f20b6f53c0a2b95f79
 GDB_DIR:=binutils-$(PKG_NAME)-$(PKG_VERSION)
+PATCH_DIR:=./patches-arc
 else
-PKG_VERSION:=7.11
+PKG_VERSION:=7.11.1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/gdb
-PKG_MD5SUM:=b5c784685e1cde65ba135feea86b6d75
+PKG_MD5SUM:=5aa71522e488e358243917967db87476
 GDB_DIR:=$(PKG_NAME)-$(PKG_VERSION)
 endif
-
-PATCH_DIR:=./patches/$(PKG_VERSION)
 
 HOST_BUILD_DIR:=$(BUILD_DIR_TOOLCHAIN)/$(GDB_DIR)
 

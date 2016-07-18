@@ -39,8 +39,8 @@ define Build/tplink-safeloader
 endef
 
 define Build/append-dtb
-    $(if $(DEVICE_DTS_DIR),$(call Image/BuildDTB,$(DEVICE_DTS_DIR)/$(DEVICE_DTS).dts,$(DTS_DIR)/$(DEVICE_DTS).dtb))
-    cat $(DTS_DIR)/$(DEVICE_DTS).dtb >> $@
+	$(call Image/BuildDTB,$(if $(DEVICE_DTS_DIR),$(DEVICE_DTS_DIR),$(DTS_DIR))/$(DEVICE_DTS).dts,$@.dtb)
+	cat $@.dtb >> $@
 endef
 
 define Build/fit
@@ -105,8 +105,9 @@ define Build/append-ubi
 		$(if $(KERNEL_IN_UBI),--kernel $(word 1,$^)) \
 		$(word 2,$^) \
 		$@.tmp \
-		-p $(BLOCKSIZE) -m $(PAGESIZE) -E 5 \
-		$(if $(SUBPAGESIZE),-s $(SUBPAGESIZE))
+		-p $(BLOCKSIZE) -m $(PAGESIZE) \
+		$(if $(SUBPAGESIZE),-s $(SUBPAGESIZE)) \
+		$(UBINIZE_OPTS)
 	cat $@.tmp >> $@
 	rm $@.tmp
 endef

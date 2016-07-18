@@ -322,15 +322,32 @@ define Device/Init
   KERNEL_DEPENDS :=
   KERNEL_SIZE :=
 
+  UBOOTENV_IN_UBI :=
+  KERNEL_IN_UBI :=
+  BLOCKSIZE :=
+  PAGESIZE :=
+  SUBPAGESIZE :=
+  UBINIZE_OPTS := -E 5
+
+  DEVICE_DTS :=
+  DEVICE_DTS_DIR :=
+
   FILESYSTEMS := $(TARGET_FILESYSTEMS)
 endef
+
+DEFAULT_DEVICE_VARS := \
+  DEVICE_NAME KERNEL KERNEL_INITRAMFS KERNEL_INITRAMFS_IMAGE \
+  DEVICE_DTS DEVICE_DTS_DIR \
+  UBOOTENV_IN_UBI KERNEL_IN_UBI \
+  BLOCKSIZE PAGESIZE SUBPAGESIZE \
+  UBINIZE_OPTS
 
 define Device/ExportVar
   $(1) : $(2):=$$($(2))
 
 endef
 define Device/Export
-  $(foreach var,$(DEVICE_VARS) DEVICE_NAME KERNEL KERNEL_INITRAMFS KERNEL_INITRAMFS_IMAGE,$(call Device/ExportVar,$(1),$(var)))
+  $(foreach var,$(DEVICE_VARS) $(DEFAULT_DEVICE_VARS),$(call Device/ExportVar,$(1),$(var)))
   $(1) : FILESYSTEM:=$(2)
 endef
 

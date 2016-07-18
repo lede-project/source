@@ -12,6 +12,7 @@ try_version() {
 }
 
 try_git() {
+	REBOOT=ee53a240ac902dc83209008a2671e7fdcf55957a
 	git rev-parse --git-dir >/dev/null 2>&1 || return 1
 
 	[ -n "$GET_REV" ] || GET_REV="HEAD"
@@ -19,18 +20,27 @@ try_git() {
 	case "$GET_REV" in
 	r*)
 		GET_REV="$(echo $GET_REV | tr -d 'r')"
-		BASE_REV="$(git rev-list reboot..HEAD | wc -l)"
+		BASE_REV="$(git rev-list ${REBOOT}..HEAD | wc -l | awk '{print $1}')"
 		REV="$(git rev-parse HEAD~$((BASE_REV - GET_REV)))"
 		;;
 	*)
-		UPSTREAM_BASE="$(git merge-base $GET_REV origin/master)"
-		UPSTREAM_REV="$(git rev-list reboot..$UPSTREAM_BASE | wc -l | awk '{print $1}')"
-		REV="$(git rev-list reboot..$GET_REV | wc -l | awk '{print $1}')"
-		if [ -n "$REV" -a -n "$UPSTREAM_REV" -a "$REV" -gt "$UPSTREAM_REV" ]; then
-			REV="r${UPSTREAM_REV}+$((REV - UPSTREAM_REV))"
+		BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+		ORIGIN="$(git rev-parse --verify --symbolic-full-name ${BRANCH}@{u} 2>/dev/null)"
+		[ -n "$ORIGIN" ] || ORIGIN="$(git rev-parse --verify --symbolic-full-name master@{u} 2>/dev/null)"
+		REV="$(git rev-list ${REBOOT}..$GET_REV | wc -l | awk '{print $1}')"
+
+		if [ -n "$ORIGIN" ]; then
+			UPSTREAM_BASE="$(git merge-base $GET_REV $ORIGIN)"
+			UPSTREAM_REV="$(git rev-list ${REBOOT}..$UPSTREAM_BASE | wc -l | awk '{print $1}')"
 		else
-			REV="${REV:+r$REV}"
+			UPSTREAM_REV=$REV
 		fi
+
+		if [ "$REV" -gt "$UPSTREAM_REV" ]; then
+			REV="${UPSTREAM_REV}+$((REV - UPSTREAM_REV))"
+		fi
+
+		REV="${REV:+r$REV}"
 		;;
 	esac
 

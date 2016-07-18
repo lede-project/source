@@ -13,8 +13,11 @@ choice
 		depends on arc
 
 	config GCC_USE_VERSION_5
-		select GCC_VERSION_5
 		bool "gcc 5.x"
+		depends on !arc
+
+	config GCC_USE_VERSION_6
+		bool "gcc 6.x"
 		depends on !arc
 
 endchoice

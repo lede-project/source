@@ -72,6 +72,7 @@ enum ath79_mach_type {
 	ATH79_MACH_DLAN_PRO_500_WP,	/* devolo dLAN pro 500 Wireless+ */
 	ATH79_MACH_DLAN_PRO_1200_AC,	/* devolo dLAN pro 1200+ WiFi ac*/
 	ATH79_MACH_DR344,		/* Wallys DR344 */
+	ATH79_MACH_DR531,		/* Wallys DR531 */
 	ATH79_MACH_DRAGINO2,		/* Dragino Version 2 */
 	ATH79_MACH_ESR900,		/* EnGenius ESR900 */
 	ATH79_MACH_EW_DORIN,		/* embedded wireless Dorin Platform */
@@ -93,6 +94,7 @@ enum ath79_mach_type {
 	ATH79_MACH_JA76PF,		/* jjPlus JA76PF */
 	ATH79_MACH_JA76PF2,		/* jjPlus JA76PF2 */
 	ATH79_MACH_JWAP003,		/* jjPlus JWAP003 */
+	ATH79_MACH_JWAP230,		/* jjPlus JWAP230 */
 	ATH79_MACH_HORNET_UB,		/* ALFA Networks Hornet-UB */
 	ATH79_MACH_MR12,		/* Cisco Meraki MR12 */
 	ATH79_MACH_MR16,		/* Cisco Meraki MR16 */

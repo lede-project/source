@@ -224,6 +224,7 @@ platform_check_image() {
 	dlan-hotspot | \
 	dlan-pro-500-wp | \
 	dlan-pro-1200-ac | \
+	dr531 | \
 	dragino2 | \
 	epg5000 | \
 	esr1750 | \
@@ -235,6 +236,7 @@ platform_check_image() {
 	gl-domino | \
 	hiwifi-hc6361 | \
 	hornet-ub-x2 | \
+	jwap230 | \
 	mzk-w04nu | \
 	mzk-w300nh | \
 	tew-632brp | \
