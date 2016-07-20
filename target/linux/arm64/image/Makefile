@@ -20,7 +20,7 @@ endef
 
 define Image/Build/QemuVirt
 	$(CP) $(KDIR)/Image $(BIN_DIR)/$(IMG_PREFIX)-qemu-virt.Image
-ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 	$(CP) $(KDIR)/Image-initramfs $(BIN_DIR)/$(IMG_PREFIX)-qemu-virt-initramfs.Image
 endif
 endef

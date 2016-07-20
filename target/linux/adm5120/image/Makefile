@@ -103,7 +103,7 @@ endef
 define Image/BuildKernel
 	cp $(KDIR)/vmlinux.elf $(VMLINUX).elf
 	cp $(KDIR)/vmlinux $(VMLINUX).bin
-ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 	cp $(KDIR)/vmlinux-initramfs.elf $(VMLINUX)-initramfs.elf
 	cp $(KDIR)/vmlinux $(VMLINUX)-initramfs.bin
 endif

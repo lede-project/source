@@ -1142,7 +1142,7 @@ endef
 define Image/Prepare
 	gzip -9n -c $(KDIR)/vmlinux > $(KDIR)/vmlinux.bin.gz
 	$(call CompressLzma,$(KDIR)/vmlinux,$(KDIR)/vmlinux.bin.lzma)
-ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 	gzip -9n -c $(KDIR)/vmlinux-initramfs > $(KDIR)/vmlinux-initramfs.bin.gz
 	$(call CompressLzma,$(KDIR)/vmlinux-initramfs,$(KDIR)/vmlinux-initramfs.bin.lzma)
 	$(call Image/BuildLoader,generic,elf,,,-initramfs)

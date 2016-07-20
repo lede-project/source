@@ -8,6 +8,7 @@ while (<>) {
 	my $type;
 	chomp;
 	next if /^CONFIG_SIGNED_PACKAGES/;
+	next if /^IB_NO_CORE_IMAGE/;
 
 	if (/^CONFIG_([^=]+)=(.*)$/) {
 		$var = $1;
@@ -40,7 +41,7 @@ while (<>) {
 		# Also we want avoid preserving image generation settings
 		# because we set those while in ImageBuilder
 		next if /^(# )?CONFIG_PACKAGE/;
-		next if /^(# )?CONFIG_TARGET/;
+		next if /^(# )?CONFIG_IMAGE/;
 		if (/^# CONFIG_(.*) is not set/) {
 			$var = $1;
 			$val = 'n';

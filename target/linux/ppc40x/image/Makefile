@@ -62,7 +62,7 @@ define Image/Build/squashfs
 	) > $(BIN_DIR)/$(IMG_PREFIX)-openrb-$(1).img
 endef
 
-ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 define Image/Build/Initramfs
 	cp $(KDIR)/cuImage.magicbox-initramfs $(BIN_DIR)/openwrt-$(BOARD)-magicbox-initramfs.bin
 	cp $(KDIR)/cuImage.openrb-initramfs $(BIN_DIR)/openwrt-$(BOARD)-openrb-initramfs.bin

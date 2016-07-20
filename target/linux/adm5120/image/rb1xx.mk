@@ -16,7 +16,7 @@ define Image/BuildKernel/RouterBoard
 		'$(strip $(call Image/cmdline/yaffs2))'
 endef
 
-ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
+ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),y)
   define Image/BuildKernel
 	$(call Image/BuildKernel/RouterBoard)
   endef

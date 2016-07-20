@@ -13,7 +13,7 @@ BOARDS:= \
 	imx28-duckbill
 
 FAT32_BLOCK_SIZE=1024
-FAT32_BLOCKS=$(shell echo $$(($(CONFIG_TARGET_BOOTFS_PARTSIZE)*1024*1024/$(FAT32_BLOCK_SIZE))))
+FAT32_BLOCKS=$(shell echo $$(($(CONFIG_IMAGE_BOOTFS_PARTSIZE)*1024*1024/$(FAT32_BLOCK_SIZE))))
 
 define Image/BuildKernel
 	mkimage -A arm -O linux -T kernel -C none \
@@ -25,17 +25,17 @@ endef
 
 define Image/InstallKernel
 
-  ifneq ($(CONFIG_TARGET_ROOTFS_INCLUDE_ZIMAGE),)
+  ifneq ($(CONFIG_IMAGE_ROOTFS_INCLUDE_ZIMAGE),)
 	mkdir -p $(TARGET_DIR)/boot
 	cp $(KDIR)/zImage $(TARGET_DIR)/boot/
   endif
 
-  ifneq ($(CONFIG_TARGET_ROOTFS_INCLUDE_UIMAGE),)
+  ifneq ($(CONFIG_IMAGE_ROOTFS_INCLUDE_UIMAGE),)
 	mkdir -p $(TARGET_DIR)/boot
 	cp $(KDIR)/uImage $(TARGET_DIR)/boot/
   endif
   
-  ifneq ($(CONFIG_TARGET_ROOTFS_INCLUDE_DTB),)
+  ifneq ($(CONFIG_IMAGE_ROOTFS_INCLUDE_DTB),)
 	mkdir -p $(TARGET_DIR)/boot
 	$(foreach board,$(BOARDS),
 		$(CP) $(DTS_DIR)/$(board).dtb $(TARGET_DIR)/boot/
@@ -56,8 +56,8 @@ define Image/Build/SDCard-vfat-ext4
 		$(BIN_DIR)/uboot-mxs-$(4)/uboot-mxs-$(4).sb \
 		$(KDIR)/boot.img \
 		$(KDIR)/root.$(1) \
-		$(CONFIG_TARGET_BOOTFS_PARTSIZE) \
-		$(CONFIG_TARGET_ROOTFS_PARTSIZE)
+		$(CONFIG_IMAGE_BOOTFS_PARTSIZE) \
+		$(CONFIG_IMAGE_ROOTFS_PARTSIZE)
 endef
 
 define Image/Build/SDCard-ext4-ext4
@@ -65,7 +65,7 @@ define Image/Build/SDCard-ext4-ext4
 		$(BIN_DIR)/$(2) \
 		$(BIN_DIR)/uboot-mxs-$(4)/uboot-mxs-$(4).sb \
 		$(KDIR)/root.$(1) \
-		$(CONFIG_TARGET_ROOTFS_PARTSIZE)
+		$(CONFIG_IMAGE_ROOTFS_PARTSIZE)
 endef
 
 define Image/Build/Profile/olinuxino-maxi

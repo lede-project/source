@@ -11,7 +11,7 @@ endef
 
 define Image/Build/SysupgradeCombined
 	$(call Image/BuilduImage,$1)
-ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 	$(call Image/BuilduImage,$1,-initramfs)
 	$(CP) $(KDIR)/uImage-$(1)-initramfs $(BIN_DIR)/$(IMG_PREFIX)-uImage-$(1)-initramfs
 endif
@@ -32,7 +32,7 @@ define Image/Build/squashfs
 	$(call Image/Build/SysupgradeCombined,eMMC,squashfs)
 
 	$(call Image/BuilduImage,NAND)
-ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 	$(call Image/BuilduImage,NAND,-initramfs)
 	$(CP) $(KDIR)/uImage-NAND-initramfs $(BIN_DIR)/$(IMG_PREFIX)-uImage-NAND-initramfs
 endif

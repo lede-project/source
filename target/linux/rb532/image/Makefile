@@ -26,7 +26,7 @@ endef
 define Image/Prepare
 	cat $(KDIR)/vmlinux | $(STAGING_DIR_HOST)/bin/lzma e -si -so -eos -lc1 -lp2 -pb2 > $(KDIR)/vmlinux.lzma
 	$(MAKE) -C $(GENERIC_PLATFORM_DIR)/image/lzma-loader $(LOADER_MAKEOPTS) clean compile
-ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
+ifeq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),y)
 	$(STAGING_DIR_HOST)/bin/patch-cmdline $(KDIR)/vmlinux-initramfs '$(strip $(call Image/cmdline/yaffs2)) '
 	cat $(KDIR)/vmlinux-initramfs | $(STAGING_DIR_HOST)/bin/lzma e -si -so -eos -lc1 -lp2 -pb2 > $(KDIR)/vmlinux-initramfs.lzma
 	$(MAKE) -C $(GENERIC_PLATFORM_DIR)/image/lzma-loader $(LOADER_MAKEOPTS) clean compile
@@ -38,7 +38,7 @@ VMLINUX:=$(BIN_DIR)/$(IMG_PREFIX)-vmlinux-kernel
 
 define Image/BuildKernel
 	$(CP) $(KDIR)/loader.elf $(VMLINUX)
-ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
+ifeq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),y)
 	$(CP) $(KDIR)/loader-initramfs.elf $(BIN_DIR)/$(IMG_PREFIX)-vmlinux-initramfs
 endif
 endef
@@ -73,7 +73,7 @@ define Image/Build
 	$(STAGING_DIR_HOST)/bin/patch-cmdline $(BIN_DIR)/$(IMG_PREFIX)-$(1).kernel '$(strip $(call Image/cmdline/$(1))) '
 	./gen_image.sh $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).bin \
 		5 $(BIN_DIR)/$(IMG_PREFIX)-$(1).kernel \
-		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(KDIR)/root.$(1) \
+		$(CONFIG_IMAGE_ROOTFS_PARTSIZE) $(KDIR)/root.$(1) \
 		128
 endef
 

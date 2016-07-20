@@ -84,7 +84,7 @@ define Image/BuildKernel/Template
 		$(BIN_DIR)/$(IMG_PREFIX)-uImage \
 	)
 
- ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+ ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 	$(CP) $(KDIR)/zImage-initramfs $(BIN_DIR)/$(IMG_PREFIX)-zImage-initramfs
 	echo -ne '\x00\x00\x00\x00' >> $(BIN_DIR)/$(IMG_PREFIX)-zImage-initramfs
 	$(call Image/BuildKernel/MkuImage, \
@@ -105,7 +105,7 @@ define Image/BuildKernel/Template
 		$(BIN_DIR)/$(IMG_PREFIX)-$(PROFILE_SANITIZED)-uImage \
 	)
 
-  ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+  ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 	$(CP) $(KDIR)/zImage-initramfs $(BIN_DIR)/$(IMG_PREFIX)-$(PROFILE_SANITIZED)-zImage-initramfs
 	cat $(BIN_DIR)/$(IMG_PREFIX)-$(1).dtb >> $(BIN_DIR)/$(IMG_PREFIX)-$(PROFILE_SANITIZED)-zImage-initramfs
 	$(call Image/BuildKernel/MkuImage, \
@@ -119,19 +119,19 @@ endef
 
 define Image/InstallKernel/Template
 
- ifneq ($(CONFIG_TARGET_ROOTFS_INCLUDE_KERNEL),)
+ ifneq ($(CONFIG_IMAGE_ROOTFS_INCLUDE_KERNEL),)
 	$(INSTALL_DIR) $(TARGET_DIR)/boot
-   ifneq ($(CONFIG_TARGET_ROOTFS_INCLUDE_UIMAGE),)
+   ifneq ($(CONFIG_IMAGE_ROOTFS_INCLUDE_UIMAGE),)
 	$(CP) $(BIN_DIR)/$(IMG_PREFIX)-uImage $(TARGET_DIR)/boot/
 	ln -sf $(IMG_PREFIX)-uImage $(TARGET_DIR)/boot/uImage
    endif
-   ifneq ($(CONFIG_TARGET_ROOTFS_INCLUDE_ZIMAGE),)
+   ifneq ($(CONFIG_IMAGE_ROOTFS_INCLUDE_ZIMAGE),)
 	$(CP) $(BIN_DIR)/$(IMG_PREFIX)-zImage $(TARGET_DIR)/boot/
 	ln -sf $(IMG_PREFIX)-zImage $(TARGET_DIR)/boot/zImage
    endif
  endif
 
- ifneq ($(CONFIG_TARGET_ROOTFS_INCLUDE_DTB),)
+ ifneq ($(CONFIG_IMAGE_ROOTFS_INCLUDE_DTB),)
 	$(INSTALL_DIR) $(TARGET_DIR)/boot
   ifneq ($(1),)
 	$(CP) $(BIN_DIR)/$(IMG_PREFIX)-$(1).dtb $(TARGET_DIR)/boot/

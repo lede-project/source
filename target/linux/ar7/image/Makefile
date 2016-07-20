@@ -45,7 +45,7 @@ define Image/Prepare
 	$(OBJCOPY_SREC) $(KDIR)/vmlinux.elf $(KDIR)/vmlinux.srec
 	srec2bin $(KDIR)/loader.srec $(KDIR)/loader.bin
 	srec2bin $(KDIR)/vmlinux.srec $(KDIR)/vmlinux.bin
-ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+ifneq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),)
 	$(OBJCOPY_SREC) $(KDIR)/vmlinux-initramfs.elf \
 		$(KDIR)/vmlinux-initramfs.srec
 	srec2bin $(KDIR)/vmlinux-initramfs.srec $(KDIR)/vmlinux-initramfs.bin
@@ -118,7 +118,7 @@ define Image/Build
 #	$(call Image/Build/sErCoMm,$(1),jdr454wb,$(1))
 	$(call Image/Build/EVA,$(1),EVA)
 	$(call Image/Build/Titan,$(1),Titan,Titan,$(1))
-ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
+ifeq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),y)
 	$(call Image/Build/Initramfs)
 endif
 endef
@@ -128,7 +128,7 @@ ifeq ($(CONFIG_AR7_AC49X),y)
 define Image/Build
 #	$(call prepare_generic_squashfs,$(BIN_DIR)/$(IMG_PREFIX)-$(1).bin)
 	$(call Image/Build/AudioCodes,$(1),mp202,$(1))
-ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
+ifeq ($(CONFIG_IMAGE_ROOTFS_INITRAMFS),y)
 	$(call Image/Build/Initramfs)
 endif
 endef

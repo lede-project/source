@@ -52,7 +52,7 @@ endif
 
 JFFS2OPTS += $(MKFS_DEVTABLE_OPT)
 
-SQUASHFS_BLOCKSIZE := $(CONFIG_TARGET_SQUASHFS_BLOCK_SIZE)k
+SQUASHFS_BLOCKSIZE := $(CONFIG_IMAGE_SQUASHFS_BLOCK_SIZE)k
 SQUASHFSOPT := -b $(SQUASHFS_BLOCKSIZE)
 SQUASHFSOPT += -p '/dev d 755 0 0' -p '/dev/console c 600 0 0 5 1'
 SQUASHFSCOMP := gzip
@@ -66,15 +66,15 @@ endif
 
 JFFS2_BLOCKSIZE ?= 64k 128k
 
-fs-types-$(CONFIG_TARGET_ROOTFS_SQUASHFS) += squashfs
-fs-types-$(CONFIG_TARGET_ROOTFS_JFFS2) += $(addprefix jffs2-,$(JFFS2_BLOCKSIZE))
-fs-types-$(CONFIG_TARGET_ROOTFS_JFFS2_NAND) += $(addprefix jffs2-nand-,$(NAND_BLOCKSIZE))
-fs-types-$(CONFIG_TARGET_ROOTFS_EXT4FS) += ext4
-fs-types-$(CONFIG_TARGET_ROOTFS_ISO) += iso
-fs-types-$(CONFIG_TARGET_ROOTFS_UBIFS) += ubifs
-fs-subtypes-$(CONFIG_TARGET_ROOTFS_JFFS2) += $(addsuffix -raw,$(addprefix jffs2-,$(JFFS2_BLOCKSIZE)))
-fs-subtypes-$(CONFIG_TARGET_ROOTFS_CPIOGZ) += cpiogz
-fs-subtypes-$(CONFIG_TARGET_ROOTFS_TARGZ) += targz
+fs-types-$(CONFIG_IMAGE_ROOTFS_SQUASHFS) += squashfs
+fs-types-$(CONFIG_IMAGE_ROOTFS_JFFS2) += $(addprefix jffs2-,$(JFFS2_BLOCKSIZE))
+fs-types-$(CONFIG_IMAGE_ROOTFS_JFFS2_NAND) += $(addprefix jffs2-nand-,$(NAND_BLOCKSIZE))
+fs-types-$(CONFIG_IMAGE_ROOTFS_EXT4FS) += ext4
+fs-types-$(CONFIG_IMAGE_ROOTFS_ISO) += iso
+fs-types-$(CONFIG_IMAGE_ROOTFS_UBIFS) += ubifs
+fs-subtypes-$(CONFIG_IMAGE_ROOTFS_JFFS2) += $(addsuffix -raw,$(addprefix jffs2-,$(JFFS2_BLOCKSIZE)))
+fs-subtypes-$(CONFIG_IMAGE_ROOTFS_CPIOGZ) += cpiogz
+fs-subtypes-$(CONFIG_IMAGE_ROOTFS_TARGZ) += targz
 
 TARGET_FILESYSTEMS := $(fs-types-y)
 
@@ -200,7 +200,7 @@ ifneq ($(CONFIG_NAND_SUPPORT),)
 
 endif
 
-ifneq ($(CONFIG_TARGET_ROOTFS_UBIFS),)
+ifneq ($(CONFIG_IMAGE_ROOTFS_UBIFS),)
     define Image/mkfs/ubifs/generate
 	$(CP) ./ubinize$(1).cfg $(KDIR)
 	( cd $(KDIR); \
@@ -222,11 +222,11 @@ ifneq ($(CONFIG_TARGET_ROOTFS_UBIFS),)
 				$(shell echo $($(PROFILE)_UBIFS_OPTS)), \
 				$(shell echo $(UBIFS_OPTS)) \
 			) \
-			$(if $(CONFIG_TARGET_UBIFS_FREE_SPACE_FIXUP),--space-fixup) \
-			$(if $(CONFIG_TARGET_UBIFS_COMPRESSION_NONE),--force-compr=none) \
-			$(if $(CONFIG_TARGET_UBIFS_COMPRESSION_LZO),--force-compr=lzo) \
-			$(if $(CONFIG_TARGET_UBIFS_COMPRESSION_ZLIB),--force-compr=zlib) \
-			$(if $(shell echo $(CONFIG_TARGET_UBIFS_JOURNAL_SIZE)),--jrn-size=$(CONFIG_TARGET_UBIFS_JOURNAL_SIZE)) \
+			$(if $(CONFIG_IMAGE_UBIFS_FREE_SPACE_FIXUP),--space-fixup) \
+			$(if $(CONFIG_IMAGE_UBIFS_COMPRESSION_NONE),--force-compr=none) \
+			$(if $(CONFIG_IMAGE_UBIFS_COMPRESSION_LZO),--force-compr=lzo) \
+			$(if $(CONFIG_IMAGE_UBIFS_COMPRESSION_ZLIB),--force-compr=zlib) \
+			$(if $(shell echo $(CONFIG_IMAGE_UBIFS_JOURNAL_SIZE)),--jrn-size=$(CONFIG_IMAGE_UBIFS_JOURNAL_SIZE)) \
 			--squash-uids \
 			-o $(KDIR)/root.ubifs \
 			-d $(TARGET_DIR)
@@ -251,14 +251,14 @@ define Image/mkfs/targz
 		-C $(TARGET_DIR)/ . | gzip -9n > $(BIN_DIR)/$(IMG_PREFIX)$(if $(PROFILE_SANITIZED),-$(PROFILE_SANITIZED))-rootfs.tar.gz
 endef
 
-E2SIZE=$(shell echo $$(($(CONFIG_TARGET_ROOTFS_PARTSIZE)*1024*1024)))
+E2SIZE=$(shell echo $$(($(CONFIG_IMAGE_ROOTFS_PARTSIZE)*1024*1024)))
 
 define Image/mkfs/ext4
 	$(STAGING_DIR_HOST)/bin/make_ext4fs \
-		-l $(E2SIZE) -b $(CONFIG_TARGET_EXT4_BLOCKSIZE) \
-		-i $(CONFIG_TARGET_EXT4_MAXINODE) \
-		-m $(CONFIG_TARGET_EXT4_RESERVED_PCT) \
-		$(if $(CONFIG_TARGET_EXT4_JOURNAL),,-J) \
+		-l $(E2SIZE) -b $(CONFIG_IMAGE_EXT4_BLOCKSIZE) \
+		-i $(CONFIG_IMAGE_EXT4_MAXINODE) \
+		-m $(CONFIG_IMAGE_EXT4_RESERVED_PCT) \
+		$(if $(CONFIG_IMAGE_EXT4_JOURNAL),,-J) \
 		$(if $(SOURCE_DATE_EPOCH),-T $(SOURCE_DATE_EPOCH)) \
 		$(KDIR)/root.ext4 $(TARGET_DIR)/
 endef
@@ -428,7 +428,7 @@ define Device/Build/image
 endef
 
 define Device/Build
-  $(if $(CONFIG_TARGET_ROOTFS_INITRAMFS),$(call Device/Build/initramfs,$(1)))
+  $(if $(CONFIG_IMAGE_ROOTFS_INITRAMFS),$(call Device/Build/initramfs,$(1)))
   $(call Device/Build/kernel,$(1))
 
   $$(eval $$(foreach compile,$$(COMPILE), \
@@ -541,7 +541,7 @@ define BuildImage
 
   kernel_prepare: mkfs_prepare
 	$(call Image/BuildKernel)
-	$(if $(CONFIG_TARGET_ROOTFS_INITRAMFS),$(if $(IB),,$(call Image/BuildKernel/Initramfs)))
+	$(if $(CONFIG_IMAGE_ROOTFS_INITRAMFS),$(if $(IB),,$(call Image/BuildKernel/Initramfs)))
 	$(call Image/InstallKernel)
 
   $(foreach device,$(TARGET_DEVICES),$(call Device,$(device)))
