@@ -235,6 +235,7 @@ platform_check_image() {
 	gl-ar300 | \
 	gl-ar300m | \
 	gl-domino | \
+	gl-mifi | \
 	hiwifi-hc6361 | \
 	hornet-ub-x2 | \
 	jwap230 | \
