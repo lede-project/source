@@ -16,6 +16,12 @@ KERNEL_ENTRY = 0x80002000
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
+ifeq ($(SUBTARGET),xway)
+  UBIFS_OPTS := -m 512 -e 15872 -c 1959
+else
+  UBIFS_OPTS := -m 2048 -e 126KiB -c 4096
+endif
+
 LOADER_MAKE := $(NO_TRACE_MAKE) -C lzma-loader KDIR=$(KDIR)
 
 define Image/BuildLoader/Template
@@ -25,6 +31,11 @@ define Image/BuildLoader/Template
 		LOADADDR=0x80002000 \
 		LOADER_DATA="$(KDIR)/vmlinux$(2)-$(1).lzma" BOARD="$(1)" \
 		compile loader.bin
+endef
+
+define Build/eva-image
+	lzma2eva $(KERNEL_LOADADDR) $(KERNEL_LOADADDR) $@ $@.new
+	( dd if=$@.new bs=64k conv=sync; cat ./eva.dummy.squashfs; ) > $@
 endef
 
 
@@ -43,13 +54,6 @@ define MkImageLzma
 	mkimage -A mips -O linux -T kernel -a 0x80002000 -C lzma \
 		-e 0x80002000 -n 'MIPS OpenWrt Linux-$(LINUX_VERSION)' \
 		-d $(KDIR)/vmlinux$(2)-$(1).lzma $(KDIR)/uImage-$(1)$(2)
-endef
-
-define MkImageEVA
-	lzma2eva 0x80002000 0x80002000 $(KDIR)/vmlinux$(2)-$(1).lzma $(KDIR)/$(1)$(2).eva.prealign
-	dd if=$(KDIR)/$(1)$(2).eva.prealign of=$(KDIR)/$(1)$(2).eva.align.64k bs=64k conv=sync
-	dd if=$(KDIR)/$(1)$(2).eva.prealign of=$(KDIR)/$(1)$(2).eva.align.128k bs=128k conv=sync
-	cat ./eva.dummy.squashfs >> $(KDIR)/$(1)$(2).eva.align.64k
 endef
 
 define Image/Build/squashfs
@@ -94,34 +98,10 @@ define Image/BuildDGN3500B/squashfs
 endef
 
 
-define Image/BuildEVA/squashfs
-	cat $(KDIR)/$(2).eva.align.64k $(KDIR)/root.$(1) > $(BIN_DIR)/$(IMG_PREFIX)-$(2)-$(1).image.eva
-	$(call prepare_generic_squashfs,$(BIN_DIR)/$(IMG_PREFIX)-$(2)-$(1).image.eva)
-endef
-
 define Image/BuildLoader/squashfs
 	dd if=$(KDIR)/loader-$(2).bin of=$(KDIR)/loader-$(2).bin.padded bs=3072k conv=sync
 	cat $(KDIR)/loader-$(2).bin.padded $(KDIR)/root.$(1) > $(BIN_DIR)/$(IMG_PREFIX)-$(2)-$(1).image
 	$(call prepare_generic_squashfs,$(BIN_DIR)/$(IMG_PREFIX)-$(2)-$(1).image)
-endef
-
-define Image/BuildEVA/jffs2-128k
-	cat $(KDIR)/$(2).eva.align.128k $(KDIR)/root.$(1) > $(BIN_DIR)/$(IMG_PREFIX)-$(2)-$(1).image.eva
-endef
-
-define Image/Build/jffs2-64k
-	dd if=$(KDIR)/uImage-$(2) of=$(KDIR)/uImage-$(2)-$(1) bs=64k conv=sync
-	cat $(KDIR)/uImage-$(2)-$(1) $(KDIR)/root.$(1) > $(BIN_DIR)/$(IMG_PREFIX)-$(2)-$(1).image
-endef
-
-define Image/Build/jffs2-128k
-	dd if=$(KDIR)/uImage-$(2) of=$(KDIR)/uImage-$(2)-$(1) bs=128k conv=sync
-	cat $(KDIR)/uImage-$(2)-$(1) $(KDIR)/root.$(1) > $(BIN_DIR)/$(IMG_PREFIX)-$(2)-$(1).image
-endef
-
-define Image/Build/jffs2-256k
-	dd if=$(KDIR)/uImage-$(2) of=$(KDIR)/uImage-$(2)-$(1) bs=256k conv=sync
-	cat $(KDIR)/uImage-$(2)-$(1) $(KDIR)/root.$(1) > $(BIN_DIR)/$(IMG_PREFIX)-$(2)-$(1).image
 endef
 
 ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
@@ -165,14 +145,6 @@ define Image/Prepare/Template
 	$(Image/Prepare/InitramfsTemplate)
 endef
 
-define Image/BuildKernelEVA/Template
-	$(call PatchKernelLzma,$(1))
-	$(call MkImageEVA,$(1))
-	$(CP) $(KDIR)/$(1).eva.align.64k $(BIN_DIR)/$(IMG_PREFIX)-$(1).eva.align.64k
-	$(CP) $(KDIR)/$(1).eva.align.128k $(BIN_DIR)/$(IMG_PREFIX)-$(1).eva.align.128k
-endef
-
-
 ### Kernel scripts ###
 define Build/mkbrncmdline
    mkbrncmdline -i $@ -o $@.new BRN-BOOT
@@ -200,20 +172,38 @@ endef
 
 # Shared device definition: applies to every defined device
 define Device/Default
-  PROFILES = Default $$(DEVICE_PROFILE)
+  PROFILES = Default
   KERNEL_DEPENDS = $$(wildcard ../dts/$$(DEVICE_DTS).dts)
   KERNEL_INITRAMFS_NAME = $$(KERNEL_NAME)-initramfs
   KERNEL := kernel-bin | append-dtb | lzma | uImage lzma
   KERNEL_INITRAMFS := kernel-bin | append-dtb | lzma | uImage lzma
   FILESYSTEMS := squashfs
-  DEVICE_PROFILE :=
-  DEVICE_DTS = $$(DEVICE_PROFILE)
+  DEVICE_DTS := $(1)
   DEVICE_DTS_DIR := ../dts
   IMAGE_SIZE :=
   IMAGES := sysupgrade.bin
   IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE)
 endef
-DEVICE_VARS += DEVICE_PROFILE IMAGE_SIZE
+DEVICE_VARS += IMAGE_SIZE
+
+define Device/NAND/xway
+  BLOCKSIZE := 16KiB
+  PAGESIZE := 512
+  SUBPAGESIZE := 256
+  FILESYSTEMS += ubifs
+endef
+
+define Device/NAND/xrx200
+  BLOCKSIZE := 128KiB
+  PAGESIZE := 2048
+  SUBPAGESIZE := 512
+  FILESYSTEMS += ubifs
+endef
+
+define Device/NAND
+  $(Device/NAND/$(SUBTARGET))
+  IMAGE/sysupgrade.bin := sysupgrade-nand
+endef
 
 define Device/lantiqBrnImage
   KERNEL := kernel-bin | append-dtb | mkbrncmdline | lzma-no-dict
@@ -228,10 +218,14 @@ define Device/lantiqFullImage
   IMAGE/fullimage.img := fullimage | check-size $$$$(IMAGE_SIZE)
 endef
 
+define Device/AVM
+  $(Device/NAND)
+  KERNEL := kernel-bin | append-dtb | lzma | eva-image
+endef
+
 ifeq ($(SUBTARGET),xway_legacy)
 
 define Device/ARV4520PW
-  DEVICE_PROFILE := ARV4520PW
   IMAGE_SIZE := 3648k
   DEVICE_TITLE := Easybox 800, WAV-281 - ARV4520PW
   DEVICE_PACKAGES := kmod-ltq-hcd-danube \
@@ -244,7 +238,6 @@ endef
 TARGET_DEVICES += ARV4520PW
 
 define Device/ARV4525PW
-  DEVICE_PROFILE := ARV4525PW
   IMAGE_SIZE := 3776k
   DEVICE_TITLE := Speedport W502V Typ A - ARV4525PW
   DEVICE_PACKAGES := kmod-ath5k wpad-mini \
@@ -255,7 +248,6 @@ endef
 TARGET_DEVICES += ARV4525PW
 
 define Device/ARV452CQW
-  DEVICE_PROFILE := ARV452CQW
   IMAGE_SIZE := 3776k
   DEVICE_TITLE := Easybox 801 - ARV452CQW
   DEVICE_PACKAGES := kmod-ltq-hcd-danube \
@@ -268,7 +260,6 @@ endef
 TARGET_DEVICES += ARV452CQW
 
 define Device/ARV4518PWR01
-  DEVICE_PROFILE := ARV4518PWR01
   IMAGE_SIZE := 3776k
   DEVICE_TITLE := ARV4518PWR01
   DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-ledtrig-usbdev \
@@ -281,7 +272,6 @@ endef
 TARGET_DEVICES += ARV4518PWR01
 
 define Device/ARV4518PWR01A
-  DEVICE_PROFILE := ARV4518PWR01A
   IMAGE_SIZE := 3776k
   DEVICE_TITLE := ARV4518PWR01A
   DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-ledtrig-usbdev \
@@ -298,13 +288,9 @@ endif
 ifeq ($(SUBTARGET),xway)
 
 # Danube
-DEVICE_BTHOMEHUBV2B_UBIFS_OPTS:="-m 512 -e 15872 -c 1959"
-DEVICE_BTHOMEHUBV2B_UBI_OPTS:="-m 512 -p 16KiB -s 256"
 
-Image/BuildKernel/Profile/BTHOMEHUBV2B=$(call Image/BuildKernel/Template,BTHOMEHUBV2B)
-Image/Build/Profile/BTHOMEHUBV2B=$(call Image/BuildNAND/$(1),$(1),BTHOMEHUBV2B)
-
-define LegacyDevice/BTHOMEHUBV2B
+define Device/BTHOMEHUBV2B
+  $(Device/NAND)
   DEVICE_TITLE := BT Home Hub 2B
   DEVICE_PACKAGES :=  kmod-ltq-hcd-danube kmod-ledtrig-usbdev \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
@@ -314,17 +300,15 @@ define LegacyDevice/BTHOMEHUBV2B
 	kmod-ath9k wpad-mini \
 	swconfig
 endef
-LEGACY_DEVICES += BTHOMEHUBV2B
+TARGET_DEVICES += BTHOMEHUBV2B
 
 define Device/EASY50712
-  DEVICE_PROFILE := EASY50712
   IMAGE_SIZE := 3776k
   DEVICE_TITLE := Lantiq Danube - EASY50712
 endef
 TARGET_DEVICES += EASY50712
 
 define Device/ACMP252
-  DEVICE_PROFILE := ACMP252
   IMAGE_SIZE := 14848k
   DEVICE_TITLE := AudioCodes MediaPack MP-252
   DEVICE_PACKAGES := kmod-rt2x00-pci wpad-mini \
@@ -335,7 +319,6 @@ endef
 TARGET_DEVICES += ACMP252
 
 define Device/ARV4510PW
-  DEVICE_PROFILE := ARV4510PW
   IMAGE_SIZE := 15616k
   DEVICE_TITLE := Wippies, Elisa - ARV4510PW
   DEVICE_PACKAGES := kmod-ledtrig-usbdev kmod-usb2-pci kmod-usb-uhci \
@@ -349,7 +332,6 @@ endef
 TARGET_DEVICES += ARV4510PW
 
 define Device/ARV7525PW
-  DEVICE_PROFILE := ARV7525PW
   IMAGE_SIZE := 3776k
   DEVICE_TITLE := Speedport W303V Typ A - ARV7525PW
   DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini \
@@ -360,7 +342,6 @@ endef
 TARGET_DEVICES += ARV7525PW
 
 define Device/ARV4519PW
-  DEVICE_PROFILE := ARV4519PW
   IMAGE_SIZE := 3776k
   DEVICE_TITLE := Vodafone, Pirelli - ARV4519PW
   DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-ledtrig-usbdev \
@@ -372,7 +353,6 @@ endef
 TARGET_DEVICES += ARV4519PW
 
 define Device/ARV7506PW11
-  DEVICE_PROFILE := ARV7506PW11
   IMAGE_SIZE := 7808k
   DEVICE_TITLE := Alice/O2 IAD 4421 - ARV7506PW11
   DEVICE_PACKAGES := kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
@@ -384,7 +364,6 @@ endef
 TARGET_DEVICES += ARV7506PW11
 
 define Device/ARV7510PW22
-  DEVICE_PROFILE := ARV7510PW22
   IMAGE_SIZE := 31232k
   DEVICE_TITLE := Astoria - ARV7510PW22
   DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-ledtrig-usbdev \
@@ -399,7 +378,6 @@ endef
 TARGET_DEVICES += ARV7510PW22
 
 define Device/ARV7518PW
-  DEVICE_PROFILE := ARV7518PW
   IMAGE_SIZE := 7872k
   DEVICE_TITLE := Astoria - ARV7518PW
   DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-ledtrig-usbdev \
@@ -412,7 +390,6 @@ endef
 TARGET_DEVICES += ARV7518PW
 
 define Device/ARV7519PW
-  DEVICE_PROFILE := ARV7519PW
   IMAGE_SIZE := 15488k
   DEVICE_TITLE := Astoria - ARV7519PW
   DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-ledtrig-usbdev \
@@ -425,7 +402,6 @@ endef
 TARGET_DEVICES += ARV7519PW
 
 define Device/ARV752DPW
-  DEVICE_PROFILE := ARV752DPW
   IMAGE_SIZE := 7872k
   DEVICE_TITLE := Easybox 802 - ARV752DPW
   DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-ledtrig-usbdev \
@@ -439,7 +415,6 @@ endef
 TARGET_DEVICES += ARV752DPW
 
 define Device/ARV752DPW22
-  DEVICE_PROFILE := ARV752DPW22
   IMAGE_SIZE := 7616k
   DEVICE_TITLE := Easybox 803 - ARV752DPW22
   DEVICE_PACKAGES := kmod-usb2-pci kmod-usb-uhci kmod-ltq-hcd-danube kmod-ledtrig-usbdev \
@@ -453,7 +428,6 @@ endef
 TARGET_DEVICES += ARV752DPW22
 
 define Device/ARV8539PW22
-  DEVICE_PROFILE := ARV8539PW22
   IMAGE_SIZE := 7616k
   DEVICE_TITLE := Speedport W504V Typ A - ARV8539PW22
   DEVICE_PACKAGES := kmod-ltq-hcd-danube \
@@ -466,7 +440,6 @@ endef
 TARGET_DEVICES += ARV8539PW22
 
 define Device/GIGASX76X
-  DEVICE_PROFILE := GIGASX76X
   IMAGE_SIZE := 7680k
   DEVICE_TITLE := Gigaset sx76x
   DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-ledtrig-usbdev \
@@ -479,15 +452,10 @@ endef
 TARGET_DEVICES += GIGASX76X
 
 
-
 # AR9
-DEVICE_BTHOMEHUBV3A_UBIFS_OPTS:="-m 512 -e 15872 -c 1959"
-DEVICE_BTHOMEHUBV3A_UBI_OPTS:="-m 512 -p 16KiB -s 256"
 
-Image/BuildKernel/Profile/BTHOMEHUBV3A=$(call Image/BuildKernel/Template,BTHOMEHUBV3A)
-Image/Build/Profile/BTHOMEHUBV3A=$(call Image/BuildNAND/$(1),$(1),BTHOMEHUBV3A)
-
-define LegacyDevice/BTHOMEHUBV3A
+define Device/BTHOMEHUBV3A
+  $(Device/NAND)
   DEVICE_TITLE := BT Home Hub 3A
   DEVICE_PACKAGES := kmod-usb-dwc2 kmod-ledtrig-usbdev \
 	kmod-ltq-adsl-ar9-mei kmod-ltq-adsl-ar9 \
@@ -497,7 +465,7 @@ define LegacyDevice/BTHOMEHUBV3A
 	kmod-ath9k wpad-mini \
 	swconfig uboot-envtools
 endef
-LEGACY_DEVICES += BTHOMEHUBV3A
+TARGET_DEVICES += BTHOMEHUBV3A
 
 Image/BuildKernel/Profile/DGN3500=$(call Image/BuildKernel/Template,DGN3500)
 Image/Build/Profile/DGN3500=$(call Image/BuildDGN3500/$(1),$(1),DGN3500)
@@ -528,7 +496,6 @@ endef
 LEGACY_DEVICES += DGN3500B
 
 define Device/WBMRA
-  DEVICE_PROFILE := WBMRA
   IMAGE_SIZE := 31488k
   DEVICE_DTS := WBMR
   DEVICE_TITLE := Buffalo WBMR-HP-G300H (A) - WBMR
@@ -542,7 +509,6 @@ endef
 TARGET_DEVICES += WBMRA
 
 define Device/WBMRB
-  DEVICE_PROFILE := WBMRB
   IMAGE_SIZE := 31488k
   DEVICE_DTS := WBMR
   DEVICE_TITLE := Buffalo WBMR-HP-G300H (B) - WBMR
@@ -555,10 +521,8 @@ define Device/WBMRB
 endef
 TARGET_DEVICES += WBMRB
 
-Image/BuildKernel/Profile/FRITZ7320=$(call Image/BuildKernelEVA/Template,FRITZ7320)
-Image/Build/Profile/FRITZ7320=$(call Image/BuildEVA/$(1),$(1),FRITZ7320)
-
-define LegacyDevice/FRITZ7320
+define Device/FRITZ7320
+  $(Device/AVM)
   DEVICE_TITLE := 1&1 HomeServer - FRITZ7320
   DEVICE_PACKAGES := kmod-ath9k wpad-mini \
 	kmod-ltq-adsl-ar9-mei kmod-ltq-adsl-ar9 \
@@ -567,10 +531,9 @@ define LegacyDevice/FRITZ7320
 	kmod-ltq-deu-ar9 kmod-usb-dwc2 \
 	kmod-ath9k wpad-mini
 endef
-LEGACY_DEVICES += FRITZ7320
+TARGET_DEVICES += FRITZ7320
 
 define Device/H201L
-  DEVICE_PROFILE := H201L
   IMAGE_SIZE := 7808k
   DEVICE_TITLE := ZTE H201L - H201L
   DEVICE_PACKAGES := kmod-ath9k-htc wpad-mini \
@@ -584,7 +547,6 @@ endef
 TARGET_DEVICES += H201L
 
 define Device/P2601HNFX
-  DEVICE_PROFILE := P2601HNFX
   IMAGE_SIZE := 15616k
   DEVICE_TITLE := ZyXEL P-2601HN-Fx
   DEVICE_PACKAGES := kmod-rt2800-usb wpad-mini \
@@ -603,54 +565,37 @@ endif
 ifeq ($(SUBTARGET),xrx200)
 
 # VR9
-DEVICE_P2812HNUF1_UBIFS_OPTS:="-m 2048 -e 126KiB -c 4096"
-DEVICE_P2812HNUF1_UBI_OPTS:="-m 2048 -p 128KiB -s 512"
 
-Image/BuildKernel/Profile/P2812HNUF1=$(call Image/BuildKernel/Template,P2812HNUF1)
-Image/Build/Profile/P2812HNUF1=$(call Image/BuildNAND/$(1),$(1),P2812HNUF1)
-
-define LegacyDevice/P2812HNUF1
+define Device/P2812HNUF1
+  $(Device/NAND)
   DEVICE_TITLE := ZyXEL P-2812HNU-F1
   DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini kmod-usb-dwc2
 endef
-LEGACY_DEVICES += P2812HNUF1
+TARGET_DEVICES += P2812HNUF1
 
-DEVICE_P2812HNUF3_UBIFS_OPTS:="-m 2048 -e 126KiB -c 4096"
-DEVICE_P2812HNUF3_UBI_OPTS:="-m 2048 -p 128KiB -s 512"
-
-Image/BuildKernel/Profile/P2812HNUF3=$(call Image/BuildKernel/Template,P2812HNUF3)
-Image/Build/Profile/P2812HNUF3=$(call Image/BuildNAND/$(1),$(1),P2812HNUF3)
-
-define LegacyDevice/P2812HNUF3
+define Device/P2812HNUF3
+  $(Device/NAND)
   DEVICE_TITLE := ZyXEL P-2812HNU-F3
   DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini kmod-usb-dwc2
 endef
-LEGACY_DEVICES += P2812HNUF3
+TARGET_DEVICES += P2812HNUF3
 
 define Device/ARV7519RW22
-  DEVICE_PROFILE := ARV7519RW22
   IMAGE_SIZE := 31232k
   DEVICE_TITLE := Livebox Astoria ARV7519RW22
   DEVICE_PACKAGES := kmod-usb-dwc2
 endef
 TARGET_DEVICES += ARV7519RW22
 
-
-DEVICE_BTHOMEHUBV5A_UBIFS_OPTS:="-m 2048 -e 126KiB -c 4096"
-DEVICE_BTHOMEHUBV5A_UBI_OPTS:="-m 2048 -p 128KiB -s 512"
-
-Image/BuildKernel/Profile/BTHOMEHUBV5A=$(call Image/BuildKernel/Template,BTHOMEHUBV5A)
-Image/Build/Profile/BTHOMEHUBV5A=$(call Image/BuildNAND/$(1),$(1),BTHOMEHUBV5A)
-
-define LegacyDevice/BTHOMEHUBV5A
+define Device/BTHOMEHUBV5A
+  $(Device/NAND)
   DEVICE_TITLE := BT Home Hub 5A
   DEVICE_PACKAGES := kmod-ath9k kmod-ath10k wpad-mini kmod-usb-dwc2
 endef
-LEGACY_DEVICES += BTHOMEHUBV5A
+TARGET_DEVICES += BTHOMEHUBV5A
 
 define Device/EASY80920NAND
   $(Device/lantiqFullImage)
-  DEVICE_PROFILE := EASY80920NAND
   IMAGE_SIZE := 64512k
   DEVICE_TITLE := Lantiq VR9 - EASY80920NAND
   DEVICE_PACKAGES := kmod-ath9k wpad-mini kmod-usb-dwc2
@@ -658,34 +603,25 @@ endef
 TARGET_DEVICES += EASY80920NAND
 
 define Device/EASY80920NOR
-  DEVICE_PROFILE := EASY80920NOR
   IMAGE_SIZE := 7936k
   DEVICE_TITLE := Lantiq VR9 - EASY80920NOR
   DEVICE_PACKAGES := kmod-ath9k wpad-mini kmod-usb-dwc2
 endef
 TARGET_DEVICES += EASY80920NOR
 
-
-DEVICE_FRITZ3370_UBIFS_OPTS:="-m 2048 -e 126KiB -c 4096"
-DEVICE_FRITZ3370_UBI_OPTS:="-m 2048 -p 128KiB -s 512"
-
-Image/BuildKernel/Profile/FRITZ3370=$(call Image/BuildKernelEVA/Template,FRITZ3370)
-Image/Build/Profile/FRITZ3370=$(call Image/BuildEVA/$(1),$(1),FRITZ3370)
-
-define LegacyDevice/FRITZ3370
+define Device/FRITZ3370
+  $(Device/AVM)
   DEVICE_TITLE := Fritz!Box WLan - FRITZ3370
   DEVICE_PACKAGES := kmod-ath9k wpad-mini kmod-usb-dwc2
 endef
-LEGACY_DEVICES += FRITZ3370
+TARGET_DEVICES += FRITZ3370
 
-Image/BuildKernel/Profile/FRITZ7360SL=$(call Image/BuildKernelEVA/Template,FRITZ7360SL)
-Image/Build/Profile/FRITZ7360SL=$(call Image/BuildEVA/$(1),$(1),FRITZ7360SL)
-
-define LegacyDevice/FRITZ7360SL
+define Device/FRITZ7360SL
+  $(Device/AVM)
   DEVICE_TITLE := 1&1 HomeServer - FRITZ7360SL
   DEVICE_PACKAGES := kmod-ath9k wpad-mini kmod-usb-dwc2
 endef
-LEGACY_DEVICES += FRITZ7360L
+TARGET_DEVICES += FRITZ7360SL
 
 Image/Prepare/Profile/VG3503J=$(call Image/Prepare/Template,VG3503J)
 Image/BuildKernel/Profile/VG3503J=$(call Image/BuildKernelLoader/Template,VG3503J)
@@ -699,7 +635,6 @@ LEGACY_DEVICES += VG3503J
 include tp-link.mk
 
 define Device/WBMR300
-  DEVICE_PROFILE := WBMR300
   IMAGE_SIZE := 15616k
   DEVICE_TITLE := Buffalo WBMR-300HPD
   DEVICE_PACKAGES := kmod-mt76 wpad-mini kmod-usb-dwc2
@@ -707,7 +642,6 @@ endef
 TARGET_DEVICES += WBMR300
 
 define Device/VGV7510KW22NOR
-  DEVICE_PROFILE := VGV7510KW22NOR
   IMAGE_SIZE := 15232k
   DEVICE_TITLE := o2 Box 6431 / Arcadyan VGV7510KW22 (NOR)
   DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini kmod-usb-dwc2
@@ -716,7 +650,6 @@ TARGET_DEVICES += VGV7510KW22NOR
 
 define Device/VGV7510KW22BRN
   $(Device/lantiqBrnImage)
-  DEVICE_PROFILE := VGV7510KW22BRN
   IMAGE_SIZE := 7168k
   SIGNATURE := 5D00008000
   MAGIC := 0x12345678
@@ -727,7 +660,6 @@ endef
 TARGET_DEVICES += VGV7510KW22BRN
 
 define Device/VGV7519NOR
-  DEVICE_PROFILE := VGV7519NOR
   IMAGE_SIZE := 15360k
   DEVICE_TITLE := Experiabox 8 VGV7519
   DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini kmod-usb-dwc2
@@ -736,7 +668,6 @@ TARGET_DEVICES += VGV7519NOR
 
 define Device/VGV7519BRN
   $(Device/lantiqBrnImage)
-  DEVICE_PROFILE := VGV7519BRN
   IMAGE_SIZE := 7168k
   SIGNATURE := 5D00008000
   MAGIC := 0x12345678
@@ -746,39 +677,6 @@ define Device/VGV7519BRN
 endef
 TARGET_DEVICES += VGV7519BRN
 
-endif
-
-ifneq ($($(PROFILE)_UBI_OPTS),)
-  define Image/BuildNAND/squashfs
-	$(call prepare_generic_squashfs,$(KDIR)/root.$(1))
-	$(call Image/Build/UbinizeImage,$(2),,squashfs,$($(PROFILE)_UBI_OPTS))
-	$(call Image/Build/SysupgradeNAND,$(2),$(1),$(KDIR)/uImage-$(2))
-  endef
-
-  define Image/Build/ubifs
-	$(CP) $(KDIR)/root.ubifs $(BIN_DIR)/$(IMG_PREFIX)-$(2)-rootfs.ubifs
-  endef
-
-  define Image/Build/ubi
-	$(CP) $(KDIR)/root.ubi $(BIN_DIR)/$(IMG_PREFIX)-$(2)-rootfs.ubi
-	$(CP) $(KDIR)/root-overlay.ubi $(BIN_DIR)/$(IMG_PREFIX)-$(2)-rootfs-overlay.ubi
-  endef
-
-  define Image/BuildEVA/ubi
-	$(CP) $(KDIR)/root.ubi $(BIN_DIR)/$(IMG_PREFIX)-$(2)-rootfs.ubi
-	$(CP) $(KDIR)/root-overlay.ubi $(BIN_DIR)/$(IMG_PREFIX)-$(2)-rootfs-overlay.ubi
-  endef
-
-ifneq ($($(PROFILE)_UBIFS_OPTS),)
-  define Image/BuildNAND/ubifs
-	$(call Image/Build/UbinizeImage,$(2),,ubifs,$($(PROFILE)_UBI_OPTS))
-	$(call Image/Build/SysupgradeNAND,$(2),$(1),$(KDIR)/uImage-$(2))
-  endef
-
-  define Image/BuildEVA/ubifs
-	$(CP) $(KDIR)/root.ubifs $(BIN_DIR)/$(IMG_PREFIX)-$(2)-rootfs.ubifs
-  endef
-endif
 endif
 
 define Image/Prepare/Profile

@@ -1,0 +1,36 @@
+#!/bin/sh
+
+. /lib/functions/uci-defaults.sh
+. /lib/apm821xx.sh
+
+board_config_update
+
+board=$(apm821xx_board_name)
+
+case "$board" in
+mr24)
+	ucidef_set_led_netdev "wan" "WAN" "mr24:green:wan" "eth0"
+	ucidef_set_led_wlan "wlan1" "WLAN1" "mr24:green:wifi1" "phy0assoc"
+	ucidef_set_led_wlan "wlan2" "WLAN2" "mr24:green:wifi2" "phy0assoc"
+	ucidef_set_led_wlan "wlan3" "WLAN3" "mr24:green:wifi3" "phy0assoc"
+	ucidef_set_led_wlan "wlan4" "WLAN4" "mr24:green:wifi4" "phy0tpt"
+	;;
+
+mbl)
+	;;
+
+wndr4700)
+	ucidef_set_led_netdev "wan" "WAN (green)" "wndr4700:green:wan" "eth0.2"
+	ucidef_set_led_usbdev "usb3-1" "USB3-1" "wndr4700:blue:usb" "2-1"
+	ucidef_set_led_usbdev "usb3-2" "USB3-2" "wndr4700:blue:usb" "3-1"
+	ucidef_set_led_wlan "wlan2g" "WLAN2G" "wndr4700:blue:wlan" "phy0tpt"
+	ucidef_set_led_wlan "wlan5g" "WLAN5G" "wndr4700:blue:wlan" "phy1tpt"
+	;;
+
+*)
+	;;
+esac
+
+board_config_flush
+
+exit 0
