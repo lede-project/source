@@ -36,7 +36,7 @@ endif
 LegacyDevice/Dump = $(Device/Dump)
 
 define LegacyDevice/Check
-  _PROFILE_SET = $$(strip $$(foreach profile,$$(PROFILES) DEVICE_$(1),$$(call DEVICE_CHECK_PROFILE,$$(profile))))
+  $(Device/Check/Common)
   _TARGET_PREPARE := $$(if $$(_PROFILE_SET),legacy-images-prepare,prepare-disabled)
   _TARGET := $$(if $$(_PROFILE_SET),legacy-images,install-disabled)
   $$(if $$(_PROFILE_SET),install: legacy-images-make)
@@ -44,6 +44,15 @@ define LegacyDevice/Check
     $$(if $$(_PROFILE_SET),mkfs_prepare: legacy-images-prepare-make)
   endif
 endef
+
+ifdef TARGET_PER_DEVICE_ROOTFS
+  define Image/Build/Profile/Filesystem
+	cp $(KDIR)/root.$(2)+pkg=$(3) $(KDIR)/root.$(2)
+	$(call Image/Build/Profile,$(1),$(2))
+  endef
+else
+  Image/Build/Profile/Filesystem = $(Image/Build/Profile)
+endif
 
 define LegacyDevice/Build
   $$(_TARGET): legacy-image-$(1)
@@ -53,10 +62,21 @@ define LegacyDevice/Build
   legacy-image-prepare-$(1):
 	$$(call Image/Prepare/Profile,$(1))
 
+  ifndef IB
+    ifdef CONFIG_TARGET_PER_DEVICE_ROOTFS
+      ROOTFS/$(1) := $(foreach fs,$(TARGET_FILESYSTEMS), \
+        $(KDIR)/root.$(fs)$$(strip $(if $(CONFIG_TARGET_PER_DEVICE_ROOTFS),+pkg=$$(ROOTFS_ID/$(1)))) \
+      )
+
+      $$(ROOTFS/$(1)): target-dir-$$(ROOTFS_ID/$(1))
+      legacy-images-make: $$(if $$(_PROFILE_SET),$$(ROOTFS/$(1)))
+    endif
+  endif
+
   legacy-image-$(1):
 	$$(call Image/BuildKernel/Profile,$(1))
 	$(foreach fs,$(TARGET_FILESYSTEMS),
-		$$(call Image/Build/Profile,$(1),$(fs))
+		$$(call Image/Build/Profile/Filesystem,$(1),$(fs),$$(ROOTFS_ID/$(1)))
 	)
 
 endef

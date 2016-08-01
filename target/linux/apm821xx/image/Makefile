@@ -76,7 +76,7 @@ define Device/mr24
   IMAGE_SIZE := 8191k
   KERNEL := kernel-bin | lzma | uImage lzma | MerakiAdd-dtb | MerakiNAND
   KERNEL_INITRAMFS := copy-file $(KDIR)/vmlinux | gzip | uImage gzip | MerakiAdd-dtb | pad-to 2047k | MerakiAdd-initramfs | MerakiNAND
-  IMAGE/sysupgrade.tar := sysupgrade-nand
+  IMAGE/sysupgrade.tar := sysupgrade-tar
 endef
 TARGET_DEVICES += mr24
 
@@ -156,7 +156,7 @@ define Device/WNDR4700
   KERNEL_INITRAMFS := kernel-bin | gzip | dtb | wndr4700-specialImage gzip
   IMAGE/factory.img := dtb | create-uImage-dtb | append-kernel | pad-to 2M | append-ubi | \
 		       netgear-dni | check-size $$$$(IMAGE_SIZE)
-  IMAGE/sysupgrade.tar := sysupgrade-nand
+  IMAGE/sysupgrade.tar := sysupgrade-tar
   NETGEAR_BOARD_ID := WNDR4700
   NETGEAR_HW_ID := 29763875+128+256
 endef
@@ -179,7 +179,7 @@ define Build/boot-img
 
 	$(CP) $@.scr $@.bootdir/boot/boot.scr
 	$(CP) $@.dtb $@.bootdir/boot/$(DEVICE_DTB)
-	$(CP) $(word 1,$^) $@.bootdir/boot/uImage
+	$(CP) $(IMAGE_KERNEL) $@.bootdir/boot/uImage
 
 	genext2fs --block-size $(BLOCKSIZE) --size-in-blocks $$((1024 * $(BOOT_SIZE))) --root $@.bootdir $@.boot
 
@@ -189,7 +189,7 @@ define Build/boot-img
 endef
 
 define Build/hdd-img
-	./mbl_gen_hdd_img.sh $@ $@.boot $(word 2,$^)
+	./mbl_gen_hdd_img.sh $@ $@.boot $(IMAGE_ROOTFS)
 	$(if $(CONFIG_TARGET_IMAGES_GZIP),gzip -9n -c $@ > $(BIN_DIR)/$(notdir $@).gz)
 endef
 
@@ -204,9 +204,9 @@ endef
 define Build/recovery-tar
 	sh ./mbl_gen_recovery_tar.sh \
 		--profile $(DEVICE_PROFILE) \
-		--dtb $(word 1,$^).dtb \
+		--dtb $(IMAGE_KERNEL).dtb \
 		--dtbname $(DEVICE_DTB) \
-		--kernel $(word 1,$^) \
+		--kernel $(IMAGE_KERNEL) \
 		--rootfs $@ \
 		$@
 endef

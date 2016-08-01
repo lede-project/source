@@ -1,7 +1,7 @@
 #!/bin/sh /etc/rc.common
 # Copyright (C) 2007-2012 OpenWrt.org
 
-START=60
+START=19
 
 USE_PROCD=1
 PROG=/usr/sbin/dnsmasq
@@ -13,6 +13,7 @@ ADD_LOCAL_DOMAIN=1
 ADD_LOCAL_HOSTNAME=1
 
 CONFIGFILE="/var/etc/dnsmasq.conf"
+CONFIGFILE_TMP="/var/etc/dnsmasq.conf.$$"
 HOSTFILE="/tmp/hosts/dhcp"
 TRUSTANCHORSFILE="/usr/share/dnsmasq/trust-anchors.conf"
 TIMESTAMPFILE="/etc/dnsmasq.time"
@@ -21,7 +22,7 @@ TIMEVALIDFILE="/var/state/dnsmasqsec"
 xappend() {
 	local value="$1"
 
-	echo "${value#--}" >> $CONFIGFILE
+	echo "${value#--}" >> $CONFIGFILE_TMP
 }
 
 hex_to_hostid() {
@@ -62,6 +63,12 @@ dhcp_check() {
 	local rv=0
 
 	[ -s "$stamp" ] && return $(cat "$stamp")
+
+	# If there's no carrier yet, skip this interface.
+	# The init script will be called again once the link is up
+	case "$(devstatus "$ifname" | jsonfilter -e @.carrier)" in
+		false) return 1;;
+	esac
 
 	udhcpc -n -q -s /bin/true -t 1 -i "$ifname" >&- && rv=1 || rv=0
 
@@ -112,12 +119,12 @@ append_ipset() {
 }
 
 append_interface() {
-	local ifname=$(uci_get_state network "$1" ifname "$1")
+	network_get_device ifname "$1" || return
 	xappend "--interface=$ifname"
 }
 
 append_notinterface() {
-	local ifname=$(uci_get_state network "$1" ifname "$1")
+	network_get_device ifname "$1" || return
 	xappend "--except-interface=$ifname"
 }
 
@@ -256,7 +263,7 @@ dnsmasq() {
 	xappend "--user=dnsmasq"
 	xappend "--group=dnsmasq"
 
-	echo >> $CONFIGFILE
+	echo >> $CONFIGFILE_TMP
 
 	config_get_bool enable_tftp "$cfg" enable_tftp 0
 	[ "$enable_tftp" -gt 0 ] && {
@@ -616,14 +623,18 @@ dhcp_relay_add() {
 service_triggers()
 {
 	procd_add_reload_trigger "dhcp"
+	procd_add_raw_trigger "interface.*" 2000 /etc/init.d/dnsmasq reload
 }
 
-boot() {
-	# Will be launched through hotplug
-	return 0
+boot()
+{
+	BOOT=1
+	start "$@"
 }
 
 start_service() {
+	[ -n "$BOOT" ] && return
+
 	include /lib/functions
 
 	config_load dhcp
@@ -636,7 +647,7 @@ start_service() {
 
 	[ -f "$TIMESTAMPFILE" ] && rm -f "$TIMESTAMPFILE"
 
-	echo "# auto-generated config file from /etc/config/dhcp" > $CONFIGFILE
+	echo "# auto-generated config file from /etc/config/dhcp" > $CONFIGFILE_TMP
 	echo "# auto-generated config file from /etc/config/dhcp" > $HOSTFILE
 
 	# if we did this last, we could override auto-generated config
@@ -649,7 +660,7 @@ start_service() {
 	args=""
 	config_foreach dnsmasq dnsmasq
 	config_foreach dhcp_host_add host
-	echo >> $CONFIGFILE
+	echo >> $CONFIGFILE_TMP
 	config_foreach dhcp_boot_add boot
 	config_foreach dhcp_mac_add mac
 	config_foreach dhcp_tag_add tag
@@ -683,19 +694,20 @@ start_service() {
 		}
 	}
 
-	echo >> $CONFIGFILE
+	echo >> $CONFIGFILE_TMP
 	config_foreach dhcp_srv_add srvhost
 	config_foreach dhcp_mx_add mxhost
-	echo >> $CONFIGFILE
+	echo >> $CONFIGFILE_TMP
 
 	config_get odhcpd_is_active odhcpd maindhcp
 	if [ "$odhcpd_is_active" != "1" ]; then
 		config_foreach dhcp_add dhcp
 	fi
 
-	echo >> $CONFIGFILE
+	echo >> $CONFIGFILE_TMP
 	config_foreach dhcp_cname_add cname
-	echo >> $CONFIGFILE
+	echo >> $CONFIGFILE_TMP
+	mv -f $CONFIGFILE_TMP $CONFIGFILE
 
 	rm -f /tmp/resolv.conf
 	[ $ADD_LOCAL_DOMAIN -eq 1 ] && [ -n "$DOMAIN" ] && {
