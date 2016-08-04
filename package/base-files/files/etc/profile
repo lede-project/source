@@ -22,6 +22,7 @@ alias ll='ls -alF --color=auto'
 
 [ -x /usr/bin/arp ] || arp() { cat /proc/net/arp; }
 [ -x /usr/bin/ldd ] || ldd() { LD_TRACE_LOADED_OBJECTS=1 $*; }
+[ -x /usr/bin/pkill ] || pkill() { pid=$(pidof "$1") && kill $pid; }
 
 [ -n "$FAILSAFE" ] || {
 	for FILE in /etc/profile.d/*.sh; do
