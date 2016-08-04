@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cat $1 | sed 's/built=//g' | head -n 1
+

@@ -1,0 +1,94 @@
+From 2728f98fd971e8c7366856962b6a0bd58bff684f Mon Sep 17 00:00:00 2001
+From: Sudeep Biswas <sudeep.biswas@st.com>
+Date: Thu, 28 Apr 2016 15:07:05 +0530
+Subject: [PATCH (neard) 1/1] neard: Add support of Nordic Type2 tag
+
+workaround in nfctype2_check_presence to always return success without
+doing any actual read operation in case of Nordic Tye2 tag (MIFARE ULTRALIGHT)
+because nordic type2 tag get deactivated after few seconds after tag
+detection. As per the consequence, Once Nordic tag will get detected
+it will show its presence and dump the data which was read before even
+though tag will be removed.
+
+Signed-off-by: Shikha Singh <shikha.singh@st.com>
+Signed-off-by: Sudeep Biswas <sudeep.biswas@st.com>
+---
+ plugins/nfctype2.c |    7 +++++++
+ src/main.c         |   10 ++++++++++
+ src/main.conf      |    4 ++++
+ 3 files changed, 21 insertions(+), 0 deletions(-)
+
+diff --git a/plugins/nfctype2.c b/plugins/nfctype2.c
+index 65595d6..74d64cb 100644
+--- a/plugins/nfctype2.c
++++ b/plugins/nfctype2.c
+@@ -521,6 +521,13 @@ static int nfctype2_check_presence(uint32_t adapter_idx, uint32_t target_idx,
+ 		cookie->target_idx = target_idx;
+ 		cookie->cb = cb;
+ 
++		/* workaround: checkpresence will always return success without
++		   doing any action in case of Nordic Tye2 tag (MIFARE ULTRALIGHT)
++		   because nordic type2 tag get deactivated after few seconds
++		   after tag detection */
++		if(near_setting_get_bool("NORDICTYPE2"))
++			return t2_cookie_release(0, cookie);
++
+ 		return near_adapter_send(adapter_idx, (uint8_t *) &cmd,
+ 					CMD_READ_SIZE, check_presence, cookie,
+ 					t2_cookie_release);
+diff --git a/src/main.c b/src/main.c
+index 0c17420..8976738 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -40,12 +40,14 @@ static struct {
+ 	bool reset_on_error;
+ 	bool st_type4a_tag;
+ 	bool st_cr95hf;
++	bool nordic_type2;
+ } near_settings  = {
+ 	.constant_poll = FALSE,
+ 	.default_powered = FALSE,
+ 	.reset_on_error = TRUE,
+ 	.st_type4a_tag	= TRUE,
+ 	.st_cr95hf	= TRUE,
++	.nordic_type2	= TRUE,
+ };
+ 
+ static GKeyFile *load_config(const char *file)
+@@ -105,6 +107,11 @@ static void parse_config(GKeyFile *config)
+ 	if (!error)
+ 		near_settings.st_cr95hf = boolean;
+ 
++	boolean = g_key_file_get_boolean(config, "General",
++						"NORDICTYPE2", &error);
++	if (!error)
++		near_settings.nordic_type2 = boolean;
++
+ 	g_clear_error(&error);
+ }
+ 
+@@ -237,6 +244,9 @@ bool near_setting_get_bool(const char *key)
+ 	if (g_str_equal(key, "STCR95HF"))
+ 		return near_settings.st_cr95hf;
+ 
++	if (g_str_equal(key, "NORDICTYPE2"))
++		return near_settings.nordic_type2;
++
+ 	return false;
+ }
+ 
+diff --git a/src/main.conf b/src/main.conf
+index 27e6358..da94076 100644
+--- a/src/main.conf
++++ b/src/main.conf
+@@ -24,3 +24,7 @@ STType4ATagM24SR = true
+ # CR95HF does not have long frame support so it can not handle
+ # the total frame length graeater than 255.
+ STCR95HF = true
++
++# Workaround for Nordic Type2 Tags (MIFARE ULTRALIGHT) as
++# it gets deactivated after few seconds after tag detection.
++NORDICTYPE2 = true
+-- 
+1.7.5.4
+

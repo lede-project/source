@@ -1,0 +1,102 @@
+<script type="text/javascript" src="<%=resource%>/cbi.js"></script>
+
+<%+header%>
+<div class="cbi-map">
+<h2><a id="content" name="content">Daemon Status</a></h2>
+	<fieldset class="cbi-section">
+	<legend><%:State%></legend>
+
+<% if daemon_running then %>
+		<table class="cbi-section-table" style="empty-cells:hide">
+			<tr class="cbi-section-table-row cbi-rowstyle-0">
+				<td class="cbi-value-field" style="vertical-align:middle; text-align:left; padding:3px">
+					Running
+				</td>
+				<td class="cbi-value-field" style="width:40px">
+					<input type="button" class="cbi-button cbi-button-reset" style="width:100px" onclick="location.href='<%=luci.dispatcher.build_url("admin/bluetooth_le/ble_daemon_stop")%>'" title="<%:Stop Daemon%>" value="<%:Stop%>" />
+				</td>
+			</tr>
+		</table>
+	
+<% else %>
+		<table class="cbi-section-table" style="empty-cells:hide">
+			<tr class="cbi-section-table-row cbi-rowstyle-1">
+		        <td class="cbi-value-field" style="vertical-align:middle; text-align:left; padding:3px">
+				Not running
+			</td>
+			<td class="cbi-value-field" style="width:40px">
+				<input type="button" class="cbi-button cbi-button-reload" style="width:100px" onclick="location.href='<%=luci.dispatcher.build_url("admin/bluetooth_le/ble_daemon_start")%>'" title="<%:Start Daemon%>" value="<%:Start%>" />
+			</td>
+			</tr>
+		</table>
+<% end %>
+	</fieldset>
+
+	<fieldset class="cbi-section">
+	<legend><%:Whitelist%></legend>
+        <table class="cbi-section-table" style="empty-cells:hide">
+           <!-- Whitelist list -->
+            <% for i, dev in ipairs(dvs) do %>
+		    <tr class="cbi-section-table-row cbi-rowstyle-<%=1 + ((i-1) % 2)%>">
+		        <td class="cbi-value-field" style="vertical-align:middle; text-align:left; padding:3px">
+		            <strong>MAC:</strong> <%=dev.mac%> 
+		        </td>
+			<td class="cbi-value-field" style="width:40px">
+				<input type="button" class="cbi-button cbi-button-remove" style="width:100px" onclick="location.href='<%=luci.dispatcher.build_url("admin/bluetooth_le/ble_daemon_mac_delete")%>/<%=dev.mac%>'" title="<%:Remove this mac%>" value="<%:Remove%>" />
+			</td>
+		    </tr>
+            <% end %>
+	</table>
+    </fieldset>
+   
+
+    <fieldset class="cbi-section">
+        <legend><%:Connected Devices%></legend>
+        <table class="cbi-section-table" style="empty-cells:hide">
+           <!-- Whitelist list -->
+		    <tr class="cbi-section-table-titles">
+		        <th class="cbi-section-table-cell">Name</th>
+		        <th class="cbi-section-table-cell">MAC-address</th>
+		        <th class="cbi-section-table-cell">IPv6-address (link-local)</th>
+		        <th class="cbi-section-table-cell">IPv6-address (global)</th>
+		    </tr>
+
+            <% for i, dev in ipairs(con) do %>
+		    <tr class="cbi-section-table-row cbi-rowstyle-<%=1 + ((i-1) % 2)%>">
+		        <td class="cbi-value-field" style="vertical-align:middle; text-align:left; padding:3px">
+				<%=dev.name%> 
+			</td>
+			<td class="cbi-value-field" style="vertical-align:middle; text-align:left; padding:3px">
+				<%=dev.mac%>
+		        </td>
+			<td class="cbi-value-field" style="vertical-align:middle; text-align:left; padding:3px">
+				<%=dev.address.link%>
+		        </td>
+			<td class="cbi-value-field" style="vertical-align:middle; text-align:left; padding:3px">
+				<%=dev.address.global%>
+		        </td>
+		    </tr>
+            <% end %>
+	</table>
+    </fieldset>
+
+    <fieldset class="cbi-section">
+        <legend><%:HCI Devices%></legend>
+        <table class="cbi-section-table" style="empty-cells:hide">
+            <% for i, hci_dev in ipairs(hci_devices) do %>
+		    <tr class="cbi-section-table-row cbi-rowstyle-<%=1 + ((i-1) % 2)%>">
+		        <td class="cbi-value-field" style="vertical-align:middle; text-align:left; padding:3px">
+				<strong><%=hci_dev.name%></strong>
+			</td>
+			<td class="cbi-value-field" style="width:40px">
+				<input type="button" class="cbi-button cbi-button-reload" style="width:100px" onclick="location.href='<%=luci.dispatcher.build_url("admin/bluetooth_le/ble_daemon_hci_reset")%>/<%=hci_dev.name%>'" title="<%:Restart hci_dev.name%>" value="<%:Restart%>" />
+			</td>
+
+		    </tr>
+            <% end %>
+	</table>
+    </fieldset>
+
+</div>
+
+<%+footer%>

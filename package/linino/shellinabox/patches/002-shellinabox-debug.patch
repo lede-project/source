@@ -1,0 +1,28 @@
+diff --git a/shellinabox/launcher.c b/shellinabox/launcher.c
+index 2bac171..7a7f5b0 100644
+--- a/shellinabox/launcher.c
++++ b/shellinabox/launcher.c
+@@ -564,6 +564,7 @@ int launchChild(int service, struct Session *session, const char *url) {
+     return -1;
+   }
+   check(bytes == sizeof(pid));
++  debug("line: %04d, pid: %d ", __LINE__, pid);
+   check(session->pid = pid);
+   struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
+   check(cmsg);
+@@ -1830,6 +1831,7 @@ static void launcherDaemon(int fd) {
+         addToHashMap(childProcesses, utmp->pid, (char *)utmp);
+         debug("[server] Child %d launched", pid);
+       } else {
++        error("[server] Call to forkPty() failed! | pid: %d", pid);
+         int fds[2];
+         if (!pipe(fds)) {
+           NOINTR(write(fds[1], "forkpty() failed\r\n", 18));
+@@ -1839,6 +1841,7 @@ static void launcherDaemon(int fd) {
+         }
+       }
+
++      debug("line: %04d, pid: %d", __LINE__, pid);
+       // Send file handle and process id back to parent
+       char cmsg_buf[CMSG_SPACE(sizeof(int))]; // = { 0 }; // Valid initializer makes OSX mad.
+       memset (cmsg_buf, 0, sizeof (cmsg_buf)); // Quiet complaint from valgrind

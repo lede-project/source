@@ -1,0 +1,29 @@
+<%- 
+
+-%>
+
+<%+header%>
+<div class="cbi-map">
+<h2><a id="content" name="content">Bluetooth LE scan</a></h2>
+    <fieldset class="cbi-section">
+        <table class="cbi-section-table" style="empty-cells:hide">
+            <!-- scan list -->
+            <% for i, dev in ipairs(found_devices) do %>
+            <tr class="cbi-section-table-row cbi-rowstyle-<%=1 + ((i-1) % 2)%>">
+                <td class="cbi-value-field" style="vertical-align:middle; text-align:left; padding:3px">
+                    <big><strong><%=dev.name%></strong></big><br />
+                    <strong>MAC:</strong> <%=dev.mac%> |
+                </td>
+                <td class="cbi-value-field" style="width:40px">
+                    <form action="<%=luci.dispatcher.build_url("admin/bluetooth_le/ble_daemon_mac_add")%>" method="post">
+                        <input type="hidden" name="mac" value="<%=dev.mac%>" />
+			<input class="cbi-button cbi-button-add" type="submit" title="<%:Add to Whitelist%>" value="Add to whitelist" />
+                    </form>
+                </td>
+            </tr>
+            <% end %>
+        </table>
+    </fieldset>
+</div>
+
+<%+footer%>

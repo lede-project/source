@@ -1,0 +1,35 @@
+--- a/configure.ac	2016-05-04 12:15:34.000000000 +0200
++++ b/configure.ac	2016-05-05 13:42:46.000000000 +0200
+@@ -285,19 +285,9 @@
+ AC_CONFIG_FILES([
+ Makefile
+ m4/Makefile
+-doc/Makefile
+-doc/reference/Makefile
+-doc/reference/version.xml
+ dbus/Makefile
+ dbus/examples/Makefile
+ dbus/examples/statemachine/Makefile
+-test/Makefile
+-test/core/Makefile
+-test/interfaces/Makefile
+-test/data/valid-service-files/debug-glib.service
+-test/data/valid-service-files/debug-echo.service
+-test/data/valid-service-files/interfaces-test.service
+-test/lib/Makefile
+ tools/Makefile
+ dbus-glib-1.pc
+ dbus-glib-1-uninstalled.pc
+--- a/dbus/Makefile.am	2016-01-14 07:51:27.000000000 +0100
++++ b/dbus/Makefile.am	2016-05-05 13:41:27.000000000 +0200
+@@ -1,4 +1,4 @@
+-SUBDIRS = . examples
++SUBDIRS = .
+ 
+ AM_CPPFLAGS = \
+ 	-I$(top_srcdir)						\
+@@ -139,4 +139,3 @@
+ TESTS=
+ 
+ endif
+-

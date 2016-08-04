@@ -1,0 +1,35 @@
+From 7751b7cffb822879b34c55f89f05eaf91cbc1f2c Mon Sep 17 00:00:00 2001
+From: Sudeep Biswas <sudeep.biswas@st.com>
+Date: Fri, 1 Apr 2016 11:34:43 +0530
+Subject: [PATCH (linux-nfc) 1/1] neard: plugins: Add support of ST NFCType5
+ tags
+
+Modification in nfctype5.c to ignore multi block read for ST Type5
+tags ex. M24LR04E, even if it is set in tag.
+
+Signed-off-by: Sudeep Biswas <sudeep.biswas@st.com>
+Signed-off-by: Shikha Singh <shikha.singh@st.com>
+---
+ plugins/nfctype5.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
+
+diff --git a/plugins/nfctype5.c b/plugins/nfctype5.c
+index 1beb3a8..33345cc 100644
+--- a/plugins/nfctype5.c
++++ b/plugins/nfctype5.c
+@@ -697,7 +697,11 @@ static int t5_read_meta_resp(struct near_tag *tag, int err, void *data)
+ 		else
+ 			near_tag_set_ro(tag, FALSE);
+ 
+-		rmb_supported = t5_cc->cc3 & TYPE5_CC3_MBREAD_FLAG;
++		/* Ignore multi block read for ST tags even if set */
++		if(!(t5_manufacturer_stmicro(tag)))
++			rmb_supported = t5_cc->cc3 & TYPE5_CC3_MBREAD_FLAG;
++		else
++			rmb_supported = 0;
+ 
+ 		g_free(cookie->buf);
+ 
+-- 
+1.7.5.4
+

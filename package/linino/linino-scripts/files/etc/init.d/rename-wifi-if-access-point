@@ -1,0 +1,34 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2008 OpenWrt.org
+
+START=18
+
+start() {
+
+	boardname=$(awk '/machine/ {print $4}' /proc/cpuinfo)
+	machine=$(awk '/machine/ {print $3}' /proc/cpuinfo)
+
+	case $boardname in
+		'Chiwawa')
+			boardname="Ind-101"
+			;;
+	esac
+
+	MODE=`/sbin/uci get wireless.@wifi-iface[0].mode`
+	SSID=`/sbin/uci get wireless.@wifi-iface[0].ssid`
+
+	if [ "$MODE" == "ap" -a "$SSID" == "$machine" ]
+	then
+		SSID_SUFFIX=`/sbin/ifconfig wlan0 | /usr/bin/head -n 1 | /bin/grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}' | /bin/sed 's/://g'`
+		SSID=$machine-$boardname-$SSID_SUFFIX
+		/sbin/uci "set" "wireless.@wifi-iface[0].ssid=$SSID"
+		/sbin/uci commit wireless
+		logger -t rename "WiFi renamed $SSID"
+	fi
+}
+
+reload() {
+
+	/usr/bin/wifi-reload
+
+}

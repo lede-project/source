@@ -1,0 +1,10 @@
+--- a/package.json	2016-07-08 15:05:34.778587656 +0200
++++ b/package.json	2016-07-08 15:05:46.934799143 +0200
+@@ -31,7 +31,6 @@
+     "debug": "~2.2.0"
+   },
+   "optionalDependencies": {
+-    "bluetooth-hci-socket": "~0.4.4",
+     "bplist-parser": "0.0.6",
+     "xpc-connection": "~0.1.4"
+   },

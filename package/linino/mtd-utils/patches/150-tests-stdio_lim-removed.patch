@@ -1,0 +1,21 @@
+--- a/tests/fs-tests/integrity/integck.c
++++ b/tests/fs-tests/integrity/integck.c
+@@ -31,7 +31,6 @@
+ #include <getopt.h>
+ #include <assert.h>
+ #include <mntent.h>
+-#include <bits/stdio_lim.h>
+ #include <sys/mman.h>
+ #include <sys/vfs.h>
+ #include <sys/mount.h>
+--- a/tests/jittertest/Makefile
++++ b/tests/jittertest/Makefile
+@@ -30,7 +30,7 @@ JitterTest.o: /usr/include/sys/cdefs.h /
+ JitterTest.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stddef.h
+ JitterTest.o: /usr/lib/gcc-lib/i386-redhat-linux/egcs-2.91.66/include/stdarg.h
+ JitterTest.o: /usr/include/bits/types.h /usr/include/libio.h
+-JitterTest.o: /usr/include/_G_config.h /usr/include/bits/stdio_lim.h
++JitterTest.o: /usr/include/_G_config.h
+ JitterTest.o: /usr/include/string.h /usr/include/stdlib.h
+ JitterTest.o: /usr/include/sys/types.h /usr/include/time.h
+ JitterTest.o: /usr/include/endian.h /usr/include/bits/endian.h

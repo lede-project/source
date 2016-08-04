@@ -1,0 +1,31 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2013 DogHunter
+
+START=40
+STOP=40
+
+status() {
+	oi=$(pidof uSDaemon)
+	if [ "x$oi" == "x" ]; then
+		echo "uSDaemon is not running"
+	else
+		echo "uSDaemon is running ($oi)"
+	fi
+}
+
+start() {
+	oi=$(pidof uSDaemon)
+	if [ "x$oi" == "x" ]; then
+		echo "Start uSDaemon" > /dev/kmsg
+		nice -n 10 /sbin/uSDaemon &
+	else
+		echo "uSDaemon is already running ($oi)"
+	fi
+}
+
+stop() {
+	kill $(pidof uSDaemon)
+}
+
+EXTRA_COMMANDS="status"
+EXTRA_HELP="		status  Print the status of the service"

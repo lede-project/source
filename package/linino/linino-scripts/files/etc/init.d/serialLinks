@@ -1,0 +1,15 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+STOP=99
+
+start() {
+	mkdir -p /dev/serial/by-id
+	ln -s /dev/ttyATH0 /dev/ttyACM0
+	ln -s /dev/ttyACM0 /dev/serial/by-id/serial-arduino 
+}
+
+stop() {
+	rm -rf /dev/serial/by-id
+	rm /dev/ttyACM0
+}

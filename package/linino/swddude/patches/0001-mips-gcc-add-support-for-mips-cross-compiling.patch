@@ -1,0 +1,185 @@
+Index: swddude-1.0/swddude-src/build/Makefile.arch
+===================================================================
+--- swddude-1.0.orig/swddude-src/build/Makefile.arch	2014-06-04 15:21:59.000000000 +0200
++++ swddude-1.0/swddude-src/build/Makefile.arch	2014-06-04 15:26:39.000000000 +0200
+@@ -26,6 +26,7 @@
+ # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #
+ __arch[native][toolchain]		:= gcc nasm
++__arch[mips][toolchain]			:= mips-gcc
+ 
+ __arch[attiny2313][programmer]		:= t2313
+ __arch[attiny2313][toolchain]		:= avr-gcc avrdude
+Index: swddude-1.0/swddude-src/build/Makefile.mips
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ swddude-1.0/swddude-src/build/Makefile.mips	2014-06-04 15:27:48.000000000 +0200
+@@ -0,0 +1,42 @@
++# -*- mode: makefile; -*-
++#
++# Copyright (c) 2011, Anton Staaf
++# All rights reserved.
++#
++# Redistribution and use in source and binary forms, with or without
++# modification, are permitted provided that the following conditions are met:
++#     * Redistributions of source code must retain the above copyright
++#       notice, this list of conditions and the following disclaimer.
++#     * Redistributions in binary form must reproduce the above copyright
++#       notice, this list of conditions and the following disclaimer in the
++#       documentation and/or other materials provided with the distribution.
++#     * Neither the name of the project nor the names of its contributors
++#       may be used to endorse or promote products derived from this software
++#       without specific prior written permission.
++#
++# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY
++# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
++# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
++# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++#
++CROSS_COMPILE ?= mips-
++
++__tool_prefix		:= $(CROSS_COMPILE)
++__tool_gcc_hack		:= gcc
++
++__tool_lflags		:= -Wl,--gc-sections,--relax
++ifdef STAGING_DIR
++__tool_lflags		+= -L $(STAGING_DIR)/target-mips_r2_uClibc-0.9.33.2/usr/lib/
++endif
++__tool_lflags		+= -lstdc++
++
++#__tool_lflags[profile]	:= -pg
++#__tool_lflags[coverage]	:= -fprofile-arcs -ftest-coverage
++
++#__root_directory	:= mips
+Index: swddude-1.0/swddude-src/build/Makefile.products
+===================================================================
+--- swddude-1.0.orig/swddude-src/build/Makefile.products	2014-06-04 15:22:22.000000000 +0200
++++ swddude-1.0/swddude-src/build/Makefile.products	2014-06-04 15:26:39.000000000 +0200
+@@ -299,9 +299,9 @@
+ 	$(call append,__product[$1][cpp_flags],$3)
+ 
+ 	$(if $(filter native,$4),,\
+-		$(call append,__product[$1][c_flags],-mmcu=$4)\
+-		$(call append,__product[$1][cpp_flags],-mmcu=$4)\
+-		$(call append,__product[$1][l_flags],-mmcu=$4))
++		$(call append,__product[$1][c_flags],)\
++		$(call append,__product[$1][cpp_flags],)\
++		$(call append,__product[$1][l_flags],))
+ 
+ 	$(call append,__product[$1][c_flags],-DARCHITECTURE=$4)
+ 	$(call append,__product[$1][cpp_flags],-DARCHITECTURE=$4)
+Index: swddude-1.0/swddude-src/build/Makefile.rules
+===================================================================
+--- swddude-1.0.orig/swddude-src/build/Makefile.rules	2014-06-04 15:22:28.000000000 +0200
++++ swddude-1.0/swddude-src/build/Makefile.rules	2014-06-04 15:27:48.000000000 +0200
+@@ -26,6 +26,12 @@
+ # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #
+ 
++ARCH ?= native
++
++ifneq ($(ARCH), native)
++	include $(depth)/build/Makefile.$(ARCH)
++endif
++
+ $(if $(filter undefined,$(origin depth)),\
+      $(error You must set 'depth' in your makefile.  It must be a relative\
+ 	path to the root of the source tree.))
+@@ -50,7 +56,7 @@
+ #
+ # The default build architecture, unless specified, is native.
+ #
+-ARCHITECTURE ?= native
++ARCHITECTURE ?= $(ARCH)
+ 
+ include $(depth)/build/Makefile.constants
+ include $(depth)/build/Makefile.debugging
+Index: swddude-1.0/swddude-src/build/tool/mips-gcc
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ swddude-1.0/swddude-src/build/tool/mips-gcc	2014-06-04 15:26:39.000000000 +0200
+@@ -0,0 +1,78 @@
++# -*- mode: makefile; -*-
++#
++# Copyright (c) 2011, Anton Staaf
++# All rights reserved.
++#
++# Redistribution and use in source and binary forms, with or without
++# modification, are permitted provided that the following conditions are met:
++#     * Redistributions of source code must retain the above copyright
++#       notice, this list of conditions and the following disclaimer.
++#     * Redistributions in binary form must reproduce the above copyright
++#       notice, this list of conditions and the following disclaimer in the
++#       documentation and/or other materials provided with the distribution.
++#     * Neither the name of the project nor the names of its contributors
++#       may be used to endorse or promote products derived from this software
++#       without specific prior written permission.
++#
++# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY
++# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
++# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
++# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++#
++
++CROSS_COMPILE ?= mips-
++
++__tool[mips-gcc][types]			:= c cpp
++
++__tool[mips-gcc][flags][c]		:= -Wall
++__tool[mips-gcc][flags][c]		+= -Wpointer-arith
++__tool[mips-gcc][flags][c]		+= -Wcast-qual
++__tool[mips-gcc][flags][c]		+= -Wcast-align
++__tool[mips-gcc][flags][c]		+= -Wundef
++__tool[mips-gcc][flags][c]		+= -Wsign-compare
++__tool[mips-gcc][flags][c]		+= -Wredundant-decls
++__tool[mips-gcc][flags][c]		+= -fmessage-length=0
++__tool[mips-gcc][flags][c][debug]	:= -ggdb
++__tool[mips-gcc][flags][c][profile]	:= -pg
++__tool[mips-gcc][flags][c][coverage]	:= -fprofile-arcs -ftest-coverage
++
++#
++# C++ flags are the same as C flags.
++#
++__tool[mips-gcc][flags][cpp]		:= $(__tool[gcc][flags][c])
++__tool[mips-gcc][flags][cpp][release]	:= $(__tool[gcc][flags][c][release])
++__tool[mips-gcc][flags][cpp][debug]	:= $(__tool[gcc][flags][c][debug])
++__tool[mips-gcc][flags][cpp][profile]	:= $(__tool[gcc][flags][c][profile])
++__tool[mips-gcc][flags][cpp][coverage]	:= $(__tool[gcc][flags][c][coverage])
++
++define __tool[mips-gcc][rules][c] #(objects_dir, depends_dir, c_flags)
++$(1)/%.o : %.c | generated_header
++	@echo "$$(INDENT)CC    $$(<)"
++	$$(echo)mkdir -p $$(dir $$(@))
++	$$(echo)$(CC) -c $(3) $$(<) -o $$(@)
++
++$(2)/%.dep: %.c | generated_header
++	@echo "$$(INDENT)DEPS  $$<"
++	$$(echo)mkdir -p $$(dir $$@)
++	$$(echo)$(CC) -MM $(3) $$< -o $$@_pre
++	$$(echo)sed 's|[^:]*:| $$(@:$(2)%.dep=$(1)%.o) $$(@) : |' $$@_pre > $$@
++endef
++
++define __tool[mips-gcc][rules][cpp] #(objects_dir, depends_dir, c_flags)
++$(1)/%.o : %.cpp | generated_header
++	@echo "$$(INDENT)CPLUS $$(<)"
++	$$(echo)mkdir -p $$(dir $$(@))
++	$$(echo)$(CPLUS) -c $(3) $$(<) -o $$(@)
++
++$(2)/%.dep: %.cpp | generated_header
++	@echo "$$(INDENT)DEPS  $$<"
++	$$(echo)mkdir -p $$(dir $$@)
++	$$(echo)$(CPLUS) -MM $(3) $$< -o $$@_pre
++	$$(echo)sed 's|[^:]*:| $$(@:$(2)%.dep=$(1)%.o) $$(@) : |' $$@_pre > $$@
++endef

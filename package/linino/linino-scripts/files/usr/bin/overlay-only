@@ -1,0 +1,792 @@
+# overlay-only.sh : A simple node.js installation script
+# Copyright (C) 2015 Dog Hunter AG
+#
+# Author : Arturo Rinaldi
+# E-mail : arturo@doghunter.org
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Release v2 changelog :
+#
+#	+Fixing logo
+#
+# Release v1 changelog :
+#
+#	+First Release : new logo, only pivot overlay functionalities
+#
+
+#!/bin/sh
+
+# has_sd=`mount | grep ^/dev/sda | grep 'on /overlay'`
+
+disclaimer () {
+
+echo ""
+
+echo -e "DISCLAIMER :\n"
+
+echo -e "This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details."
+
+}
+
+returngigs () {
+
+	size=`fdisk -l | grep "Disk /dev/sda" | awk {'print $5'}`
+
+	if [ $size -lt 64500000000 -a $size -gt 63000000000 ]
+
+	  then
+
+	    sizetoformat=+'62500MB'
+	    return 0
+
+	elif [ $size -lt 32500000000 -a $size -gt 31000000000 ]
+
+	  then
+
+	    sizetoformat=+'30500MB'
+	    return 0
+
+
+	elif [ $size -lt 16500000000 -a $size -gt 15000000000 ]
+
+	  then
+
+	    sizetoformat=+'14500MB'
+	    return 0
+
+	elif [ $size -lt 8500000000 -a $size -gt 7000000000 ]
+
+	  then
+
+	    sizetoformat=+'7000MB'
+	    return 0
+
+	elif [ $size -lt 4500000000 -a $size -gt 3000000000 ]
+
+	  then
+
+	    sizetoformat=+'3000MB'
+	    return 0
+
+	elif [ $size -lt 2500000000 -a $size -gt 1000000000 ]
+
+	  then
+
+	    sizetoformat=+'1000MB'
+	    return 0
+
+	elif [ $size -lt 1500000000 -a $size -gt 900000000 ]
+
+	  then
+
+	    sizetoformat=+'512M'
+	    return 0
+
+	else
+
+	    echo "SDCard size mismatch ! ! ! Terminating the program..."
+	    return 1
+
+	fi
+
+}
+
+umountsda1 () {
+
+	if `grep -qs '/dev/sda1' /proc/mounts`
+	then
+
+	    umount /dev/sda1
+
+	fi
+}
+
+
+umountallsda () {
+
+	if `df | grep -qs sda`
+	then
+
+	    df | grep sda | awk {'print $1'} | xargs umount
+
+	fi
+
+}
+
+swapoffallsda () {
+
+	if `cat /proc/swaps | grep -qs sda`
+	then
+
+	    #cat /proc/swaps | grep sda | awk {'print $1'} | xargs swapoff
+		swapoff -a
+
+	fi
+
+}
+
+formatsdcard () {
+
+  	sleep 5
+
+	#Killing all existing blocks on the device
+	lsof | grep /dev/sda1 | grep -v sh | awk {'print $2'} | xargs kill -9 > /dev/null 2>&1
+
+	#Umounts all the sda partitions
+	umountallsda
+
+	#Swaps-off any activated swap partition in sda device
+	swapoffallsda
+
+	echo ""
+	echo "Low level formatting the SDCard..."
+	echo ""
+
+	#Low level formatting
+	dd if=/dev/zero of=/dev/sda bs=512 count=1
+
+	# Creation of the primary and swap partitions
+	# Feeding inputs to fdisk in non-interactive mode
+
+	echo ""
+	echo "Partitioning SDCard..."
+	echo ""
+
+	(echo n; echo p; echo 1; echo ;echo $1; echo w) | fdisk /dev/sda
+    (echo n; echo p; echo 2; echo ;echo ; echo t; echo 2; echo 82; echo w) | fdisk /dev/sda
+
+	sleep 20
+
+	umountallsda
+
+	sleep 10
+
+	mkfs.ext3 -L driveSD -F /dev/sda1
+
+	sleep 10
+
+	mkswap -L swapSD /dev/sda2
+
+}
+
+
+formatvfatoverlay () {
+
+ 	if `grep -qs '/dev/sda1 /mnt/sda1' /proc/mounts`
+	then
+
+		sleep 5
+
+		lsof | grep sda1 | grep -v sh | awk {'print $2'} | xargs kill -9 > /dev/null 2>&1
+
+		lsof | grep sda2 | grep -v sh | awk {'print $2'} | xargs kill -9 > /dev/null 2>&1
+
+		# Unmounting all /dev/sdX partitions
+		# umount /overlay
+		# umount /overlay-boot
+		umountallsda
+
+		sleep 5
+
+		#Disable all swap partitions
+		swapoff -a
+
+		sleep 5
+
+		echo ""
+		echo "Low level formatting the SDCard..."
+		echo ""
+
+		#Low level formatting
+		dd if=/dev/zero of=/dev/sda bs=512 count=1
+
+		#Creation of the primary partition
+		# Feeding inputs to fdisk in non-interactive mode
+
+		sleep 5
+
+		# Unmounting all /dev/sdX partitions
+		umountallsda
+
+		lsof | grep sda1 | grep -v sh | awk {'print $2'} | xargs kill -9 > /dev/null 2>&1
+
+		sleep 10
+
+		echo ""
+		echo "Partitioning SDCard..."
+		echo ""
+
+		(echo n; echo p; echo 1; echo ; echo ; echo t; echo c; echo w) | fdisk /dev/sda
+
+		sleep 7
+
+		umountallsda
+
+		echo ""
+		echo "Formatting disk to FAT32..."
+		echo ""
+
+		sleep 10
+
+		mkfs.msdos -F 32 /dev/sda1
+
+		sleep 10
+
+		mount /dev/sda1 /mnt/sda1
+
+	elif `grep -qs '/dev/sda1 /overlay' /proc/mounts` && `grep -qs '/dev/sda2' /proc/swaps`
+	then
+
+		echo ""
+		echo "Pivot Overlay is still enabled, please first disable it with choice number 2 !"
+		echo ""
+
+	else
+
+		echo ""
+		echo "ERROR ! System not reverted !"
+		echo ""
+
+	fi
+
+
+}
+
+logo () {
+cat <<"EOT"
+ _     _       _                ___                 _
+| |   (_)_ __ (_)_ __   ___    / _ \__   _____ _ __| | __ _ _   _
+| |   | | '_ \| | '_ \ / _ \  | | | \ \ / / _ \ '__| |/ _` | | | |
+| |___| | | | | | | | | (_) | | |_| |\ V /  __/ |  | | (_| | |_| |
+|_____|_|_| |_|_|_| |_|\___/   \___/  \_/ \___|_|  |_|\__,_|\__, |
+                                                            |___/
+EOT
+}
+
+fstabclean () {
+
+	#Delete tab spaces and trailing blank lines in /etc/config/fstab
+	mv /etc/config/fstab /etc/config/fstab_node
+	sed -i -e "s/[[:space:]]$//" /etc/config/fstab_node
+	sed -e :a -e '/^\n*$/{$d;N;};/\n$/ba' /etc/config/fstab_node > /etc/config/fstab
+	rm /etc/config/fstab_node
+
+}
+
+fstaboverlay () {
+
+uuid1=`blkid | grep "driveSD" | awk {'print $3'} | sed 's/UUID=//g' | sed -e 's/'\"'/'\''/g'`
+uuid2=`blkid | grep "swapSD" | awk {'print $3'} | sed 's/UUID=//g' | sed -e 's/'\"'/'\''/g'`
+#Inserts the mount points in /etc/config/fstab
+cat <<EOF
+
+#startoverlayconfig
+
+config mount
+	option target 			/overlay
+	option uuid 			$uuid1
+	option fstype 			ext3
+	option options 			rw,sync
+	option enabled			1
+	option enabled_fsck 	0
+
+config swap
+	option uuid		$uuid2
+	option enabled	1
+
+config mount
+	option target	/overlay-boot
+	option device	/dev/mtdblock3
+	option fstype	jffs2
+	option options	rw,sync
+	option enabled	1
+	option enabled_fsck 0
+
+#endoverlayconfig
+EOF
+}
+
+prereqs () {
+
+	opkg update
+	opkg install fdisk e2fsprogs swap-utils mkdosfs lsof openssh-sftp-server mtd-utils psmisc
+
+}
+
+removeprereqs () {
+
+	opkg update
+	opkg remove fdisk e2fsprogs swap-utils mkdosfs lsof mtd-utils psmisc
+	# openssh-sftp-server
+
+}
+
+
+revertoverlay (){
+
+	#Reverts fstab with overlay configuration
+	if [ -d /overlay-boot/upper ]
+	then
+		PREFIX="/overlay-boot/upper"
+	else
+		PREFIX="/overlay-boot"
+	fi
+
+	mv $PREFIX/etc/config/fstab $PREFIX/etc/config/fstab_overlay
+
+	#Delete the strings for the pivot overlay setup
+	sed -i '/#startoverlayconfig/,/#endovlerlayconfig/d' $PREFIX/etc/config/fstab_overlay
+
+	#Delete the trailing blank lines
+	sed -e :a -e '/^\n*$/{$d;N;};/\n$/ba' $PREFIX/etc/config/fstab_overlay > $PREFIX/etc/config/fstab
+	rm $PREFIX/etc/config/fstab_overlay
+
+	#Updates the new /etc/profile
+	source /etc/profile > /dev/null
+
+}
+
+countdown() {
+	IFS=:
+	set -- $*
+	secs=$(( ${1#0} * 3600 + ${2#0} * 60 + ${3#0} ))
+	while [ $secs -gt 0 ]
+	do
+		sleep 1 &
+		printf "\r%02d:%02d:%02d" $((secs/3600)) $(( (secs/60)%60)) $((secs%60))
+		secs=$(( $secs - 1 ))
+		wait
+	done
+	echo
+}
+
+systemoverlay () {
+
+	#Mounts the newly created partitions
+	mount -t ext3 -v /dev/sda1 /mnt/sda1
+	#swapon /dev/sda2
+	swapon -a
+
+	sleep 2
+
+	#Backups the /etc/fstab file
+	cp /etc/config/fstab /etc/config/fstab_bak
+
+	#Deleting tab and trailing spaces
+	fstabclean
+
+	sleep 2
+
+	#Adding the mount entries to /etc/config/fstab
+	fstaboverlay >> /etc/config/fstab
+
+	sleep 2
+
+	#Creates the overlay on the SDCard
+	tar -C /overlay -cvf - . | tar -C /mnt/sda1 -xf -
+
+	#Updates the /etc/profile file
+	source /etc/profile > /dev/null
+
+}
+
+
+#-------------------------------CHECK-FOR-FDISK------------------------------------
+
+if [ `which fdisk` ] || [ -x /sbin/fdisk ]
+then
+
+
+#--------------------------------MENU-START----------------------------------------
+
+if ( `grep -qs '/dev/sda1 overlay' /proc/mounts` && `grep -qs '/dev/sda2' /proc/swaps` ) || ( `grep -qs '/dev/sda1' /proc/mounts` && returngigs ) \
+	|| ( `grep -qs '/mnt/sda1' /proc/mounts` && returngigs ) && [ "$1" == "-i" ]
+then
+
+      clear
+
+      disclaimer
+
+      echo ""
+      read -p "Press [Enter] key to continue..."
+      echo ""
+
+      clear
+
+	while [ "$done" != "true" ]
+	do
+
+      logo
+
+      echo "Welcome to Linino Overlay installation"
+      echo ""
+
+      echo "Linino overlay installation menu"
+      echo ""
+	  echo "1. Pivot Overlay on SDCard (Experimental)"
+	  echo "2. Revert Pivot Overlay on SDCard (Experimental)"
+	  echo "3. Format SDCard"
+      echo "4. Exit and reboot"
+      echo "0. Exit"
+
+
+      echo " "
+      echo "Choose : "
+      echo " "
+
+      read scelta
+
+			case $scelta in
+
+
+
+				#------------------Choice-1----------------------
+				# Format SDCard and set pivot overlay
+				1)
+				echo " "
+				#-----------INNER-LOOP---------------------------------------------
+
+				p=1
+
+				while [ $p != 0 ]
+
+				do
+
+					if [ -d '/mnt/sda1' ] && `grep -qs '/mnt/sda1' /proc/mounts`
+					then
+
+						echo ""
+						echo "WARNING : All data on your SDCard Would will be erased, are you sure ? (y/n)"
+						echo ""
+
+						read YN
+
+						case $YN in
+						[yY]*)
+							  echo ""
+							  prereqs
+
+							  sleep 2
+
+							  echo ""
+							  echo "Erasing all data..."
+							  echo ""
+
+							  #Returns the size of the SDCard
+							  returngigs
+
+							  #Formats the SDcard according to its size
+							  formatsdcard $sizetoformat
+
+							  sleep 5
+
+							  #Updates the system settings
+							  systemoverlay
+
+							  sleep 2
+
+							  echo ""
+							  echo "Pivot Overlay accomplished ! Your system will be rebooted in 10 seconds !"
+							  echo ""
+
+							  p=0
+
+							  done="true"
+
+							  countdown "00:00:10"
+
+		  					  echo ""
+							  echo "Rebooting....."
+							  echo ""
+
+							  reboot && exit
+
+							  # p=0
+							;;
+						[nN]*)
+							  echo ""
+							  echo "Good Bye for now..."
+							  echo ""
+
+							  p=0
+						    ;;
+						    *)
+							  echo ""
+							  echo "You have to make a choice !"
+							  echo ""
+						    ;;
+						esac
+
+					elif `grep -qs '/dev/sda1 /overlay' /proc/mounts`
+					then
+
+						echo ""
+						echo "Pivot Overlay already done !"
+						echo ""
+
+						sleep 2
+
+						clear
+
+						p=0
+
+					else
+
+						echo ""
+						echo "No device mounted. Aborting..."
+						echo ""
+
+						p=0
+
+					fi
+				done
+				;;
+
+				#----------------- Choice-2---------------------
+				# Disable pivot overlay
+				2)
+				if `grep -qs '/dev/sda1 /overlay' /proc/mounts`
+				then
+
+					echo ""
+					echo "Reverting to defaults..."
+					echo ""
+
+					sleep 2
+
+					# Removes node.js
+					opkg update
+
+					sleep 3
+
+					# Reverts the system settings to the default ones
+					revertoverlay
+
+					sleep 3
+
+					p=0
+
+					done="true"
+
+					echo ""
+					echo "Reverting complete ! Your system will be rebooted in 10 seconds !"
+					echo "Reverting complete ! Your system will be rebooted in 10 seconds !" > /dev/kmsg
+					echo ""
+
+					countdown "00:00:10"
+
+					echo ""
+					echo "Rebooting....."
+					echo "Rebooting....." > /dev/kmsg
+					echo ""
+
+					reboot && exit
+
+				else
+
+					echo ""
+					echo "ERROR ! Pivot overlay is not still performed on the system !"
+					echo "ERROR ! Pivot overlay is not still performed on the system !" > /dev/kmsg
+					echo ""
+
+				fi
+
+				;;
+
+				#----------------- Choice-3---------------------
+				# Format SDCard
+				3)
+				if [ -d '/mnt/sda1' ] && `grep -qs '/mnt/sda1' /proc/mounts`
+				then
+
+					echo ""
+					echo "Reverting to defaults..."
+					echo ""
+
+					sleep 2
+
+					#Removes node.js
+					opkg update && prereqs
+
+					sleep 3
+
+					#Formats the SDcard to its original state
+					formatvfatoverlay
+
+					sleep 5
+
+					#Removes the prerequisites
+					removeprereqs
+
+					echo ""
+					echo "Reverting complete !"
+					echo ""
+
+				else
+
+					echo ""
+					echo "ERROR ! Node.Js is not installed in the system !"
+					echo ""
+
+				fi
+
+				;;
+
+				#------------------Choice-4----------------------
+				# System reboot
+				4)
+
+				echo ""
+				echo "Your system will be rebooted in 10 seconds !"
+				echo ""
+
+				countdown "00:00:10"
+
+				echo ""
+				echo "Rebooting..."
+				echo ""
+
+				done="true" && reboot && exit
+
+				;;
+
+				#------------------Choice-0----------------------
+				# Terminating script
+				0)
+				echo " "
+				echo "Done !"
+				echo " "
+
+				done="true"
+				exit 0
+				;;
+
+				#--------Anychoice---------------------
+				*)
+				echo ""
+				echo "You have to make a choice !"
+				echo ""
+				;;
+			esac
+
+	done
+
+elif (( `grep -qs '/dev/sda1' /proc/mounts` && returngigs ) || ( `grep -qs '/mnt/sda1' /proc/mounts` && returngigs )) && [ -z $1 ]
+then
+
+	if `grep -qs '/dev/sda1 /overlay' /proc/mounts`
+	then
+		echo ""
+		echo "Overlay already up and running ! Aborting..."
+		echo "Overlay already up and running ! Aborting..." > /dev/kmsg
+		echo ""
+
+		exit 0
+	fi
+	prereqs
+
+	sleep 2
+
+	echo ""
+	echo "Erasing all data..."
+	echo ""
+
+	#Returns the size of the SDCard
+	returngigs
+
+	#Formats the SDcard according to its size
+	formatsdcard $sizetoformat
+
+	sleep 5
+
+	#Updates the system settings
+	systemoverlay
+
+	sleep 2
+
+	echo ""
+	echo "Pivot Overlay accomplished ! Your system will be rebooted in 10 seconds !"
+	echo "Pivot Overlay accomplished ! Your system will be rebooted in 10 seconds !" > /dev/kmsg
+	echo ""
+
+	p=0
+
+	done="true"
+
+	countdown "00:00:10"
+
+	echo ""
+	echo "Rebooting....."
+	echo "Rebooting....." > /dev/kmsg
+	echo ""
+
+	reboot && exit
+
+	# p=0
+
+elif ( `grep -qs '/dev/sda1 overlay' /proc/mounts` && `grep -qs '/dev/sda2' /proc/swaps` ) || ( `grep -qs '/dev/sda1' /proc/mounts` && returngigs ) \
+	|| ( `grep -qs '/mnt/sda1' /proc/mounts` && returngigs ) && [ '$1' != '-i' ]
+then
+
+	echo ""
+	echo "Use 'overlay-only -i' to enter interactive mode !"
+	echo "Use 'overlay-only -i' to enter interactive mode !" > /dev/kmsg
+	echo ""
+
+	exit 0
+
+elif ! `fdisk -l | grep -qs "Disk /dev/sda"`
+then
+
+	echo ""
+	echo "Please insert the SDCard into the board !"
+	echo "Please insert the SDCard into the board" > /dev/kmsg
+	echo ""
+
+elif [ ! -d '/mnt/sda1' ] || ! `grep -qs '/mnt/sda1' /proc/mounts`
+then
+
+	echo ""
+	echo "Can't mount the microSD card, check your system configuration !"
+	echo "Can't mount the microSD card, check your system configuration !" > /dev/kmsg
+	echo ""
+
+fi
+
+#---------------------END-FDISK-CHECK----------------------------------------------
+
+else
+
+    echo ""
+    echo "Fdisk is not installed ! ! ! The script will install the package for you..."
+    echo ""
+
+    read -p "Press [Enter] key to install fdisk..."
+    echo ""
+
+    sleep 1
+
+    #Installing fdisk to the system
+    opkg update && opkg install fdisk
+
+    echo ""
+    echo "Fdisk is now installed ! You have to relaunch the script !"
+	echo "Fdisk is now installed ! You have to relaunch the script !" > /dev/kmsg
+    echo ""
+
+fi

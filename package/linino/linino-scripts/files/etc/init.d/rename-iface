@@ -1,0 +1,44 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2008 OpenWrt.org
+
+UCI="/sbin/uci"
+WIFI="/sbin/wifi"
+
+START=17
+
+start () {
+
+	boardname=$(awk '/machine/ {print tolower($4)}' /proc/cpuinfo)
+
+	case $boardname in 
+		'lei'|'tian')
+
+			sed -i s/eth1/eth0/g /etc/config/network
+			# sed -i s#\'0\'#\'1\'#g /etc/config/wireless
+
+			IFNAME=$($UCI get wireless.@wifi-iface[1].network)
+			COUNTRY=$($UCI "get" "arduino.radio0.country")
+
+			$UCI "set" "wireless.@wifi-device[0].disabled=1";
+			$UCI "set" "wireless.@wifi-device[1].disabled=0";
+			$UCI "set" "wireless.@wifi-device[1].channel=auto"
+			$UCI "set" "wireless.radio1.country=$COUNTRY"
+
+			if [ "$IFNAME" != "lan" ]
+			then
+				$UCI "set" "wireless.@wifi-iface[0].network=lan2.4"
+				$UCI "set" "wireless.@wifi-iface[1].network=lan"
+			fi
+
+			$UCI commit wireless
+			# $WIFI down
+			$WIFI up
+
+			echo "Changing WLAN card name" >> /dev/kmsg
+			;;
+		*)
+			echo "Not changing WLAN card name" >> /dev/kmsg
+			;;
+	esac
+
+}

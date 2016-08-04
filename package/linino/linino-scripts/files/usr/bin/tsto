@@ -1,0 +1,9 @@
+#!/bin/sh
+
+echo "test"
+echo 0 > /sys/class/gpio/gpio7/value
+echo 0 > /sys/class/gpio/gpio6/value
+echo 0 > /sys/devices/platform/leds-gpio/leds/usb/brightness
+echo 0 > /sys/devices/platform/leds-gpio/leds/wlan/brightness
+echo 0 > /sys/devices/mcuio/0:0.0/0:1.0/gpio/D4/value
+echo "end"

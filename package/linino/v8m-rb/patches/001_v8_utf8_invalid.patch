@@ -1,0 +1,194 @@
+--- a/include/v8.h
++++ b/include/v8.h
+@@ -1076,7 +1076,11 @@ class String : public Primitive {
+     NO_OPTIONS = 0,
+     HINT_MANY_WRITES_EXPECTED = 1,
+     NO_NULL_TERMINATION = 2,
+-    PRESERVE_ASCII_NULL = 4
++    PRESERVE_ASCII_NULL = 4,
++    // Used by WriteUtf8 to replace orphan surrogate code units with the
++    // unicode replacement character. Needs to be set to guarantee valid UTF-8
++    // output.
++    REPLACE_INVALID_UTF8 = 8
+   };
+ 
+   // 16-bit character codes.
+
+--- a/src/api.cc
++++ b/src/api.cc
+@@ -3759,7 +3759,8 @@ static int RecursivelySerializeToUtf8(i::String* string,
+                                       int end,
+                                       int recursion_budget,
+                                       int32_t previous_character,
+-                                      int32_t* last_character) {
++                                      int32_t* last_character,
++                                      bool replace_invalid_utf8) {
+   int utf8_bytes = 0;
+   while (true) {
+     if (string->IsAsciiRepresentation()) {
+@@ -3775,7 +3776,10 @@ static int RecursivelySerializeToUtf8(i::String* string,
+         for (int i = start; i < end; i++) {
+           uint16_t character = data[i];
+           current +=
+-              unibrow::Utf8::Encode(current, character, previous_character);
++              unibrow::Utf8::Encode(current,
++                                    character,
++                                    previous_character,
++                                    replace_invalid_utf8);
+           previous_character = character;
+         }
+         *last_character = previous_character;
+@@ -3788,7 +3792,10 @@ static int RecursivelySerializeToUtf8(i::String* string,
+         for (int i = start; i < end; i++) {
+           uint16_t character = data[i];
+           current +=
+-              unibrow::Utf8::Encode(current, character, previous_character);
++              unibrow::Utf8::Encode(current,
++                                    character,
++                                    previous_character,
++                                    replace_invalid_utf8);
+           previous_character = character;
+         }
+         *last_character = previous_character;
+@@ -3824,7 +3831,8 @@ static int RecursivelySerializeToUtf8(i::String* string,
+                                          boundary,
+                                          recursion_budget - 1,
+                                          previous_character,
+-                                         &previous_character);
++                                         &previous_character,
++                                         replace_invalid_utf8);
+           if (extra_utf8_bytes < 0) return extra_utf8_bytes;
+           buffer += extra_utf8_bytes;
+           utf8_bytes += extra_utf8_bytes;
+@@ -3879,7 +3887,10 @@ int String::WriteUtf8(char* buffer,
+     return len;
+   }
+ 
+-  if (capacity == -1 || capacity / 3 >= string_length) {
++  bool replace_invalid_utf8 = (options & REPLACE_INVALID_UTF8);
++  int max16BitCodeUnitSize = unibrow::Utf8::kMax16BitCodeUnitSize;
++
++  if (capacity == -1 || capacity / max16BitCodeUnitSize >= string_length) {
+     int32_t previous = unibrow::Utf16::kNoPreviousCharacter;
+     const int kMaxRecursion = 100;
+     int utf8_bytes =
+@@ -3889,7 +3900,8 @@ int String::WriteUtf8(char* buffer,
+                                    string_length,
+                                    kMaxRecursion,
+                                    previous,
+-                                   &previous);
++                                   &previous,
++                                   replace_invalid_utf8);
+     if (utf8_bytes >= 0) {
+       // Success serializing with recursion.
+       if ((options & NO_NULL_TERMINATION) == 0 &&
+@@ -3942,14 +3954,16 @@ int String::WriteUtf8(char* buffer,
+     char intermediate[unibrow::Utf8::kMaxEncodedSize];
+     for (; i < len && pos < capacity; i++) {
+       i::uc32 c = write_input_buffer.GetNext();
+-      if (unibrow::Utf16::IsTrailSurrogate(c) &&
+-          unibrow::Utf16::IsLeadSurrogate(previous)) {
++      if (unibrow::Utf16::IsSurrogatePair(previous, c)) {
+         // We can't use the intermediate buffer here because the encoding
+         // of surrogate pairs is done under assumption that you can step
+         // back and fix the UTF8 stream.  Luckily we only need space for one
+         // more byte, so there is always space.
+         ASSERT(pos < capacity);
+-        int written = unibrow::Utf8::Encode(buffer + pos, c, previous);
++        int written = unibrow::Utf8::Encode(buffer + pos,
++                                            c,
++                                            previous,
++                                            replace_invalid_utf8);
+         ASSERT(written == 1);
+         pos += written;
+         nchars++;
+@@ -3957,7 +3971,8 @@ int String::WriteUtf8(char* buffer,
+         int written =
+             unibrow::Utf8::Encode(intermediate,
+                                   c,
+-                                  unibrow::Utf16::kNoPreviousCharacter);
++                                  unibrow::Utf16::kNoPreviousCharacter,
++                                  replace_invalid_utf8);
+         if (pos + written <= capacity) {
+           for (int j = 0; j < written; j++) {
+             buffer[pos + j] = intermediate[j];
+
+--- a/src/unicode-inl.h
++++ b/src/unicode-inl.h
+@@ -79,7 +79,10 @@ template <class T, int s> int Mapping<T, s>::CalculateValue(uchar c, uchar n,
+ }
+ 
+ 
+-unsigned Utf8::Encode(char* str, uchar c, int previous) {
++unsigned Utf8::Encode(char* str,
++                      uchar c,
++                      int previous,
++                      bool replace_invalid) {
+   static const int kMask = ~(1 << 6);
+   if (c <= kMaxOneByteChar) {
+     str[0] = c;
+@@ -89,12 +92,16 @@ unsigned Utf8::Encode(char* str, uchar c, int previous) {
+     str[1] = 0x80 | (c & kMask);
+     return 2;
+   } else if (c <= kMaxThreeByteChar) {
+-    if (Utf16::IsTrailSurrogate(c) &&
+-        Utf16::IsLeadSurrogate(previous)) {
++    if (Utf16::IsSurrogatePair(previous, c)) {
+       const int kUnmatchedSize = kSizeOfUnmatchedSurrogate;
+       return Encode(str - kUnmatchedSize,
+                     Utf16::CombineSurrogatePair(previous, c),
+-                    Utf16::kNoPreviousCharacter) - kUnmatchedSize;
++                    Utf16::kNoPreviousCharacter,
++                    replace_invalid) - kUnmatchedSize;
++    } else if (replace_invalid &&
++               (Utf16::IsLeadSurrogate(c) ||
++               Utf16::IsTrailSurrogate(c))) {
++      c = kBadChar;
+     }
+     str[0] = 0xE0 | (c >> 12);
+     str[1] = 0x80 | ((c >> 6) & kMask);
+
+--- a/src/unicode.h
++++ b/src/unicode.h
+@@ -117,6 +117,9 @@ class Buffer {
+ 
+ class Utf16 {
+  public:
++  static inline bool IsSurrogatePair(int lead, int trail) {
++    return IsLeadSurrogate(lead) && IsTrailSurrogate(trail);
++  }
+   static inline bool IsLeadSurrogate(int code) {
+     if (code == kNoPreviousCharacter) return false;
+     return (code & 0xfc00) == 0xd800;
+@@ -152,13 +155,19 @@ class Utf16 {
+ class Utf8 {
+  public:
+   static inline uchar Length(uchar chr, int previous);
+-  static inline unsigned Encode(
+-      char* out, uchar c, int previous);
++  static inline unsigned Encode(char* out,
++                                uchar c,
++                                int previous,
++                                bool replace_invalid = false);
+   static const byte* ReadBlock(Buffer<const char*> str, byte* buffer,
+       unsigned capacity, unsigned* chars_read, unsigned* offset);
+   static uchar CalculateValue(const byte* str,
+                               unsigned length,
+                               unsigned* cursor);
++
++
++  // The unicode replacement character, used to signal invalid unicode
++  // sequences (e.g. an orphan surrogate) when converting to a UTF-8 encoding.
+   static const uchar kBadChar = 0xFFFD;
+   static const unsigned kMaxEncodedSize   = 4;
+   static const unsigned kMaxOneByteChar   = 0x7f;
+@@ -170,6 +179,9 @@ class Utf8 {
+   // that match are coded as a 4 byte UTF-8 sequence.
+   static const unsigned kBytesSavedByCombiningSurrogates = 2;
+   static const unsigned kSizeOfUnmatchedSurrogate = 3;
++  // The maximum size a single UTF-16 code unit may take up when encoded as
++  // UTF-8.
++  static const unsigned kMax16BitCodeUnitSize  = 3;
+ 
+  private:
+   template <unsigned s> friend class Utf8InputBuffer;

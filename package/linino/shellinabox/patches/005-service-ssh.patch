@@ -1,0 +1,29 @@
+--- a/shellinabox/service.c	2016-01-13 15:08:56.618472020 +0100
++++ b/shellinabox/service.c	2016-01-13 15:49:11.265517236 +0100
+@@ -117,12 +117,12 @@
+     service->useDefaultShell                = 0;
+     service->uid                            = -1;
+     service->gid                            = -1;
+-    service->user                           = NULL;
+-    service->group                          = NULL;
+-    check(service->cwd                      = strdup("/"));
++    check(service->user                     = strdup("root"));
++    check(service->group                    = strdup("root"));
++    check(service->cwd                      = strdup("/root"));
+     char *host;
+     char *sshPort;
+-    check(host                              = strdup("localhost"));
++    check(host                              = strdup("127.0.0.1"));
+     check(sshPort                           = strdup("22"));
+
+     if ((ptr                                = strchr(arg, ':')) != NULL) {
+
+@@ -169,7 +169,7 @@
+     }
+ 
+     service->cmdline                        = stringPrintf(NULL,
+-      "ssh -a -e none -i /dev/null -x -oChallengeResponseAuthentication=no "
++      "ssh -x -oChallengeResponseAuthentication=no "
+           "-oCheckHostIP=no -oClearAllForwardings=yes -oCompression=no "
+           "-oControlMaster=no -oGSSAPIAuthentication=no "
+           "-oHostbasedAuthentication=no -oIdentitiesOnly=yes "

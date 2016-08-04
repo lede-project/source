@@ -1,0 +1,11 @@
+--- a/modules/core/src/parallel.cpp	2015-10-24 17:06:39.974079652 +0200
++++ b/modules/core/src/parallel.cpp	2015-10-24 17:07:31.038992633 +0200
+@@ -56,8 +56,6 @@
+     #include <sys/types.h>
+     #if defined ANDROID
+         #include <sys/sysconf.h>
+-    #else
+-        #include <sys/sysctl.h>
+     #endif
+ #endif
+ 

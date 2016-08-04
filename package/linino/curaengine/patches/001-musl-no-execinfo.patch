@@ -1,0 +1,10 @@
+--- a/src/main.cpp	2015-10-22 12:28:46.000000000 +0200
++++ b/src/main.cpp	2015-10-22 15:48:35.000000000 +0200
+@@ -5,7 +5,6 @@
+ #include <sys/time.h>
+ #include <signal.h>
+ #if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
+-#include <execinfo.h>
+ #include <sys/resource.h>
+ #endif
+ #include <stddef.h>

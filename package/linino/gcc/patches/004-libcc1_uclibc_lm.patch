@@ -1,0 +1,11 @@
+--- a/gcc/Makefile.in
++++ b/gcc/Makefile.in
+@@ -343,7 +343,7 @@
+ # This is where we get zlib from.  zlibdir is -L../zlib and zlibinc is
+ # -I../zlib, unless we were configured with --with-system-zlib, in which
+ # case both are empty.
+-ZLIB = @zlibdir@ -lz
++ZLIB = @zlibdir@ -lz -lm
+ ZLIBINC = @zlibinc@
+ 
+ # How to find GMP

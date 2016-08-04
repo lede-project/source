@@ -1,0 +1,137 @@
+From 6ebd85e10535dfaa9181842fe73834e51d4d3e6c Mon Sep 17 00:00:00 2001
+From: Ben Noordhuis <info@bnoordhuis.nl>
+Date: Thu, 27 Nov 2014 07:15:54 +0100
+Subject: [PATCH] v8: don't busy loop in cpu profiler thread
+
+Reduce the overhead of the CPU profiler by replacing sched_yield() with
+nanosleep() in V8's tick event processor thread.  The former only yields
+the CPU when there is another process scheduled on the same CPU.
+
+Before this commit, the thread would effectively busy loop and consume
+100% CPU time.  By forcing a one nanosecond sleep period rounded up to
+the task scheduler's granularity (about 50 us on Linux), CPU usage for
+the processor thread now hovers around 10-20% for a busy application.
+
+PR-URL: https://github.com/joyent/node/pull/8789
+Ref: https://github.com/strongloop/strong-agent/issues/3
+Reviewed-by: Trevor Norris <trev.norris@gmail.com>
+---
+ deps/v8/src/platform-freebsd.cc | 5 -----
+ deps/v8/src/platform-linux.cc   | 5 -----
+ deps/v8/src/platform-macos.cc   | 5 -----
+ deps/v8/src/platform-openbsd.cc | 5 -----
+ deps/v8/src/platform-posix.cc   | 6 ++++++
+ deps/v8/src/platform-solaris.cc | 5 -----
+ deps/v8/tools/gyp/v8.gyp        | 2 +-
+ 7 files changed, 7 insertions(+), 26 deletions(-)
+
+diff --git a/deps/v8/src/platform-freebsd.cc b/deps/v8/src/platform-freebsd.cc
+index 511759c..5c90c6b 100644
+--- a/src/platform-freebsd.cc
++++ b/src/platform-freebsd.cc
+@@ -539,11 +539,6 @@ void Thread::SetThreadLocal(LocalStorageKey key, void* value) {
+ }
+
+
+-void Thread::YieldCPU() {
+-  sched_yield();
+-}
+-
+-
+ class FreeBSDMutex : public Mutex {
+  public:
+   FreeBSDMutex() {
+diff --git a/deps/v8/src/platform-linux.cc b/deps/v8/src/platform-linux.cc
+index beb2cce..3d6b304 100644
+--- a/src/platform-linux.cc
++++ b/src/platform-linux.cc
+@@ -812,11 +812,6 @@ void Thread::SetThreadLocal(LocalStorageKey key, void* value) {
+ }
+
+
+-void Thread::YieldCPU() {
+-  sched_yield();
+-}
+-
+-
+ class LinuxMutex : public Mutex {
+  public:
+   LinuxMutex() {
+diff --git a/deps/v8/src/platform-macos.cc b/deps/v8/src/platform-macos.cc
+index a216f6e..e54e3e4 100644
+--- a/src/platform-macos.cc
++++ b/src/platform-macos.cc
+@@ -640,11 +640,6 @@ void Thread::SetThreadLocal(LocalStorageKey key, void* value) {
+ }
+
+
+-void Thread::YieldCPU() {
+-  sched_yield();
+-}
+-
+-
+ class MacOSMutex : public Mutex {
+  public:
+   MacOSMutex() {
+diff --git a/deps/v8/src/platform-openbsd.cc b/deps/v8/src/platform-openbsd.cc
+index 408d4dc..72167de 100644
+--- a/src/platform-openbsd.cc
++++ b/src/platform-openbsd.cc
+@@ -593,11 +593,6 @@ void Thread::SetThreadLocal(LocalStorageKey key, void* value) {
+ }
+
+
+-void Thread::YieldCPU() {
+-  sched_yield();
+-}
+-
+-
+ class OpenBSDMutex : public Mutex {
+  public:
+   OpenBSDMutex() {
+diff --git a/deps/v8/src/platform-posix.cc b/deps/v8/src/platform-posix.cc
+index 5c3529d..8aecd56 100644
+--- a/src/platform-posix.cc
++++ b/src/platform-posix.cc
+@@ -349,6 +349,12 @@ void OS::StrNCpy(Vector<char> dest, const char* src, size_t n) {
+ }
+
+
++void Thread::YieldCPU() {
++  const timespec delay = { 0, 1 };
++  nanosleep(&delay, NULL);
++}
++
++
+ // ----------------------------------------------------------------------------
+ // POSIX socket support.
+ //
+diff --git a/deps/v8/src/platform-solaris.cc b/deps/v8/src/platform-solaris.cc
+index 07718fe..4e95ecc 100644
+--- a/src/platform-solaris.cc
++++ b/src/platform-solaris.cc
+@@ -531,11 +531,6 @@ void Thread::SetThreadLocal(LocalStorageKey key, void* value) {
+ }
+
+
+-void Thread::YieldCPU() {
+-  sched_yield();
+-}
+-
+-
+ class SolarisMutex : public Mutex {
+  public:
+   SolarisMutex() {
+diff --git a/deps/v8/tools/gyp/v8.gyp b/deps/v8/tools/gyp/v8.gyp
+index 71cf366..c304925 100644
+--- a/tools/gyp/v8.gyp
++++ b/tools/gyp/v8.gyp
+@@ -709,7 +709,7 @@
+             ['OS=="solaris"', {
+                 'link_settings': {
+                   'libraries': [
+-                    '-lsocket -lnsl',
++                    '-lsocket -lnsl -lrt',
+                 ]},
+                 'sources': [
+                   '../../src/platform-solaris.cc',

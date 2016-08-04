@@ -1,0 +1,13 @@
+#!/bin/sh /etc/rc.common
+
+START=49
+
+start() {
+	logger -t gpg "Generating GPG key..."
+	/usr/bin/gpg --batch --gen-key /etc/arduino/gpg_gen_key_batch
+	logger -t gpg "GPG key generated. Exporting key as ascii text file..."
+	rm -f /etc/arduino/arduino_gpg.asc
+	/usr/bin/gpg --no-default-keyring --secret-keyring /etc/arduino/arduino_gpg.sec --keyring /etc/arduino/arduino_gpg.pub --export --armor --output /etc/arduino/arduino_gpg.asc
+	logger -t gpg "GPG key exported"
+}
+

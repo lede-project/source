@@ -1,0 +1,23 @@
+--- a/alljoyn/common/inc/qcc/posix/util.h	2016-07-12 19:33:51.364917235 +0200
++++ b/alljoyn/common/inc/qcc/posix/util.h	2016-07-12 19:34:22.089458874 +0200
+@@ -127,17 +127,17 @@
+ /**
+  * Swap bytes to convert endianness of a 16 bit integer
+  */
+-#define EndianSwap16(_val) (__swap16(_val))
++#define EndianSwap16(_val) (__bswap16(_val))
+ 
+ /**
+  * Swap bytes to convert endianness of a 32 bit integer
+  */
+-#define EndianSwap32(_val) (__swap32(_val))
++#define EndianSwap32(_val) (__bswap32(_val))
+ 
+ /**
+  * Swap bytes to convert endianness of a 64 bit integer
+  */
+-#define EndianSwap64(_val) (__swap64(_val))
++#define EndianSwap64(_val) (__bswap64(_val))
+ 
+ #endif
+ 

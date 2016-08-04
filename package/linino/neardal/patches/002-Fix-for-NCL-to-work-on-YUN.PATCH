@@ -1,0 +1,46 @@
+From 34511421658024ff91b8b429d494a4aa0e54c5a3 Mon Sep 17 00:00:00 2001
+From: shikha singh <shikha.singh@st.com>
+Date: Thu, 2 Jun 2016 15:15:51 +0530
+Subject: [PATCH-NEARDAL-NCL 1/1] Fix for NCL to work on YUN
+
+Signed-off-by: shikha singh <shikha.singh@st.com>
+---
+ ncl/ncl.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/ncl/ncl.c b/ncl/ncl.c
+index 590d13b..2dc0720 100644
+--- a/ncl/ncl.c
++++ b/ncl/ncl.c
+@@ -168,11 +168,16 @@ NCLError ncl_exec(char *cmd)
+ 	GError *gerr = NULL;
+ 	ncl_cmd_func func = NULL;
+ 	char **argv = NULL;
++	char *cmdd = "help";
+ 	int argc;
+ 
+-	if (!g_shell_parse_argv(g_strstrip(cmd), &argc, &argv, &gerr))
++	if(!(strcmp(cmd, cmdd))) {
++		argc = 1;
++		argv = &cmdd;
++	} else {
++		if (!g_shell_parse_argv(g_strstrip(cmd), &argc, &argv, &gerr))
+ 		goto exit;
+-
++	}
+ 	if (!(func = ncl_prv_find_func(argv[0]))) {
+ 		NCL_CMD_PRINTERR("'%s': Not NCL command, trying shell\n", cmd);
+ 		g_spawn_command_line_async(cmd, &gerr);
+@@ -189,7 +194,8 @@ exit:
+ 			NCL_CMD_PRINTERR("%s\n", gerr->message);
+ 		g_error_free(gerr);
+ 	}
+-	g_strfreev(argv);
++	if(strcmp(cmd,cmdd))
++		g_strfreev(argv);
+ 	return ret;
+ }
+ 
+-- 
+1.9.1
+

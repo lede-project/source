@@ -1,0 +1,16 @@
+--- a/src/xftglyphs.c	2009-01-30 00:19:09.000000000 +0100
++++ b/src/xftglyphs.c	2015-03-25 11:43:31.856290677 +0100
+@@ -21,10 +21,11 @@
+  */
+ 
+ #include "xftint.h"
+-#include <freetype/ftoutln.h>
++#include FT_OUTLINE_H
++#include FT_LCD_FILTER_H
+ 
+ #if HAVE_FT_GLYPHSLOT_EMBOLDEN
+-#include <freetype/ftsynth.h>
++#include FT_SYNTHESIS_H
+ #endif
+ 
+ static const int    filters[3][3] = {

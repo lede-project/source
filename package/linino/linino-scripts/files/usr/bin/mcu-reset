@@ -1,0 +1,14 @@
+#!/bin/sh
+
+GDIR=/sys/class/gpio/
+RES=${GDIR}gpio18/
+echo 18 > ${GDIR}export
+echo out > ${RES}direction
+echo 1 > ${RES}value
+echo 0 > ${RES}value
+echo in > ${RES}/direction
+echo 18 > ${GDIR}unexport
+
+# send a newline on spi console, so that bathos will re-activate it
+sleep 1
+echo > /dev/ttySPI0

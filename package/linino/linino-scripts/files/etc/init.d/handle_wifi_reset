@@ -1,0 +1,60 @@
+#!/bin/sh /etc/rc.common
+
+START=09
+UCI="/sbin/uci"
+
+set_or_delete() {
+	key=$1
+	value=$2
+	logger -t "$0" "key is $key and value is $value"
+	if [ "x$value" == "x" ]
+	then
+		$UCI delete "$key"
+	else
+		$UCI set "$key=$value"
+	fi
+}
+
+start() {
+	/bin/sleep 5
+
+	STEP=`$UCI get "arduino.@arduino[0].wifi_reset_step"`
+	logger -t "$0" "WiFi step is $STEP"
+
+	if [ "$STEP" == "timed_out" ]
+	then
+		$UCI set "arduino.@arduino[0].wifi_reset_step=retry"
+	fi
+
+	if [ "$STEP" == "retry" ]
+	then
+		CHANNEL=`$UCI get "arduino.radio0.channel"`
+		COUNTRY=`$UCI get "arduino.radio0.country"`
+		MODE=`$UCI get "arduino.@wifi-iface[0].mode"`
+		SSID=`$UCI get "arduino.@wifi-iface[0].ssid"`
+		ENCRYPTION=`$UCI get "arduino.@wifi-iface[0].encryption"`
+		KEY=`$UCI get "arduino.@wifi-iface[0].key"`
+		PROTO=`$UCI get "arduino.lan.proto"`
+
+		# machine=$(awk '/machine/ {print $3}' /proc/cpuinfo)
+
+		set_or_delete "wireless.radio0.channel" $CHANNEL
+		set_or_delete "wireless.radio0.country" $COUNTRY
+		set_or_delete "wireless.@wifi-iface[0].mode" $MODE
+		set_or_delete "wireless.@wifi-iface[0].ssid" $SSID
+		set_or_delete "wireless.@wifi-iface[0].encryption" $ENCRYPTION
+		set_or_delete "wireless.@wifi-iface[0].key" $KEY
+
+		$UCI delete "network.lan.ipaddr"
+		$UCI delete "network.lan.netmask"
+		#$UCI delete "dhcp.@dnsmasq[0].address"
+
+		set_or_delete "network.lan.proto" $PROTO
+
+		$UCI set "arduino.@arduino[0].wifi_reset_step=clear"
+
+		$UCI commit wireless
+
+		#/bin/sed -i "s/C:192.168/#C:192.168/g" /etc/httpd.conf
+	fi
+}

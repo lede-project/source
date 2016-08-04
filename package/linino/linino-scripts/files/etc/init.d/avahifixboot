@@ -1,0 +1,19 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2008 OpenWrt.org
+
+START=99
+
+boot () {
+	if [ -e /etc/avahi/services/http.service ]
+	then
+	
+	      boardname=$(awk '/machine/ {print tolower($4)}' /proc/cpuinfo)
+	      boardorig=$(awk '/board=\$board/ {print $1}' /etc/avahi/services/http.service)
+	      
+	      if [ $boardorig ]
+	      then
+		      sed -i "s/"board='$board'"/board=${boardname}/g" /etc/avahi/services/http.service
+	      fi
+	      
+	fi
+}
