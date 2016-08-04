@@ -18,6 +18,8 @@
 
      if ((ptr                                = strchr(arg, ':')) != NULL) {
 
+--- a/shellinabox/service.c	2016-08-04 13:19:03.732158941 +0200
++++ b/shellinabox/service.c	2016-08-04 13:19:22.364488179 +0200
 @@ -169,7 +169,7 @@
      }
  
