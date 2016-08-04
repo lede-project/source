@@ -47,7 +47,7 @@ $(call Package/bluez/Default)
   SECTION:=utils
   CATEGORY:=Utilities
   TITLE+= Nordic BLE 6lowpan daemon
-  DEPENDS:=+bluez-libs +bluez-utils +kmod-ipv6 +kmod-6lowpan +kmod-bluetooth_6lowpan +luci-app-6lowpand
+  DEPENDS:=@IPV6 +bluez-libs +bluez-utils +kmod-6lowpan +kmod-bluetooth_6lowpan +luci-app-6lowpand
 endef
 
 define Package/bluez-6lowpan-daemon/description
