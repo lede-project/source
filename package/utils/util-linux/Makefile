@@ -223,6 +223,16 @@ define Package/hwclock/description
  hwclock is a tool for accessing the Hardware Clock
 endef
 
+define Package/ldattach
+$(call Package/util-linux/Default)
+  TITLE:=attach a line discipline to a serial line
+endef
+
+define Package/ldattach/description
+ The ldattach daemon opens the specified device file and attaches the line
+ discipline ldisc  to  it  for processing  of  the  sent  and/or received data.
+endef
+
 define Package/logger
 $(call Package/util-linux/Default)
   TITLE:=a shell command interface to the syslog system log module
@@ -562,6 +572,11 @@ define Package/hwclock/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/hwclock $(1)/usr/sbin/
 endef
 
+define Package/ldattach/install
+	$(INSTALL_DIR) $(1)/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ldattach $(1)/sbin/
+endef
+
 define Package/logger/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/logger $(1)/usr/bin/
@@ -679,6 +694,7 @@ $(eval $(call BuildPackage,findfs))
 $(eval $(call BuildPackage,flock))
 $(eval $(call BuildPackage,getopt))
 $(eval $(call BuildPackage,hwclock))
+$(eval $(call BuildPackage,ldattach))
 $(eval $(call BuildPackage,logger))
 $(eval $(call BuildPackage,look))
 $(eval $(call BuildPackage,losetup))
