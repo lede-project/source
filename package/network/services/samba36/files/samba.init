@@ -6,7 +6,7 @@ USE_PROCD=1
 
 smb_header() {
 	local interface
-	config_get interface $1 interface "loopback lan"
+	config_get interface $1 interface "loopback $(uci get firewall.@zone[0].network)"
 
 	# resolve interfaces
 	local interfaces=$(
