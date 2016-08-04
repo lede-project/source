@@ -1,0 +1,49 @@
+#!/bin/bash
+
+OPENWRTFILE="target/linux/ar71xx/base-files/etc/openwrt_version"
+LININOFILE="target/linux/ar71xx/base-files/etc/linino_version"
+
+writeinfo () {
+	
+	touch $LININOFILE
+	
+	branchname=`git rev-parse --abbrev-ref HEAD`
+	gitcommit=`git rev-parse --short HEAD`
+	gitlongcommmit=`git rev-parse HEAD`
+	builddate=`date +"%Y-%m-%d"`
+	#gittag=`git describe --tags --abbrev=0`
+	
+	echo "DISTRIB_ID="\""LininoOS"\""" >> $LININOFILE
+	# echo "DISTRIB_RELEASE="\""$branchname"\""" >> $LININOFILE
+	echo "DISTRIB_RELEASE="\""nightly"\""" >> $LININOFILE
+	echo "DISTRIB_REVISION="\""$gitcommit"\""" >> $LININOFILE
+	echo "DISTRIB_CODENAME="\""lede_trunk"\""" >> $LININOFILE
+	echo "DISTRIB_TARGET="\""ar71xx/generic"\""" >> $LININOFILE
+	echo "BUILD_DATE="\""$builddate"\""" >> $LININOFILE
+	
+	sed -i /VERSION\_NUMBER/d .config
+	echo "CONFIG_VERSION_NUMBER="\""$gitcommit"\""" >> .config
+
+	if [ ! -d bin/ar71xx ]
+	then
+		mkdir -p bin/ar71xx
+	fi
+
+	echo $gitlongcommmit > bin/ar71xx/git-ver.txt
+	cp .config bin/ar71xx/build-config.txt
+
+	# sed -i 's/CONFIG_VERSION_NUMBER="15.05-rc4"/CONFIG_VERSION_NUMBER='$gitcommit'/g' .config
+
+}
+
+if [ -e $LININOFILE ]
+then
+	
+	rm $LININOFILE 2>&1 > /dev/null
+	writeinfo
+	
+else 	
+	
+	writeinfo
+		
+fi
