@@ -1,0 +1,19 @@
+config wifi-device  radio0
+        option type     mac80211
+        option channel  11
+        option hwmode   11ng
+        option path     'platform/ar933x_wmac'
+        option htmode   HT20
+        list ht_capab   SHORT-GI-20
+        list ht_capab   SHORT-GI-40
+        list ht_capab   RX-STBC1
+        list ht_capab   DSSS_CCK-40
+        # REMOVE THIS LINE TO ENABLE WIFI:
+        option disabled 0
+
+config wifi-iface
+        option device   radio0
+        option network  lan
+        option mode     ap
+        option ssid     Linino
+        option encryption none
