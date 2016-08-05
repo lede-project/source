@@ -57,6 +57,9 @@ hostapd_common_add_device_config() {
 	config_add_boolean country_ie doth
 	config_add_string require_mode
 
+	config_add_string fst_group_id
+	config_add_int fst_priority fst_llt
+
 	hostapd_add_log_config
 }
 
@@ -67,7 +70,9 @@ hostapd_prepare_device_config() {
 	local base="${config%%.conf}"
 	local base_cfg=
 
-	json_get_vars country country_ie beacon_int doth require_mode
+	json_get_vars \
+		country country_ie beacon_int doth require_mode \
+		fst_group_id fst_priority fst_llt
 
 	hostapd_set_log_options base_cfg
 
@@ -102,6 +107,12 @@ hostapd_prepare_device_config() {
 	[ -n "$rlist" ] && append base_cfg "supported_rates=$rlist" "$N"
 	[ -n "$brlist" ] && append base_cfg "basic_rates=$brlist" "$N"
 	[ -n "$beacon_int" ] && append base_cfg "beacon_int=$beacon_int" "$N"
+
+	[ -n "$fst_group_id"  ] && {
+		append base_cfg "fst_group_id=$fst_group_id" "$N"
+		[ -n "$fst_priority"  ] && append base_cfg "fst_priority=$fst_priority" "$N"
+		[ -n "$fst_llt"  ] && append base_cfg "fst_llt=$fst_llt" "$N"
+	}
 
 	cat > "$config" <<EOF
 driver=$driver
