@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=linino-scripts
 PKG_VERSION:=1.2
-PKG_RELEASE:=9
+PKG_RELEASE:=10
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -17,7 +17,7 @@ define Package/linino-scripts
   SECTION:=utils
   CATEGORY:=Base system
   TITLE:=Custom Linino scripts
-  DEPENDS:=+kmod-loop
+  DEPENDS:=+kmod-loop +triggerhappy
 endef
 
 define Build/Compile
@@ -57,6 +57,7 @@ define Package/linino-scripts/install
 	$(INSTALL_BIN) ./files/usr/bin/tsto $(1)/usr/bin
 	$(INSTALL_BIN) ./files/usr/bin/overlay-only $(1)/usr/bin
 	$(INSTALL_BIN) ./files/usr/bin/update-all $(1)/usr/bin
+	$(INSTALL_BIN) ./files/usr/bin/linup $(1)/usr/bin
 
 	$(INSTALL_BIN) ./files/etc/init.d/rename-wifi-if-access-point $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/etc/init.d/delete_uhttpd_cert $(1)/etc/init.d
