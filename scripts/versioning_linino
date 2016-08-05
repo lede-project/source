@@ -15,7 +15,7 @@ writeinfo () {
 	
 	echo "DISTRIB_ID="\""LininoOS"\""" >> $LININOFILE
 	# echo "DISTRIB_RELEASE="\""$branchname"\""" >> $LININOFILE
-	echo "DISTRIB_RELEASE="\""nightly"\""" >> $LININOFILE
+	echo "DISTRIB_RELEASE="\""nightly-lede"\""" >> $LININOFILE
 	echo "DISTRIB_REVISION="\""$gitcommit"\""" >> $LININOFILE
 	echo "DISTRIB_CODENAME="\""lede_trunk"\""" >> $LININOFILE
 	echo "DISTRIB_TARGET="\""ar71xx/generic"\""" >> $LININOFILE
