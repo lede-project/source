@@ -265,12 +265,6 @@ define Image/mkfs/prepare
 endef
 
 
-define Image/Checksum
-	( cd ${BIN_DIR} ; \
-		$(FIND) -maxdepth 1 -type f \! -name 'md5sums'  -printf "%P\n" | sort | xargs $1 > $2 \
-	)
-endef
-
 ifdef CONFIG_TARGET_ROOTFS_TARGZ
   define Image/Build/targz
 	$(TAR) -cp --numeric-owner --owner=0 --group=0 --sort=name \
@@ -290,17 +284,29 @@ mkfs_packages_add = $(filter-out -%,$(mkfs_packages))
 mkfs_packages_remove = $(patsubst -%,%,$(filter -%,$(mkfs_packages)))
 mkfs_cur_target_dir = $(call mkfs_target_dir,pkg=$(target_params))
 
+opkg_target = \
+	$(call opkg,$(mkfs_cur_target_dir)) \
+		-f $(mkfs_cur_target_dir).conf \
+		-l $(mkfs_cur_target_dir).tmp
+
 target-dir-%: FORCE
-	rm -rf $(mkfs_cur_target_dir)
+	rm -rf $(mkfs_cur_target_dir) $(mkfs_cur_target_dir).opkg
 	$(CP) $(TARGET_DIR) $(mkfs_cur_target_dir)
-	$(if $(mkfs_packages_add), \
-		$(call opkg,$(mkfs_cur_target_dir)) install \
+	mv $(mkfs_cur_target_dir)/etc/opkg $(mkfs_cur_target_dir).opkg
+	echo 'src default file://$(PACKAGE_DIR_ALL)' > $(mkfs_cur_target_dir).conf
+	$(if $(call opkg_package_files,$(mkfs_packages_add)), \
+		$(opkg_target) update && \
+		$(opkg_target) install \
 			$(call opkg_package_files,$(mkfs_packages_add)))
 	$(if $(mkfs_packages_remove), \
 		$(call opkg,$(mkfs_cur_target_dir)) remove \
 			$(mkfs_packages_remove))
 	$(call Image/mkfs/prepare,$(mkfs_cur_target_dir))
 	$(call prepare_rootfs,$(mkfs_cur_target_dir))
+	mv $(mkfs_cur_target_dir).opkg $(mkfs_cur_target_dir)/etc/opkg
+	rm -rf \
+		$(mkfs_cur_target_dir).conf \
+		$(mkfs_cur_target_dir).tmp
 
 $(KDIR)/root.%: kernel_prepare
 	$(call Image/mkfs/$(word 1,$(target_params)),$(target_params))
@@ -349,6 +355,7 @@ define Device/Init
   DEVICE_DTS_DIR :=
 
   BOARD_NAME :=
+  UIMAGE_NAME :=
 
   FILESYSTEMS := $(TARGET_FILESYSTEMS)
 endef
@@ -358,7 +365,7 @@ DEFAULT_DEVICE_VARS := \
   DEVICE_DTS DEVICE_DTS_DIR BOARD_NAME CMDLINE \
   UBOOTENV_IN_UBI KERNEL_IN_UBI \
   BLOCKSIZE PAGESIZE SUBPAGESIZE VID_HDR_OFFSET \
-  UBINIZE_OPTS
+  UBINIZE_OPTS UIMAGE_NAME
 
 define Device/ExportVar
   $(1) : $(2):=$$($(2))
@@ -557,7 +564,5 @@ define BuildImage
 	$(MAKE) legacy-images
 
   install: install-images
-	$(call Image/Checksum,md5sum --binary,md5sums)
-	$(call Image/Checksum,openssl dgst -sha256,sha256sums)
 
 endef

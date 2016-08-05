@@ -149,6 +149,7 @@ define KernelPackage/udptunnel4
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=IPv4 UDP tunneling support
   KCONFIG:=CONFIG_NET_UDP_TUNNEL
+  HIDDEN:=1
   FILES:=$(LINUX_DIR)/net/ipv4/udp_tunnel.ko
   AUTOLOAD:=$(call AutoLoad,32,udp_tunnel)
 endef
@@ -161,6 +162,7 @@ define KernelPackage/udptunnel6
   TITLE:=IPv6 UDP tunneling support
   DEPENDS:=@IPV6
   KCONFIG:=CONFIG_NET_UDP_TUNNEL
+  HIDDEN:=1
   FILES:=$(LINUX_DIR)/net/ipv6/ip6_udp_tunnel.ko
   AUTOLOAD:=$(call AutoLoad,32,ip6_udp_tunnel)
 endef
@@ -727,7 +729,7 @@ $(eval $(call KernelPackage,mppe))
 
 SCHED_MODULES = $(patsubst $(LINUX_DIR)/net/sched/%.ko,%,$(wildcard $(LINUX_DIR)/net/sched/*.ko))
 SCHED_MODULES_CORE = sch_ingress sch_fq_codel sch_hfsc cls_fw cls_route cls_flow cls_tcindex cls_u32 em_u32 act_mirred act_skbedit
-SCHED_MODULES_FILTER = $(SCHED_MODULES_CORE) act_connmark sch_esfq sch_netem
+SCHED_MODULES_FILTER = $(SCHED_MODULES_CORE) act_connmark sch_netem
 SCHED_MODULES_EXTRA = $(filter-out $(SCHED_MODULES_FILTER),$(SCHED_MODULES))
 SCHED_FILES = $(patsubst %,$(LINUX_DIR)/net/sched/%.ko,$(filter $(SCHED_MODULES_CORE),$(SCHED_MODULES)))
 SCHED_FILES_EXTRA = $(patsubst %,$(LINUX_DIR)/net/sched/%.ko,$(SCHED_MODULES_EXTRA))
@@ -771,18 +773,6 @@ define KernelPackage/sched-connmark
   AUTOLOAD:=$(call AutoLoad,71, act_connmark)
 endef
 $(eval $(call KernelPackage,sched-connmark))
-
-define KernelPackage/sched-esfq
-  SUBMENU:=$(NETWORK_SUPPORT_MENU)
-  TITLE:=Traffic shaper ESFQ support
-  DEPENDS:=+kmod-sched-core +kmod-ipt-core +kmod-ipt-conntrack
-  KCONFIG:= \
-	CONFIG_NET_SCH_ESFQ \
-	CONFIG_NET_SCH_ESFQ_NFCT=y
-  FILES:=$(LINUX_DIR)/net/sched/sch_esfq.ko
-  AUTOLOAD:=$(call AutoLoad,72, sch_esfq)
-endef
-$(eval $(call KernelPackage,sched-esfq))
 
 define KernelPackage/sched
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
