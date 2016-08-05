@@ -621,8 +621,10 @@ dhcp_relay_add() {
 
 service_triggers()
 {
-	procd_add_reload_trigger "dhcp"
+	procd_open_trigger
+	procd_add_config_trigger "config.change" "dhcp" /etc/init.d/dnsmasq reload
 	procd_add_raw_trigger "interface.*" 2000 /etc/init.d/dnsmasq reload
+	procd_close_trigger
 }
 
 boot()
