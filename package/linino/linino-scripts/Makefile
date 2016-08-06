@@ -8,8 +8,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=linino-scripts
-PKG_VERSION:=1.2
-PKG_RELEASE:=10
+PKG_VERSION:=1.3
+PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -17,7 +17,7 @@ define Package/linino-scripts
   SECTION:=utils
   CATEGORY:=Base system
   TITLE:=Custom Linino scripts
-  DEPENDS:=+kmod-loop +triggerhappy
+  DEPENDS:=+kmod-loop +triggerhappy +eudev
 endef
 
 define Build/Compile
@@ -27,6 +27,7 @@ endef
 define Package/linino-scripts/install
 	$(INSTALL_DIR) $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_DIR) $(1)/lib/udev/rules.d
 
 	$(INSTALL_BIN) ./files/usr/bin/blink-start $(1)/usr/bin/
 	$(INSTALL_BIN) ./files/usr/bin/blink-stop $(1)/usr/bin/
@@ -67,6 +68,12 @@ define Package/linino-scripts/install
 	$(INSTALL_BIN) ./files/etc/init.d/avahifixboot $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/etc/init.d/board-panel $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/etc/init.d/defconfig $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/etc/init.d/tmpudev-init $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/etc/init.d/udev-init $(1)/etc/init.d
+
+	$(INSTALL_DATA) ./files/lib/udev/rules.d/01-arduino-nfc-shield-acm.rules $(1)/lib/udev/rules.d
+	$(INSTALL_DATA) ./files/lib/udev/rules.d/10-samd.rules $(1)/lib/udev/rules.d
+	$(INSTALL_DATA) ./files/lib/udev/rules.d/11-media-by-label-auto-mount-alt.rules $(1)/lib/udev/rules.d
 endef
 
 $(eval $(call BuildPackage,linino-scripts))
