@@ -153,7 +153,7 @@ boardavailable2 () {
         "freedog") ;;
         "chiwawa") ;;
         "tian") ;;
-        *) echo "Your board is not belonging to the SAMD architecture ! Aborting..." && exit 0;;
+        *) echo "Your board is not supported ! Aborting..." && exit 0;;
     esac
 
 }
