@@ -1,0 +1,44 @@
+From 48565b83bb820f2443b9b0d7dea2ca7b06115989 Mon Sep 17 00:00:00 2001
+From: Petko Bordjukov <bordjukov@gmail.com>
+Date: Tue, 10 Nov 2015 20:17:13 +0200
+Subject: [PATCH] IAPP: Set SO_REUSEADDR on listening socket
+
+Make it possible for several instances of hostapd to listen on the same
+network interface.
+
+Signed-off-by: Petko Bordjukov <bordjukov@gmail.com>
+---
+ src/ap/iapp.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/ap/iapp.c b/src/ap/iapp.c
+index 07672ce..21ad9f5 100644
+--- a/src/ap/iapp.c
++++ b/src/ap/iapp.c
+@@ -381,6 +381,7 @@ struct iapp_data * iapp_init(struct hostapd_data *hapd, const char *iface)
+ 	struct sockaddr_in *paddr, uaddr;
+ 	struct iapp_data *iapp;
+ 	struct ip_mreqn mreq;
++	int reuseaddr = 1;
+ 
+ 	iapp = os_zalloc(sizeof(*iapp));
+ 	if (iapp == NULL)
+@@ -443,6 +444,15 @@ struct iapp_data * iapp_init(struct hostapd_data *hapd, const char *iface)
+ 	os_memset(&uaddr, 0, sizeof(uaddr));
+ 	uaddr.sin_family = AF_INET;
+ 	uaddr.sin_port = htons(IAPP_UDP_PORT);
++
++	if (setsockopt(iapp->udp_sock, SOL_SOCKET, SO_REUSEADDR, &reuseaddr,
++		       sizeof(reuseaddr)) < 0) {
++		wpa_printf(MSG_INFO, "iapp_init - setsockopt[UDP,SO_REUSEPORT]: %s",
++			   strerror(errno));
++		iapp_deinit(iapp);
++		return NULL;
++	}
++
+ 	if (bind(iapp->udp_sock, (struct sockaddr *) &uaddr,
+ 		 sizeof(uaddr)) < 0) {
+ 		wpa_printf(MSG_INFO, "iapp_init - bind[UDP]: %s",
+-- 
+2.9.2
+
