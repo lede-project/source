@@ -17,7 +17,7 @@ DAEMON=/usr/bin/$NAME
 
 start () {
     echo -n "Starting $NAME: "
-    service_start $DAEMON /dev/ttyACM0
+    service_start $DAEMON /dev/ttyNFC
     echo "OK"
 }
 
@@ -28,5 +28,5 @@ stop () {
 }
 
 reload () {
-    service_reload $DAEMON /dev/ttyACM0
+    service_reload $DAEMON /dev/ttyNFC
 }
