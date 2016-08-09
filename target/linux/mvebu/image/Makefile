@@ -29,6 +29,45 @@ define Build/clearfog-bundle
 	gzip -9n -c $@.new > $@
 endef
 
+# SD-Card Images:
+# these values are optimized for a 4GB labeled sdcard that actually holds 7744512 sectors of 512 byte
+# MBR:            2048 sectors
+# Partition 1:   32768 sectors
+# Partition 2: 1308672 sectors
+# Partition 3: 6401024 sectors
+
+define Build/boot-scr
+	rm -f $@.bootscript
+	mkimage -A arm -O linux -T script -C none -a 0 -e 0 -d boot.script $@.bootscript
+endef
+
+define Build/boot-img
+	rm -f $@.boot
+	mkfs.fat -C $@.boot 16384
+	$(foreach dts,$(DEVICE_DTS), mcopy -i $@.boot $(DTS_DIR)/$(dts).dtb ::$(dts).dtb)
+	mcopy -i $@.boot $(IMAGE_KERNEL) ::zImage
+	mcopy -i $@.boot $@.bootscript ::boot.scr
+endef
+
+define Build/rootfsdata-img
+	rm -f $@.rootfsdata
+	# create sparse file to save space in the build directory
+	dd if=/dev/zero of=$@.rootfsdata bs=512 count=0 seek=6401024
+	mkfs.ext4 -L rootfs_data $@.rootfsdata
+endef
+
+define Build/sdcard-img
+	rm -f $@ $@.gz
+	./gen_mvebu_sdcard_img.sh 7744512 $@ \
+		"$(BIN_DIR)/uboot-mvebu-clearfog/openwrt-mvebu-clearfog-u-boot-spl.kwb" \
+		c 32768 $@.boot \
+		83 1308672 $(IMAGE_ROOTFS) \
+		83 6401024 $@.rootfsdata
+	# compress
+	gzip -v $@
+	# Hack: copy to BIN_DIR manually, because target file name does not match $@ (.gz)
+	cp -v $@.gz $(BIN_DIR)/
+endef
 
 define Device/Default
   PROFILES := Default
@@ -150,9 +189,10 @@ define Device/armada-388-clearfog
   KERNEL_INSTALL := 1
   KERNEL := dtb | kernel-bin
   DEVICE_TITLE := SolidRun ClearFog
-  DEVICE_PACKAGES := uboot-mvebu-clearfog
-  IMAGES := bundle.tar.gz
+  DEVICE_PACKAGES := uboot-mvebu-clearfog kmod-fs-ext4
+  IMAGES := bundle.tar.gz sdcard.img
   IMAGE/bundle.tar.gz := clearfog-bundle
+  IMAGE/sdcard.img := boot-scr | boot-img | rootfsdata-img | sdcard-img
   IMAGE_NAME = $$(IMAGE_PREFIX)-$$(2)
 endef
 TARGET_DEVICES += armada-388-clearfog
