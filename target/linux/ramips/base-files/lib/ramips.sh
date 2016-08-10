@@ -403,6 +403,9 @@ ramips_board_detect() {
 	*"TEW-692GR")
 		name="tew-692gr"
 		;;
+	*"Timecloud")
+		name="timecloud"
+		;;
 	*"UBNT-ERX")
 		name="ubnt-erx"
 		;;
