@@ -20,7 +20,7 @@ PKG_RELEASE:=1
 PKG_MAINTAINER:=Glenn Ruben Bakke <Glenn.Ruben.Bakke@nordicsemi.no>
 
 LUCI_TITLE:=LuCI Support for Bluetooh 6lowpand
-LUCI_DEPENDS:=+bluez-utils +bluez-daemon
+LUCI_DEPENDS:=+bluez-utils +bluez-6lowpan-daemon
 
 define Package/$(PKG_NAME)/config
 # shown in make menuconfig <Help>
