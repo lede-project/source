@@ -12,8 +12,8 @@ NAME=stnfcd
 DAEMON=/usr/bin/$NAME
 
 # Exit gracefully if the package has been removed
-# [ -x $DAEMON ] || exit 0
-# [ -e /dev/ttyACM0 ] || exit 0
+[ -x $DAEMON ] || exit 0
+[ -c /dev/ttyNFC ] || exit 0
 
 start () {
     echo -n "Starting $NAME: "
