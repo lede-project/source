@@ -24,13 +24,13 @@ writeinfo () {
 	sed -i /VERSION\_NUMBER/d .config
 	echo "CONFIG_VERSION_NUMBER="\""$gitcommit"\""" >> .config
 
-	if [ ! -d bin/ar71xx ]
+	if [ ! -d bin/targets/ar71xx/generic ]
 	then
-		mkdir -p bin/ar71xx
+		mkdir -p bin/targets/ar71xx/generic
 	fi
 
-	echo $gitlongcommmit > bin/ar71xx/git-ver.txt
-	cp .config bin/ar71xx/build-config.txt
+	echo $gitlongcommmit > bin/targets/ar71xx/generic/git-ver.txt
+	cp .config bin/targets/ar71xx/generic/build-config.txt
 
 	# sed -i 's/CONFIG_VERSION_NUMBER="15.05-rc4"/CONFIG_VERSION_NUMBER='$gitcommit'/g' .config
 
