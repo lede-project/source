@@ -4,20 +4,29 @@
 #start after bluetoothd (62)
 START=63
 PROG=/usr/bin/bluetooth_6lowpand
+BT=/usr/bin/bluetoothd
 HCICONFIG=/usr/bin/hciconfig
 
 start() {
-	echo "start bluetooth_6lowpand"
-	sleep 1
-	echo 35 > /sys/kernel/debug/bluetooth/6lowpan_psm
-	sleep 1
-	killall bluetoothd
-	sleep 1
-	$HCICONFIG hci0 reset
-	$PROG -w 3 -t 5 -W -d
+    # enabling 6lowpan
+    echo "start bluetooth_6lowpand"
+    sleep 1
+    echo 1 > /sys/kernel/debug/bluetooth/6lowpan_enable
+    # stopping plain BT daemon
+    sleep 1
+    service_stop $BT
+    sleep 1
+    $HCICONFIG hci0 reset
+    # starting 6lowpan daemon
+    sleep 1
+    service_start "$PROG" -w 3 -t 5 -W -d
 }
 
 stop() {
-	echo "stop bluetooth_6lowpand"
-	killall -9 bluetooth_6lowpand
+    # stopping 6lowpan daemon
+    echo "stopping bluetooth_6lowpand"
+    service_stop $PROG
+    echo 0 > /sys/kernel/debug/bluetooth/6lowpan_enable
+    # starting plain BT daemon
+    /etc/init.d/bluetoothd reload
 }
