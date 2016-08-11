@@ -259,6 +259,14 @@ define Device/hc5661
 endef
 TARGET_DEVICES += hc5661
 
+define Device/hc5661-v2
+  DTS := HC5661-v2
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := Eylike HC5661-v2
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-sdhci kmod-sdhci-mt7620 kmod-ledtrig-usbdev
+endef
+TARGET_DEVICES += hc5661-v2
+
 define Device/hc5761
   DTS := HC5761
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
