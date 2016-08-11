@@ -187,6 +187,7 @@ ramips_setup_interfaces()
 			"0:lan" "1:lan" "2:lan" "3:lan" "4:wan" "6@eth0"
 		;;
 	hc5*61|\
+	hc5661-v2)
 	y1s)
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "5:lan" "0:wan" "6@eth0"
@@ -307,6 +308,10 @@ ramips_setup_macs()
 		lan_mac=`mtd_get_mac_ascii bdinfo "Vfac_mac "`
 		[ -n "$lan_mac" ] || lan_mac=$(cat /sys/class/net/eth0/address)
 		wan_mac=$(macaddr_add "$lan_mac" 1)
+		;;
+	hc5661-v2)
+		lan_mac=$(mtd_get_mac_ascii factory lanmac)
+		wan_mac=$(mtd_get_mac_ascii factory wanmac)
 		;;
 	linkits7688 | \
 	linkits7688d)
