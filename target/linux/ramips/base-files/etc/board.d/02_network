@@ -49,6 +49,7 @@ ramips_setup_interfaces()
 	microwrt|\
 	mpr-a2|\
 	ncs601w|\
+	timecloud|\
 	w150m|\
 	widora-neo|\
 	wnce2001|\
@@ -212,6 +213,7 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "5:wan" "0@eth0"
 		;;
+	tew-714tru|\
 	v11st-fe|\
 	wzr-agl300nh)
 		ucidef_add_switch "switch0" \
