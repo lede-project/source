@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dnsmasq
 PKG_VERSION:=2.76
-PKG_RELEASE:=3
+PKG_RELEASE:=4
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=http://thekelleys.org.uk/dnsmasq
@@ -27,7 +27,8 @@ PKG_CONFIG_DEPENDS:=CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_dhcpv6 \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_auth \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_ipset \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_conntrack \
-	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_broken_rtc
+	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_broken_rtc \
+	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_remove_version
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -103,6 +104,9 @@ define Package/dnsmasq-full/config
 	config PACKAGE_dnsmasq_full_broken_rtc
 		bool "Build with HAVE_BROKEN_RTC."
 		default n
+	config PACKAGE_dnsmasq_full_remove_version
+		bool "Hide the dnsmasq version as security precaution."
+		default n
 	endif
 endef
 
@@ -136,6 +140,17 @@ MAKE_FLAGS := \
 	LDFLAGS="$(TARGET_LDFLAGS)" \
 	COPTS="$(COPTS)" \
 	PREFIX="/usr"
+
+comma = ","
+define Build/Configure
+	#remove version number
+	awk 'BEGIN { rc = 1 } \
+	       /'tag'/ { $$$$3 = $(if $(CONFIG_PACKAGE_dnsmasq_full_remove_version),"\"\""$(comma),$$$$3 ); rc = 0 } \
+	       { print } \
+	       END { exit(rc) }' $(PKG_BUILD_DIR)/VERSION \
+	       >$(PKG_BUILD_DIR)/VERSION.new && \
+	mv $(PKG_BUILD_DIR)/VERSION.new $(PKG_BUILD_DIR)/VERSION || exit 1;
+endef
 
 define Package/dnsmasq/install
 	$(INSTALL_DIR) $(1)/usr/sbin
