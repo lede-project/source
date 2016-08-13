@@ -44,6 +44,25 @@ define Package/util-linux/Default
   URL:=http://www.kernel.org/pub/linux/utils/util-linux/
 endef
 
+define Package/util-linux-busybox
+$(call Package/util-linux/Default)
+  TITLE:=Prefer util-linux commands to busybox replacements
+  DEPENDS:= \
++dmesg \
++hwclock \
++logger \
++mount-utils \
++swap-utils
+endef
+
+define Package/util-linux-busybox/description
+util-linux is a collection of system commands for Linux.
+
+This package selects the full versions of these commands
+for which busybox replacements are normally built
+into the system.
+endef
+
 define Package/libblkid
 $(call Package/util-linux/Default)
   DEPENDS:=+libuuid
@@ -419,6 +438,12 @@ define Package/whereis/description
  whereis locates source/binary and manuals sections for specified files
 endef
 
+define Package/wall/config
+	config HAS_BUSYBOX_FULL_WHEREIS
+		bool
+		default y
+endef
+
 define Package/wipefs
 $(call Package/util-linux/Default)
   TITLE:=wipe a signature from a device
@@ -664,6 +689,10 @@ define Package/wipefs/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/wipefs $(1)/usr/sbin/
 endef
 
+define Package/util-linux-busybox/install
+	true
+endef
+
 $(eval $(call BuildPackage,libblkid))
 $(eval $(call BuildPackage,libfdisk))
 $(eval $(call BuildPackage,libmount))
@@ -699,3 +728,4 @@ $(eval $(call BuildPackage,uuidgen))
 $(eval $(call BuildPackage,wall))
 $(eval $(call BuildPackage,whereis))
 $(eval $(call BuildPackage,wipefs))
+$(eval $(call BuildPackage,util-linux-busybox))

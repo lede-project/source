@@ -122,6 +122,18 @@ define Package/iputils-traceroute6/description
   Traces path to a network host (IPv6).
 endef
 
+define Package/iputils-busybox
+$(call Package/iputils/Default)
+  TITLE:=iptutils - full vs busybox
+  DEPENDS:= +iputils-ping +IPV6:iputils-ping6 +IPV6:iputils-traceroute6
+endef
+
+define Package/iputils-busybox/description
+  Meta package to install commands that are part of iputils source package
+  for which the busybox replacements are normally used by lede/openwrt.
+endef
+
+
 ifdef CONFIG_USE_MUSL
   TARGET_CFLAGS += -D__UCLIBC__
 endif
@@ -171,6 +183,10 @@ define Package/iputils-traceroute6/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/traceroute6 $(1)/usr/bin/
 endef
 
+define Package/iputils-busybox/install
+	true
+endef
+
 $(eval $(call BuildPackage,iputils-arping))
 $(eval $(call BuildPackage,iputils-clockdiff))
 $(eval $(call BuildPackage,iputils-ping))
@@ -179,3 +195,4 @@ $(eval $(call BuildPackage,iputils-tracepath))
 $(eval $(call BuildPackage,iputils-ping6))
 $(eval $(call BuildPackage,iputils-tracepath6))
 $(eval $(call BuildPackage,iputils-traceroute6))
+$(eval $(call BuildPackage,iputils-busybox))

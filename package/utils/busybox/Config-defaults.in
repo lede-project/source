@@ -39,7 +39,7 @@ config BUSYBOX_DEFAULT_FEATURE_INSTALLER
 	default n
 config BUSYBOX_DEFAULT_INSTALL_NO_USR
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_LOCALE_SUPPORT
 	bool
 	default n
