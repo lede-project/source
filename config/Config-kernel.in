@@ -251,6 +251,7 @@ endif
 
 config KERNEL_CGROUPS
 	bool "Enable kernel cgroups"
+	default y if LXC_HOST_SUPPORT
 	default n
 
 if KERNEL_CGROUPS
@@ -478,6 +479,7 @@ endif
 
 config KERNEL_NAMESPACES
 	bool "Enable kernel namespaces"
+	default y if LXC_HOST_SUPPORT
 	default n
 
 if KERNEL_NAMESPACES
@@ -526,6 +528,7 @@ endif
 
 config KERNEL_LXC_MISC
 	bool "Enable miscellaneous LXC related options"
+	default y if LXC_HOST_SUPPORT
 	default n
 
 if KERNEL_LXC_MISC

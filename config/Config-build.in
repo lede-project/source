@@ -23,6 +23,14 @@ menu "Global build settings"
 		bool "Cryptographically signed package lists"
 		default y
 
+	config LXC_HOST_SUPPORT
+		bool "Build with LXC host support"
+		default n
+		help
+		  Enable options required to act as an LXC host.
+		  NB: this is not required for building rootfs to
+		  be used as an LXC guest.
+
 	comment "General build options"
 
 	config DISPLAY_SUPPORT
