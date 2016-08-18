@@ -122,6 +122,8 @@ BTHOMEHUBV2B|BTHOMEHUBV3A)
 	lan_mac=$(mtd_get_mac_ascii uboot_env ethaddr)
 	wan_mac=$(macaddr_add "$lan_mac" 1)
 	ucidef_set_interface_lan 'eth0'
+	ucidef_add_switch "switch0" \
+		"1:lan:1" "2:lan:2" "3:lan:3" "4:lan:4" "5t@eth0"
 	;;
 
 BTHOMEHUBV5A)
