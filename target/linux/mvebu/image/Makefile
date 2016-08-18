@@ -14,6 +14,22 @@ KERNEL_LOADADDR := 0x00008000
 
 DEVICE_VARS += KERNEL_SIZE
 
+define Build/dtb
+        $(call Image/BuildDTB,$(DTS_DIR)/$(DEVICE_DTS).dts,$@.dtb)
+endef
+
+define Build/clearfog-bundle
+	rm -f $@.new
+	$(TAR) -cp --numeric-owner --owner=0 --group=0 --sort=name \
+		$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
+		--file=$@.new -C $(TARGET_DIR)/ .
+	$(TAR) -rp --numeric-owner --owner=0 --group=0 --sort=name \
+		$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
+		--file=$@.new -C $(dir $(IMAGE_KERNEL)) $(notdir $(IMAGE_KERNEL)) $(notdir $(IMAGE_KERNEL).dtb)
+	gzip -9n -c $@.new > $@
+endef
+
+
 define Device/Default
   PROFILES := Default
   DEVICE_DTS := $(1)
@@ -132,7 +148,11 @@ TARGET_DEVICES += armada-388-rd
 
 define Device/armada-388-clearfog
   KERNEL_INSTALL := 1
+  KERNEL := dtb | kernel-bin
   DEVICE_TITLE := SolidRun ClearFog
+  IMAGES := bundle.tar.gz
+  IMAGE/bundle.tar.gz := clearfog-bundle
+  IMAGE_NAME = $$(IMAGE_PREFIX)-$$(2)
 endef
 TARGET_DEVICES += armada-388-clearfog
 

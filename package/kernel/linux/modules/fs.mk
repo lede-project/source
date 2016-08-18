@@ -26,6 +26,25 @@ endef
 
 $(eval $(call KernelPackage,fs-fscache))
 
+define KernelPackage/fs-9p
+  SUBMENU:=$(FS_MENU)
+  TITLE:=Plan 9 Resource Sharing Support
+  DEPENDS:=+kmod-9pnet
+  KCONFIG:=\
+	CONFIG_9P_FS \
+	CONFIG_9P_FS_POSIX_ACL=n \
+	CONFIG_9P_FS_SECURITY=n \
+	CONFIG_9P_FSCACHE=n
+  FILES:=$(LINUX_DIR)/fs/9p/9p.ko
+  AUTOLOAD:=$(call AutoLoad,30,9p)
+endef
+
+define KernelPackage/fs-9p/description
+  Kernel module for Plan 9 Resource Sharing Support support
+endef
+
+$(eval $(call KernelPackage,fs-9p))
+
 define KernelPackage/fs-afs
   SUBMENU:=$(FS_MENU)
   TITLE:=Andrew FileSystem client
@@ -399,6 +418,22 @@ define KernelPackage/fs-reiserfs/description
 endef
 
 $(eval $(call KernelPackage,fs-reiserfs))
+
+
+define KernelPackage/fs-squashfs
+  SUBMENU:=$(FS_MENU)
+  TITLE:=SquashFS 4.0 filesystem support
+  KCONFIG:=CONFIG_SQUASHFS \
+	CONFIG_SQUASHFS_XZ=y
+  FILES:=$(LINUX_DIR)/fs/squashfs/squashfs.ko
+  AUTOLOAD:=$(call AutoLoad,30,squashfs,1)
+endef
+
+define KernelPackage/fs-squashfs/description
+ Kernel module for SquashFS 4.0 support
+endef
+
+$(eval $(call KernelPackage,fs-squashfs))
 
 
 define KernelPackage/fs-udf
