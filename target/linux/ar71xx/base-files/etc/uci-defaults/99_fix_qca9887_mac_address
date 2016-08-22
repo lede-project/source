@@ -1,0 +1,22 @@
+#!/bin/sh
+
+. /lib/functions.sh
+. /lib/functions/system.sh
+. /lib/ar71xx.sh
+
+case $(ar71xx_board_name) in
+    gl-ar300m)
+	local firmware_file="/lib/firmware/ath10k/QCA9887/hw1.0/firmware-5.bin"
+	if [ -f "$firmware_file" ]; then
+            local mac=$(mtd_get_mac_binary art 0)
+            [ ! -z $mac ] \
+                && mac=$(macaddr_add $mac 1000) \
+                && macaddr_2bin $mac | dd of=$firmware_file \
+                                  conv=notrunc bs=1 seek=280 count=6 \
+                && rmmod ath10k_pci; rmmod ath10k_core; insmod /lib/modules/`uname -r`/ath10k_core.ko; insmod /lib/modules/`uname -r`/ath10k_pci.ko; wifi down; wifi up; true \
+                && exit 0
+        fi
+        ;;
+esac
+
+exit 1
