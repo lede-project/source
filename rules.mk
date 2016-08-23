@@ -245,6 +245,7 @@ TARGET_CXX:=$(TARGET_CROSS)g++
 KPATCH:=$(SCRIPT_DIR)/patch-kernel.sh
 SED:=$(STAGING_DIR_HOST)/bin/sed -i -e
 CP:=cp -fpR
+CP_DEREF:=$(CP) -L
 LN:=ln -sf
 XARGS:=xargs -r
 
@@ -368,7 +369,7 @@ define file_copy
 				rm -f "$$FILE"; \
 			done; ); \
 	done; \
-	$(CP) $(1) $(2)
+	$(CP_DEREF) $(1) $(2)
 endef
 
 # Calculate sha256sum of any plain file within a given directory
