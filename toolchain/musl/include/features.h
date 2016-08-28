@@ -43,6 +43,8 @@
 # define __GNUC_PREREQ(maj, min) 0
 #endif
 
+#ifndef __ASSEMBLER__
 #include <sys/glibc-types.h>
+#endif
 
 #endif

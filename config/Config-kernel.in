@@ -251,6 +251,14 @@ if KERNEL_DEVTMPFS
 
 endif
 
+config KERNEL_KEYS
+    bool
+    default n
+
+config KERNEL_KEYS_DEBUG_PROC_KEYS
+    bool
+    default n
+
 #
 # CGROUP support symbols
 #
