@@ -156,6 +156,8 @@ else
     OPENSSL_TARGET:=linux-mips-openwrt
 #  else ifeq ($(CONFIG_arm)$(CONFIG_armeb),y)
 #    OPENSSL_TARGET:=linux-armv4-openwrt
+  else ifneq ($(findstring cortex,$(CONFIG_CPU_TYPE)),)
+    OPENSSL_TARGET:=linux-armv4-openwrt
   else
     OPENSSL_TARGET:=linux-generic-openwrt
     OPENSSL_OPTIONS+=no-perlasm
