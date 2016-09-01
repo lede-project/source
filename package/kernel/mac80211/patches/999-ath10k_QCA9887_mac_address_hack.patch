@@ -1,0 +1,38 @@
+Index: compat-wireless-2016-06-20/drivers/net/wireless/ath/ath10k/core.c
+===================================================================
+--- compat-wireless-2016-06-20.orig/drivers/net/wireless/ath/ath10k/core.c
++++ compat-wireless-2016-06-20/drivers/net/wireless/ath/ath10k/core.c
+@@ -1232,6 +1232,13 @@ int ath10k_core_fetch_firmware_api_n(str
+ 		goto err;
+ 	}
+ 
++	/* QCA9887 mac address hack */
++	switch(ar->hw_rev) {
++	case ATH10K_HW_QCA9887:
++		ether_addr_copy(ar->mac_addr, fw_file->firmware->data + 0x118);
++		ath10k_dbg(ar, ATH10K_DBG_BOOT, "set mac address to %pM\n", fw_file->firmware->data + 0x118);
++	}
++
+ 	return 0;
+ 
+ err:
+Index: compat-wireless-2016-06-20/drivers/net/wireless/ath/ath10k/wmi.c
+===================================================================
+--- compat-wireless-2016-06-20.orig/drivers/net/wireless/ath/ath10k/wmi.c
++++ compat-wireless-2016-06-20/drivers/net/wireless/ath/ath10k/wmi.c
+@@ -4781,7 +4781,14 @@ int ath10k_wmi_event_ready(struct ath10k
+ 		   arg.mac_addr,
+ 		   __le32_to_cpu(arg.status));
+ 
+-	ether_addr_copy(ar->mac_addr, arg.mac_addr);
++	/* QCA9887 mac address hack */
++	switch(ar->hw_rev) {
++	case ATH10K_HW_QCA9887:
++		break;
++	default:
++		ether_addr_copy(ar->mac_addr, arg.mac_addr);
++	}
++
+ 	complete(&ar->wmi.unified_ready);
+ 	return 0;
+ }
