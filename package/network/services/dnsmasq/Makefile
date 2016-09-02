@@ -137,6 +137,12 @@ MAKE_FLAGS := \
 	COPTS="$(COPTS)" \
 	PREFIX="/usr"
 
+define Build/Configure
+	# Report version number as UNKNOWN
+	echo UNKNOWN > $(PKG_BUILD_DIR)/VERSION.new && \
+	mv $(PKG_BUILD_DIR)/VERSION.new $(PKG_BUILD_DIR)/VERSION || exit 1;
+endef
+
 define Package/dnsmasq/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/dnsmasq $(1)/usr/sbin/
