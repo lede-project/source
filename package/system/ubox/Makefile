@@ -1,13 +1,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ubox
-PKG_VERSION:=2016-07-19
+PKG_VERSION:=2016-08-17
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(LEDE_GIT)/project/ubox.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=aead2c0cbffdda9b46d74a998a4c6aeef423b21a
+PKG_SOURCE_VERSION:=34c597b8f478a4937fa041bf9da988990314ea85
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
 CMAKE_INSTALL:=1
 
@@ -28,15 +28,8 @@ define Package/ubox
   TITLE:=OpenWrt system helper toolbox
 endef
 
-define Package/logd
-  SECTION:=base
-  CATEGORY:=Base system
-  DEPENDS:=+libubox +libubus +libblobmsg-json +USE_GLIBC:librt
-  TITLE:=OpenWrt system log implementation
-endef
-
 define Package/ubox/install
-	$(INSTALL_DIR) $(1)/sbin $(1)/usr/sbin $(1)/lib/ $(1)/usr/bin
+	$(INSTALL_DIR) $(1)/sbin $(1)/usr/sbin $(1)/lib $(1)/usr/bin $(1)/etc/init.d
 
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/{kmodloader,validate_data} $(1)/sbin/
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/getrandom $(1)/usr/bin/
@@ -47,14 +40,9 @@ define Package/ubox/install
 	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/lsmod
 	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/modinfo
 	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/modprobe
-endef
-
-define Package/logd/install
-	$(INSTALL_DIR) $(1)/sbin $(1)/etc/init.d/
 
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/{logd,logread} $(1)/sbin/
 	$(INSTALL_BIN) ./files/log.init $(1)/etc/init.d/log
 endef
 
 $(eval $(call BuildPackage,ubox))
-$(eval $(call BuildPackage,logd))

@@ -13,7 +13,7 @@ __target_inc=1
 DEVICE_TYPE?=router
 
 # Default packages - the really basic set
-DEFAULT_PACKAGES:=base-files libc libgcc busybox dropbear mtd uci opkg netifd fstools uclient-fetch logd
+DEFAULT_PACKAGES:=base-files libc libgcc busybox dropbear mtd uci opkg netifd fstools uclient-fetch
 # For nas targets
 DEFAULT_PACKAGES.nas:=block-mount fdisk lsblk mdadm
 # For router targets
@@ -167,9 +167,7 @@ ifeq ($(DUMP),1)
     CPU_CFLAGS_mips32r2 = -mips32r2 -mtune=mips32r2
     CPU_CFLAGS_mips64 = -mips64 -mtune=mips64 -mabi=64
     CPU_CFLAGS_24kc = -mips32r2 -mtune=24kc
-    CPU_CFLAGS_34kc = -mips32r2 -mtune=34kc
     CPU_CFLAGS_74kc = -mips32r2 -mtune=74kc
-    CPU_CFLAGS_1004kc = -mips32r2 -mtune=1004kc
     CPU_CFLAGS_octeon = -march=octeon -mabi=64
   endif
   ifeq ($(ARCH),i386)

@@ -11,7 +11,6 @@ PKG_NAME:=iperf
 PKG_VERSION:=2.0.9
 PKG_RELEASE:=1
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@SF/iperf2
 PKG_MD5SUM:=1bb3a1d98b1973aee6e8f171933c0f61
@@ -42,7 +41,7 @@ TARGET_CFLAGS += -D_GNU_SOURCE
 CONFIGURE_ARGS += --disable-multicast
 
 CONFIGURE_VARS += CXXFLAGS="$$$$CXXFLAGS -fno-rtti"
-CONFIGURE_VARS += LIBS="-lpthread"
+CONFIGURE_VARS += LIBS="-lpthread -lm"
 
 define Package/iperf/install
 	$(INSTALL_DIR) $(1)/usr/bin
