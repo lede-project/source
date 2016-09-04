@@ -25,10 +25,14 @@ PKG_CONFIG_DEPENDS := \
 	CONFIG_PACKAGE_kmod-brcm-wl-mini \
 	CONFIG_PACKAGE_kmod-brcm-wl-mimo \
 	CONFIG_PACKAGE_kmod-madwifi \
-	CONFIG_PACKAGE_kmod-cfg80211
+	CONFIG_PACKAGE_kmod-cfg80211 \
+	CONFIG_PACKAGE_kmod-qca-wifi-perf-10.2
 
 include $(INCLUDE_DIR)/package.mk
 
+ifneq ($(CONFIG_PACKAGE_kmod-qca-wifi-perf-10.2),)
+	PKG_BUILD_DEPENDS+=qca-wifi-10.2
+endif
 
 define Package/libiwinfo
   SECTION:=libs
@@ -78,7 +82,8 @@ IWINFO_BACKENDS := \
 	$(if $(CONFIG_PACKAGE_kmod-brcm-wl-mini),wl) \
 	$(if $(CONFIG_PACKAGE_kmod-brcm-wl-mimo),wl) \
 	$(if $(CONFIG_PACKAGE_kmod-madwifi),madwifi) \
-	$(if $(CONFIG_PACKAGE_kmod-cfg80211),nl80211)
+	$(if $(CONFIG_PACKAGE_kmod-cfg80211),nl80211) \
+	$(if $(CONFIG_PACKAGE_kmod-qca-wifi-perf-10.2),qcawifi)
 
 TARGET_CFLAGS += \
 	-I$(STAGING_DIR)/usr/include/libnl-tiny \
