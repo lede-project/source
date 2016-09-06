@@ -741,4 +741,5 @@ stop_service() {
 		ln -s /tmp/resolv.conf.auto /tmp/resolv.conf
 	}
 	rm -f /var/run/dnsmasq.*.dhcp
+	rm -f /var/run/dnsmasq/dnsmasq.pid
 }
