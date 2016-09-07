@@ -105,6 +105,14 @@ define Build/Configure
 	  mv $(PKG_BUILD_DIR)/options.h.new $(PKG_BUILD_DIR)/options.h || exit 1; \
 	done
 
+	# Force version number as UNKNOWN
+	awk 'BEGIN { rc = 1 } \
+	     /'define[[:space:]]DROPBEAR_VERSION'/ { $$$$3="\"\""; rc = 0 } \
+	     { print } \
+	     END { exit(rc) }' $(PKG_BUILD_DIR)/sysoptions.h \
+	     >$(PKG_BUILD_DIR)/sysoptions.h.new && \
+	mv $(PKG_BUILD_DIR)/sysoptions.h.new $(PKG_BUILD_DIR)/sysoptions.h || exit 1;
+
 	# Enforce rebuild of svr-chansession.c
 	rm -f $(PKG_BUILD_DIR)/svr-chansession.o
 endef
