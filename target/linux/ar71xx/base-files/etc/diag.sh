@@ -119,6 +119,9 @@ get_status_led() {
 	dragino2)
 		status_led="dragino2:red:system"
 		;;
+	eap120)
+		status_led="$(ar71xx_board_name):green:system"
+		;;
 	eap300v2)
 		status_led="engenius:blue:power"
 		;;
