@@ -17,13 +17,17 @@
 #include "dev-gpio-buttons.h"
 #include "dev-leds-gpio.h"
 #include "dev-m25p80.h"
+#include "dev-usb.h"
 #include "dev-wmac.h"
 #include "machtypes.h"
 
+#define TL_WR941ND_GPIO_LED_USB         1
 #define TL_WR941ND_GPIO_LED_SYSTEM	2
 #define TL_WR941ND_GPIO_LED_QSS_RED	4
 #define TL_WR941ND_GPIO_LED_QSS_GREEN	5
 #define TL_WR941ND_GPIO_LED_WLAN	9
+#define TL_WR941ND_GPIO_LED_GPIO0	0
+#define TL_WR941ND_GPIO_LED_GPIO6	6
 
 #define TL_WR941ND_GPIO_BTN_RESET	3
 #define TL_WR941ND_GPIO_BTN_QSS		7
@@ -42,6 +46,18 @@ static struct flash_platform_data tl_wr941nd_flash_data = {
 
 static struct gpio_led tl_wr941nd_leds_gpio[] __initdata = {
 	{
+		.name		= "tp-link:blue:gpio0",
+		.gpio		= TL_WR941ND_GPIO_LED_GPIO0,
+		.active_low	= 1,
+	},	{
+		.name		= "tp-link:blue:gpio6",
+		.gpio		= TL_WR941ND_GPIO_LED_GPIO6,
+		.active_low	= 1,
+	},	{
+		.name		= "tp-link:green:usb",
+		.gpio		= TL_WR941ND_GPIO_LED_USB,
+		.active_low	= 1,
+	},{
 		.name		= "tp-link:green:system",
 		.gpio		= TL_WR941ND_GPIO_LED_SYSTEM,
 		.active_low	= 1,
@@ -103,6 +119,7 @@ static void __init tl_wr941nd_setup(void)
 	ath79_eth0_data.duplex = DUPLEX_FULL;
 
 	ath79_register_eth(0);
+	ath79_register_usb();
 	ath79_register_dsa(&ath79_eth0_device.dev, &ath79_mdio0_device.dev,
 			   &tl_wr941nd_dsa_data);
 
