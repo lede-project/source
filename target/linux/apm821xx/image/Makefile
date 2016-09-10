@@ -69,13 +69,16 @@ define Device/mr24
   DEVICE_PACKAGES := kmod-spi-gpio kmod-ath9k wpad-mini
   DEVICE_PROFILE := MR24
   DEVICE_DTS := MR24
-  BLOCKSIZE := 64512
+  BLOCKSIZE := 63k
   IMAGES := sysupgrade.tar
   DTB_SIZE := 64512
-  KERNEL_SIZE := 2048k
+  KERNEL_SIZE := 1984k
   IMAGE_SIZE := 8191k
   KERNEL := kernel-bin | lzma | uImage lzma | MerakiAdd-dtb | MerakiNAND
-  KERNEL_INITRAMFS := copy-file $(KDIR)/vmlinux | gzip | uImage gzip | MerakiAdd-dtb | pad-to 2047k | MerakiAdd-initramfs | MerakiNAND
+  KERNEL_INITRAMFS := copy-file $(KDIR)/vmlinux | lzma | uImage lzma | \
+		      check-size $$(KERNEL_SIZE) | \
+		      MerakiAdd-dtb | pad-to 2047k | MerakiAdd-initramfs | \
+		      MerakiNAND
   IMAGE/sysupgrade.tar := sysupgrade-tar
 endef
 TARGET_DEVICES += mr24
@@ -147,9 +150,9 @@ define Device/WNDR4700
   DEVICE_DTS := wndr4700
   PAGESIZE := 2048
   SUBPAGESIZE := 512
-  BLOCKSIZE := 131072
+  BLOCKSIZE := 128k
   DTB_SIZE := 131008
-  IMAGE_SIZE:=25559040
+  IMAGE_SIZE := 24960k
   IMAGES := factory.img sysupgrade.tar
   KERNEL_SIZE := 1920k
   KERNEL := dtb | kernel-bin | lzma | uImage lzma | pad-offset $$(BLOCKSIZE) 64 | append-fakerootfs
@@ -181,7 +184,7 @@ define Build/boot-img
 	$(CP) $(IMAGE_KERNEL).dtb $@.bootdir/boot/$(DEVICE_DTB)
 	$(CP) $(IMAGE_KERNEL) $@.bootdir/boot/uImage
 
-	genext2fs --block-size $(BLOCKSIZE) --size-in-blocks $$((1024 * $(BOOT_SIZE))) --root $@.bootdir $@.boot
+	genext2fs --block-size $(BLOCKSIZE:%k=%Ki) --size-in-blocks $$((1024 * $(BOOT_SIZE))) --root $@.bootdir $@.boot
 
 	# convert it to revision 1 - needed for u-boot ext2load
 	$(STAGING_DIR_HOST)/bin/tune2fs -O filetype $@.boot
@@ -217,7 +220,7 @@ endef
 
 define Device/MyBookLiveDefault
   IMAGE_SIZE := 48m
-  BLOCKSIZE := 1024
+  BLOCKSIZE := 1k
   DTB_SIZE := 16384
   KERNEL := kernel-bin | dtb | gzip | uImage gzip
   BOOT_SIZE := 8

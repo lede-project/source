@@ -4,6 +4,7 @@
 
 define Device/mt7628
   DTS := MT7628
+  BLOCKSIZE := 64k
   IMAGE_SIZE := $(ralink_default_fw_size_4M)
   DEVICE_TITLE := MediaTek MT7628 EVB
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-ledtrig-usbdev
@@ -28,8 +29,13 @@ TARGET_DEVICES += wrtnode2p
 
 define Device/duzun-dm06
   DTS := DUZUN-DM06
-  IMAGE_SIZE := $(ralink_default_fw_size_8M)
   DEVICE_TITLE := DuZun DM06
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-ledtrig-usbdev
 endef
 TARGET_DEVICES += duzun-dm06
+
+define Device/mac1200r-v2
+  DTS := MAC1200RV2
+  DEVICE_TITLE := Mercury MAC1200R v2.0
+endef
+TARGET_DEVICES += mac1200r-v2

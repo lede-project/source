@@ -15,11 +15,12 @@ MAINTAINER:=John Crispin <john@phrozen.org>
 
 KERNEL_PATCHVER:=4.4
 
-include $(INCLUDE_DIR)/target.mk
-
-
 define Target/Description
 	Build firmware images for Cavium Networks Octeon-based boards.
 endef
+
+include $(INCLUDE_DIR)/target.mk
+
+DEFAULT_PACKAGES += mkf2fs e2fsprogs
 
 $(eval $(call BuildTarget))

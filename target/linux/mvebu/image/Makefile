@@ -34,7 +34,6 @@ endef
 # MBR:            2048 sectors
 # Partition 1:   32768 sectors
 # Partition 2:   98304 sectors (configurable)
-# Partition 3: 7611392 sectors (configurable, depends on p2 size)
 
 define Build/boot-scr
 	rm -f $@.bootscript
@@ -50,16 +49,11 @@ define Build/boot-img
 endef
 
 define Build/sdcard-img
-	rm -rf $@ $@.rootfsdata $@.tmp
-	mkdir -p $@.tmp
 	ROOTFS_SIZE=$$(( $(CONFIG_TARGET_ROOTFS_PARTSIZE) * 1024 * 2 )); \
-	DATA_SIZE=$$(( 7709696 - ($(CONFIG_TARGET_ROOTFS_PARTSIZE) * 1024 * 2) )); \
-	make_ext4fs -J -l $$DATA_SIZE $@.rootfsdata $@.tmp && \
-	./gen_mvebu_sdcard_img.sh 7744512 $@ \
+	./gen_mvebu_sdcard_img.sh $@ \
 		"$(BIN_DIR)/uboot-mvebu-clearfog/openwrt-mvebu-clearfog-u-boot-spl.kwb" \
 		c 32768 $@.boot \
-		83 $$ROOTFS_SIZE $(IMAGE_ROOTFS) \
-		83 $$DATA_SIZE $@.rootfsdata
+		83 $$ROOTFS_SIZE $(IMAGE_ROOTFS)
 endef
 
 define Device/Default
@@ -83,7 +77,7 @@ endef
 
 define Device/NAND-128K
   $(Device/UBI)
-  BLOCKSIZE := 128KiB
+  BLOCKSIZE := 128k
   PAGESIZE := 2048
   SUBPAGESIZE := 512
   VID_HDR_OFFSET := 2048
@@ -91,13 +85,13 @@ endef
 
 define Device/NAND-256K
   $(Device/UBI)
-  BLOCKSIZE := 256KiB
+  BLOCKSIZE := 256k
   PAGESIZE := 4096
 endef
 
 define Device/NAND-512K
   $(Device/UBI)
-  BLOCKSIZE := 512KiB
+  BLOCKSIZE := 512k
   PAGESIZE := 4096
 endef
 
@@ -145,7 +139,7 @@ TARGET_DEVICES += linksys-wrt1900ac
 define Device/openblocks-ax3
   $(Device/UBI-factory)
   DEVICE_DTS := armada-xp-openblocks-ax3-4
-  BLOCKSIZE := 128KiB
+  BLOCKSIZE := 128k
   PAGESIZE := 1
   IMAGE/factory.img := append-kernel $$$$(KERNEL_SIZE) | append-ubi
   DEVICE_TITLE := Plat'Home OpenBlocks AX3
@@ -182,7 +176,7 @@ define Device/armada-388-clearfog
   KERNEL_INSTALL := 1
   KERNEL := dtb | kernel-bin
   DEVICE_TITLE := SolidRun ClearFog
-  DEVICE_PACKAGES := uboot-mvebu-clearfog kmod-fs-ext4
+  DEVICE_PACKAGES := uboot-mvebu-clearfog mkf2fs e2fsprogs
   IMAGES := bundle.tar.gz sdcard.img.gz
   IMAGE/bundle.tar.gz := clearfog-bundle
   IMAGE/sdcard.img.gz := boot-scr | boot-img | sdcard-img | gzip

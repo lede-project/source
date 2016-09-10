@@ -48,14 +48,6 @@ define BuildFirmware/DIR300B1/squashfs
 endef
 BuildFirmware/DIR300B1/initramfs=$(call BuildFirmware/OF/initramfs,$(1),$(2),$(3))
 
-define BuildFirmware/DIR615H1/squashfs
-	$(call BuildFirmware/Default4M/$(1),$(1),dir-615-h1,DIR-615-H1)
-	-mksenaofw -e $(call sysupname,$(1),dir-615-h1) \
-		-o $(call imgname,$(1),dir-615-h1)-factory.bin \
-		-r 0x218 -p 0x30 -t 3
-endef
-BuildFirmware/DIR615H1/initramfs=$(call BuildFirmware/OF/initramfs,$(1),dir-615-h1,DIR-615-H1)
-
 # sign dap 1350 based images
 dap1350_mtd_size=7667712
 define BuildFirmware/dap1350/squashfs
@@ -165,7 +157,6 @@ define Image/Build/Profile/ALL02393G
 	$(call Image/Build/Template/$(image_type)/$(1),UIMAGE_8M,all0239-3g,ALL0239-3G,ttyS1,57600,phys)
 endef
 
-Image/Build/Profile/DIR610A1=$(call BuildFirmware/Seama/$(1),$(1),dir-610-a1,DIR-610-A1,wrgn59_dlob.hans_dir610,$(ralink_default_fw_size_4M))
 edimax_3g6200n_mtd_size=3735552
 Image/Build/Profile/3G6200N=$(call BuildFirmware/Edimax/$(1),$(1),3g-6200n,3G-6200N,$(edimax_3g6200n_mtd_size),CSYS,3G62,0x50000,0xc0000)
 Image/Build/Profile/3G6200NL=$(call BuildFirmware/Edimax/$(1),$(1),3g-6200nl,3G-6200NL,$(edimax_3g6200n_mtd_size),CSYS,3G62,0x50000,0xc0000)
@@ -182,7 +173,6 @@ Image/Build/Profile/DIR-300-B1=$(call BuildFirmware/DIR300B1/$(1),$(1),dir-300-b
 Image/Build/Profile/DIR-600-B1=$(call BuildFirmware/DIR300B1/$(1),$(1),dir-600-b1,DIR-600-B1,wrgn23_dlwbr_dir600b)
 Image/Build/Profile/DIR-600-B2=$(call BuildFirmware/DIR300B1/$(1),$(1),dir-600-b2,DIR-600-B2,wrgn23_dlwbr_dir600b)
 Image/Build/Profile/DIR-615-D=$(call BuildFirmware/DIR300B1/$(1),$(1),dir-615-d,DIR-615-D,wrgn23_dlwbr_dir615d)
-Image/Build/Profile/DIR615H1=$(call BuildFirmware/DIR615H1/$(1),$(1))
 Image/Build/Profile/DAP1350=$(call BuildFirmware/dap1350/$(1),$(1),dap-1350,DAP-1350,RT3052-AP-DAP1350-3)
 Image/Build/Profile/DAP1350WW=$(call BuildFirmware/dap1350/$(1),$(1),dap-1350WW,DAP-1350,RT3052-AP-DAP1350WW-3)
 Image/Build/Profile/DCS930=$(call BuildFirmware/DCS930/$(1),$(1),dcs-930,DCS-930)
@@ -212,11 +202,26 @@ endef
 LEGACY_DEVICES += ALL02393G
 
 
-define LegacyDevice/DIR610A1
+define Device/dir-610-a1
+  DTS := DIR-610-A1
+  BLOCKSIZE := 4k
+  IMAGES += factory.bin
+  KERNEL := $(KERNEL_DTB)
+  IMAGE_SIZE := $(ralink_default_fw_size_4M)
+  IMAGE/sysupgrade.bin := \
+	append-kernel | pad-offset $$$$(BLOCKSIZE) 64 | append-rootfs | \
+	seama -m "dev=/dev/mtdblock/2" -m "type=firmware" | \
+	pad-rootfs | check-size $$$$(IMAGE_SIZE)
+  IMAGE/factory.bin := \
+	append-kernel | pad-offset $$$$(BLOCKSIZE) 64 | \
+	append-rootfs | pad-rootfs -x 64 | \
+	seama -m "dev=/dev/mtdblock/2" -m "type=firmware" | \
+	seama-seal -m "signature=wrgn59_dlob.hans_dir610" | \
+	check-size $$$$(IMAGE_SIZE)
   DEVICE_TITLE := D-Link DIR-610 A1 
   DEVICE_PACKAGES := kmod-ledtrig-netdev kmod-ledtrig-timer
 endef
-LEGACY_DEVICES += DIR610A1
+TARGET_DEVICES += dir-610-a1
 
 
 define LegacyDevice/3G6200N
@@ -309,10 +314,16 @@ endef
 LEGACY_DEVICES += DIR-615-D
 
 
-define LegacyDevice/DIR615H1
+define Device/dir-615-h1
+  DTS := DIR-615-H1
+  BLOCKSIZE := 4k
+  IMAGES += factory.bin
+  IMAGE_SIZE := $(ralink_default_fw_size_4M)
+  IMAGE/factory.bin := \
+	$$(IMAGE/sysupgrade.bin) | senao-header -r 0x218 -p 0x30 -t 3
   DEVICE_TITLE := D-Link DIR-615 H1
 endef
-LEGACY_DEVICES += DIR615H1
+TARGET_DEVICES += dir-615-h1
 
 
 define LegacyDevice/DAP1350

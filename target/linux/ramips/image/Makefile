@@ -78,6 +78,20 @@ define Build/umedia-header
 	fix-u-media-header -T 0x46 -B $(1) -i $@ -o $@.new && mv $@.new $@
 endef
 
+define Build/senao-header
+	$(STAGING_DIR_HOST)/bin/mksenaofw $(1) -e $@ -o $@.new
+	mv $@.new $@
+endef
+
+define Build/seama
+	$(STAGING_DIR_HOST)/bin/seama -i $@ $(1)
+	mv $@.seama $@
+endef
+
+define Build/seama-seal
+	$(call Build/seama,-s $@.seama $(1))
+endef
+
 #
 # The real magic happens inside these templates
 #
@@ -196,38 +210,6 @@ define BuildFirmware/DefaultDualSize/initramfs
 	$(call BuildFirmware/OF/initramfs,$(1),$(2)-8M,$(3)-8M)
 endef
 
-# build Seama header images
-define BuildFirmware/Seama/squashfs
-	$(call MkImageLzmaDtb,$(2),$(3),$(5))
-	$(eval output_name=$(IMG_PREFIX)-$(2)-$(1)-sysupgrade.bin)
-	cat $(KDIR)/vmlinux-$(2).bin.lzma $(KDIR)/root.$(1) > $(KDIR)/img_$(2).$(1).tmp
-	if [ `stat -c%s "$(KDIR)/img_$(2).$(1).tmp"` -gt $(5) ]; then \
-		echo "Warning: $(KDIR)/img_$(2).$(1).tmp is too big" >&2; \
-	else \
-		dd if=$(KDIR)/vmlinux-$(2).bin.lzma of=$(KDIR)/vmlinux-$(2).bin.lzma.padded bs=64k conv=sync; \
-		( \
-			dd if=$(KDIR)/vmlinux-$(2).bin.lzma.padded bs=1 count=`expr \`stat -c%s $(KDIR)/vmlinux-$(2).bin.lzma.padded\` - 64`; \
-			dd if=$(KDIR)/root.$(1) bs=64k conv=sync; \
-		) > $(KDIR)/vmlinux-$(2).tmp; \
-		$(STAGING_DIR_HOST)/bin/seama \
-			-i $(KDIR)/vmlinux-$(2).tmp \
-			-m "dev=/dev/mtdblock/2" -m "type=firmware"; \
-		$(STAGING_DIR_HOST)/bin/seama \
-			-s $(call imgname,$(1),$(2))-factory.bin \
-			-m "signature=$(4)" \
-			-i $(KDIR)/vmlinux-$(2).tmp.seama; \
-		dd if=$(KDIR)/vmlinux-$(2).bin.lzma.padded bs=1 count=`expr \`stat -c%s $(KDIR)/vmlinux-$(2).bin.lzma.padded\` - 64` of=$(KDIR)/vmlinux-$(2)-sysupgrade.tmp; \
-		$(STAGING_DIR_HOST)/bin/seama \
-			-i $(KDIR)/vmlinux-$(2)-sysupgrade.tmp \
-			-m "dev=/dev/mtdblock/2" -m "type=firmware"; \
-		( \
-			dd if=$(KDIR)/vmlinux-$(2)-sysupgrade.tmp.seama; \
-			dd if=$(KDIR)/root.$(1) bs=64k conv=sync; \
-		) > $(BIN_DIR)/$(output_name); \
-	fi
-endef
-BuildFirmware/Seama/initramfs=$(call BuildFirmware/OF/initramfs,$(1),$(2),$(3))
-
 define BuildFirmware/PorayDualSize/squashfs
 	$(call BuildFirmware/DefaultDualSize/$(1),$(1),$(2),$(3))
 	if [ -e "$(call sysupname,$(1),$(2)-4M)" ]; then \
@@ -300,6 +282,7 @@ define Image/Build
 endef
 
 define Image/Build/Profile
+	$(if $(CONFIG_TARGET_ROOTFS_INITRAMFS),$(call Image/Build/Profile/$(1),initramfs))
 	$(call Image/Build/Profile/$(1),$(2))
 endef
 

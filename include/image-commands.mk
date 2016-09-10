@@ -117,7 +117,7 @@ define Build/append-ubi
 		$(foreach part,$(UBINIZE_PARTS),--part $(part)) \
 		$(IMAGE_ROOTFS) \
 		$@.tmp \
-		-p $(BLOCKSIZE) -m $(PAGESIZE) \
+		-p $(BLOCKSIZE:%k=%KiB) -m $(PAGESIZE) \
 		$(if $(SUBPAGESIZE),-s $(SUBPAGESIZE)) \
 		$(if $(VID_HDR_OFFSET),-O $(VID_HDR_OFFSET)) \
 		$(UBINIZE_OPTS)
@@ -130,15 +130,20 @@ define Build/pad-to
 	mv $@.new $@
 endef
 
+define Build/pad-extra
+	dd if=/dev/zero bs=$(1) count=1 >> $@
+endef
+
 define Build/pad-rootfs
-	$(STAGING_DIR_HOST)/bin/padjffs2 $@ $(1) 4 8 16 64 128 256
+	$(STAGING_DIR_HOST)/bin/padjffs2 $@ $(1) \
+		$(if $(BLOCKSIZE),$(BLOCKSIZE:%k=%),4 8 16 64 128 256)
 endef
 
 define Build/pad-offset
 	let \
 		size="$$(stat -c%s $@)" \
-		pad="$(word 1, $(1))" \
-		offset="$(word 2, $(1))" \
+		pad="$(subst k,* 1024,$(word 1, $(1)))" \
+		offset="$(subst k,* 1024,$(word 2, $(1)))" \
 		pad="(pad - ((size + offset) % pad)) % pad" \
 		newsize='size + pad'; \
 		dd if=$@ of=$@.new bs=$$newsize count=1 conv=sync

@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dnsmasq
 PKG_VERSION:=2.76
-PKG_RELEASE:=3
+PKG_RELEASE:=4
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=http://thekelleys.org.uk/dnsmasq
@@ -27,6 +27,7 @@ PKG_CONFIG_DEPENDS:=CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_dhcpv6 \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_auth \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_ipset \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_conntrack \
+	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_noid \
 	CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_broken_rtc
 
 include $(INCLUDE_DIR)/package.mk
@@ -54,7 +55,7 @@ endef
 
 define Package/dnsmasq-full
 $(call Package/dnsmasq/Default)
-  TITLE += (with DNSSEC, DHCPv6, Auth DNS, IPset, Conntrack enabled by default)
+  TITLE += (with DNSSEC, DHCPv6, Auth DNS, IPset, Conntrack, NO_ID enabled by default)
   DEPENDS:=+PACKAGE_dnsmasq_full_dnssec:libnettle \
 	+PACKAGE_dnsmasq_full_ipset:kmod-ipt-ipset \
 	+PACKAGE_dnsmasq_full_conntrack:libnetfilter-conntrack
@@ -75,7 +76,7 @@ define Package/dnsmasq-full/description
 $(call Package/dnsmasq/description)
 
 This is a fully configurable variant with DHCPv6, DNSSEC, Authoritative DNS and
-IPset, Conntrack support enabled by default.
+IPset, Conntrack support & NO_ID enabled by default.
 endef
 
 define Package/dnsmasq/conffiles
@@ -101,6 +102,9 @@ define Package/dnsmasq-full/config
 	config PACKAGE_dnsmasq_full_conntrack
 		bool "Build with Conntrack support."
 		default y
+	config PACKAGE_dnsmasq_full_noid
+		bool "Build with NO_ID. (hide *.bind pseudo domain)"
+		default y
 	config PACKAGE_dnsmasq_full_broken_rtc
 		bool "Build with HAVE_BROKEN_RTC."
 		default n
@@ -125,10 +129,11 @@ ifeq ($(BUILD_VARIANT),full)
 		$(if $(CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_auth),,-DNO_AUTH) \
 		$(if $(CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_ipset),,-DNO_IPSET) \
 		$(if $(CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_conntrack),-DHAVE_CONNTRACK,) \
+		$(if $(CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_noid),-DNO_ID,) \
 		$(if $(CONFIG_PACKAGE_dnsmasq_$(BUILD_VARIANT)_broken_rtc),-DHAVE_BROKEN_RTC)
 	COPTS += $(if $(CONFIG_LIBNETTLE_MINI),-DNO_GMP,)
 else
-	COPTS += -DNO_AUTH
+	COPTS += -DNO_AUTH  -DNO_ID
 endif
 
 MAKE_FLAGS := \
