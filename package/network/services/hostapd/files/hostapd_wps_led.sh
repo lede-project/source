@@ -13,12 +13,9 @@ WPS_LED=$(ls /sys/class/leds | grep -E 'qss|wps|security' | head -n 1)
 
 case "$CMD" in
 	WPS-PBC-ACTIVE)
-		led_timer $WPS_LED 300 300
+		led_timer $WPS_LED 500 500
 		;;
-	WPS-PBC-DISABLE|CTRL-EVENT-EAP-FAILURE)
-		led_timer $WPS_LED 300 300
-		;;
-	WPS-TIMEOUT|WPS-SUCCESS)
+	WPS-PBC-DISABLE|CTRL-EVENT-EAP-FAILURE|WPS-TIMEOUT|WPS-SUCCESS)
 		led_off "$WPS_LED"
 		kill $(cat "$PID_FILE")
 		rm -f "$PID_FILE"
