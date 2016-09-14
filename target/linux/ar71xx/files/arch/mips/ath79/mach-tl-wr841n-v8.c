@@ -172,7 +172,7 @@ static struct gpio_led tl_wr941nd_v5_leds_gpio[] __initdata = {
 	},
 };
 
-static void __init tl_ap123_setup(void)
+static void __init tl_ap123_setup(bool swap_phy4)
 {
 	u8 *mac = (u8 *) KSEG1ADDR(0x1f01fc00);
 	u8 *ee = (u8 *) KSEG1ADDR(0x1fff1000);
@@ -188,7 +188,7 @@ static void __init tl_ap123_setup(void)
 
 	ath79_register_m25p80(&tl_wr841n_v8_flash_data);
 
-	ath79_setup_ar934x_eth_cfg(AR934X_ETH_CFG_SW_PHY_SWAP);
+	ath79_setup_ar934x_eth_cfg(swap_phy4 ? AR934X_ETH_CFG_SW_PHY_SWAP : AR934X_ETH_CFG_SW_ONLY_MODE);
 
 	ath79_register_mdio(1, 0x0);
 
@@ -197,9 +197,9 @@ static void __init tl_ap123_setup(void)
 
 	/* GMAC0 is connected to the PHY0 of the internal switch */
 	ath79_switch_data.phy4_mii_en = 1;
-	ath79_switch_data.phy_poll_mask = BIT(0);
+	ath79_switch_data.phy_poll_mask = swap_phy4 ? BIT(0) : BIT(4);
 	ath79_eth0_data.phy_if_mode = PHY_INTERFACE_MODE_MII;
-	ath79_eth0_data.phy_mask = BIT(0);
+	ath79_eth0_data.phy_mask = swap_phy4 ? BIT(0) : BIT(4);
 	ath79_eth0_data.mii_bus_dev = &ath79_mdio1_device.dev;
 	ath79_register_eth(0);
 
@@ -212,7 +212,7 @@ static void __init tl_ap123_setup(void)
 
 static void __init tl_wr841n_v8_setup(void)
 {
-	tl_ap123_setup();
+	tl_ap123_setup(false);
 
 	ath79_register_leds_gpio(-1, ARRAY_SIZE(tl_wr841n_v8_leds_gpio) - 1,
 				 tl_wr841n_v8_leds_gpio);
@@ -228,7 +228,7 @@ MIPS_MACHINE(ATH79_MACH_TL_WR841N_V8, "TL-WR841N-v8", "TP-LINK TL-WR841N/ND v8",
 
 static void __init tl_wr842n_v2_setup(void)
 {
-	tl_ap123_setup();
+	tl_ap123_setup(true);
 
 	ath79_register_leds_gpio(-1, ARRAY_SIZE(tl_wr841n_v8_leds_gpio),
 				 tl_wr841n_v8_leds_gpio);
@@ -249,7 +249,7 @@ MIPS_MACHINE(ATH79_MACH_TL_WR842N_V2, "TL-WR842N-v2", "TP-LINK TL-WR842N/ND v2",
 
 static void __init tl_mr3420v2_setup(void)
 {
-	tl_ap123_setup();
+	tl_ap123_setup(true);
 
 	ath79_register_leds_gpio(-1, ARRAY_SIZE(tl_wr841n_v8_leds_gpio),
 				tl_wr841n_v8_leds_gpio);
@@ -272,7 +272,7 @@ MIPS_MACHINE(ATH79_MACH_TL_MR3420_V2, "TL-MR3420-v2", "TP-LINK TL-MR3420 v2",
 
 static void __init tl_wr941nd_v5_setup(void)
 {
-	tl_ap123_setup();
+	tl_ap123_setup(false);
 
 	ath79_register_leds_gpio(-1, ARRAY_SIZE(tl_wr941nd_v5_leds_gpio),
 				 tl_wr941nd_v5_leds_gpio);
