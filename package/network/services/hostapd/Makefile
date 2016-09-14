@@ -385,9 +385,10 @@ Package/hostapd-mini/install = $(Package/hostapd/install)
 
 ifneq ($(LOCAL_TYPE),supplicant)
   define Package/hostapd-utils/install
-	$(INSTALL_DIR) $(1)/usr/sbin $(1)/etc/rc.button
+	$(INSTALL_DIR) $(1)/usr/sbin $(1)/lib $(1)/etc/rc.button
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/hostapd/hostapd_cli $(1)/usr/sbin/
 	$(INSTALL_BIN) ./files/wps-hotplug.sh $(1)/etc/rc.button/wps
+	$(INSTALL_BIN) ./files/hostapd_wps_led.sh $(1)/lib/hostapd_wps_led.sh
   endef
 endif
 
