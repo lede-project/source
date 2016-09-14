@@ -10,7 +10,6 @@ NAND_BLOCKSIZE := 2048-128k
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
-DEVICE_VARS += KERNEL_SIZE
 KERNEL_LOADADDR:=0x8000
 TARGET_DEVICES = linksys-audi linksys-viper dockstar goflexnet goflexhome
 
@@ -28,6 +27,7 @@ define Device/Default
   SUBPAGESIZE := 512
   BLOCKSIZE := 128k
   IMAGES := sysupgrade.tar
+  UBINIZE_OPTS := -E 5
   IMAGE/sysupgrade.tar := sysupgrade-tar
 endef
 
@@ -59,7 +59,7 @@ define Device/linksys-audi
   FILESYSTEMS := squashfs
   PROFILES := Generic AUDI
   IMAGES += factory.bin
-  IMAGE/factory.bin := append-kernel $$$$(KERNEL_SIZE) | append-ubi
+  IMAGE/factory.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi
 endef
 
 define Device/linksys-viper
@@ -68,7 +68,7 @@ define Device/linksys-viper
   FILESYSTEMS := squashfs
   PROFILES := Generic VIPER
   IMAGES += factory.bin
-  IMAGE/factory.bin := append-kernel $$$$(KERNEL_SIZE) | append-ubi
+  IMAGE/factory.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi
 endef
 
 define Image/BuildKernel/Template
