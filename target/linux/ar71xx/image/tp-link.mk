@@ -874,3 +874,27 @@ define Device/tl-wa7210n-v2
 endef
 TARGET_DEVICES += tl-wa7210n-v2
 
+define Device/tl-wr740n-v5-cn
+    $(Device/tplink-8mlzma)
+    BOARDNAME := TL-WR740N-v5
+    DEVICE_PROFILE := TLWR740
+    TPLINK_HWID := 0x07400005
+    CONSOLE := ttyATH0,115200
+endef
+
+define Device/tl-wr741n-v4-cn
+    $(Device/tplink-8mlzma)
+    BOARDNAME := TL-WR740N-v5
+    DEVICE_PROFILE := TLWR741
+    TPLINK_HWID := 0x07410004
+    CONSOLE := ttyATH0,115200
+endef
+
+define Device/tl-wr742n-v5
+    $(Device/tplink-8mlzma)
+    BOARDNAME := TL-WR742N-v5
+    DEVICE_PROFILE := TLWR742
+    TPLINK_HWID := 0x07420005
+    CONSOLE := ttyATH0,115200
+endef
+TARGET_DEVICES += tl-wr740n-v5-cn tl-wr741n-v4-cn tl-wr742n-v5

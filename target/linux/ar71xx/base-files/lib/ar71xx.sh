@@ -169,6 +169,9 @@ tplink_board_detect() {
 	"074100"*)
 		model="TP-Link TL-WR741N/ND"
 		;;
+	"074200"*)
+		model="TP-Link TL-WR742N/ND"
+		;;
 	"074300"*)
 		model="TP-Link TL-WR743N/ND"
 		;;
@@ -930,8 +933,14 @@ ar71xx_board_detect() {
 	*TL-WR741ND)
 		name="tl-wr741nd"
 		;;
+	*"TL-WR740N v5")
+		name="tl-wr740n-v5"
+		;;
 	*"TL-WR741ND v4")
 		name="tl-wr741nd-v4"
+		;;
+	*"TL-WR742N v5")
+		name="tl-wr742n-v5"
 		;;
 	*"TL-WR841N v1")
 		name="tl-wr841n-v1"
