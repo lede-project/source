@@ -445,7 +445,7 @@
 			#gpio-cells = <2>;
 			interrupt-controller;
 			#interrupt-cells = <2>;
-			interrupts = <0 32 0x4>;
+			interrupts = <0 16 0x4>;
 
 			pcie0_pins: pcie0_pinmux {
 				mux {
