@@ -98,6 +98,15 @@
 					bias-disable;
 				};
 			};
+
+			spi_pins: spi_pins {
+				mux {
+					pins = "gpio18", "gpio19", "gpio21";
+					function = "gsbi5";
+					drive-strength = <10>;
+					bias-none;
+				};
+			};
 		};
 
 		gsbi@16300000 {
@@ -112,6 +121,30 @@
 			 * RPM usage. Turning this on in kernel manifests as
 			 * i2c failure for the RPM.
 			 */
+		};
+
+		gsbi5: gsbi@1a200000 {
+			qcom,mode = <GSBI_PROT_SPI>;
+			status = "ok";
+
+			spi4: spi@1a280000 {
+				status = "ok";
+				spi-max-frequency = <50000000>;
+				pinctrl-0 = <&spi_pins>;
+				pinctrl-names = "default";
+
+				cs-gpios = <&qcom_pinmux 20 0>;
+
+				flash: m25p80@0 {
+					compatible = "s25fl512s";
+					#address-cells = <1>;
+					#size-cells = <1>;
+					spi-max-frequency = <51200000>;
+					reg = <0>;
+
+					linux,part-probe = "qcom-smem";
+				};
+			};
 		};
 
 		sata-phy@1b400000 {
