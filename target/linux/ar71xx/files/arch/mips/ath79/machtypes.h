@@ -74,6 +74,7 @@ enum ath79_mach_type {
 	ATH79_MACH_DR344,		/* Wallys DR344 */
 	ATH79_MACH_DR531,		/* Wallys DR531 */
 	ATH79_MACH_DRAGINO2,		/* Dragino Version 2 */
+	ATH79_MACH_EAP120,		/* TP-LINK EAP120 */
 	ATH79_MACH_ESR900,		/* EnGenius ESR900 */
 	ATH79_MACH_EW_DORIN,		/* embedded wireless Dorin Platform */
 	ATH79_MACH_EW_DORIN_ROUTER,	/* embedded wireless Dorin Router Platform */
