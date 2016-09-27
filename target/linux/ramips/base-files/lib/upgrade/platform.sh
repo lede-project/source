@@ -96,9 +96,11 @@ platform_check_image() {
 	mzk-w300nh2|\
 	mzk-wdpr|\
 	nbg-419n|\
+	newifi-d1|\
 	nixcore|\
 	nw718|\
 	oy-0001|\
+	pbr-d1|\
 	pbr-m1|\
 	psg1208|\
 	psr-680w|\

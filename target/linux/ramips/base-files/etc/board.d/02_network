@@ -177,6 +177,7 @@ ramips_setup_interfaces()
 	mzk-ex300np|\
 	mzk-ex750np|\
 	na930|\
+	pbr-d1|\
 	wli-tx4-ag300n|\
 	wmr-300|\
 	wrh-300cr)
@@ -205,6 +206,13 @@ ramips_setup_interfaces()
 	vocore)
 		ucidef_add_switch "switch0" \
 			"0:lan" "4:lan" "6t@eth0"
+		;;
+	newifi-d1)
+		ucidef_set_interface_lan_wan "eth0.1" "eth0.2"
+		ucidef_add_switch "switch0" \
+			"0:lan" "1:lan" "2:lan" "3:lan" "5:wan" "6t@eth0" "7t@eth0"
+		ucidef_add_switch "switch1" \
+			"4:lan" "6t@eth0" "7t@eth0"
 		;;
 	rt-n56u)
 		ucidef_add_switch "switch0" \
@@ -319,6 +327,10 @@ ramips_setup_macs()
 	x8)
 		lan_mac=$(cat /sys/class/net/eth0/address)
 		lan_mac=$(macaddr_add "$lan_mac" -2)
+		;;
+	newifi-d1)
+		lan_mac=$(cat /sys/class/net/eth0/address)
+		lan_mac=$(macaddr_add "$lan_mac" 2)
 		;;
 	oy-0001)
 		lan_mac=$(mtd_get_mac_binary factory 40)
