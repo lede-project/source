@@ -1,0 +1,11 @@
+--- a/shellinabox/service.c	2016-09-26 19:43:45.905105978 +0200
++++ b/shellinabox/service.c	2016-09-26 19:44:14.285607731 +0200
+@@ -171,7 +171,7 @@
+     service->cmdline                        = stringPrintf(NULL,
+       "ssh -a -e none -i /dev/null -x -oChallengeResponseAuthentication=no "
+           "-oCheckHostIP=no -oClearAllForwardings=yes -oCompression=no "
+-          "-oControlMaster=no -oGSSAPIAuthentication=no "
++          "-oControlMaster=no "
+           "-oHostbasedAuthentication=no -oIdentitiesOnly=yes "
+           "-oKbdInteractiveAuthentication=yes -oPasswordAuthentication=yes "
+           "-oPreferredAuthentications=keyboard-interactive,password "
