@@ -16,6 +16,7 @@ PKG_USE_MIPS16:=0
 
 PKG_BUILD_PARALLEL:=0
 
+
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.openssl.org/source/ \
 	ftp://ftp.openssl.org/source/ \
@@ -34,6 +35,7 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_OPENSSL_WITH_SSL3 \
 	CONFIG_OPENSSL_HARDWARE_SUPPORT \
 	CONFIG_OPENSSL_WITH_DEPRECATED \
+	CONFIG_OPENSSL_WITH_DTLS \
 	CONFIG_OPENSSL_WITH_COMPRESSION \
 	CONFIG_OPENSSL_WITH_NPN \
 	CONFIG_OPENSSL_WITH_PSK \
@@ -97,7 +99,7 @@ endef
 
 
 OPENSSL_NO_CIPHERS:= no-idea no-md2 no-mdc2 no-rc5 no-sha0 no-camellia no-krb5 \
- no-whrlpool no-whirlpool no-seed
+ no-whrlpool no-whirlpool no-seed no-jpake
 OPENSSL_OPTIONS:= shared no-err no-sse2 no-ssl2 no-ssl2-method no-heartbeats
 
 ifdef CONFIG_OPENSSL_ENGINE_CRYPTO
@@ -128,6 +130,9 @@ endif
 ifndef CONFIG_OPENSSL_WITH_DEPRECATED
   OPENSSL_OPTIONS += no-deprecated
 endif
+
+ifndef CONFIG_OPENSSL_WITH_DTLS
+  OPENSSL_OPTIONS += no-dtls
 
 ifdef CONFIG_OPENSSL_WITH_COMPRESSION
   OPENSSL_OPTIONS += zlib-dynamic
