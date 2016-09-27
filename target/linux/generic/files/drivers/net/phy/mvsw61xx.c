@@ -148,6 +148,52 @@ mvsw61xx_wait_mask_s(struct switch_dev *dev, int addr,
 }
 
 static int
+mvsw61xx_mdio_read(struct switch_dev *dev, int addr, int reg)
+{
+	sw16(dev, MV_GLOBAL2REG(SMI_OP),
+	     MV_INDIRECT_READ | (addr << MV_INDIRECT_ADDR_S) | reg);
+
+	if (mvsw61xx_wait_mask_s(dev,  MV_GLOBAL2REG(SMI_OP),
+				 MV_INDIRECT_INPROGRESS, 0) < 0)
+		return -ETIMEDOUT;
+
+	return sr16(dev, MV_GLOBAL2REG(SMI_DATA));
+}
+
+static int
+mvsw61xx_mdio_write(struct switch_dev *dev, int addr, int reg, u16 val)
+{
+	sw16(dev, MV_GLOBAL2REG(SMI_DATA), val);
+
+	sw16(dev, MV_GLOBAL2REG(SMI_OP),
+	     MV_INDIRECT_WRITE | (addr << MV_INDIRECT_ADDR_S) | reg);
+
+	return mvsw61xx_wait_mask_s(dev,  MV_GLOBAL2REG(SMI_OP),
+				    MV_INDIRECT_INPROGRESS, 0) < 0;
+}
+
+static int
+mvsw61xx_mdio_page_read(struct switch_dev *dev, int port, int page, int reg)
+{
+	int ret;
+
+	mvsw61xx_mdio_write(dev, port, MII_MV_PAGE, page);
+	ret = mvsw61xx_mdio_read(dev, port, reg);
+	mvsw61xx_mdio_write(dev, port, MII_MV_PAGE, 0);
+
+	return ret;
+}
+
+static void
+mvsw61xx_mdio_page_write(struct switch_dev *dev, int port, int page, int reg,
+			 u16 val)
+{
+	mvsw61xx_mdio_write(dev, port, MII_MV_PAGE, page);
+	mvsw61xx_mdio_write(dev, port, reg, val);
+	mvsw61xx_mdio_write(dev, port, MII_MV_PAGE, 0);
+}
+
+static int
 mvsw61xx_get_port_mask(struct switch_dev *dev,
 		const struct switch_attr *attr, struct switch_val *val)
 {
@@ -566,7 +612,20 @@ static int mvsw61xx_apply(struct switch_dev *dev)
 	return mvsw61xx_update_state(dev);
 }
 
-static int mvsw61xx_reset(struct switch_dev *dev)
+static void mvsw61xx_enable_serdes(struct switch_dev *dev)
+{
+	int bmcr = mvsw61xx_mdio_page_read(dev, MV_REG_FIBER_SERDES,
+					   MV_PAGE_FIBER_SERDES, MII_BMCR);
+	if (bmcr < 0)
+		return;
+
+	if (bmcr & BMCR_PDOWN)
+		mvsw61xx_mdio_page_write(dev, MV_REG_FIBER_SERDES,
+					 MV_PAGE_FIBER_SERDES, MII_BMCR,
+					 bmcr & ~BMCR_PDOWN);
+}
+
+static int _mvsw61xx_reset(struct switch_dev *dev, bool full)
 {
 	struct mvsw61xx_state *state = get_state(dev);
 	int i;
@@ -599,6 +658,29 @@ static int mvsw61xx_reset(struct switch_dev *dev)
 
 		/* Set port association vector */
 		sw16(dev, MV_PORTREG(ASSOC, i), (1 << i));
+
+		/* power up phys */
+		if (full && i < 5) {
+			mvsw61xx_mdio_write(dev, i, MII_MV_SPEC_CTRL,
+					    MV_SPEC_MDI_CROSS_AUTO |
+					    MV_SPEC_ENERGY_DETECT |
+					    MV_SPEC_DOWNSHIFT_COUNTER);
+			mvsw61xx_mdio_write(dev, i, MII_BMCR, BMCR_RESET |
+					    BMCR_ANENABLE | BMCR_FULLDPLX |
+					    BMCR_SPEED1000);
+		}
+
+		/* enable SerDes if necessary */
+		if (full && i >= 5 && state->model == MV_IDENT_VALUE_6176) {
+			u16 sts = sr16(dev, MV_PORTREG(STATUS, i));
+			u16 mode = sts & MV_PORT_STATUS_CMODE_MASK;
+
+			if (mode == MV_PORT_STATUS_CMODE_100BASE_X ||
+			    mode == MV_PORT_STATUS_CMODE_1000BASE_X ||
+			    mode == MV_PORT_STATUS_CMODE_SGMII) {
+				mvsw61xx_enable_serdes(dev);
+			}
+		}
 	}
 
 	for (i = 0; i < dev->vlans; i++) {
@@ -621,6 +703,11 @@ static int mvsw61xx_reset(struct switch_dev *dev)
 	}
 
 	return 0;
+}
+
+static int mvsw61xx_reset(struct switch_dev *dev)
+{
+	return _mvsw61xx_reset(dev, false);
 }
 
 enum {
@@ -797,6 +884,8 @@ static int mvsw61xx_probe(struct platform_device *pdev)
 	state->dev.name = model_str;
 	state->dev.ops = &mvsw61xx_ops;
 	state->dev.alias = dev_name(&pdev->dev);
+
+	_mvsw61xx_reset(&state->dev, true);
 
 	err = register_switch(&state->dev, NULL);
 	if (err < 0)

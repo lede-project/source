@@ -21,6 +21,7 @@
 #include <linux/kernel.h>
 #include <linux/compiler.h>
 #include <linux/io.h>
+#include <linux/irq.h>
 #include <linux/gpio.h>
 #include <linux/dma-mapping.h>
 #include <linux/serial_core.h>
@@ -121,13 +122,8 @@ static struct mtd_partition laguna_nor_partitions[] = {
 		.size		= SZ_128K,
 		.offset		= SZ_256K,
 	}, {
-		.name		= "kernel",
-		.size		= SZ_2M,
+		.name		= "firmware",
 		.offset		= SZ_256K + SZ_128K,
-	}, {
-		.name		= "rootfs",
-		.size		= SZ_16M - SZ_256K - SZ_128K - SZ_2M,
-		.offset		= SZ_256K + SZ_128K + SZ_2M,
 	},
 };
 
@@ -167,13 +163,8 @@ static struct mtd_partition laguna_spi_partitions[] = {
 		.size		= SZ_256K,
 		.offset		= SZ_256K,
 	}, {
-		.name		= "kernel",
-		.size		= SZ_1M + SZ_512K,
+		.name		= "firmware",
 		.offset		= SZ_512K,
-	}, {
-		.name		= "rootfs",
-		.size		= SZ_16M - SZ_2M,
-		.offset		= SZ_2M,
 	},
 };
 
@@ -864,7 +855,6 @@ static struct map_desc laguna_io_desc[] __initdata = {
 static void __init laguna_map_io(void)
 {
 	cns3xxx_map_io();
-	cns3xxx_pcie_iotable_init();
 	iotable_init(ARRAY_AND_SIZE(laguna_io_desc));
 	laguna_early_serial_setup();
 }
@@ -888,14 +878,46 @@ static int laguna_register_gpio(struct gpio *array, size_t num)
 	return ret;
 }
 
-static int __init laguna_pcie_init(void)
+/* allow disabling of external isolated PCIe IRQs */
+static int cns3xxx_pciextirq = 1;
+static int __init cns3xxx_pciextirq_disable(char *s)
 {
+      cns3xxx_pciextirq = 0;
+      return 1;
+}
+__setup("noextirq", cns3xxx_pciextirq_disable);
+
+static int __init laguna_pcie_init_irq(void)
+{
+	u32 __iomem *mem = (void __iomem *)(CNS3XXX_GPIOB_BASE_VIRT + 0x0004);
+	u32 reg = (__raw_readl(mem) >> 26) & 0xf;
+	int irqs[] = {
+		IRQ_CNS3XXX_EXTERNAL_PIN0,
+		IRQ_CNS3XXX_EXTERNAL_PIN1,
+		IRQ_CNS3XXX_EXTERNAL_PIN2,
+		154,
+	};
+
 	if (!machine_is_gw2388())
 		return 0;
 
-	return cns3xxx_pcie_init();
+	/* Verify GPIOB[26:29] == 0001b indicating support for ext irqs */
+	if (cns3xxx_pciextirq && reg != 1)
+		cns3xxx_pciextirq = 0;
+
+	if (cns3xxx_pciextirq) {
+		printk("laguna: using isolated PCI interrupts:"
+		       " irq%d/irq%d/irq%d/irq%d\n",
+		       irqs[0], irqs[1], irqs[2], irqs[3]);
+		cns3xxx_pcie_set_irqs(0, irqs);
+	} else {
+		printk("laguna: using shared PCI interrupts: irq%d\n",
+		       IRQ_CNS3XXX_PCIE0_DEVICE);
+	}
+
+	return 0;
 }
-subsys_initcall(laguna_pcie_init);
+subsys_initcall(laguna_pcie_init_irq);
 
 static int __init laguna_model_setup(void)
 {
@@ -908,8 +930,33 @@ static int __init laguna_model_setup(void)
 	printk("Running on Gateworks Laguna %s\n", laguna_info.model);
 	cns3xxx_gpio_init( 0, 32, CNS3XXX_GPIOA_BASE_VIRT, IRQ_CNS3XXX_GPIOA,
 		NR_IRQS_CNS3XXX);
-	cns3xxx_gpio_init(32, 32, CNS3XXX_GPIOB_BASE_VIRT, IRQ_CNS3XXX_GPIOB,
-		NR_IRQS_CNS3XXX + 32);
+
+	/*
+	 * If pcie external interrupts are supported and desired
+	 * configure IRQ types and configure pin function.
+	 * Note that cns3xxx_pciextirq is enabled by default, but can be
+	 * unset via the 'noextirq' kernel param or by laguna_pcie_init() if
+	 * the baseboard model does not support this hardware feature.
+	 */
+	if (cns3xxx_pciextirq) {
+		mem = (void __iomem *)(CNS3XXX_MISC_BASE_VIRT + 0x0018);
+		reg = __raw_readl(mem);
+		/* GPIO26 is gpio, EXT_INT[0:2] not gpio func */
+		reg &= ~0x3c000000;
+		reg |= 0x38000000;
+		__raw_writel(reg, mem);
+
+		cns3xxx_gpio_init(32, 32, CNS3XXX_GPIOB_BASE_VIRT,
+				  IRQ_CNS3XXX_GPIOB, NR_IRQS_CNS3XXX + 32);
+
+		irq_set_irq_type(154, IRQ_TYPE_LEVEL_LOW);
+		irq_set_irq_type(93, IRQ_TYPE_LEVEL_HIGH);
+		irq_set_irq_type(94, IRQ_TYPE_LEVEL_HIGH);
+		irq_set_irq_type(95, IRQ_TYPE_LEVEL_HIGH);
+	} else {
+		cns3xxx_gpio_init(32, 32, CNS3XXX_GPIOB_BASE_VIRT,
+				  IRQ_CNS3XXX_GPIOB, NR_IRQS_CNS3XXX + 32);
+	}
 
 	if (strncmp(laguna_info.model, "GW", 2) == 0) {
 		if (laguna_info.config_bitmap & ETH0_LOAD)
@@ -960,49 +1007,19 @@ static int __init laguna_model_setup(void)
 		platform_device_register(&laguna_uart);
 
 		if (laguna_info.config2_bitmap & (NOR_FLASH_LOAD)) {
-			switch (laguna_info.nor_flash_size) {
-				case 1:
-					laguna_nor_partitions[3].size = SZ_8M - SZ_256K - SZ_128K - SZ_2M;
-					laguna_nor_res.end = CNS3XXX_FLASH_BASE + SZ_8M - 1;
-				break;
-				case 2:
-					laguna_nor_partitions[3].size = SZ_16M - SZ_256K - SZ_128K - SZ_2M;
-					laguna_nor_res.end = CNS3XXX_FLASH_BASE + SZ_16M - 1;
-				break;
-				case 3:
-					laguna_nor_partitions[3].size = SZ_32M - SZ_256K - SZ_128K - SZ_2M;
-					laguna_nor_res.end = CNS3XXX_FLASH_BASE + SZ_32M - 1;
-				break;
-				case 4:
-					laguna_nor_partitions[3].size = SZ_64M - SZ_256K - SZ_128K - SZ_2M;
-					laguna_nor_res.end = CNS3XXX_FLASH_BASE + SZ_64M - 1;
-				break;
-				case 5:
-					laguna_nor_partitions[3].size = SZ_128M - SZ_256K - SZ_128K - SZ_2M;
-					laguna_nor_res.end = CNS3XXX_FLASH_BASE + SZ_128M - 1;
-				break;
-			}
+			laguna_nor_partitions[2].size =
+				(SZ_4M << laguna_info.nor_flash_size) -
+				laguna_nor_partitions[2].offset;
+			laguna_nor_res.end = CNS3XXX_FLASH_BASE +
+				laguna_nor_partitions[2].offset +
+				laguna_nor_partitions[2].size - 1;
 			platform_device_register(&laguna_nor_pdev);
 		}
 
 		if (laguna_info.config2_bitmap & (SPI_FLASH_LOAD)) {
-			switch (laguna_info.spi_flash_size) {
-				case 1:
-					laguna_spi_partitions[3].size = SZ_4M - SZ_2M;
-				break;
-				case 2:
-					laguna_spi_partitions[3].size = SZ_8M - SZ_2M;
-				break;
-				case 3:
-					laguna_spi_partitions[3].size = SZ_16M - SZ_2M;
-				break;
-				case 4:
-					laguna_spi_partitions[3].size = SZ_32M - SZ_2M;
-				break;
-				case 5:
-					laguna_spi_partitions[3].size = SZ_64M - SZ_2M;
-				break;
-			}
+			laguna_spi_partitions[2].size =
+				(SZ_2M << laguna_info.spi_flash_size) -
+				laguna_spi_partitions[2].offset;
 			spi_register_board_info(ARRAY_AND_SIZE(laguna_spi_devices));
 		}
 
@@ -1099,5 +1116,6 @@ MACHINE_START(GW2388, "Gateworks Corporation Laguna Platform")
 	.init_irq	= cns3xxx_init_irq,
 	.init_time	= cns3xxx_timer_init,
 	.init_machine	= laguna_init,
+	.init_late      = cns3xxx_pcie_init_late,
 	.restart	= cns3xxx_restart,
 MACHINE_END

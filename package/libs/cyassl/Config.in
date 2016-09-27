@@ -1,17 +1,16 @@
-menu "Configuration"
-	depends on PACKAGE_libcyassl
+if PACKAGE_libcyassl
 
 config CYASSL_HAS_AES_CCM
 	bool "Include AES-CCM support"
-	default y
+	default n
 
 config CYASSL_HAS_AES_GCM
 	bool "Include AES-GCM support"
-	default y
+	default n
 
 config CYASSL_HAS_CHACHA
 	bool "Include ChaCha cipher suite support"
-	default y
+	default n
 
 config CYASSL_HAS_ECC
 	bool "Include ECC (Elliptic Curve Cryptography) support"
@@ -19,7 +18,7 @@ config CYASSL_HAS_ECC
 
 config CYASSL_HAS_DH
 	bool "Include DH (Diffie-Hellman) support"
-	default y
+	default n
 
 config CYASSL_HAS_ARC4
 	bool "Include ARC4 support"
@@ -46,4 +45,4 @@ config CYASSL_HAS_POLY_1305
 	bool "Include Poly-1305 support"
 	default n
 
-endmenu
+endif
