@@ -135,15 +135,9 @@ apply_all_rules()
 					need_proto="1"
 
 				;;
-#				layer7)
-#					layer7_connmark=$(cat /etc/l7marker.marks 2>/dev/null | grep "$option_value" | awk '{ print $2 }')
-#					layer7_mask=$(cat /etc/l7marker.marks 2>/dev/null | grep "$option_value" | awk '{ print $3 }')
-#					if [ -n "$layer7_connmark" ] ; then
-#						match_str="$match_str -m connmark --mark $layer7_connmark/$layer7_mask "
-#					else
-#						match_str="$match_str -m layer7 --l7proto $option_value"
-#					fi
-#				;;
+				ndpi)
+					match_str="$match_str -m ndpi --$option_value"
+				;;
 				connbytes_kb)
 					match_str="$match_str -m connbytes --connbytes $(($option_value*1024)): --connbytes-dir both --connbytes-mode bytes"
 				;;
