@@ -8,8 +8,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ath10k-firmware
-PKG_SOURCE_VERSION:=b00eb8d30fbebb6a5047ccacefa8c37e072fca9c
-PKG_VERSION:=2014-11-13-$(PKG_SOURCE_VERSION)
+PKG_SOURCE_VERSION:=307cb46b06661ebd3186723b5002de769c7add83
+PKG_VERSION:=2016-09-13-$(PKG_SOURCE_VERSION)
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
@@ -21,11 +21,9 @@ PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
 include $(INCLUDE_DIR)/package.mk
 
-WMENU:=Wireless Drivers
-
 define Package/ath10k-firmware-default
-  SECTION:=kernel
-  CATEGORY:=Kernel modules
+  SECTION:=firmware
+  CATEGORY:=Firmware
   SUBMENU:=$(WMENU)
   URL:=$(PKG_SOURCE_URL)
   DEPENDS:=
@@ -64,19 +62,13 @@ define Package/ath10k-firmware-qca988x
 $(Package/ath10k-firmware-default)
   DEFAULT:=PACKAGE_kmod-ath10k
   TITLE:=ath10k firmware for QCA988x devices
+  SECTION:=firmware
+  CATEGORY:=Firmware
 endef
 
-QCA988X_FIRMWARE_FILE:=firmware-5.bin_10.2.4.97-1
 QCA988X_FIRMWARE_FILE_CT:=firmware-2-ct-full-community-16.1.bin-lede
 QCA99X0_FIRMWARE_FILE_CT:=firmware-5-ct-full-community-7.bin-lede.004
 QCA9984_FIRMWARE_FILE_CT:=firmware-5-ct-full-community-7.bin-lede.004
-
-define Download/ath10k-firmware-qca988x
-  URL:=https://www.codeaurora.org/cgit/quic/qsdk/oss/firmware/ath10k-firmware/plain/10.2.4/
-  FILE:=$(QCA988X_FIRMWARE_FILE)
-  MD5SUM:=fcb2fbd42d73a63fbf603505c718cbde
-endef
-$(eval $(call Download,ath10k-firmware-qca988x))
 
 define Download/ath10k-firmware-qca988x-ct
   URL:=https://www.candelatech.com/downloads/
@@ -102,11 +94,15 @@ $(eval $(call Download,ath10k-firmware-qca9984-ct))
 define Package/ath10k-firmware-qca99x0
 $(Package/ath10k-firmware-default)
   TITLE:=ath10k firmware for QCA99x0 devices
+  SECTION:=firmware
+  CATEGORY:=Firmware
 endef
 
 define Package/ath10k-firmware-qca988x-ct
 $(Package/ath10k-firmware-default)
   TITLE:=ath10k CT 10.1 firmware for QCA988x devices
+  SECTION:=firmware
+  CATEGORY:=Firmware
 endef
 
 define Package/ath10k-firmware-qca988x-ct/description
@@ -143,21 +139,29 @@ endef
 define Package/ath10k-firmware-qca99x0-ct
 $(Package/ath10k-firmware-default)
   TITLE:=ath10k CT 10.4.3 firmware for QCA99x0 devices
+  SECTION:=firmware
+  CATEGORY:=Firmware
 endef
 
 define Package/ath10k-firmware-qca9984-ct
 $(Package/ath10k-firmware-default)
   TITLE:=ath10k CT 10.4.3 firmware for QCA9984 devices
+  SECTION:=firmware
+  CATEGORY:=Firmware
 endef
 
 define Package/ath10k-firmware-qca9984
 $(Package/ath10k-firmware-default)
   TITLE:=ath10k firmware for QCA9984 devices
+  SECTION:=firmware
+  CATEGORY:=Firmware
 endef
 
 define Package/ath10k-firmware-qca6174
 $(Package/ath10k-firmware-default)
   TITLE:=ath10k firmware for QCA6174 devices
+  SECTION:=firmware
+  CATEGORY:=Firmware
 endef
 
 QCA99X0_BOARD_REV:=ddcec9efd245da9365c474f513a855a55f3ac7fe
@@ -188,17 +192,17 @@ endef
 define Package/ath10k-firmware-qca988x/install
 	$(INSTALL_DIR) $(1)/lib/firmware/ath10k/QCA988X/hw2.0
 	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/QCA988X/board.bin \
+		$(PKG_BUILD_DIR)/QCA988X/hw2.0/board.bin \
 		$(1)/lib/firmware/ath10k/QCA988X/hw2.0/
 	$(INSTALL_DATA) \
-		$(DL_DIR)/$(QCA988X_FIRMWARE_FILE) \
+		$(PKG_BUILD_DIR)/QCA988X/hw2.0/10.2.4.70/firmware-5.bin_10.2.4.70.54 \
 		$(1)/lib/firmware/ath10k/QCA988X/hw2.0/firmware-5.bin
 endef
 
 define Package/ath10k-firmware-qca988x-ct/install
 	$(INSTALL_DIR) $(1)/lib/firmware/ath10k/QCA988X/hw2.0
 	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/QCA988X/board.bin \
+		$(PKG_BUILD_DIR)/QCA988X/hw2.0/board.bin \
 		$(1)/lib/firmware/ath10k/QCA988X/hw2.0/
 	$(INSTALL_DATA) \
 		$(DL_DIR)/$(QCA988X_FIRMWARE_FILE_CT) \

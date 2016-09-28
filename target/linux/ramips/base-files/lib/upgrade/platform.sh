@@ -96,9 +96,11 @@ platform_check_image() {
 	mzk-w300nh2|\
 	mzk-wdpr|\
 	nbg-419n|\
+	newifi-d1|\
 	nixcore|\
 	nw718|\
 	oy-0001|\
+	pbr-d1|\
 	pbr-m1|\
 	psg1208|\
 	psr-680w|\
@@ -160,6 +162,7 @@ platform_check_image() {
 	y1|\
 	y1s|\
 	zbt-ape522ii|\
+	zbt-cpe102|\
 	zbt-wa05|\
 	zbt-we826|\
 	zbt-wg2626|\

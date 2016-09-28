@@ -475,7 +475,8 @@ platform_check_image() {
 		}
 		return 0
 		;;
-	mr18)
+	mr18 | \
+	z1 )
 		merakinand_do_platform_check $board $1
 		return $?;
 		;;
@@ -546,7 +547,8 @@ platform_pre_upgrade() {
 	wndr4300 )
 		nand_do_upgrade "$1"
 		;;
-	mr18)
+	mr18 | \
+	z1 )
 		merakinand_do_upgrade "$1"
 		;;
 	esac

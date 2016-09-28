@@ -9,12 +9,13 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openssl
 PKG_BASE:=1.0.2
-PKG_BUGFIX:=i
+PKG_BUGFIX:=j
 PKG_VERSION:=$(PKG_BASE)$(PKG_BUGFIX)
 PKG_RELEASE:=1
 PKG_USE_MIPS16:=0
 
 PKG_BUILD_PARALLEL:=0
+
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.openssl.org/source/ \
@@ -22,7 +23,7 @@ PKG_SOURCE_URL:=http://www.openssl.org/source/ \
 	http://www.openssl.org/source/old/$(PKG_BASE)/ \
 	ftp://ftp.funet.fi/pub/crypt/mirrors/ftp.openssl.org/source \
 	ftp://ftp.sunet.se/pub/security/tools/net/openssl/source/
-PKG_MD5SUM:=9287487d11c9545b6efb287cdb70535d4e9b284dd10d51441d9b9963d000de6f
+PKG_MD5SUM:=e7aff292be21c259c6af26469c7a9b3ba26e9abaaffd325e3dccc9785256c431
 
 PKG_LICENSE:=OpenSSL
 PKG_LICENSE_FILES:=LICENSE
@@ -34,6 +35,7 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_OPENSSL_WITH_SSL3 \
 	CONFIG_OPENSSL_HARDWARE_SUPPORT \
 	CONFIG_OPENSSL_WITH_DEPRECATED \
+	CONFIG_OPENSSL_WITH_DTLS \
 	CONFIG_OPENSSL_WITH_COMPRESSION \
 	CONFIG_OPENSSL_WITH_NPN \
 	CONFIG_OPENSSL_WITH_PSK \
@@ -97,7 +99,7 @@ endef
 
 
 OPENSSL_NO_CIPHERS:= no-idea no-md2 no-mdc2 no-rc5 no-sha0 no-camellia no-krb5 \
- no-whrlpool no-whirlpool no-seed
+ no-whrlpool no-whirlpool no-seed no-jpake
 OPENSSL_OPTIONS:= shared no-err no-sse2 no-ssl2 no-ssl2-method no-heartbeats
 
 ifdef CONFIG_OPENSSL_ENGINE_CRYPTO
@@ -127,6 +129,10 @@ endif
 
 ifndef CONFIG_OPENSSL_WITH_DEPRECATED
   OPENSSL_OPTIONS += no-deprecated
+endif
+
+ifndef CONFIG_OPENSSL_WITH_DTLS
+  OPENSSL_OPTIONS += no-dtls
 endif
 
 ifdef CONFIG_OPENSSL_WITH_COMPRESSION
