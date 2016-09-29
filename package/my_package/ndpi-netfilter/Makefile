@@ -43,7 +43,8 @@ define Build/Prepare
 endef 
 
 MAKE_FLAGS += \
-	KERNEL_DIR=$(LINUX_DIR) \
+	KERNEL_DIR="$(LINUX_DIR)" \
+	ARCH="$(LINUX_KARCH)" \
 	NDPI_PATH=$(PKG_BUILD_DIR)/nDPI \
 	CROSS_COMPILE="$(TARGET_CROSS)" \
 	all
