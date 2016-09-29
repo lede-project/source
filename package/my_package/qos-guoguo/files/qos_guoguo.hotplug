@@ -12,5 +12,5 @@ network_find_wan wan_net_name
 }
 
 [ "$ACTION" = "ifdown" ] && [ -z "wan_net_name" ] && {
-	/etc/init.d/qos_gargoyle stop
+	/etc/init.d/qos_guoguo stop
 }
