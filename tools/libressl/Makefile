@@ -8,12 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libressl
-PKG_VERSION:=2.3.4
-PKG_MD5SUM:=b81d990b7eceb156df6eaa7e9f4a353e
+PKG_VERSION:=2.5.0
+PKG_MD5SUM:=99ce3203d1031b2503080104845b1bf0
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=http://ftp.openbsd.org/pub/OpenBSD/LibreSSL/
+PKG_SOURCE_URL:=http://mirror.ox.ac.uk/pub/OpenBSD/LibreSSL \
+                http://ftp.jaist.ac.jp/pub/OpenBSD/LibreSSL
 
 HOST_BUILD_PARALLEL:=1
 
