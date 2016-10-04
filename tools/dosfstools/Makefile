@@ -10,10 +10,10 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=dosfstools
 PKG_VERSION:=4.0
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=https://github.com/dosfstools/dosfstools/releases/download/v$(PKG_VERSION)/ \
 		http://fossies.org/linux/misc
-PKG_MD5SUM:=d96f46cbc5b84ad4c9766b4fbf6c8e09
+PKG_MD5SUM:=20f8388b99702f276c973d228c7cff45
 
 HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/$(PKG_NAME)-$(PKG_VERSION)
 
