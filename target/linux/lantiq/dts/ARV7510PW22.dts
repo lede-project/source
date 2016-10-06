@@ -7,15 +7,16 @@
 
 	chosen {
 		bootargs = "console=ttyLTQ0,115200 init=/etc/preinit";
+	};
 
-		leds {
-			boot = &power;
-			failsafe = &power;
-			running = &power;
+	aliases {
+		led-boot = &power;
+		led-failsafe = &power;
+		led-running = &power;
 
-			internet = &internet;
-			wifi = &wlan;
-		};
+		led-internet = &internet;
+		led-usb = &umts;
+		led-wifi = &wlan;
 	};
 
 	memory@0 {
@@ -178,7 +179,7 @@
 			label = "wlan";
 			gpios = <&gpio 10 1>;
 		};
-		3g {
+		umts: 3g {
 			label = "3g";
 			gpios = <&gpio 15 1>;
 		};

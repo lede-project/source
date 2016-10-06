@@ -7,15 +7,16 @@
 
 	chosen {
 		bootargs = "console=ttyLTQ0,115200 init=/etc/preinit";
+	};
 
-		leds {
-			boot = &power_red;
-			failsafe = &power_blue;
-			running = &power_red;
+	aliases {
+		led-boot = &power_red;
+		led-failsafe = &power_blue;
+		led-running = &power_red;
 
-			internet = &internet_red;
-			wifi = &wifi;
-		};
+		led-internet = &internet_red;
+		led-usb = &umts;
+		led-wifi = &wifi;
 	};
 
 	memory@0 {
@@ -205,7 +206,7 @@
 			label = "arv752dpw22:red:voice";
 			gpios = <&gpio 8 1>;
 		};
-		microphone {
+		umts: umts {
 			label = "arv752dpw22:red:umts";
 			gpios = <&gpiomm 3 1>;
 		};

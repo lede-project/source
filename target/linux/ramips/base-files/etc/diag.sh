@@ -27,6 +27,7 @@ get_status_led() {
 	mzk-dp150n|\
 	mzk-w300nh2|\
 	nbg-419n|\
+	nbg-419n2|\
 	pwh2004|\
 	wnce2001|\
 	wndr3700v5|\
@@ -92,6 +93,9 @@ get_status_led() {
 	cf-wr800n|\
 	psg1208)
 		status_led="$board:white:wps"
+		;;
+	psg1218)
+		status_led="$board:blue:status"
 		;;
 	cy-swr1100|\
 	w502u)

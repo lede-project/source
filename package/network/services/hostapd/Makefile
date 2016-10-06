@@ -182,7 +182,7 @@ endef
 define Package/wpad-mesh
 $(call Package/wpad/Default)
   TITLE+= (with 802.11s mesh and SAE support)
-  DEPENDS:=$(DRV_DEPENDS) +libubus +PACKAGE_wpad-mesh:libopenssl @(!TARGET_uml||BROKEN)
+  DEPENDS:=$(DRV_DEPENDS) +libubus +PACKAGE_wpad-mesh:libopenssl @PACKAGE_kmod-cfg80211 @(!TARGET_uml||BROKEN)
   VARIANT:=wpad-mesh
 endef
 
@@ -211,7 +211,7 @@ endef
 define Package/wpa-supplicant-p2p
   $(Package/wpa-supplicant)
   TITLE:=WPA Supplicant (with Wi-Fi P2P support)
-  DEPENDS:=$(DRV_DEPENDS)
+  DEPENDS:=$(DRV_DEPENDS) @PACKAGE_kmod-cfg80211
   CONFLICTS:=wpad wpad-mini wpad-mesh
   VARIANT:=supplicant-p2p
 endef
@@ -223,7 +223,7 @@ endef
 define Package/wpa-supplicant-mesh
   $(Package/wpa-supplicant)
   TITLE:=WPA Supplicant (with 802.11s and SAE)
-  DEPENDS:=$(DRV_DEPENDS) @(!TARGET_uml||BROKEN)
+  DEPENDS:=$(DRV_DEPENDS) @PACKAGE_kmod-cfg80211 @(!TARGET_uml||BROKEN)
   CONFLICTS:=wpad wpad-mesh wpad-mesh
   VARIANT:=supplicant-mesh
 endef

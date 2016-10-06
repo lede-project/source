@@ -325,6 +325,9 @@ ramips_board_detect() {
 	*"NBG-419N")
 		name="nbg-419n"
 		;;
+	*"NBG-419N v2")
+		name="nbg-419n2"
+		;;
 	*"Newifi-D1")
 		name="newifi-d1"
 		;;
@@ -348,6 +351,9 @@ ramips_board_detect() {
 		;;
 	*"PSG1208")
 		name="psg1208"
+		;;
+	*"PSG1218")
+		name="psg1218"
 		;;
 	*"PSR-680W"*)
 		name="psr-680w"

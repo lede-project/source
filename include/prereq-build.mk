@@ -24,6 +24,10 @@ $(eval $(call TestHostCommand,case-sensitive-fs, \
 	rm -f $(TMP_DIR)/test.*; touch $(TMP_DIR)/test.fs; \
 		test ! -f $(TMP_DIR)/test.FS))
 
+$(eval $(call TestHostCommand,proper-umask, \
+	Please build with umask 022 - other values produce broken packages, \
+	umask | grep -xE 00[012][012]))
+
 $(eval $(call SetupHostCommand,gcc, \
 	Please install the GNU C Compiler (gcc), \
 	$(CC) --version | grep gcc, \
@@ -159,6 +163,9 @@ $(eval $(call SetupHostCommand,git,Please install Git (git-core) >= 1.7.12.2, \
 
 $(eval $(call SetupHostCommand,file,Please install the 'file' package, \
 	file --version 2>&1 | grep file))
+
+$(eval $(call SetupHostCommand,xz,Please install xz-utils, \
+	xz --version | grep XZ))
 
 ifneq ($(HOST_OS),Darwin)
 $(eval $(call SetupHostCommand,openssl,Please install the 'openssl' utility, \
