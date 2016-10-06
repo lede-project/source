@@ -387,10 +387,8 @@ platform_check_image() {
 	tl-wr703n | \
 	tl-wr710n | \
 	tl-wr720n-v3 | \
-	tl-wr740n-v5 | \
 	tl-wr741nd | \
 	tl-wr741nd-v4 | \
-	tl-wr742n-v5 | \
 	tl-wr810n | \
 	tl-wr841n-v1 | \
 	tl-wa830re-v2 | \
@@ -400,7 +398,6 @@ platform_check_image() {
 	tl-wr841n-v11 | \
 	tl-wr842n-v2 | \
 	tl-wr842n-v3 | \
-	tl-wr882n-v1 | \
 	tl-wr941nd | \
 	tl-wr941nd-v5 | \
 	tl-wr941nd-v6 | \

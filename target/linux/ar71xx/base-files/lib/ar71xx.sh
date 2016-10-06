@@ -202,9 +202,6 @@ tplink_board_detect() {
 	"074100"*)
 		model="TP-Link TL-WR741N/ND"
 		;;
-	"074200"*)
-		model="TP-Link TL-WR742N/ND"
-		;;
 	"074300"*)
 		model="TP-Link TL-WR743N/ND"
 		;;
@@ -245,9 +242,6 @@ tplink_board_detect() {
 		;;
 	"086000"*)
 		model="TP-Link TL-WA860RE"
-		;;
-	"088200"*)
-		model="TP-Link TL-WR882N"
 		;;
 	"090100"*)
 		model="TP-Link TL-WA901N/ND"
@@ -969,14 +963,8 @@ ar71xx_board_detect() {
 	*TL-WR741ND)
 		name="tl-wr741nd"
 		;;
-	*"TL-WR740N v5")
-		name="tl-wr740n-v5"
-		;;
 	*"TL-WR741ND v4")
 		name="tl-wr741nd-v4"
-		;;
-	*"TL-WR742N v5")
-		name="tl-wr742n-v5"
 		;;
 	*"TL-WR841N v1")
 		name="tl-wr841n-v1"
@@ -998,9 +986,6 @@ ar71xx_board_detect() {
 		;;
 	*"TL-WR842N/ND v3")
 		name="tl-wr842n-v3"
-		;;
-	*"TL-WR882N v1")
-		name="tl-wr882n-v1"
 		;;
 	*TL-WR941ND)
 		name="tl-wr941nd"
