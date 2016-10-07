@@ -1,0 +1,35 @@
+Index: iftop-1.0pre4/ui.c
+===================================================================
+--- iftop-1.0pre4.orig/ui.c
++++ iftop-1.0pre4/ui.c
+@@ -105,14 +105,16 @@ static float get_max_bandwidth() {
+ }
+ 
+ /* rate in bits */
+-static int get_bar_length(const int rate) {
++static int get_bar_length(int rate) {
+     float l;
+     if (rate <= 0)
+         return 0;
+     if (rate > scale[rateidx].max) {
+       wantbiggerrate = 1;
+       if(! rateidx_init) {
+-	while(rate > scale[rateidx_init++].max) {
++	if (rate > scale[6].max) /* initial overload prevention */
++		rate = scale[0].max;
++	while(rate > scale[++rateidx_init].max && rateidx_init < 6) {
+ 	}
+ 	rateidx = rateidx_init;
+       }
+@@ -412,8 +414,9 @@ void ui_print() {
+     refresh();
+ 
+     /* Bar chart auto scale */
+-    if (wantbiggerrate && options.max_bandwidth == 0) {
+-      ++rateidx;
++    if (wantbiggerrate && options.max_bandwidth == 0 ) {
++      if (rateidx < 6)
++	      ++rateidx;
+       wantbiggerrate = 0;
+     }
+ }
