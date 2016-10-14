@@ -103,6 +103,17 @@ define Device/ZyXELImage
 	IMAGE/mmcblk0p4-kernel.bin := append-kernel
 endef
 
+define Device/AD7200
+	$(call Device/TpSafeImage)
+	DEVICE_DTS := qcom-ipq8064-ad7200
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	BOARD_NAME := ad7200
+	TPLINK_BOARD_NAME := AD7200
+	DEVICE_TITLE := TP-Link Talon AD7200
+	DEVICE_PACKAGES := ath10k-firmware-qca99x0
+endef
+
 define Device/AP148
 	$(call Device/FitImage)
 	$(call Device/UbiFit)
@@ -225,6 +236,6 @@ define Device/NBG6817
 	$(call Device/ZyXELImage)
 endef
 
-TARGET_DEVICES += AP148 AP148-legacy C2600 D7800 DB149 EA8500 R7500 R7500v2 R7800 NBG6817
+TARGET_DEVICES += AD7200 AP148 AP148-legacy C2600 D7800 DB149 EA8500 R7500 R7500v2 R7800 NBG6817
 
 $(eval $(call BuildImage))
