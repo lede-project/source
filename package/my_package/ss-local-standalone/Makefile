@@ -1,9 +1,9 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=shadowsocks-libev
-PKG_VERSION:=2.3.0-096e1eca5d
+PKG_NAME:=ss-local-standalone
+PKG_VERSION:=v2.5.3
 PKG_RELEASE:=1
-PKG_REV:=096e1eca5d0d23718b7b0e0a182d178d8cabfdaa
+PKG_REV:=v2.5.3
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -19,42 +19,41 @@ PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/shadowsocks-libev/Default
+CONFIGURE_ARGS += --disable-ssp --disable-documentation
+
+define Package/ss-local-standalone/Default
   SECTION:=net
   CATEGORY:=Network
   TITLE:=Lightweight Secured Socks5 Proxy
-  URL:=https://github.com/madeye/shadowsocks-libev
+  URL:=https://github.com/shadowsocks/shadowsocks-libev
+  DEPENDS:=+zlib +libpcre
 endef
 
-define Package/shadowsocks-libev
-  $(call Package/shadowsocks-libev/Default)
+define Package/ss-local-standalone
+  $(call Package/ss-local-standalone/Default)
   TITLE+= (OpenSSL)
   VARIANT:=openssl
-  DEPENDS:=+libopenssl
+  DEPENDS+=+libopenssl
 endef
 
-define Package/shadowsocks-libev-polarssl
-  $(call Package/shadowsocks-libev/Default)
+define Package/ss-local-standalone-polarssl
+  $(call Package/ss-local-standalone/Default)
   TITLE+= (PolarSSL)
   VARIANT:=polarssl
-  DEPENDS:=+libpolarssl
+  DEPENDS+=+libpolarssl
 endef
 
-define Package/shadowsocks-libev/description
+define Package/ss-local-standalone/description
 Shadowsocks-libev is a lightweight secured scoks5 proxy for embedded devices and low end boxes.
 endef
 
-Package/shadowsocks-libev-polarssl/description=$(Package/shadowsocks-libev/description)
-
-define Package/shadowsocks-libev/conffiles
-/etc/shadowsocks.json
-endef
+Package/ss-local-standalone-polarssl/description=$(Package/ss-local-standalone/description)
 
 ifeq ($(BUILD_VARIANT),polarssl)
 	CONFIGURE_ARGS += --with-crypto-library=polarssl
 endif
 
-define Package/shadowsocks-libev/install
+define Package/ss-local-standalone/install
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_DIR) $(1)/etc/config
 
@@ -64,7 +63,7 @@ define Package/shadowsocks-libev/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-local $(1)/usr/bin
 endef
 
-Package/shadowsocks-libev-polarssl/install=$(Package/shadowsocks-libev/install)
+Package/ss-local-standalone-polarssl/install=$(Package/ss-local-standalone/install)
 
-$(eval $(call BuildPackage,shadowsocks-libev))
-$(eval $(call BuildPackage,shadowsocks-libev-polarssl))
+$(eval $(call BuildPackage,ss-local-standalone))
+$(eval $(call BuildPackage,ss-local-standalone-polarssl))
