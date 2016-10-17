@@ -1,5 +1,6 @@
 #include "qcom-ipq8064-v1.0.dtsi"
 #include <dt-bindings/input/input.h>
+#include <dt-bindings/gpio/gpio.h>
 
 / {
 	model = "TP-Link Talon AD7200";
@@ -116,7 +117,7 @@
 				pinctrl-0 = <&spi_pins>;
 				pinctrl-names = "default";
 
-				cs-gpios = <&qcom_pinmux 20 0>;
+				cs-gpios = <&qcom_pinmux 20 GPIO_ACTIVE_HIGH>;
 
 				flash: m25p80@0 {
 					compatible = "s25fl256s1";
@@ -300,7 +301,7 @@
 			compatible = "virtual,mdio-gpio";
 			#address-cells = <1>;
 			#size-cells = <0>;
-			gpios = <&qcom_pinmux 1 0 &qcom_pinmux 0 0>;
+			gpios = <&qcom_pinmux 1 GPIO_ACTIVE_HIGH &qcom_pinmux 0 GPIO_ACTIVE_HIGH>;
 			pinctrl-0 = <&mdio0_pins>;
 			pinctrl-names = "default";
 
@@ -360,25 +361,25 @@
 
 		wifi {
 			label = "wifi";
-			gpios = <&qcom_pinmux 49 1>;
-			linux,code = <KEY_WLAN>;
+			gpios = <&qcom_pinmux 49 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RFKILL>;
 		};
 
 		reset {
 			label = "reset";
-			gpios = <&qcom_pinmux 64 1>;
+			gpios = <&qcom_pinmux 64 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 		};
 
 		wps {
 			label = "wps";
-			gpios = <&qcom_pinmux 65 1>;
+			gpios = <&qcom_pinmux 65 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_WPS_BUTTON>;
 		};
-                ledgeneral {
+        ledgeneral {
 			label = "ledgeneral";
-			gpios = <&qcom_pinmux 16 1>;
-			linux,code = <KEY_DOLLAR>;
+			gpios = <&qcom_pinmux 16 GPIO_ACTIVE_LOW>;
+			linux,code = <BTN_0>;
 		};
 	};
 
@@ -387,32 +388,32 @@
 
 		lan {
 			label = "ad7200:blue:lan";
-			gpios = <&qcom_pinmux 6 0>;
+			gpios = <&qcom_pinmux 6 GPIO_ACTIVE_HIGH>;
 		};
 		usb4 {
 			label = "ad7200:blue:usb_4";
-			gpios = <&qcom_pinmux 7 0>;
+			gpios = <&qcom_pinmux 7 GPIO_ACTIVE_HIGH>;
 		};
 		usb2 {
 			label = "ad7200:blue:usb_2";
-			gpios = <&qcom_pinmux 8 0>;
+			gpios = <&qcom_pinmux 8 GPIO_ACTIVE_HIGH>;
 		};
 		wps {
 			label = "ad7200:blue:wps";
-			gpios = <&qcom_pinmux 9 0>;
+			gpios = <&qcom_pinmux 9 GPIO_ACTIVE_HIGH>;
 		};
 		wan_blue {
 			label = "ad7200:blue:wan";
-			gpios = <&qcom_pinmux 33 1>;
+			gpios = <&qcom_pinmux 33 GPIO_ACTIVE_LOW>;
 		};
 		status {
 			label = "ad7200:blue:status";
-			gpios = <&qcom_pinmux 53 0>;
+			gpios = <&qcom_pinmux 53 GPIO_ACTIVE_HIGH>;
 			default-state = "on";
 		};
 		ledgnr {
 			label = "ad7200:blue:ledgnr";
-			gpios = <&qcom_pinmux 66 0>;
+			gpios = <&qcom_pinmux 66 GPIO_ACTIVE_HIGH>;
 		};
 	};
 };
