@@ -406,7 +406,7 @@ sub gen_package_mk() {
 	foreach my $name (sort {uc($a) cmp uc($b)} keys %package) {
 		my $config;
 		my $pkg = $package{$name};
-		my @srcdeps;
+		my %srcdeps;
 
 		next if defined $pkg->{vdepends};
 
@@ -431,12 +431,14 @@ sub gen_package_mk() {
 		}
 
 		foreach my $spkg (@{$srcpackage{$pkg->{src}}}) {
+			my $pkgsrcdeps = [ ];
 			foreach my $dep (@{$spkg->{depends}}, @{$spkg->{builddepends}}) {
 				$dep =~ /@/ or do {
 					$dep =~ s/\+//g;
-					push @srcdeps, $dep;
+					push @$pkgsrcdeps, $dep;
 				};
 			}
+			$srcdeps{$spkg->{name}} = $pkgsrcdeps;
 		}
 		foreach my $type (@{$pkg->{buildtypes}}) {
 			my @extra_deps;
@@ -477,66 +479,67 @@ sub gen_package_mk() {
 			}
 		}
 
-		my $hasdeps = 0;
-		my %deplines;
-		foreach my $deps (@srcdeps) {
-			my $idx;
-			my $condition;
-			my $prefix = "";
-			my $suffix = "";
+		foreach my $pdeps (keys %srcdeps) {
+			my %deplines;
+			foreach my $deps (@{$srcdeps{$pdeps}}) {
+				my $idx;
+				my $condition;
+				my $prefix = "";
+				my $suffix = "";
 
-			if ($deps =~ /^(.+):(.+)/) {
-				$condition = $1;
-				$deps = $2;
-			}
-			if ($deps =~ /^(.+)(\/.+)/) {
-				$deps = $1;
-				$suffix = $2;
-			}
-
-			my $pkg_dep = $package{$deps};
-			my @deps;
-
-			if ($pkg_dep->{vdepends}) {
-				@deps = @{$pkg_dep->{vdepends}};
-			} else {
-				@deps = ($deps);
-			}
-
-			foreach my $dep (@deps) {
-				$pkg_dep = $package{$deps};
-				if (defined $pkg_dep->{src}) {
-					($pkg->{src} ne $pkg_dep->{src}.$suffix) and $idx = $pkg_dep->{subdir}.$pkg_dep->{src};
-				} elsif (defined($srcpackage{$dep})) {
-					$idx = $subdir{$dep}.$dep;
+				if ($deps =~ /^(.+):(.+)/) {
+					$condition = $1;
+					$deps = $2;
 				}
-				undef $idx if $idx eq 'base-files';
-				if ($idx) {
-					$idx .= $suffix;
+				if ($deps =~ /^(.+)(\/.+)/) {
+					$deps = $1;
+					$suffix = $2;
+				}
 
-					my $depline;
-					next if $pkg->{src} eq $pkg_dep->{src}.$suffix;
-					next if $dep{$condition.":".$pkg->{src}."->".$idx};
-					next if $dep{$pkg->{src}."->($dep)".$idx} and $pkg_dep->{vdepends};
-					my $depstr;
+				my $pkg_dep = $package{$deps};
+				my @deps;
 
-					if ($pkg_dep->{vdepends}) {
-						$depstr = "\$(if \$(CONFIG_PACKAGE_$dep),\$(curdir)/$idx/compile)";
-						$dep{$pkg->{src}."->($dep)".$idx} = 1;
-					} else {
-						$depstr = "\$(curdir)/$idx/compile";
-						$dep{$pkg->{src}."->".$idx} = 1;
+				if ($pkg_dep->{vdepends}) {
+					@deps = @{$pkg_dep->{vdepends}};
+				} else {
+					@deps = ($deps);
+				}
+
+				foreach my $dep (@deps) {
+					$pkg_dep = $package{$deps};
+					if (defined $pkg_dep->{src}) {
+						($pkg->{src} ne $pkg_dep->{src}.$suffix) and $idx = $pkg_dep->{subdir}.$pkg_dep->{src};
+					} elsif (defined($srcpackage{$dep})) {
+						$idx = $subdir{$dep}.$dep;
 					}
-					$depline = get_conditional_dep($condition, $depstr);
-					if ($depline) {
-						$deplines{$depline}++;
+					undef $idx if $idx eq 'base-files';
+					if ($idx) {
+						$idx .= $suffix;
+
+						my $depline;
+						next if $pkg->{src} eq $pkg_dep->{src}.$suffix;
+						next if $dep{$condition.":".$pkg->{src}."->".$idx};
+						next if $dep{$pkg->{src}."->($dep)".$idx} and $pkg_dep->{vdepends};
+						my $depstr;
+
+						if ($pkg_dep->{vdepends}) {
+							$depstr = "\$(if \$(CONFIG_PACKAGE_$dep),\$(curdir)/$idx/compile)";
+							$dep{$pkg->{src}."->($dep)".$idx} = 1;
+						} else {
+							$depstr = "\$(curdir)/$idx/compile";
+							$dep{$pkg->{src}."->".$idx} = 1;
+						}
+						$depline = get_conditional_dep($condition, $depstr);
+						if ($depline) {
+							$deplines{$depline}++;
+						}
 					}
 				}
 			}
-		}
-		my $depline = join(" ", sort keys %deplines);
-		if ($depline) {
-			$line .= "\$(curdir)/".$pkg->{subdir}."$pkg->{src}/compile += $depline\n";
+			my $depline = join(" ", sort keys %deplines);
+			if ($depline) {
+				$line .= "\$(curdir)/".$pkg->{subdir}."$pkg->{src}/compile += \$(if \$(CONFIG_PACKAGE_${pdeps}), $depline)\n";
+			}
 		}
 	}
 
