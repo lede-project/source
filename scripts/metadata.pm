@@ -177,6 +177,7 @@ sub parse_package_metadata($) {
 			$pkg->{subdir} = $subdir;
 			$pkg->{tristate} = 1;
 			$pkg->{override} = $override;
+			$pkg->{depcheckpkg} = 0;
 			$package{$1} = $pkg;
 			push @{$srcpackage{$src}}, $pkg;
 		};
@@ -262,6 +263,7 @@ sub parse_package_metadata($) {
 		/^Preconfig-Type:\s*(.*?)\s*$/ and $preconfig->{type} = $1;
 		/^Preconfig-Label:\s*(.*?)\s*$/ and $preconfig->{label} = $1;
 		/^Preconfig-Default:\s*(.*?)\s*$/ and $preconfig->{default} = $1;
+		/^Depends-Check-Package: \s*(.+)\s*$/ and $pkg->{depcheckpkg} = $1;
 	}
 	close FILE;
 	return 1;
