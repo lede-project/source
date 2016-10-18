@@ -190,6 +190,9 @@ get_status_led() {
 	wr512-3gn)
 		status_led="$board:green:wps"
 		;;
+	rb750gr3)
+		status_led="$board:green:usr"
+		;;
 	sap-g3200u3)
 		status_led="$board:green:usb"
 		;;
