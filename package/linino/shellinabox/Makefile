@@ -10,14 +10,13 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=shellinabox
 PKG_VERSION:=2.20
-PKG_RELEASE:=3
+PKG_RELEASE:=4
 
 PKG_INSTALL:=1
 
 PKG_SOURCE_PROTO:=git
 
-# PKG_REVISION:=e6c25e84bc662797c7382500f136bb74874c2500
-PKG_REVISION:=d4bd77ca45a24befcd08f9046f450bd9eda8646b
+PKG_REVISION:=05b2d3630c48dc9bca678d8158fce486c583c26b
 
 PKG_SOURCE_VERSION=$(PKG_REVISION)
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
@@ -45,7 +44,7 @@ define Package/shellinabox/description
 endef
 
 define Build/Configure
-	$(call Build/Configure/Default,--disable-runtime-loading)
+	$(call Build/Configure/Default,--disable-runtime-loading --disable-utmp)
 endef
 
 define Build/Compile

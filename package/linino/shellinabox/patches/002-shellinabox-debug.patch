@@ -2,7 +2,7 @@ diff --git a/shellinabox/launcher.c b/shellinabox/launcher.c
 index 2bac171..7a7f5b0 100644
 --- a/shellinabox/launcher.c
 +++ b/shellinabox/launcher.c
-@@ -564,6 +564,7 @@ int launchChild(int service, struct Session *session, const char *url) {
+@@ -558,6 +558,7 @@ int launchChild(int service, struct Session *session, const char *url) {
      return -1;
    }
    check(bytes == sizeof(pid));
@@ -10,7 +10,7 @@ index 2bac171..7a7f5b0 100644
    check(session->pid = pid);
    struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
    check(cmsg);
-@@ -1830,6 +1831,7 @@ static void launcherDaemon(int fd) {
+@@ -1824,6 +1825,7 @@ static void launcherDaemon(int fd) {
          addToHashMap(childProcesses, utmp->pid, (char *)utmp);
          debug("[server] Child %d launched", pid);
        } else {
@@ -18,7 +18,7 @@ index 2bac171..7a7f5b0 100644
          int fds[2];
          if (!pipe(fds)) {
            NOINTR(write(fds[1], "forkpty() failed\r\n", 18));
-@@ -1839,6 +1841,7 @@ static void launcherDaemon(int fd) {
+@@ -1833,6 +1835,7 @@ static void launcherDaemon(int fd) {
          }
        }
 
