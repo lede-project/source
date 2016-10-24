@@ -123,7 +123,7 @@ endef
 define Package/blkdiscard
 $(call Package/util-linux/Default)
   TITLE:=discard sectors on a device
-  SUBMENU=disc
+  SUBMENU=Filesystem
 endef
 
 define Package/blkdiscard/description
@@ -136,7 +136,7 @@ define Package/blkid
 $(call Package/util-linux/Default)
   TITLE:=locate and print block device attributes
   DEPENDS:= +libblkid +libuuid
-  SUBMENU=disc
+  SUBMENU=Filesystem
 endef
 
 define Package/blkid/description
@@ -148,6 +148,7 @@ define Package/cal
 $(call Package/util-linux/Default)
   TITLE:=display a calendar
   DEPENDS:= +libncurses
+  SUBMENU=Util-linux
 endef
 
 define Package/cal/description
@@ -158,7 +159,7 @@ define Package/cfdisk
 $(call Package/util-linux/Default)
   TITLE:=display or manipulate disk partition table
   DEPENDS:= +libblkid +libncurses +libsmartcols +libfdisk +libmount
-  SUBMENU:=disc
+  SUBMENU=Filesystem
 endef
 
 define Package/cfdisk/description
@@ -168,6 +169,7 @@ endef
 define Package/dmesg
 $(call Package/util-linux/Default)
   TITLE:=print or control the kernel ring buffer
+  SUBMENU=Util-linux
 endef
 
 define Package/dmesg/description
@@ -178,7 +180,7 @@ define Package/fdisk
 $(call Package/util-linux/Default)
   TITLE:=manipulate disk partition table
   DEPENDS:= +libblkid +libsmartcols +libfdisk
-  SUBMENU=disc
+  SUBMENU=Filesystem
 endef
 
 define Package/fdisk/description
@@ -189,7 +191,7 @@ define Package/findfs
 $(call Package/util-linux/Default)
   TITLE:=find a filesystem by label or UUID
   DEPENDS:= +libblkid
-  SUBMENU=disc
+  SUBMENU=Filesystem
 endef
 
 define Package/findfs/description
@@ -200,6 +202,7 @@ endef
 define Package/flock
 $(call Package/util-linux/Default)
   TITLE:=manage locks from shell scripts
+  SUBMENU=Util-linux
 endef
 
 define Package/flock/description
@@ -209,6 +212,7 @@ endef
 define Package/getopt
 $(call Package/util-linux/Default)
   TITLE:=parse command options (enhanced)
+  SUBMENU=Util-linux
 endef
 
 define Package/getopt/description
@@ -219,6 +223,7 @@ endef
 define Package/hwclock
 $(call Package/util-linux/Default)
   TITLE:=query or set the hardware clock
+  SUBMENU=Util-linux
 endef
 
 define Package/hwclock/description
@@ -228,6 +233,7 @@ endef
 define Package/logger
 $(call Package/util-linux/Default)
   TITLE:=a shell command interface to the syslog system log module
+  SUBMENU=Util-linux
 endef
 
 define Package/logger/description
@@ -238,6 +244,7 @@ endef
 define Package/look
 $(call Package/util-linux/Default)
   TITLE:=display lines beginning with a given string
+  SUBMENU=Util-linux
 endef
 
 define Package/look/description
@@ -248,6 +255,7 @@ define Package/losetup
 $(call Package/util-linux/Default)
   TITLE:=set up and control loop devices
   DEPENDS:= +libsmartcols
+  SUBMENU=Util-linux
 endef
 
 define Package/losetup/description
@@ -259,7 +267,7 @@ define Package/lsblk
 $(call Package/util-linux/Default)
   TITLE:=list block devices
   DEPENDS:= +libblkid +libmount +libsmartcols
-  SUBMENU=disc
+  SUBMENU=Filesystem
 endef
 
 define Package/lsblk/description
@@ -269,6 +277,7 @@ endef
 define Package/mcookie
 $(call Package/util-linux/Default)
   TITLE:=generate magic cookies for xauth
+  SUBMENU=Util-linux
 endef
 
 define Package/mcookie/description
@@ -280,6 +289,7 @@ define Package/mount-utils
 $(call Package/util-linux/Default)
   TITLE:=related (u)mount utilities
   DEPENDS+= +libmount +libsmartcols
+  SUBMENU=Filesystem
 endef
 
 define Package/mount-utils/description
@@ -289,6 +299,7 @@ endef
 define Package/namei
 $(call Package/util-linux/Default)
   TITLE:=follow a pathname until a terminal point is found
+  SUBMENU=Util-linux
 endef
 
 define Package/namei/description
@@ -300,6 +311,7 @@ define Package/prlimit
 $(call Package/util-linux/Default)
   TITLE:=get and set process resource limits
   DEPENDS:= +libsmartcols
+  SUBMENU=Util-linux
 endef
 
 define Package/prlimit/description
@@ -310,6 +322,7 @@ endef
 define Package/rename
 $(call Package/util-linux/Default)
   TITLE:=rename files
+  SUBMENU=Util-linux
 endef
 
 define Package/rename/description
@@ -321,7 +334,7 @@ define Package/partx-utils
 $(call Package/util-linux/Default)
   TITLE:=inform kernel about the presence and numbering of on-disk partitions
   DEPENDS:= +libblkid +libsmartcols
-  SUBMENU=disc
+  SUBMENU=Filesystem
 endef
 
 define Package/partx-utils/description
@@ -353,7 +366,7 @@ endef
 define Package/sfdisk
 $(call Package/util-linux/Default)
   TITLE:=partition table manipulator for Linux
-  SUBMENU=disc
+  SUBMENU=Filesystem
   DEPENDS:= +libblkid +libfdisk +libsmartcols
 endef
 
@@ -366,7 +379,7 @@ define Package/swap-utils
 $(call Package/util-linux/Default)
   TITLE:=swap space management utilities
   DEPENDS+= +libblkid
-  SUBMENU:=disc
+  SUBMENU=Filesystem
 endef
 
 define Package/swap-utils/description
@@ -377,6 +390,7 @@ define Package/uuidd
 $(call Package/util-linux/Default)
   TITLE:=UUID generation daemon
   DEPENDS:= +libuuid
+  SUBMENU=Filesystem
 endef
 
 define Package/uuidd/description
@@ -390,6 +404,7 @@ define Package/uuidgen
 $(call Package/util-linux/Default)
   TITLE:=create a new UUID value
   DEPENDS:= +libuuid
+  SUBMENU=Filesystem
 endef
 
 define Package/uuidgen/description
@@ -413,6 +428,7 @@ endef
 define Package/whereis
 $(call Package/util-linux/Default)
   TITLE:=locate the binary, source, and manual page files for a command
+  SUBMENU=Util-linux
 endef
 
 define Package/whereis/description
@@ -423,7 +439,7 @@ define Package/wipefs
 $(call Package/util-linux/Default)
   TITLE:=wipe a signature from a device
   DEPENDS:= +libblkid
-  SUBMENU:=disc
+  SUBMENU=Filesystem
 endef
 
 define Package/wipefs/description
