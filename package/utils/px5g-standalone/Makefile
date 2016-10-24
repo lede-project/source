@@ -17,6 +17,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/px5g-standalone
   SECTION:=utils
   CATEGORY:=Utilities
+  SUBMENU:=Encryption
   TITLE:=Standalone X.509 certificate generator (standalone version)
   MAINTAINER:=Jo-Philipp Wich <xm@subsignal.org>
 endef
