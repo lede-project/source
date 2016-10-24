@@ -13,9 +13,14 @@ timeout)
 released)
 	if [ "$SEEN" -lt 1 ]
 	then
-		echo "REBOOT" > /dev/console
-		sync
-		reboot
+		if [ -f /etc/rc.button/wps ]
+		then
+			BUTTON=wps ACTION=pressed /etc/rc.button/wps
+		else
+			echo "REBOOT" > /dev/console
+			sync
+			reboot
+		fi
 	elif [ "$SEEN" -gt 5 ]
 	then
 		echo "FACTORY RESET" > /dev/console

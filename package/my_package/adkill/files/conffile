@@ -1,0 +1,202 @@
+
+config adkill_base
+	option enabled '0'
+
+config rule_redirect
+	option shost 'player.ku6cdn.com'
+	option surl 'v.swf'
+	option dhost 'adtchrome.qiniudn.com'
+	option durl '/ku6_20140420.swf'
+
+config rule_404
+	option host 'valf.atm.youku.com'
+	option url '/vf?'
+
+config rule_404
+	option host 'ad.api.3g.youku.com'
+	option url '/adv?'
+
+config rule_404
+	option host 'mf.atm.youku.com'
+	option url '/mf?'
+
+config rule_404
+	option host 'valo.atm.youku.com'
+	option url '/vo?'
+
+config rule_404
+	option host 'f.youku.com'
+	option url '/flv/'
+
+config rule_404
+	option host 'ad.api.3g.tudou.com'
+	option url '/adv?'
+
+config rule_404
+	option host 'dc.letv.com'
+	option url '/'
+
+config rule_404
+	option host 'livew.l.qq.com'
+	option url '/livemsg?'
+
+config rule_404
+	option host 'adslvfile.qq.com'
+	option url '.flv,.FLV'
+
+config rule_404
+	option host 'vv.video.qq.com'
+	option url '/getmind?'
+
+config rule_404
+	option host 'livec.l.qq.com'
+	option url '/livemsg?'
+
+config rule_404
+	option host 'livep.l.qq.com'
+	option url '/livemsg?'
+
+config rule_404
+	option host 'lives.l.qq.com'
+	option url '/livemsg?'
+
+config rule_404
+	option host 'vv.video.qq.com'
+	option url '/getvmind?'
+
+config rule_404
+	option host '*.logic.cpm.cm.sandai.net'
+	option url '/adlistrequest?'
+
+config rule_404
+	option host 'm.aty.sohu.com'
+	option url '/m?'
+
+config rule_404
+	option host 'cdn1.56imgs.com'
+	option url '.flv'
+
+config rule_404
+	option host 'a.hpg.cn.miaozhen.com'
+	option url '/a.gif?'
+
+config rule_404
+	option host 'mad.stat.v-56.com'
+	option url '/api.ad_'
+
+config rule_404
+	option host 'data.video.qiyi.com'
+	option url 'vid='
+
+config rule_404
+	option host 'asimgs.pplive.cn'
+	option url '.flv,.FLV,.swf'
+
+config rule_404
+	option host 'de.as.pptv.com'
+	option url '/3.0draft?,3.0draft/?,/webdelivery/webafp?'
+
+config rule_404
+	option host 'v.cctv.com'
+	option url '.mp4,.MP4'
+
+config rule_404
+	option host '86mms.megajoy.com'
+	option url '.flv,jpg,JPG'
+
+config rule_404
+	option host '86get.maxduo.com'
+	option url '/providerv.ashx'
+
+config rule_404
+	option host 'pic.snyu.com'
+	option url '.flv,.swf'
+
+config rule_404
+	option host 'pub.funshion.com'
+	option url '/interface/deliver?'
+
+config rule_404
+	option host 'adm.funshion.com'
+	option url '.flv'
+
+config rule_404
+	option host 'afp.acs86.com'
+	option url '/a.htm?'
+
+config rule_404
+	option host 'luck.v1.cn'
+	option url '/adxml.php?'
+
+config rule_404
+	option host 's.x.cn.miaozhen.com'
+	option url '/ax?'
+
+config rule_404
+	option host 'cb.baidu.com'
+	option url '/ecom?'
+
+config rule_404
+	option host 'pos.baidu.com'
+	option url '/ecom?'
+
+config rule_404
+	option host 'cpro.baidu.com'
+	option url '/uijs.php?'
+
+config rule_404
+	option host 'static.acs86.com'
+	option url '.flv'
+
+config rule_404
+	option host 'res.hunantv.com'
+	option url '.flv'
+
+config rule_404
+	option host 'p.37youyou.com'
+	option url '.swf'
+
+config rule_404
+	option host 'xs.houyi.baofeng.net'
+	option url '/Consultation/index.php?'
+
+config rule_404
+	option host 'pubads.g.doubleclick.net'
+	option url '/adx?'
+
+config rule_404
+	option host 'sax.sina.com.cn'
+	option url '/video/impress?'
+
+config rule_404
+	option host 'v-sence.gentags.net'
+	option url '/www/delivery/pcvdo.php?'
+
+config rule_404
+	option host 'sax.sina.com.cn'
+	option url '/video/newimpress?'
+
+config rule_404
+	option host 'www.woxiu.com'
+	option url '/get_pre_config.php'
+
+config rule_502
+	option host 'v.aty.sohu.com'
+	option url '/v?'
+
+config rule_modify
+	option host 'ark.letv.com'
+	option mark 'ark='
+	option val '02'
+
+config rule_redirect
+	option shost 'static.youku.com'
+	option surl 'loader.swf,player.swf'
+	option dhost 'noads.b0.upaiyun.com'
+	option durl '/swf/loader.swf,/swf/player.swf'
+
+config rule_fakepack
+	option host 'v.youku.com'
+	option url 'crossdomain.xml'
+	option type 'text/xml'
+	option content '<?xml version="1.0" encoding="UTF-8"?><cross-domain-policy><allow-access-from domain="*"/></cross-domain-policy>'

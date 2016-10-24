@@ -1,0 +1,85 @@
+#!/bin/sh
+
+set_fstab(){
+
+	my_fstype="`block info | grep "/dev/$device" | awk -F 'TYPE="' '{print $2}' | sed 's/\"//'`"
+
+	[ -n "$my_fstype" ] && {
+		logger -t Auto-Mount "New block.File system:${my_fstype}"
+		if [ "$my_fstype" = 'swap' ]; then
+
+			n=$(uci show fstab | grep "fstab.@swap" | grep -c "=swap")
+
+			[ $n -gt 0 ] && {
+				for i in $(seq 0 $n)
+				do
+					old_swap="$(uci get fstab.@swap[$i].device)"
+					[ "$old_swap" = "/dev/$device" ] && {
+						FLAG="SKIP"
+						break
+					}
+				done
+			}
+
+			[ "$FLAG" != "SKIP" ] && {
+				uci add fstab swap
+				uci set fstab.@swap[$n]="swap"
+				uci set fstab.@swap[$n].enabled='1'
+				uci set fstab.@swap[$n].device="/dev/$device"
+			}
+
+		else
+
+			section=$(echo $get_uuid | sed 's/-//g')
+
+			uci set fstab.${section}="mount"
+			uci set fstab.${section}.enabled=1
+			uci set fstab.${section}.uuid="${get_uuid}"
+			uci set fstab.${section}.target="/mnt/$device"
+			uci set fstab.${section}.fstype="$my_fstype"
+
+			case "$my_fstype" in
+				ext*)
+					uci set fstab.${section}.options="noatime";;
+				'ntfs')
+				if [ $(lsmod | grep -c ufsd) -ge 1 ]
+				then
+					uci set fstab.${section}.fstype="ufsd"
+					uci set fstab.${section}.options="noatime,nls=utf8,force"
+				else
+					uci set fstab.${section}.fstype="ntfs-3g"
+					uci set fstab.${section}.options="noatime,iocharset=utf8,big_writes"
+				fi
+				;;
+				'exfat')
+					uci set fstab.${section}.options="noatime";;
+				'vfat')
+					uci set fstab.${section}.options="iocharset=utf8,umask=0000,dmask=0000,fmask=0000";;
+                *)
+                    uci revert fstab;;
+			esac
+		fi
+		uci commit fstab
+	}
+}
+
+blkdev=`dirname $DEVPATH`
+if [ `basename $blkdev` != "block" ]; then
+
+    device=`basename $DEVPATH`
+    mountpoint=`sed -ne "s|^[^ ]*/$device ||; T; s/ .*//p" /proc/self/mounts`
+
+    case "$ACTION" in
+	add)
+		get_uuid=`block info | grep "/dev/${device}" | awk -F "UUID=" '{print $2}'| awk -F "\"" '{print $2}'`
+		[ -n "$get_uuid" ] && {
+			logger -t Auto-Mount "Block /dev/${device} added."
+			logger -t Auto-Mount "UUID=$get_uuid"
+			have_uuid=$(uci show fstab | grep -c "$get_uuid")
+			[ "$have_uuid" = "0" ] && set_fstab
+        		mkdir -p /mnt/$device
+		}
+		;;
+    esac
+
+fi

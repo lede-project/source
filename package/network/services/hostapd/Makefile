@@ -31,7 +31,8 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_hostapd-mini \
 	CONFIG_WPA_RFKILL_SUPPORT \
 	CONFIG_DRIVER_WEXT_SUPPORT \
-	CONFIG_DRIVER_11N_SUPPORT
+	CONFIG_DRIVER_11N_SUPPORT \
+	CONFIG_PACKAGE_kmod-qca-wifi-perf-10.2
 
 LOCAL_TYPE=$(strip \
 		$(if $(findstring wpad,$(BUILD_VARIANT)),wpad, \
@@ -62,11 +63,17 @@ ifneq ($(CONFIG_DRIVER_11N_SUPPORT),)
   HOSTAPD_IEEE80211N:=y
 endif
 
+ifneq ($(CONFIG_PACKAGE_kmod-qca-wifi-perf-10.2),)
+	PKG_BUILD_DEPENDS+=qca-wifi-10.2
+endif
+
 DRIVER_MAKEOPTS= \
 	CONFIG_ACS=$(CONFIG_PACKAGE_kmod-cfg80211) \
 	CONFIG_DRIVER_NL80211=$(CONFIG_PACKAGE_kmod-cfg80211) \
 	CONFIG_IEEE80211N=$(HOSTAPD_IEEE80211N) \
 	CONFIG_DRIVER_WEXT=$(CONFIG_DRIVER_WEXT_SUPPORT) \
+	CONFIG_DRIVER_ATHEROS=$(CONFIG_PACKAGE_kmod-qca-wifi-perf-10.2) \
+	CONFIG_DRIVER_ATHR=$(CONFIG_PACKAGE_kmod-qca-wifi-perf-10.2)
 
 ifeq ($(LOCAL_VARIANT),full)
   DRIVER_MAKEOPTS += CONFIG_IEEE80211W=$(CONFIG_DRIVER_11W_SUPPORT)
@@ -378,9 +385,10 @@ Package/hostapd-mini/install = $(Package/hostapd/install)
 
 ifneq ($(LOCAL_TYPE),supplicant)
   define Package/hostapd-utils/install
-	$(INSTALL_DIR) $(1)/usr/sbin $(1)/etc/rc.button
+	$(INSTALL_DIR) $(1)/usr/sbin $(1)/lib $(1)/etc/rc.button
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/hostapd/hostapd_cli $(1)/usr/sbin/
 	$(INSTALL_BIN) ./files/wps-hotplug.sh $(1)/etc/rc.button/wps
+	$(INSTALL_BIN) ./files/hostapd_wps_led.sh $(1)/lib/hostapd_wps_led.sh
   endef
 endif
 

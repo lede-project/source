@@ -1,0 +1,53 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006-2011 OpenWrt.org
+. /lib/functions.sh
+START=95
+
+SERVICE_USE_PID=1
+SERVICE_WRITE_PID=1
+SERVICE_DAEMONIZE=1
+
+genconf() {
+
+	[ -f /etc/config/shadowsocks ] || {
+		echo "You are missing configuration file /etc/config/shadowsocks"
+		return 1
+	}
+
+	config_load "shadowsocks"
+
+	config_get ENABLED config enabled
+
+	[ "$ENABLED" == "0" ] && {
+		echo "Shadowsocks is disabled."
+		return 1
+	}
+
+	config_get S_SERVER config server
+	config_get S_SERVER_PORT config server_port
+	config_get S_LOCAL_PORT config local_port
+	config_get S_PASSWORD config password
+	config_get S_TIMEOUT config timeout
+	config_get S_METHOD config method
+
+	cat >/tmp/shadowsocks.json <<EOF
+{
+    "server":"$S_SERVER",
+    "server_port":$S_SERVER_PORT,
+    "local_port":$S_LOCAL_PORT,
+    "password":"$S_PASSWORD",
+    "timeout":$S_TIMEOUT,
+    "method":"$S_METHOD"
+}
+EOF
+}
+
+
+start() {
+	genconf
+	service_start /usr/bin/ss-local -c /tmp/shadowsocks.json -b 0.0.0.0
+}
+
+stop() {
+	service_stop /usr/bin/ss-local
+}

@@ -1,0 +1,309 @@
+--- a/Makefile
++++ b/Makefile
+@@ -74,7 +74,7 @@ objs = cache.o rfc1035.o util.o option.o
+        helper.o tftp.o log.o conntrack.o dhcp6.o rfc3315.o \
+        dhcp-common.o outpacket.o radv.o slaac.o auth.o ipset.o \
+        domain.o dnssec.o blockdata.o tables.o loop.o inotify.o \
+-       poll.o rrfilter.o edns0.o arp.o
++       poll.o rrfilter.o edns0.o arp.o routefilter.o
+ 
+ hdrs = dnsmasq.h config.h dhcp-protocol.h dhcp6-protocol.h \
+        dns-protocol.h radv-protocol.h ip6addr.h
+--- a/src/dnsmasq.h
++++ b/src/dnsmasq.h
+@@ -1115,7 +1115,7 @@ size_t setup_reply(struct dns_header *he
+ 		   unsigned long local_ttl);
+ int extract_addresses(struct dns_header *header, size_t qlen, char *namebuff, 
+ 		      time_t now, char **ipsets, int is_sign, int checkrebind,
+-		      int no_cache, int secure, int *doctored);
++		      int no_cache, int secure, int *doctored, int check_inlist);
+ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,  
+ 		      struct in_addr local_addr, struct in_addr local_netmask, 
+ 		      time_t now, int ad_reqd, int do_bit, int have_pseudoheader);
+@@ -1532,3 +1532,23 @@ int check_source(struct dns_header *head
+ /* arp.c */
+ int find_mac(union mysockaddr *addr, unsigned char *mac, int lazy, time_t now);
+ int do_arp_script_run(void);
++
++/* routefilter.c */
++typedef struct {
++  int entries;
++  struct in_addr *ips;
++} ip_list_t;
++
++typedef struct {
++  struct in_addr net;
++  in_addr_t mask;
++} net_mask_t;
++
++typedef struct {
++  int entries;
++  net_mask_t *nets;
++} net_list_t;
++
++extern int route_filter_enabled;
++int parse_chnroute(char *chnroute_file);
++int ip_check_in_iplist(struct in_addr ip);
+--- a/src/forward.c
++++ b/src/forward.c
+@@ -555,11 +555,11 @@ static int forward_query(int udpfd, unio
+ 
+ static size_t process_reply(struct dns_header *header, time_t now, struct server *server, size_t n, int check_rebind, 
+ 			    int no_cache, int cache_secure, int bogusanswer, int ad_reqd, int do_bit, int added_pheader, 
+-			    int check_subnet, union mysockaddr *query_source)
++			    int check_subnet, union mysockaddr *query_source, int check_inlist)
+ {
+   unsigned char *pheader, *sizep;
+   char **sets = 0;
+-  int munged = 0, is_sign;
++  int munged = 0, is_sign, ea_ret=0;
+   size_t plen; 
+ 
+   (void)ad_reqd;
+@@ -675,8 +675,9 @@ static size_t process_reply(struct dns_h
+ 	  SET_RCODE(header, NOERROR);
+ 	  cache_secure = 0;
+ 	}
+-      
+-      if (extract_addresses(header, n, daemon->namebuff, now, sets, is_sign, check_rebind, no_cache, cache_secure, &doctored))
++      ea_ret = extract_addresses(header, n, daemon->namebuff, now, sets, is_sign, check_rebind, no_cache, cache_secure, &doctored, check_inlist);
++
++      if ((ea_ret!=-1)&&(ea_ret))
+ 	{
+ 	  my_syslog(LOG_WARNING, _("possible DNS-rebind attack detected: %s"), daemon->namebuff);
+ 	  munged = 1;
+@@ -722,6 +723,7 @@ static size_t process_reply(struct dns_h
+   /* the bogus-nxdomain stuff, doctor and NXDOMAIN->NODATA munging can all elide
+      sections of the packet. Find the new length here and put back pseudoheader
+      if it was removed. */
++     if(ea_ret==-1)return (size_t)-1;
+   return resize_packet(header, n, pheader, plen);
+ }
+ 
+@@ -738,6 +740,7 @@ void reply_query(int fd, int family, tim
+   size_t nn;
+   struct server *server;
+   void *hash;
++  int check_inlist = 0;
+ #ifndef HAVE_DNSSEC
+   unsigned int crc;
+ #endif
+@@ -765,7 +768,9 @@ void reply_query(int fd, int family, tim
+   
+   if (!server)
+     return;
+-  
++  if(route_filter_enabled)
++  	check_inlist = ip_check_in_iplist(serveraddr.in.sin_addr);
++
+ #ifdef HAVE_DNSSEC
+   hash = hash_questions(header, n, daemon->namebuff);
+ #else
+@@ -1089,8 +1094,15 @@ void reply_query(int fd, int family, tim
+       
+       if ((nn = process_reply(header, now, forward->sentto, (size_t)n, check_rebind, no_cache_dnssec, cache_secure, bogusanswer, 
+ 			      forward->flags & FREC_AD_QUESTION, forward->flags & FREC_DO_QUESTION, 
+-			      forward->flags & FREC_ADDED_PHEADER, forward->flags & FREC_HAS_SUBNET, &forward->source)))
++			      forward->flags & FREC_ADDED_PHEADER, forward->flags & FREC_HAS_SUBNET, &forward->source, check_inlist)))
+ 	{
++		if(nn==(size_t)-1)
++		{
++			my_syslog(LOG_INFO,"Dropped DNS reply from %hhu.%hhu.%hhu.%hhu",
++				((char*)&serveraddr.in.sin_addr.s_addr)[0],((char*)&serveraddr.in.sin_addr.s_addr)[1],
++				((char*)&serveraddr.in.sin_addr.s_addr)[2],((char*)&serveraddr.in.sin_addr.s_addr)[3]);
++			return;
++		}
+ 	  header->id = htons(forward->orig_id);
+ 	  header->hb4 |= HB4_RA; /* recursion if available */
+ #ifdef HAVE_DNSSEC
+@@ -1946,7 +1958,7 @@ unsigned char *tcp_request(int confd, ti
+ 
+ 		      m = process_reply(header, now, last_server, (unsigned int)m, 
+ 					option_bool(OPT_NO_REBIND) && !norebind, no_cache_dnssec, cache_secure, bogusanswer,
+-					ad_reqd, do_bit, added_pheader, check_subnet, &peer_addr); 
++					ad_reqd, do_bit, added_pheader, check_subnet, &peer_addr, 0);
+ 		      
+ 		      break;
+ 		    }
+--- a/src/option.c
++++ b/src/option.c
+@@ -159,7 +159,8 @@ struct myoption {
+ #define LOPT_SCRIPT_ARP    347
+ #define LOPT_DHCPTTL       348
+ #define LOPT_TFTP_MTU      349
+- 
++#define LOPT_FIL_IPLIST     350
++
+ #ifdef HAVE_GETOPT_LONG
+ static const struct option opts[] =  
+ #else
+@@ -323,6 +324,7 @@ static const struct myoption opts[] =
+     { "dns-loop-detect", 0, 0, LOPT_LOOP_DETECT },
+     { "script-arp", 0, 0, LOPT_SCRIPT_ARP },
+     { "dhcp-ttl", 1, 0 , LOPT_DHCPTTL },
++    { "filter-iplist", 2, 0, LOPT_FIL_IPLIST },
+     { NULL, 0, 0, 0 }
+   };
+ 
+@@ -4045,7 +4047,9 @@ static int one_opt(int option, char *arg
+ 	break;
+       }
+ #endif
+-		
++		case LOPT_FIL_IPLIST:
++      parse_chnroute(arg);
++    break;
+     default:
+       ret_err(_("unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support)"));
+       
+--- a/src/rfc1035.c
++++ b/src/rfc1035.c
+@@ -569,7 +569,7 @@ static int find_soa(struct dns_header *h
+    expired and cleaned out that way. 
+    Return 1 if we reject an address because it look like part of dns-rebinding attack. */
+ int extract_addresses(struct dns_header *header, size_t qlen, char *name, time_t now, 
+-		      char **ipsets, int is_sign, int check_rebind, int no_cache_dnssec, int secure, int *doctored)
++		      char **ipsets, int is_sign, int check_rebind, int no_cache_dnssec, int secure, int *doctored,int check_inlist)
+ {
+   unsigned char *p, *p1, *endrr, *namep;
+   int i, j, qtype, qclass, aqtype, aqclass, ardlen, res, searched_soa = 0;
+@@ -664,7 +664,6 @@ int extract_addresses(struct dns_header
+ 			    return 0; /* looped CNAMES, or DNSSEC, which we can't cache. */
+ 			  goto cname_loop;
+ 			}
+-		      
+ 		      cache_insert(name, &addr, now, cttl, name_encoding | secflag | F_REVERSE);
+ 		      found = 1; 
+ 		    }
+@@ -793,7 +792,10 @@ int extract_addresses(struct dns_header
+ 			    }
+ 			}
+ #endif
+-		      
++		      if((check_inlist)&&(!ip_check_in_iplist(addr.addr.addr4)))
++          {
++            return -1;
++          }
+ 		      newc = cache_insert(name, &addr, now, attl, flags | F_FORWARD | secflag);
+ 		      if (newc && cpp)
+ 			{
+--- /dev/null
++++ b/src/routefilter.c
+@@ -0,0 +1,117 @@
++/*  routefilter.c
++    Copyrignt (C) 2016 GuoGuo<gch981213@gmail.com>
++    Based on ChinaDNS by Clowwindy
++    Copyright (C) 2015 clowwindy
++
++    This program is free software: you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    This program is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU General Public License for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with this program.  If not, see <http://www.gnu.org/licenses/>.
++*/
++
++
++#include "dnsmasq.h"
++
++static net_list_t chnroute_list;
++int route_filter_enabled=0;
++
++static int cmp_net_mask(const void *a, const void *b) {
++  net_mask_t *neta = (net_mask_t *)a;
++  net_mask_t *netb = (net_mask_t *)b;
++  if (neta->net.s_addr == netb->net.s_addr)
++    return 0;
++  // TODO: pre ntohl
++  if (ntohl(neta->net.s_addr) > ntohl(netb->net.s_addr))
++    return 1;
++  return -1;
++}
++
++int parse_chnroute(char *chnroute_file) {
++  FILE *fp;
++  char line_buf[32];
++  char *line;
++  size_t len = sizeof(line_buf);
++  chnroute_list.entries = 0;
++  int i = 0;
++
++  fp = fopen(chnroute_file, "rb");
++  if (fp == NULL) {
++    my_syslog(LOG_WARNING, "Can't open IP list: %s", chnroute_file);
++    return -1;
++  }
++  while ((line = fgets(line_buf, len, fp))) {
++    chnroute_list.entries++;
++  }
++
++  chnroute_list.nets = calloc(chnroute_list.entries, sizeof(net_mask_t));
++  if (0 != fseek(fp, 0, SEEK_SET)) {
++    my_syslog(LOG_WARNING, "fseek");
++    return -1;
++  }
++  while ((line = fgets(line_buf, len, fp))) {
++    char *sp_pos;
++    sp_pos = strchr(line, '\r');
++    if (sp_pos) *sp_pos = 0;
++    sp_pos = strchr(line, '\n');
++    if (sp_pos) *sp_pos = 0;
++    sp_pos = strchr(line, '/');
++    if (sp_pos) {
++      *sp_pos = 0;
++      chnroute_list.nets[i].mask = (1 << (32 - atoi(sp_pos + 1))) - 1;
++    } else {
++      chnroute_list.nets[i].mask = UINT32_MAX;
++    }
++    if (0 == inet_aton(line, &chnroute_list.nets[i].net)) {
++      my_syslog(LOG_WARNING, "invalid addr %s in %s:%d", line, chnroute_file, i + 1);
++      return 1;
++    }
++    i++;
++  }
++
++  qsort(chnroute_list.nets, chnroute_list.entries, sizeof(net_mask_t),
++        cmp_net_mask);
++
++  fclose(fp);
++  my_syslog(LOG_INFO, "Route filter enabled.IP List:%d", chnroute_file);
++  route_filter_enabled=1;
++  return 0;
++}
++
++int ip_check_in_iplist(struct in_addr ip) {
++  // binary search
++  const net_list_t *netlist = &chnroute_list;
++  int l = 0, r = netlist->entries - 1;
++  int m, cmp;
++  if (netlist->entries == 0)
++    return 0;
++  net_mask_t ip_net;
++  ip_net.net = ip;
++  while (l != r) {
++    m = (l + r) / 2;
++    cmp = cmp_net_mask(&ip_net, &netlist->nets[m]);
++    if (cmp == -1) {
++      if (r != m)
++        r = m;
++      else
++        break;
++    } else {
++      if (l != m)
++        l = m;
++      else
++        break;
++    }
++  }
++  if ((ntohl(netlist->nets[l].net.s_addr) ^ ntohl(ip.s_addr)) &
++      (UINT32_MAX ^ netlist->nets[l].mask)) {
++    return 0;
++  }
++  return 1;
++}

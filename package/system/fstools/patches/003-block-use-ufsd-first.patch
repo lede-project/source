@@ -1,0 +1,30 @@
+--- a/block.c
++++ b/block.c
+@@ -795,14 +795,20 @@ static int mount_device(struct blkid_str
+ 			param = mount_flags_to_string(m->flags);
+ 
+ 			if (strcmp(pr->id->name, "exfat"))
+-				snprintf(cmd, sizeof (cmd), "ntfs-3g -o \"%s,%s\" %s %s >/dev/null",
+-					param, (m->options) ? (m->options) : (""), pr->dev, target);
+-
++			{
++				const char fstype[]="ufsd";
++				err = mount(pr->dev, target, fstype, m->flags, (m->options) ? (m->options) : (""));
++				if(err)
++				{
++				snprintf(cmd, sizeof (cmd), "ntfs-3g -o \"%s,%s\" %s %s >/dev/null",param, (m->options) ? (m->options) : (""), pr->dev, target);
++				err = system(cmd);
++				}
++			}
+ 			else
+-				snprintf(cmd, sizeof (cmd), "mount -t exfat -o \"%s,%s\" %s %s >/dev/null",
+-					param, (m->options) ? (m->options) : (""), pr->dev, target);
+-
+-			err = system(cmd);
++			{
++				snprintf(cmd, sizeof (cmd), "mount -t exfat -o \"%s,%s\" %s %s >/dev/null",param, (m->options) ? (m->options) : (""), pr->dev, target);
++				err = system(cmd);
++			}
+ 		}
+ 		if (err)
+ 			ULOG_ERR("mounting %s (%s) as %s failed (%d) - %s\n",

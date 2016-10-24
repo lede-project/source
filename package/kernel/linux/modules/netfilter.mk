@@ -369,6 +369,26 @@ endef
 
 $(eval $(call KernelPackage,nf-nathelper-extra))
 
+define KernelPackage/ipt-imq
+  TITLE:=Intermediate Queueing support
+  KCONFIG:= \
+	CONFIG_IMQ \
+	CONFIG_IMQ_NUM_DEVS=2 \
+	CONFIG_NETFILTER_XT_TARGET_IMQ
+  FILES:= \
+	$(LINUX_DIR)/drivers/net/imq.$(LINUX_KMOD_SUFFIX) \
+	$(foreach mod,$(IPT_IMQ-m),$(LINUX_DIR)/net/$(mod).$(LINUX_KMOD_SUFFIX))
+  AUTOLOAD:=$(call AutoProbe,$(notdir imq \
+	$(IPT_IMQ-m) \
+  ))
+  $(call AddDepends/ipt)
+endef
+
+define KernelPackage/ipt-imq/description
+ Kernel support for Intermediate Queueing devices
+endef
+
+$(eval $(call KernelPackage,ipt-imq))
 
 define KernelPackage/ipt-ulog
   TITLE:=Module for user-space packet logging

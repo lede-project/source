@@ -1,0 +1,120 @@
+--- a/block.c
++++ b/block.c
+@@ -238,6 +238,55 @@ static void parse_mount_options(struct m
+ 	free(optstr);
+ }
+ 
++static const char *mount_flags_to_string(unsigned long mountflags)
++{
++	static char param[256];
++
++	param[0] = 0;
++
++	if (mountflags & MS_SYNCHRONOUS)
++		strcat(param, "sync,");
++	else
++		strcat(param, "async,");
++
++	if (mountflags & MS_DIRSYNC)
++		strcat(param, "dirsync,");
++
++	if (mountflags & MS_MANDLOCK)
++		strcat(param, "mand,");
++
++	if (mountflags & MS_NOATIME)
++		strcat(param, "noatime,");
++
++	if (mountflags & MS_NODEV)
++		strcat(param, "nodev,");
++
++	if (mountflags & MS_NODIRATIME)
++		strcat(param, "nodiratime,");
++
++	if (mountflags & MS_NOEXEC)
++		strcat(param, "noexec,");
++
++	if (mountflags & MS_NOSUID)
++		strcat(param, "nosuid,");
++
++	if (mountflags & MS_RDONLY)
++		strcat(param, "ro,");
++	else
++		strcat(param, "rw,");
++
++	if (mountflags & MS_RELATIME)
++		strcat(param, "relatime,");
++
++	if (mountflags & MS_STRICTATIME)
++		strcat(param, "strictatime,");
++
++	if (param[0])
++		param[strlen(param) - 1] = 0;
++
++	return param;
++}
++
+ static int mount_add(struct uci_section *s)
+ {
+ 	struct blob_attr *tb[__MOUNT_MAX] = { 0 };
+@@ -548,6 +597,7 @@ static int print_block_uci(struct blkid_
+ 		printf("\toption\tuuid\t'%s'\n", pr->uuid);
+ 	else
+ 		printf("\toption\tdevice\t'%s'\n", pr->dev);
++	printf("\toption\tfstype\t'%s'\n", (!strcmp(pr->id->name, "ntfs") ? "ntfs-3g" : pr->id->name));
+ 	printf("\toption\tenabled\t'0'\n\n");
+ 
+ 	return 0;
+@@ -732,8 +782,28 @@ static int mount_device(struct blkid_str
+ 		if (check_fs)
+ 			check_filesystem(pr);
+ 
+-		err = mount(pr->dev, target, pr->id->name, m->flags,
+-		            (m->options) ? (m->options) : (""));
++		if (strcmp(pr->id->name, "ntfs-3g") && strcmp(pr->id->name, "ntfs") && strcmp(pr->id->name, "exfat"))
++		{
++			err = mount(pr->dev, target, pr->id->name, m->flags,
++		    		(m->options) ? (m->options) : (""));
++		}
++		else
++		{
++			char cmd[1024];
++			const char *param;
++
++			param = mount_flags_to_string(m->flags);
++
++			if (strcmp(pr->id->name, "exfat"))
++				snprintf(cmd, sizeof (cmd), "ntfs-3g -o \"%s,%s\" %s %s >/dev/null",
++					param, (m->options) ? (m->options) : (""), pr->dev, target);
++
++			else
++				snprintf(cmd, sizeof (cmd), "mount -t exfat -o \"%s,%s\" %s %s >/dev/null",
++					param, (m->options) ? (m->options) : (""), pr->dev, target);
++
++			err = system(cmd);
++		}
+ 		if (err)
+ 			ULOG_ERR("mounting %s (%s) as %s failed (%d) - %s\n",
+ 			         pr->dev, pr->id->name, target, err, strerror(err));
+@@ -752,7 +822,21 @@ static int mount_device(struct blkid_str
+ 		if (check_fs)
+ 			check_filesystem(pr);
+ 
+-		err = mount(pr->dev, target, pr->id->name, 0, "");
++		if (strcmp(pr->id->name, "ntfs-3g") && strcmp(pr->id->name, "ntfs") && strcmp(pr->id->name, "exfat"))
++		{
++			err = mount(pr->dev, target, pr->id->name, 0, "");
++		}
++		else
++		{
++			char cmd[1024];
++
++			if (strcmp(pr->id->name, "exfat"))
++				snprintf(cmd, sizeof (cmd), "ntfs-3g %s %s >/dev/null", pr->dev, target);
++			else
++				snprintf(cmd, sizeof (cmd), "mount -t exfat %s %s >/dev/null", pr->dev, target);
++
++			err = system(cmd);
++		}
+ 		if (err)
+ 			ULOG_ERR("mounting %s (%s) as %s failed (%d) - %s\n",
+ 			         pr->dev, pr->id->name, target, err, strerror(err));
