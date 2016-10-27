@@ -1,0 +1,989 @@
+Index: linux-4.4.27/drivers/net/phy/rtl8366_smi.c
+===================================================================
+--- linux-4.4.27.orig/drivers/net/phy/rtl8366_smi.c
++++ linux-4.4.27/drivers/net/phy/rtl8366_smi.c
+@@ -26,15 +26,29 @@
+ 
+ #include "rtl8366_smi.h"
+ 
++#ifdef CONFIG_NET_MEDIATEK_SOC
++#include <linux/of_mdio.h>
++#include "../ethernet/mediatek/mtk_eth_soc.h"
++#define RTL_MDIO_PHYID 0
++#define MDC_MDIO_CTRL0_REG		31
++#define MDC_MDIO_START_REG		29
++#define MDC_MDIO_CTRL1_REG		21
++#define MDC_MDIO_ADDRESS_REG		23
++#define MDC_MDIO_DATA_WRITE_REG		24
++#define MDC_MDIO_DATA_READ_REG		25
++
++#define MDC_MDIO_START_OP		0xFFFF
++#define MDC_MDIO_ADDR_OP		0x000E
++#define MDC_MDIO_READ_OP		0x0001
++#define MDC_MDIO_WRITE_OP		0x0003
++#endif
++
+ #define RTL8366_SMI_ACK_RETRY_COUNT         5
+ 
+ #define RTL8366_SMI_HW_STOP_DELAY		25	/* msecs */
+ #define RTL8366_SMI_HW_START_DELAY		100	/* msecs */
+ 
+-static inline void rtl8366_smi_clk_delay(struct rtl8366_smi *smi)
+-{
+-	ndelay(smi->clk_delay);
+-}
++#define rtl8366_smi_clk_delay(smi) ndelay(smi->clk_delay);
+ 
+ static void rtl8366_smi_start(struct rtl8366_smi *smi)
+ {
+@@ -206,34 +220,68 @@ int rtl8366_smi_read_reg(struct rtl8366_
+ 
+ 	spin_lock_irqsave(&smi->lock, flags);
+ 
+-	rtl8366_smi_start(smi);
++// Further may be generalized for more platforms
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	if (smi->mdio_enabled) {
++		/* Write Start command to register 29 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
++
++		/* Write address control code to register 31 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_CTRL0_REG, MDC_MDIO_ADDR_OP);
++
++		/* Write Start command to register 29 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
+ 
+-	/* send READ command */
+-	ret = rtl8366_smi_write_byte(smi, smi->cmd_read);
+-	if (ret)
+-		goto out;
+-
+-	/* set ADDR[7:0] */
+-	ret = rtl8366_smi_write_byte(smi, addr & 0xff);
+-	if (ret)
+-		goto out;
+-
+-	/* set ADDR[15:8] */
+-	ret = rtl8366_smi_write_byte(smi, addr >> 8);
+-	if (ret)
+-		goto out;
+-
+-	/* read DATA[7:0] */
+-	rtl8366_smi_read_byte0(smi, &lo);
+-	/* read DATA[15:8] */
+-	rtl8366_smi_read_byte1(smi, &hi);
++		/* Write address to register 23 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_ADDRESS_REG, addr);
+ 
+-	*data = ((u32) lo) | (((u32) hi) << 8);
++		/* Write Start command to register 29 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
++
++		/* Write read control code to register 21 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_CTRL1_REG, MDC_MDIO_READ_OP);
++
++		/* Write Start command to register 29 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
++
++		/* Read data from register 25 */
++		*data = smi->mii_bus->read(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_DATA_READ_REG);
++
++		ret = (*data == 0xffff)? 1 : 0;
++	} else {
++#endif
++		rtl8366_smi_start(smi);
+ 
+-	ret = 0;
++		/* send READ command */
++		ret = rtl8366_smi_write_byte(smi, smi->cmd_read);
++		if (ret)
++			goto out;
++
++		/* set ADDR[7:0] */
++		ret = rtl8366_smi_write_byte(smi, addr & 0xff);
++		if (ret)
++			goto out;
++
++		/* set ADDR[15:8] */
++		ret = rtl8366_smi_write_byte(smi, addr >> 8);
++		if (ret)
++			goto out;
++
++		/* read DATA[7:0] */
++		rtl8366_smi_read_byte0(smi, &lo);
++		/* read DATA[15:8] */
++		rtl8366_smi_read_byte1(smi, &hi);
++
++		*data = ((u32) lo) | (((u32) hi) << 8);
++
++		ret = 0;
++
++	 out:
++		rtl8366_smi_stop(smi);
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	}
++#endif
+ 
+- out:
+-	rtl8366_smi_stop(smi);
+ 	spin_unlock_irqrestore(&smi->lock, flags);
+ 
+ 	return ret;
+@@ -248,40 +296,74 @@ static int __rtl8366_smi_write_reg(struc
+ 
+ 	spin_lock_irqsave(&smi->lock, flags);
+ 
+-	rtl8366_smi_start(smi);
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	if (smi->mdio_enabled) {
++		/* Write Start command to register 29 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
+ 
+-	/* send WRITE command */
+-	ret = rtl8366_smi_write_byte(smi, smi->cmd_write);
+-	if (ret)
+-		goto out;
+-
+-	/* set ADDR[7:0] */
+-	ret = rtl8366_smi_write_byte(smi, addr & 0xff);
+-	if (ret)
+-		goto out;
+-
+-	/* set ADDR[15:8] */
+-	ret = rtl8366_smi_write_byte(smi, addr >> 8);
+-	if (ret)
+-		goto out;
+-
+-	/* write DATA[7:0] */
+-	ret = rtl8366_smi_write_byte(smi, data & 0xff);
+-	if (ret)
+-		goto out;
+-
+-	/* write DATA[15:8] */
+-	if (ack)
+-		ret = rtl8366_smi_write_byte(smi, data >> 8);
+-	else
+-		ret = rtl8366_smi_write_byte_noack(smi, data >> 8);
+-	if (ret)
+-		goto out;
++		/* Write address control code to register 31 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_CTRL0_REG, MDC_MDIO_ADDR_OP);
++
++		/* Write Start command to register 29 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
++
++		/* Write address to register 23 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_ADDRESS_REG, addr);
++
++		/* Write Start command to register 29 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
++
++		/* Write data to register 24 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_DATA_WRITE_REG, data);
++
++		/* Write Start command to register 29 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
++
++		/* Write data control code to register 21 */
++		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_CTRL1_REG, MDC_MDIO_WRITE_OP);
++
++		ret = 0;
++	} else {
++#endif
++		rtl8366_smi_start(smi);
++
++		/* send WRITE command */
++		ret = rtl8366_smi_write_byte(smi, smi->cmd_write);
++		if (ret)
++			goto out;
++
++		/* set ADDR[7:0] */
++		ret = rtl8366_smi_write_byte(smi, addr & 0xff);
++		if (ret)
++			goto out;
++
++		/* set ADDR[15:8] */
++		ret = rtl8366_smi_write_byte(smi, addr >> 8);
++		if (ret)
++			goto out;
++
++		/* write DATA[7:0] */
++		ret = rtl8366_smi_write_byte(smi, data & 0xff);
++		if (ret)
++			goto out;
++
++		/* write DATA[15:8] */
++		if (ack)
++			ret = rtl8366_smi_write_byte(smi, data >> 8);
++		else
++			ret = rtl8366_smi_write_byte_noack(smi, data >> 8);
++		if (ret)
++			goto out;
++
++		ret = 0;
+ 
+-	ret = 0;
++	 out:
++		rtl8366_smi_stop(smi);
++
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	}
++#endif
+ 
+- out:
+-	rtl8366_smi_stop(smi);
+ 	spin_unlock_irqrestore(&smi->lock, flags);
+ 
+ 	return ret;
+@@ -289,13 +371,13 @@ static int __rtl8366_smi_write_reg(struc
+ 
+ int rtl8366_smi_write_reg(struct rtl8366_smi *smi, u32 addr, u32 data)
+ {
+-	return __rtl8366_smi_write_reg(smi, addr, data, true);
++		return __rtl8366_smi_write_reg(smi, addr, data, true);
+ }
+ EXPORT_SYMBOL_GPL(rtl8366_smi_write_reg);
+ 
+ int rtl8366_smi_write_reg_noack(struct rtl8366_smi *smi, u32 addr, u32 data)
+ {
+-	return __rtl8366_smi_write_reg(smi, addr, data, false);
++		return __rtl8366_smi_write_reg(smi, addr, data, false);
+ }
+ EXPORT_SYMBOL_GPL(rtl8366_smi_write_reg_noack);
+ 
+@@ -441,8 +523,10 @@ static int rtl8366_set_pvid(struct rtl83
+ 		if (vlanmc.vid == 0 && vlanmc.member == 0) {
+ 			/* Update the entry from the 4K table */
+ 			err = smi->ops->get_vlan_4k(smi, vid, &vlan4k);
+-			if (err)
++			if (err) {
++				dev_info(smi->parent, "Get vlan_4k %d = %d\n", vid, err); // !!!
+ 				return err;
++			}
+ 
+ 			vlanmc.vid = vid;
+ 			vlanmc.member = vlan4k.member;
+@@ -453,6 +537,7 @@ static int rtl8366_set_pvid(struct rtl83
+ 				return err;
+ 
+ 			err = smi->ops->set_mc_index(smi, port, i);
++
+ 			return err;
+ 		}
+ 	}
+@@ -573,6 +658,8 @@ static int rtl8366_init_vlan(struct rtl8
+ {
+ 	int port;
+ 	int err;
++	int pvid = 1;
++	struct switch_port_link link;
+ 
+ 	err = rtl8366_reset_vlan(smi);
+ 	if (err)
+@@ -581,18 +668,27 @@ static int rtl8366_init_vlan(struct rtl8
+ 	for (port = 0; port < smi->num_ports; port++) {
+ 		u32 mask;
+ 
++		// Take in account only active ports
++		err = smi->ops->get_port_link(smi, port, &link);
++		if (err)
++			return err;
++
++		if (!link->link) continue;
++
+ 		if (port == smi->cpu_port)
+ 			mask = (1 << smi->num_ports) - 1;
+ 		else
+ 			mask = (1 << port) | (1 << smi->cpu_port);
+ 
+-		err = rtl8366_set_vlan(smi, (port + 1), mask, mask, 0);
++		err = rtl8366_set_vlan(smi, pvid, mask, mask, 0);
+ 		if (err)
+ 			return err;
+ 
+-		err = rtl8366_set_pvid(smi, port, (port + 1));
++		err = rtl8366_set_pvid(smi, port, pvid);
+ 		if (err)
+ 			return err;
++
++		pvid++;
+ 	}
+ 
+ 	return rtl8366_enable_vlan(smi, 1);
+@@ -916,27 +1012,41 @@ static int rtl8366_smi_mii_init(struct r
+ 	int ret;
+ 	int i;
+ 
+-	smi->mii_bus = mdiobus_alloc();
+-	if (smi->mii_bus == NULL) {
+-		ret = -ENOMEM;
+-		goto err;
+-	}
+-
+-	smi->mii_bus->priv = (void *) smi;
+-	smi->mii_bus->name = dev_name(smi->parent);
+-	smi->mii_bus->read = smi->ops->mii_read;
+-	smi->mii_bus->write = smi->ops->mii_write;
+-	snprintf(smi->mii_bus->id, MII_BUS_ID_SIZE, "%s",
+-		 dev_name(smi->parent));
+-	smi->mii_bus->parent = smi->parent;
+-	smi->mii_bus->phy_mask = ~(0x1f);
+-	smi->mii_bus->irq = smi->mii_irq;
+-	for (i = 0; i < PHY_MAX_ADDR; i++)
+-		smi->mii_irq[i] = PHY_POLL;
+-
+-	ret = mdiobus_register(smi->mii_bus);
+-	if (ret)
+-		goto err_free;
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	if (smi->mdio_enabled) {
++		struct device_node *np = of_find_node_by_name(NULL, "mdio-bus");
++		struct mii_bus *bus = of_mdio_find_bus(np);
++
++		if (!bus)
++			return -ENODEV;
++
++		smi->mii_bus = bus;
++	} else {
++#endif
++		smi->mii_bus = mdiobus_alloc();
++		if (smi->mii_bus == NULL) {
++			ret = -ENOMEM;
++			goto err;
++		}
++
++		smi->mii_bus->priv = (void *) smi;
++		smi->mii_bus->name = dev_name(smi->parent);
++		smi->mii_bus->read = smi->ops->mii_read;
++		smi->mii_bus->write = smi->ops->mii_write;
++		snprintf(smi->mii_bus->id, MII_BUS_ID_SIZE, "%s",
++			 dev_name(smi->parent));
++		smi->mii_bus->parent = smi->parent;
++		smi->mii_bus->phy_mask = ~(0x1f);
++		smi->mii_bus->irq = smi->mii_irq;
++		for (i = 0; i < PHY_MAX_ADDR; i++)
++			smi->mii_irq[i] = PHY_POLL;
++
++		ret = mdiobus_register(smi->mii_bus);
++		if (ret)
++			goto err_free;
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	}
++#endif
+ 
+ 	return 0;
+ 
+@@ -948,8 +1058,14 @@ static int rtl8366_smi_mii_init(struct r
+ 
+ static void rtl8366_smi_mii_cleanup(struct rtl8366_smi *smi)
+ {
+-	mdiobus_unregister(smi->mii_bus);
+-	mdiobus_free(smi->mii_bus);
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	if (!smi->mdio_enabled) {
++#endif
++		mdiobus_unregister(smi->mii_bus);
++		mdiobus_free(smi->mii_bus);
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	}
++#endif
+ }
+ 
+ int rtl8366_sw_reset_switch(struct switch_dev *dev)
+@@ -1237,21 +1353,28 @@ static int __rtl8366_smi_init(struct rtl
+ {
+ 	int err;
+ 
+-	err = gpio_request(smi->gpio_sda, name);
+-	if (err) {
+-		printk(KERN_ERR "rtl8366_smi: gpio_request failed for %u, err=%d\n",
+-			smi->gpio_sda, err);
+-		goto err_out;
+-	}
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	if (!smi->mdio_enabled) {
++#endif
++		err = gpio_request(smi->gpio_sda, name);
++		if (err) {
++			printk(KERN_ERR "rtl8366_smi: gpio_request failed for %u, err=%d\n",
++				smi->gpio_sda, err);
++			goto err_out;
++		}
+ 
+-	err = gpio_request(smi->gpio_sck, name);
+-	if (err) {
+-		printk(KERN_ERR "rtl8366_smi: gpio_request failed for %u, err=%d\n",
+-			smi->gpio_sck, err);
+-		goto err_free_sda;
+-	}
++		err = gpio_request(smi->gpio_sck, name);
++		if (err) {
++			printk(KERN_ERR "rtl8366_smi: gpio_request failed for %u, err=%d\n",
++				smi->gpio_sck, err);
++			goto err_free_sda;
++		}
+ 
+-	spin_lock_init(&smi->lock);
++		spin_lock_init(&smi->lock);
++
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	}
++#endif
+ 
+ 	/* start the switch */
+ 	if (smi->hw_reset) {
+@@ -1272,47 +1395,14 @@ static void __rtl8366_smi_cleanup(struct
+ 	if (smi->hw_reset)
+ 		smi->hw_reset(true);
+ 
+-	gpio_free(smi->gpio_sck);
+-	gpio_free(smi->gpio_sda);
+-}
+-
+-enum rtl8366_type rtl8366_smi_detect(struct rtl8366_platform_data *pdata)
+-{
+-	static struct rtl8366_smi smi;
+-	enum rtl8366_type type = RTL8366_TYPE_UNKNOWN;
+-	u32 reg = 0;
+-
+-	memset(&smi, 0, sizeof(smi));
+-	smi.gpio_sda = pdata->gpio_sda;
+-	smi.gpio_sck = pdata->gpio_sck;
+-	smi.clk_delay = 10;
+-	smi.cmd_read  = 0xa9;
+-	smi.cmd_write = 0xa8;
+-
+-	if (__rtl8366_smi_init(&smi, "rtl8366"))
+-		goto out;
+-
+-	if (rtl8366_smi_read_reg(&smi, 0x5c, &reg))
+-		goto cleanup;
+-
+-	switch(reg) {
+-	case 0x6027:
+-		printk("Found an RTL8366S switch\n");
+-		type = RTL8366_TYPE_S;
+-		break;
+-	case 0x5937:
+-		printk("Found an RTL8366RB switch\n");
+-		type = RTL8366_TYPE_RB;
+-		break;
+-	default:
+-		printk("Found an Unknown RTL8366 switch (id=0x%04x)\n", reg);
+-		break;
+-	}
+-
+-cleanup:
+-	__rtl8366_smi_cleanup(&smi);
+-out:
+-	return type;
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	if (!smi->mdio_enabled) {
++#endif
++		gpio_free(smi->gpio_sck);
++		gpio_free(smi->gpio_sda);
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	}
++#endif
+ }
+ 
+ int rtl8366_smi_init(struct rtl8366_smi *smi)
+@@ -1326,8 +1416,17 @@ int rtl8366_smi_init(struct rtl8366_smi
+ 	if (err)
+ 		goto err_out;
+ 
+-	dev_info(smi->parent, "using GPIO pins %u (SDA) and %u (SCK)\n",
+-		 smi->gpio_sda, smi->gpio_sck);
++	err = rtl8366_smi_mii_init(smi);
++	if (err)
++		goto err_free_sck;
++
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	if (smi->mdio_enabled)
++		dev_info(smi->parent, "using bus %s\n", smi->mii_bus->name);
++	else
++#endif
++		dev_info(smi->parent, "using GPIO pins %u (SDA) and %u (SCK)\n",
++			 smi->gpio_sda, smi->gpio_sck);
+ 
+ 	err = smi->ops->detect(smi);
+ 	if (err) {
+@@ -1356,10 +1455,6 @@ int rtl8366_smi_init(struct rtl8366_smi
+ 	if (err)
+ 		goto err_free_sck;
+ 
+-	err = rtl8366_smi_mii_init(smi);
+-	if (err)
+-		goto err_free_sck;
+-
+ 	rtl8366_debugfs_init(smi);
+ 
+ 	return 0;
+@@ -1382,16 +1477,24 @@ EXPORT_SYMBOL_GPL(rtl8366_smi_cleanup);
+ #ifdef CONFIG_OF
+ int rtl8366_smi_probe_of(struct platform_device *pdev, struct rtl8366_smi *smi)
+ {
+-	int sck = of_get_named_gpio(pdev->dev.of_node, "gpio-sck", 0);
+-	int sda = of_get_named_gpio(pdev->dev.of_node, "gpio-sda", 0);
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	smi->mdio_enabled = of_property_read_bool(pdev->dev.of_node, "mdio");
+ 
+-	if (!gpio_is_valid(sck) || !gpio_is_valid(sda)) {
+-		dev_err(&pdev->dev, "gpios missing in devictree\n");
+-		return -EINVAL;
+-	}
++	if (!smi->mdio_enabled) {
++#endif
++		int sck = of_get_named_gpio(pdev->dev.of_node, "gpio-sck", 0);
++		int sda = of_get_named_gpio(pdev->dev.of_node, "gpio-sda", 0);
+ 
+-	smi->gpio_sda = sda;
+-	smi->gpio_sck = sck;
++		if (!gpio_is_valid(sck) || !gpio_is_valid(sda)) {
++			dev_err(&pdev->dev, "gpios missing in devictree\n");
++			return -EINVAL;
++		}
++
++		smi->gpio_sda = sda;
++		smi->gpio_sck = sck;
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	}
++#endif
+ 
+ 	return 0;
+ }
+@@ -1411,6 +1514,9 @@ int rtl8366_smi_probe_plat(struct platfo
+ 		return -EINVAL;
+ 	}
+ 
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	smi->mdio_enabled = pdata->mdio_enabled;
++#endif
+ 	smi->gpio_sda = pdata->gpio_sda;
+ 	smi->gpio_sck = pdata->gpio_sck;
+ 	smi->hw_reset = pdata->hw_reset;
+@@ -1446,4 +1552,5 @@ EXPORT_SYMBOL_GPL(rtl8366_smi_probe);
+ 
+ MODULE_DESCRIPTION("Realtek RTL8366 SMI interface driver");
+ MODULE_AUTHOR("Gabor Juhos <juhosg@openwrt.org>");
++MODULE_AUTHOR("Vitaly Chekryzhev <13hakta@gmail.com>");
+ MODULE_LICENSE("GPL v2");
+Index: linux-4.4.27/drivers/net/phy/rtl8366_smi.h
+===================================================================
+--- linux-4.4.27.orig/drivers/net/phy/rtl8366_smi.h
++++ linux-4.4.27/drivers/net/phy/rtl8366_smi.h
+@@ -33,6 +33,9 @@ struct rtl8366_smi {
+ 	struct device		*parent;
+ 	unsigned int		gpio_sda;
+ 	unsigned int		gpio_sck;
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	bool			mdio_enabled;
++#endif
+ 	void			(*hw_reset)(bool active);
+ 	unsigned int		clk_delay;	/* ns */
+ 	u8			cmd_read;
+Index: linux-4.4.27/drivers/net/phy/rtl8367b.c
+===================================================================
+--- linux-4.4.27.orig/drivers/net/phy/rtl8367b.c
++++ linux-4.4.27/drivers/net/phy/rtl8367b.c
+@@ -138,18 +138,20 @@
+ #define RTL8367B_CHIP_DEBUG1_REG		0x1304
+ 
+ #define RTL8367B_DIS_REG			0x1305
++#define RTL8367B_DIS_REG_2			0x13c3
+ #define   RTL8367B_DIS_SKIP_MII_RXER(_x)	BIT(12 + (_x))
+ #define   RTL8367B_DIS_RGMII_SHIFT(_x)		(4 * (_x))
+ #define   RTL8367B_DIS_RGMII_MASK		0x7
++#define   RTL8367B_RGMII_MASK			0xF
+ 
+-#define RTL8367B_EXT_RGMXF_REG(_x)		(0x1306 + (_x))
++#define RTL8367B_EXT_RGMXF_REG(_x)		(0x1306 + (_x) + ((_x > 1)? 0xBD : 0))
+ #define   RTL8367B_EXT_RGMXF_DUMMY0_SHIFT	5
+ #define   RTL8367B_EXT_RGMXF_DUMMY0_MASK	0x7ff
+ #define   RTL8367B_EXT_RGMXF_TXDELAY_SHIFT	3
+ #define   RTL8367B_EXT_RGMXF_TXDELAY_MASK	1
+ #define   RTL8367B_EXT_RGMXF_RXDELAY_MASK	0x7
+ 
+-#define RTL8367B_DI_FORCE_REG(_x)		(0x1310 + (_x))
++#define RTL8367B_DI_FORCE_REG(_x)		(0x1310 + (_x) + ((_x > 1)? 0xB2 : 0))
+ #define   RTL8367B_DI_FORCE_MODE		BIT(12)
+ #define   RTL8367B_DI_FORCE_NWAY		BIT(7)
+ #define   RTL8367B_DI_FORCE_TXPAUSE		BIT(6)
+@@ -161,7 +163,7 @@
+ #define   RTL8367B_DI_FORCE_SPEED_100		1
+ #define   RTL8367B_DI_FORCE_SPEED_1000		2
+ 
+-#define RTL8367B_MAC_FORCE_REG(_x)		(0x1312 + (_x))
++// #define RTL8367B_MAC_FORCE_REG(_x)		(0x1312 + (_x))
+ 
+ #define RTL8367B_CHIP_RESET_REG			0x1322 /*GOOD*/
+ #define   RTL8367B_CHIP_RESET_SW		BIT(1) /*GOOD*/
+@@ -204,13 +206,14 @@
+ 
+ #define RTL8367B_NUM_MIB_COUNTERS	58
+ 
+-#define RTL8367B_CPU_PORT_NUM		5
+-#define RTL8367B_NUM_PORTS		8
+ #define RTL8367B_NUM_VLANS		32
+ #define RTL8367B_NUM_VIDS		4096
+ #define RTL8367B_PRIORITYMAX		7
+ #define RTL8367B_FIDMAX			7
+ 
++#define RTL8367B_CPU_PORT_NUM		7
++#define RTL8367B_NUM_PORTS		8
++
+ #define RTL8367B_PORT_0			BIT(0)
+ #define RTL8367B_PORT_1			BIT(1)
+ #define RTL8367B_PORT_2			BIT(2)
+@@ -222,13 +225,34 @@
+ 
+ #define RTL8367B_PORTS_ALL					\
+ 	(RTL8367B_PORT_0 | RTL8367B_PORT_1 | RTL8367B_PORT_2 |	\
+-	 RTL8367B_PORT_3 | RTL8367B_PORT_4 | RTL8367B_PORT_E0 | \
+-	 RTL8367B_PORT_E1 | RTL8367B_PORT_E2)
++	 RTL8367B_PORT_3 | RTL8367B_PORT_4 | \
++	 RTL8367B_PORT_E0 | RTL8367B_PORT_E1 | RTL8367B_PORT_E2)
+ 
+-#define RTL8367B_PORTS_ALL_BUT_CPU				\
++#define RTL8367B_PORT_ALL_INTERNAL \
++	(RTL8367B_PORT_E0 | RTL8367B_PORT_E1 | RTL8367B_PORT_E2)
++
++#define RTL8367B_PORT_ALL_EXTERNAL \
+ 	(RTL8367B_PORT_0 | RTL8367B_PORT_1 | RTL8367B_PORT_2 |	\
+-	 RTL8367B_PORT_3 | RTL8367B_PORT_4 | RTL8367B_PORT_E1 |	\
+-	 RTL8367B_PORT_E2)
++	 RTL8367B_PORT_3 | RTL8367B_PORT_4)
++
++#define RTL8367B_REG_PHY_AD	0x130f
++#define    RTL8367B_PDNPHY_OFFSET    5
++
++#define	RTL8367B_REG_LED_MODE	0x1b02
++#define RTL8367B_REG_LED_CONFIGURATION	0x1b03
++#define	RTL8367B_REG_LED_SYS_CONFIG	0x1b00
++#define	RTL8367B_REG_PARA_LED_IO_EN1	0x1b24
++#define	RTL8367B_REG_SCAN0_LED_IO_EN	0x1b26
++#define RTL8367B_LED_CONFIG_SEL_OFFSET	14
++#define	RTL8367B_LED_SERI_CLK_EN_OFFSET	0
++#define	RTL8367B_LED_SELECT_OFFSET	0
++#define	RTL8367B_LED_SERI_DATA_EN_OFFSET	1
++#define RTL8367B_LED0_CFG_MASK	0xF
++#define RTL8367B_LED1_CFG_MASK	0xF0
++#define RTL8367B_LED2_CFG_MASK	0xF00
++#define RTL8367B_LEDGROUPNO	3
++#define RTL8367B_LEDGROUPMASK	0x7
++#define	RTL8367B_SEL_LEDRATE_MASK	0xE
+ 
+ struct rtl8367b_initval {
+ 	u16 reg;
+@@ -751,8 +775,13 @@ static int rtl8367b_extif_set_mode(struc
+ 	switch (mode) {
+ 	case RTL8367_EXTIF_MODE_RGMII:
+ 	case RTL8367_EXTIF_MODE_RGMII_33V:
+-		REG_WR(smi, RTL8367B_CHIP_DEBUG0_REG, 0x0367);
+-		REG_WR(smi, RTL8367B_CHIP_DEBUG1_REG, 0x7777);
++		// Disable bypass line rate
++		REG_RMW(smi, RTL8367B_BYPASS_LINE_RATE_REG, id, 0);
++
++		if (id == 2) {
++			REG_RMW(smi,
++				RTL8367B_DIS_REG_2,
++				RTL8367B_RGMII_MASK, mode);
+ 		break;
+ 
+ 	case RTL8367_EXTIF_MODE_TMII_MAC:
+@@ -782,9 +811,10 @@ static int rtl8367b_extif_set_mode(struc
+ 		return -EINVAL;
+ 	}
+ 
+-	REG_RMW(smi, RTL8367B_DIS_REG,
+-		RTL8367B_DIS_RGMII_MASK << RTL8367B_DIS_RGMII_SHIFT(id),
+-		mode << RTL8367B_DIS_RGMII_SHIFT(id));
++	if (id != 2)
++		REG_RMW(smi, RTL8367B_DIS_REG,
++			RTL8367B_DIS_RGMII_MASK << RTL8367B_DIS_RGMII_SHIFT(id),
++			mode << RTL8367B_DIS_RGMII_SHIFT(id));
+ 
+ 	return 0;
+ }
+@@ -907,6 +937,81 @@ static int rtl8367b_extif_init_of(struct
+ }
+ #endif
+ 
++static int rtl8367b_led_group_enable(struct rtl8366_smi *smi, unsigned int group)
++{
++    return rtl8366_smi_rmwr(smi,
++	RTL8367B_REG_PARA_LED_IO_EN1 + group / 2,
++	0xFF << ((group % 2) * 8), 0x1F);
++}
++
++// Set serial/parallel led mode
++static int rtl8367b_led_op_mode(struct rtl8366_smi *smi, unsigned int mode)
++{
++    int err;
++
++    /* Invalid input parameter */
++    if( mode >= 1)
++        return -EINVAL;
++
++    // Set parallel mode
++    err = rtl8366_smi_rmwr(smi, RTL8367B_REG_LED_SYS_CONFIG, BIT(RTL8367B_LED_SELECT_OFFSET), mode);
++    if (err) return err;
++
++    // Disable serial CLK mode
++    err = rtl8366_smi_rmwr(smi, RTL8367B_REG_SCAN0_LED_IO_EN, BIT(RTL8367B_LED_SERI_CLK_EN_OFFSET), mode);
++    if (err) return err;
++
++    // Disable serial DATA mode
++    err = rtl8366_smi_rmwr(smi, RTL8367B_REG_SCAN0_LED_IO_EN, BIT(RTL8367B_LED_SERI_DATA_EN_OFFSET), mode);
++    if (err) return err;
++
++    return 0;
++}
++
++static int rtl8367b_led_group_set_mode(struct rtl8366_smi *smi, unsigned int group,
++				      unsigned int mode)
++{
++    int err;
++
++    if(group > 2)
++        return -EINVAL;
++
++    if(mode > 15)
++        return -EINVAL;
++
++    // Switch off bit
++    err = rtl8366_smi_rmwr(smi, RTL8367B_REG_LED_CONFIGURATION, BIT(RTL8367B_LED_CONFIG_SEL_OFFSET), 0);
++    if (err) return err;
++
++    return rtl8366_smi_rmwr(smi, RTL8367B_REG_LED_CONFIGURATION,
++	0xf << (4 * group),
++	mode << (4 * group));
++}
++
++static int rtl8367b_set_led_blinkrate(struct rtl8366_smi *smi, u32 blinkRate)
++{
++    int err;
++
++    if (blinkRate > 7)
++        return -EINVAL;
++
++    REG_RMW(smi, RTL8367B_REG_LED_MODE, RTL8367B_SEL_LEDRATE_MASK, blinkRate);
++
++    return 0;
++}
++
++static int rtl8367b_get_led_blinkrate(struct rtl8366_smi *smi, u32 *blinkRate)
++{
++    int err;
++
++    err = rtl8366_smi_read_reg(smi, RTL8367B_REG_LED_MODE, blinkRate);
++    if (err) return err;
++
++    *blinkRate = *blinkRate & RTL8367B_SEL_LEDRATE_MASK;
++
++    return 0;
++}
++
+ static int rtl8367b_setup(struct rtl8366_smi *smi)
+ {
+ 	struct rtl8367_platform_data *pdata;
+@@ -928,6 +1033,10 @@ static int rtl8367b_setup(struct rtl8366
+ 		err = rtl8367b_extif_init_of(smi, 1, "realtek,extif1");
+ 		if (err)
+ 			return err;
++
++		err = rtl8367b_extif_init_of(smi, 2, "realtek,extif2");
++		if (err)
++			return err;
+ 	} else {
+ 		err = rtl8367b_extif_init(smi, 0, pdata->extif0_cfg);
+ 		if (err)
+@@ -936,12 +1045,19 @@ static int rtl8367b_setup(struct rtl8366
+ 		err = rtl8367b_extif_init(smi, 1, pdata->extif1_cfg);
+ 		if (err)
+ 			return err;
++
++		err = rtl8367b_extif_init(smi, 2, pdata->extif2_cfg);
++		if (err)
++			return err;
+ 	}
+ 
+ 	/* set maximum packet length to 1536 bytes */
+ 	REG_RMW(smi, RTL8367B_SWC0_REG, RTL8367B_SWC0_MAX_LENGTH_MASK,
+ 		RTL8367B_SWC0_MAX_LENGTH_1536);
+ 
++	/* enable all PHY (if disabled by bootstrap) */
++	REG_RMW(smi, RTL8367B_REG_PHY_AD, BIT(RTL8367B_PDNPHY_OFFSET), 0);
++
+ 	/*
+ 	 * discard VLAN tagged packets if the port is not a member of
+ 	 * the VLAN with which the packets is associated.
+@@ -959,6 +1075,19 @@ static int rtl8367b_setup(struct rtl8366
+ 			RTL8367B_PORT_MISC_CFG_EGRESS_MODE_ORIGINAL <<
+ 				RTL8367B_PORT_MISC_CFG_EGRESS_MODE_SHIFT);
+ 
++	REG_WR(smi, RTL8367B_CHIP_DEBUG1_REG, 0x7777);
++
++	/* setup LEDs */
++	err = rtl8367b_led_group_enable(smi, 0);
++	if (err) return err;
++
++	// Set led to parallel mode
++	err = rtl8367b_led_op_mode(smi, 0);
++	if (err) return err;
++
++	err = rtl8367b_led_group_set_mode(smi, 0, 2);
++	if (err) return err;
++
+ 	return 0;
+ }
+ 
+@@ -1187,6 +1316,7 @@ static int rtl8367b_enable_port(struct r
+ {
+ 	int err;
+ 
++	dev_dbg(smi->parent, "port #%d set %s\n", port + 1, (enable == 1)? "on" : "off");
+ 	REG_WR(smi, RTL8367B_PORT_ISOLATION_REG(port),
+ 	       (enable) ? RTL8367B_PORTS_ALL : 0);
+ 
+@@ -1244,6 +1374,7 @@ static int rtl8367b_sw_get_port_link(str
+ 	return 0;
+ }
+ 
++
+ static int rtl8367b_sw_get_max_length(struct switch_dev *dev,
+ 				     const struct switch_attr *attr,
+ 				     struct switch_val *val)
+@@ -1286,6 +1417,57 @@ static int rtl8367b_sw_set_max_length(st
+ 			        RTL8367B_SWC0_MAX_LENGTH_MASK, max_len);
+ }
+ 
++static int rtl8367b_sw_get_led_blink(struct switch_dev *dev,
++				     const struct switch_attr *attr,
++				     struct switch_val *val)
++{
++	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
++	u32 data;
++
++	if (rtl8367b_get_led_blinkrate(smi, &data))
++	    return -EIO;
++	
++	val->value.i = data;
++
++	return 0;
++}
++
++static int rtl8367b_sw_set_led_blink(struct switch_dev *dev,
++				     const struct switch_attr *attr,
++				     struct switch_val *val)
++{
++	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
++
++	if (val->value.i > 15)
++		return -EINVAL;
++
++	return rtl8367b_set_led_blinkrate(smi, val->value.i);
++}
++
++static int rtl8367b_sw_get_led(struct switch_dev *dev,
++				     const struct switch_attr *attr,
++				     struct switch_val *val)
++{
++	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
++	u32 data;
++
++	rtl8366_smi_read_reg(smi, RTL8367B_REG_LED_CONFIGURATION, &data);
++	val->value.i = data & 0xF;
++
++	return 0;
++}
++
++static int rtl8367b_sw_set_led(struct switch_dev *dev,
++				     const struct switch_attr *attr,
++				     struct switch_val *val)
++{
++	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
++
++	if (val->value.i > 15)
++		return -EINVAL;
++
++	return rtl8367b_led_group_set_mode(smi, 0, val->value.i);
++}
+ 
+ static int rtl8367b_sw_reset_port_mibs(struct switch_dev *dev,
+ 				       const struct switch_attr *attr,
+@@ -1332,7 +1514,21 @@ static struct switch_attr rtl8367b_globa
+ 		.set = rtl8367b_sw_set_max_length,
+ 		.get = rtl8367b_sw_get_max_length,
+ 		.max = 3,
+-	}
++	}, {
++		.type = SWITCH_TYPE_INT,
++		.name = "led",
++		.description = "Set LED mode led (0 - disable)",
++		.get = rtl8367b_sw_get_led,
++		.set = rtl8367b_sw_set_led,
++		.max = 15,
++	}, {
++		.type = SWITCH_TYPE_INT,
++		.name = "blink",
++		.description = "Set LED blink rate (0:43ms, 1:84ms, 2:120ms, 3:170ms, 4:340ms, 5:670ms)",
++		.get = rtl8367b_sw_get_led_blink,
++		.set = rtl8367b_sw_set_led_blink,
++		.max = 7,
++	},
+ };
+ 
+ static struct switch_attr rtl8367b_port[] = {
+@@ -1390,7 +1586,7 @@ static int rtl8367b_switch_init(struct r
+ 	int err;
+ 
+ 	dev->name = "RTL8367B";
+-	dev->cpu_port = RTL8367B_CPU_PORT_NUM;
++	dev->cpu_port = RTL8367B_CPU_PORT_NUM + 1;
+ 	dev->ports = RTL8367B_NUM_PORTS;
+ 	dev->vlans = RTL8367B_NUM_VIDS;
+ 	dev->ops = &rtl8367b_sw_ops;
+@@ -1597,6 +1793,6 @@ module_platform_driver(rtl8367b_driver);
+ 
+ MODULE_DESCRIPTION(RTL8367B_DRIVER_DESC);
+ MODULE_AUTHOR("Gabor Juhos <juhosg@openwrt.org>");
++MODULE_AUTHOR("Vitaly Chekryzhev <13hakta@gmail.com>");
+ MODULE_LICENSE("GPL v2");
+ MODULE_ALIAS("platform:" RTL8367B_DRIVER_NAME);
+-
+Index: linux-4.4.27/include/linux/rtl8366.h
+===================================================================
+--- linux-4.4.27.orig/include/linux/rtl8366.h
++++ linux-4.4.27/include/linux/rtl8366.h
+@@ -27,6 +27,9 @@ struct rtl8366_initval {
+ };
+ 
+ struct rtl8366_platform_data {
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	bool		mdio_enabled;
++#endif
+ 	unsigned	gpio_sda;
+ 	unsigned	gpio_sck;
+ 	void		(*hw_reset)(bool active);
+Index: linux-4.4.27/include/linux/rtl8367.h
+===================================================================
+--- linux-4.4.27.orig/include/linux/rtl8367.h
++++ linux-4.4.27/include/linux/rtl8367.h
+@@ -49,12 +49,16 @@ struct rtl8367_extif_config {
+ };
+ 
+ struct rtl8367_platform_data {
++#ifdef CONFIG_NET_MEDIATEK_SOC
++	bool		mdio_enabled;
++#endif
+ 	unsigned gpio_sda;
+ 	unsigned gpio_sck;
+ 	void (*hw_reset)(bool active);
+ 
+ 	struct rtl8367_extif_config *extif0_cfg;
+ 	struct rtl8367_extif_config *extif1_cfg;
++	struct rtl8367_extif_config *extif2_cfg;
+ };
+ 
+ #endif /*  _RTL8367_H */

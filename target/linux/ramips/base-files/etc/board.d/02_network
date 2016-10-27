@@ -242,6 +242,15 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "0:wan" "6@eth0"
 		;;
+	kng_rc)
+		ucidef_set_interfaces_lan_wan "eth0.1" "eth0.2"
+
+		ucidef_add_switch "switch1" \
+			"0:lan" "1:lan" "2:lan" "3:lan" "4:wan" "7t@eth0"
+
+		ucidef_add_switch_vlan "switch1" "1" "0 1 2 3 4 7t"
+		ucidef_add_switch_vlan "switch1" "2" "4 7t"
+		;;
 	*)
 		RT3X5X=`cat /proc/cpuinfo | egrep "(RT3.5|RT5350)"`
 		if [ -n "${RT3X5X}" ]; then
@@ -381,6 +390,9 @@ ramips_setup_macs()
 		local index="$(find_mtd_index "board_data")"
 		wan_mac="$(grep -m1 mac= "/dev/mtd${index}" | cut -d= -f2)"
 		lan_mac=$wan_mac
+		;;
+	kng_rc)
+		wan_mac=$(mtd_get_mac_binary factory 28)
 		;;
 	*)
 		lan_mac=$(cat /sys/class/net/eth0/address)
