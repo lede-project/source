@@ -212,6 +212,7 @@ get_status_led() {
 	wizfi630a)
 		status_led="$board::run"
 		;;
+	kng_rc|\
 	wsr-1166|\
 	wsr-600)
 		status_led="$board:green:power"
