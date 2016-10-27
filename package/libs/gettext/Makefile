@@ -59,5 +59,7 @@ define Package/libintl/install
 	touch $(1)/tmp/.libintl-placeholder
 endef
 
+ifneq ($(CONFIG_TARGET_x86),y)
 $(eval $(call HostBuild))
+endif
 $(eval $(call BuildPackage,libintl))
