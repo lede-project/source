@@ -23,6 +23,7 @@ get_status_led() {
 	dir-860l-b1|\
 	e1700|\
 	fonera20n|\
+	kng_rc|\
 	mzk-750dhp|\
 	mzk-dp150n|\
 	mzk-w300nh2|\
@@ -212,7 +213,6 @@ get_status_led() {
 	wizfi630a)
 		status_led="$board::run"
 		;;
-	kng_rc|\
 	wsr-1166|\
 	wsr-600)
 		status_led="$board:green:power"
