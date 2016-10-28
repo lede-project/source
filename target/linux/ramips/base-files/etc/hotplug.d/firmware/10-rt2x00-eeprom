@@ -43,9 +43,6 @@ board=$(ramips_board_name)
 case "$FIRMWARE" in
 "soc_wmac.eeprom")
 	case $board in
-	kng_rc)
-		rt2x00_eeprom_extract "factory" 0 512
-	;;
 	*)
 		rt2x00_eeprom_die "Please define mtd-eeprom in $board DTS file!"
 		;;
