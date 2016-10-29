@@ -329,7 +329,14 @@ platform_check_image() {
 	mr16|\
 	zbt-we1526|\
 	zcn-1523h-2|\
-	zcn-1523h-5)
+	zcn-1523h-5|\
+	linino-yun-mini|\
+	linino-chiwawa|\
+	linino-lei|\
+	linino-tian|\
+	linino-one|\
+	linino-freedog|\
+	linino-yun)
 		[ "$magic_long" != "68737173" -a "$magic_long" != "19852003" ] && {
 			echo "Invalid image type."
 			return 1
