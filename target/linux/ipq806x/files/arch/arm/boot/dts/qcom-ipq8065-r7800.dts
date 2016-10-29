@@ -7,12 +7,8 @@
 	compatible = "netgear,r7800", "qcom,ipq8065";
 
 	memory@0 {
-		reg = <0x42000000 0x1de00000>;
+		reg = <0x42000000 0x1e000000>;
 		device_type = "memory";
-		/*
-		 * Reducing memory size by 2 MiBs solves the problem with 
-		 * appearing kernel bug: bad_pag_state in process ... 
-		 */
 	};
 
 	reserved-memory {
@@ -22,6 +18,11 @@
 		rsvd@41200000 {
 			reg = <0x41200000 0x300000>;
 			no-map;
+		};
+
+		rsvd@5fe00000 {
+			reg = <0x5fe00000 0x200000>;
+			reusable;
 		};
 	};
 
