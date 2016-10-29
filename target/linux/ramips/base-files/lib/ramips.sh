@@ -232,9 +232,6 @@ ramips_board_detect() {
 	*"JHR-N926R")
 		name="jhr-n926r"
 		;;
-	*"ZyXEL Keenetic Viva")
-		name="kng_rc"
-		;;
 	*"M3")
 		name="m3"
 		;;
