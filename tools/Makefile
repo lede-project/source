@@ -43,6 +43,7 @@ tools-y += lzma squashfs4
 tools-$(BUILD_B43_TOOLS) += b43-tools
 tools-$(BUILD_PPL_CLOOG) += ppl cloog
 tools-$(BUILD_ISL) += isl
+tools-$(CONFIG_TARGET_ramips) += zyimage
 tools-$(CONFIG_USE_SPARSE) += sparse
 tools-$(CONFIG_TARGET_apm821xx) += genext2fs
 
@@ -79,6 +80,7 @@ $(curdir)/bc/compile := $(curdir)/bison/install
 $(curdir)/findutils/compile := $(curdir)/bison/install
 $(curdir)/gengetopt/compile := $(curdir)/libtool/install
 $(curdir)/patchelf/compile := $(curdir)/libtool/install
+$(curdir)/zyimage/compile := $(curdir)/findutils/install
 $(curdir)/dosfstools/compile := $(curdir)/autoconf/install $(curdir)/automake/install
 ifeq ($(HOST_OS),Darwin)
 tools-y += libressl
