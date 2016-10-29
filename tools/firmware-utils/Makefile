@@ -77,6 +77,7 @@ define Host/Compile
 	$(call cc,mkmerakifw sha1, -Wall)
 	$(call cc,mkmerakifw-old, -Wall)
 	$(call cc,jcgimage, -lz -Wall)
+	$(call cc,zyimage, -Wall)
 endef
 
 define Host/Install
