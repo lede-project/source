@@ -1,0 +1,183 @@
+/dts-v1/;
+
+#include "mt7620a.dtsi"
+
+/ {
+	compatible = "ralink,mt7620a-eval-board", "ralink,mt7620a-soc";
+	model = "ZyXEL Keenetic Viva";
+
+	gpio-leds {
+		compatible = "gpio-leds";
+
+		wan {
+			label = "kng_rc:green:wan";
+			gpios = <&gpio0 7 1>;
+		};
+
+		usb {
+			label = "kng_rc:green:usb";
+			gpios = <&gpio0 8 1>;
+		};
+
+		power_alert {
+			label = "kng_rc:red:power";
+			gpios = <&gpio0 10 1>;
+		};
+
+		wifi {
+			label = "kng_rc:green:wifi";
+			gpios = <&gpio0 11 1>;
+		};
+
+		power {
+			label = "kng_rc:green:power";
+			gpios = <&gpio0 14 1>;
+		};
+	};
+
+	gpio-keys-polled {
+		compatible = "gpio-keys";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		poll-interval = <20>;
+
+		reset {
+			label = "reset";
+			gpios = <&gpio0 1 1>;
+			linux,code = <0x101>;
+		};
+
+		wps {
+			label = "wps";
+			gpios = <&gpio0 2 1>;
+			linux,code = <0x100>;
+		};
+
+		fn {
+			label = "fn";
+			gpios = <&gpio0 9 1>;
+			linux,code = <0x102>;
+		};
+	};
+
+	rtl8367rb {
+		compatible = "realtek,rtl8367b";
+		realtek,extif2 = <1 0 1 1 1 1 1 1 2>;
+		mdio;
+	};
+};
+
+&spi0 {
+	status = "okay";
+
+	m25p80@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		linux,modalias = "m25p80", "en25q64";
+		spi-max-frequency = <10000000>;
+
+		partition@0 {
+			label = "u-boot";
+			reg = <0x0 0x30000>;
+			read-only;
+		};
+
+		partition@30000 {
+			label = "u-boot-env";
+			reg = <0x30000 0x10000>;
+			read-only;
+		};
+
+		factory: partition@40000 {
+			label = "factory";
+			reg = <0x40000 0x10000>;
+			read-only;
+		};
+
+		partition@50000 {
+			label = "firmware";
+			reg = <0x50000 0xda0000>;
+		};
+
+		partition@df0000 {
+			label = "config";
+			reg = <0xdf0000 0x10000>;
+		};
+
+		partition@e00000 {
+			label = "storage";
+			reg = <0xe00000 0x200000>;
+		};
+
+		backup@50000 {
+			label = "backup";
+			reg = <0x50000 0xfb0000>;
+			read-only;
+		};
+
+		full@0 {
+			label = "full";
+			reg = <0x0 0x1000000>;
+			read-only;
+		};
+
+	};
+};
+
+&pinctrl {
+	state_default: pinctrl0 {
+		gpio {
+			ralink,group = "i2c", "uartf";
+			ralink,function = "gpio";
+		};
+	};
+};
+
+&ethernet {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&rgmii2_pins &mdio_pins>;
+	mtd-mac-address = <&factory 0x00004>;
+
+	port@4 {
+		status = "okay";
+		mediatek,fixed-link = <1000 1 1 1>;
+		phy-mode = "rgmii";
+		phy-handle = <&phy4>;
+	};
+
+	mdio-bus {
+		status = "okay";
+
+		phy4: ethernet-phy@4 {
+			reg = <4>;
+			phy-mode = "rgmii";
+		};
+	};
+};
+
+&gsw {
+	mediatek,port4 = "gmac";
+};
+
+&wmac {
+	ralink,mtd-eeprom = <&factory 0>;
+};
+
+&sdhci {
+	status = "okay";
+};
+
+&ehci {
+	status = "okay";
+};
+
+&ohci {
+	status = "okay";
+};
+
+&pcie {
+	status = "disabled";
+};
