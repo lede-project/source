@@ -73,6 +73,8 @@ ar71xx_setup_interfaces()
 	loco-m-xw|\
 	mr1750|\
 	mr1750v2|\
+	mr12|\
+	mr16|\
 	mr18|\
 	mr600|\
 	mr600v2|\
