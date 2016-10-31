@@ -46,6 +46,7 @@ define Package/opkg/Default
   TITLE:=opkg package manager
   DEPENDS:=+uclient-fetch
   URL:=http://wiki.openmoko.org/wiki/Opkg
+  DEPENDS+=+PACKAGE_libcurl:libcurl
   MENU:=1
 endef
 
@@ -114,7 +115,7 @@ TARGET_CFLAGS += -ffunction-sections -fdata-sections
 EXTRA_CFLAGS += $(TARGET_CPPFLAGS)
 
 CONFIGURE_ARGS += \
-	--disable-curl \
+	$(if $(CONFIG_PACKAGE_libcurl),--enable-curl,--disable-curl) \
 	--disable-gpg \
 	--enable-sha256 \
 	--with-opkgetcdir=/etc \
