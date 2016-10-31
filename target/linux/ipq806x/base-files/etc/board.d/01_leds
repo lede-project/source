@@ -11,6 +11,7 @@ board_config_update
 board=$(ipq806x_board_name)
 
 case "$board" in
+ad7200 |\
 c2600)
 	ucidef_set_led_usbdev "usb1" "USB 1" "${board}:white:usb_2" "2-1"
 	ucidef_set_led_usbdev "usb2" "USB 2" "${board}:white:usb_4" "4-1"

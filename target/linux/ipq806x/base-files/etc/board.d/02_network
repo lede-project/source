@@ -13,6 +13,10 @@ board_config_update
 board=$(ipq806x_board_name)
 
 case "$board" in
+ad7200)
+	ucidef_add_switch "switch0" \
+		"2:lan" "3:lan" "4:lan" "5:lan" "6@eth1" "1:wan" "0@eth0"
+	;;
 ap148 |\
 c2600 |\
 d7800 |\
