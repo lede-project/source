@@ -8,6 +8,23 @@ find_mtd_chardev() {
 	echo "${INDEX:+$PREFIX$INDEX}"
 }
 
+mtd_get_serial_ascii()
+{
+	local mtdname="$1"
+	local key="$2"
+	local part
+	local serial
+
+	part=$(find_mtd_part "$mtdname")
+	if [ -z "$part" ]; then
+		echo "mtd_get_serial_ascii: partition $mtdname not found!" >&2
+		return
+	fi
+
+	serial=$(strings "$part" | sed -n 's/^'"$key"'=//p')
+	echo "$serial"
+}
+
 mtd_get_mac_ascii()
 {
 	local mtdname="$1"
