@@ -7,7 +7,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=cmake-343
+PKG_NAME:=cmake-34
 PKG_VERSION:=3.4.3
 PKG_RELEASE:=2
 
@@ -22,7 +22,7 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/cmake-$(PKG_VERSION)
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
 
-define Package/cmake-343
+define Package/cmake-34
   TITLE:=The CMake suite of tools
   SECTION:=devel
   DEFAULT:=m
@@ -31,7 +31,7 @@ define Package/cmake-343
   URL:=https://cmake.org
 endef
 
-define Package/cmake-343/description
+define Package/cmake-34/description
 	CMake is an open-source, cross-platform family of tools designed to build, test and package software.
 endef
 
@@ -45,7 +45,7 @@ CMAKE_OPTIONS = \
 	-DCTEST_USE_XMLRPC=OFF \
 	-DBUILD_CursesDialog=OFF
 
-define Package/cmake-343/install
+define Package/cmake-34/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(CP) $(PKG_INSTALL_DIR)/usr/bin/*  $(1)/usr/bin
 
@@ -56,4 +56,4 @@ define Package/cmake-343/install
 	$(CP) -R $(PKG_INSTALL_DIR)/usr/share/cmake-3.4 $(1)/usr/share
 endef
 
-$(eval $(call BuildPackage,cmake-343))
+$(eval $(call BuildPackage,cmake-34))

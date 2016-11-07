@@ -7,7 +7,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=cmake-352
+PKG_NAME:=cmake-35
 PKG_VERSION:=3.5.2
 PKG_RELEASE:=2
 
@@ -22,7 +22,7 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/cmake-$(PKG_VERSION)
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
 
-define Package/cmake-352
+define Package/cmake-35
   TITLE:=The CMake suite of tools
   SECTION:=devel
   DEFAULT:=m
@@ -31,7 +31,7 @@ define Package/cmake-352
   URL:=https://cmake.org
 endef
 
-define Package/cmake-352/description
+define Package/cmake-35/description
 	CMake is an open-source, cross-platform family of tools designed to build, test and package software.
 endef
 
@@ -45,7 +45,7 @@ CMAKE_OPTIONS = \
 	-DCTEST_USE_XMLRPC=OFF \
 	-DBUILD_CursesDialog=OFF
 
-define Package/cmake-352/install
+define Package/cmake-35/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(CP) $(PKG_INSTALL_DIR)/usr/bin/*  $(1)/usr/bin
 
@@ -56,4 +56,4 @@ define Package/cmake-352/install
 	$(CP) -R $(PKG_INSTALL_DIR)/usr/share/cmake-3.5 $(1)/usr/share
 endef
 
-$(eval $(call BuildPackage,cmake-352))
+$(eval $(call BuildPackage,cmake-35))
