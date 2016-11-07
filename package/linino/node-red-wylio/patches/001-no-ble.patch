@@ -1,0 +1,13 @@
+--- a/package.json	2016-08-04 16:21:15.439092680 +0200
++++ b/package.json	2016-08-04 16:21:35.389184785 +0200
+@@ -91,10 +91,7 @@
+   "optionalDependencies": {
+     "bcrypt": "0.8.3",
+     "dualshock-controller": "0.6.7",
+-    "bleno": "0.1.9",
+-    "noble": "0.3.7",
+     "arduino-firmata": "0.3.2",
+-    "ble-firmata": "0.1.3",
+     "johnny-five": "0.8.40"
+   },
+   "devDependencies": {
