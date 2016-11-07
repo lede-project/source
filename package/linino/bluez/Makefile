@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=bluez
-PKG_VERSION:=5.42
+PKG_VERSION:=5.43
 PKG_RELEASE:=7
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/bluetooth/
-PKG_MD5SUM:=cc8c53133d5be0d6c126e00cf2529028
+PKG_MD5SUM:=698def88df96840dfbb0858bb6d73350
 
 PKG_LICENSE:=GPL-2.0+
 PKG_LICENSE_FILES:=COPYING
@@ -47,11 +47,11 @@ $(call Package/bluez/Default)
   SECTION:=utils
   CATEGORY:=Utilities
   TITLE+= Nordic BLE 6lowpan daemon
-  DEPENDS:=@IPV6 +bluez-libs +bluez-utils +kmod-6lowpan +kmod-bluetooth_6lowpan +luci-app-6lowpand
+  DEPENDS:=+bluez-libs +bluez-utils +kmod-ipv6 +kmod-6lowpan +kmod-bluetooth_6lowpan +luci-app-6lowpand
 endef
 
 define Package/bluez-6lowpan-daemon/description
-  Nordic BLE 6lowpan daemon
+ 	Nordic BLE 6lowpan daemon
 endef
 
 define Package/bluez-libs
