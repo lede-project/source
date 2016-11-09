@@ -25,6 +25,12 @@ define Build/append-ls-dtb
 	dd if=$(DTS_DIR)/$(1).dtb >> $@
 endef
 
+define Build/ls-ff-pad-to
+	dd if=/dev/zero bs=$(1) count=1 | sed 's/\x00/\xff/g' > $@.new
+	dd if=$@ of=$@.new conv=notrunc
+	mv $@.new $@
+endef
+
 define Build/append-ls-rootfs-ext4
 	$(STAGING_DIR_HOST)/bin/make_ext4fs -l $(word 2,$(1)) -b 4096 -i 6000 -m 0 -J $(KDIR)/$(word 1,$(1))-$(word 2,$(1)).root.ext4 $(TARGET_DIR)
 	dd if=$(KDIR)/$(word 1,$(1))-$(word 2,$(1)).root.ext4 >> $@
@@ -58,7 +64,7 @@ ifeq ($(SUBTARGET),32b)
 endif
   IMAGE/firmware.bin = append-ls-rcw $(1) | pad-to 1M | append-ls-uboot $(1) | pad-to 3M | \
   					append-ls-fman $(1) | pad-to 4M | append-ls-dtb $$(DEVICE_DTS) | pad-to 5M | \
-  					append-kernel | pad-to 10M | append-rootfs | pad-to 64M | check-size 67108865
+  					append-kernel | pad-to 10M | append-rootfs | ls-ff-pad-to 64M | check-size 67108865
 endef
 TARGET_DEVICES += ls1043ardb
 
@@ -73,7 +79,7 @@ ifeq ($(SUBTARGET),32b)
 endif
   IMAGE/firmware.bin = append-ls-rcw $(1) | pad-to 1M | append-ls-uboot $(1) | pad-to 3M | \
   					append-ls-dtb $$(DEVICE_DTS) | pad-to 4M | append-kernel | pad-to 9M | \
-  					append-rootfs | pad-to 32M | check-size 33554433
+  					append-rootfs | ls-ff-pad-to 32M | check-size 33554433
   IMAGES += firmware.ext4.bin
   IMAGE/firmware.ext4.bin = append-ls-rcw $(1) | pad-to 1M | append-ls-uboot $(1) | pad-to 3M | \
   					append-ls-dtb $$(DEVICE_DTS) | pad-to 4M | append-kernel | pad-to 9M | \
