@@ -10,7 +10,7 @@
 
 	cfi@1f000000 {
 		compatible = "cfi-flash";
-		reg = <0x1f000000 0x800000>;
+		reg = <0xbc400000 0x800000>;
 		bank-width = <2>;
 		device-width = <2>;
 		#address-cells = <1>;
@@ -35,8 +35,8 @@
 		};
 
 		partition@50000 {
-			label = "linux";
-			reg = <0x50000 0x3b0000>;
+			label = "firmware";
+			reg = <0x50000 0x7b0000>;
 		};
 	};
 
@@ -87,7 +87,7 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "spi", "i2c", "jtag", "rgmii", "mdio", "uartf";
+			ralink,group = "spi", "i2c", "jtag", "mdio", "uartlite";
 			ralink,function = "gpio";
 		};
 	};
@@ -102,10 +102,7 @@
 	};
 };
 
-/* FIXME: no u-boot partition and 0x40000@uboot is out of boundaries */
-/*&wmac {
+&wmac {
 	status = "okay";
-	ralink,mtd-eeprom = <&u-boot 0x40000>;
+	ralink,mtd-eeprom = <&factory 0x0>;
 };
-*/
-
