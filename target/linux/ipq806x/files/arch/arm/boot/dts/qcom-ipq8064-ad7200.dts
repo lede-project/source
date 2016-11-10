@@ -381,7 +381,7 @@
 			gpios = <&qcom_pinmux 65 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_WPS_BUTTON>;
 		};
-        ledgeneral {
+		ledgeneral {
 			label = "ledgeneral";
 			gpios = <&qcom_pinmux 16 GPIO_ACTIVE_LOW>;
 			linux,code = <BTN_0>;
