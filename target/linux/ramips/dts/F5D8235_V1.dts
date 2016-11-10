@@ -10,33 +10,31 @@
 
 	cfi@1f000000 {
 		compatible = "cfi-flash";
-		reg = <0x1f000000 0x800000>;
+		reg = <0xbc400000 0x800000>;
 		bank-width = <2>;
 		device-width = <2>;
 		#address-cells = <1>;
 		#size-cells = <1>;
 
-		partition@0 {
+		uboot: partition@0 {
 			label = "uboot";
-			reg = <0x0 0x30000>;
-			read-only;
-		};
-
-		partition@30000 {
-			label = "uboot-env";
-			reg = <0x30000 0x10000>;
-			read-only;
-		};
-
-		factory: partition@40000 {
-			label = "factory";
-			reg = <0x40000 0x10000>;
+			reg = <0x0 0x50000>;
 			read-only;
 		};
 
 		partition@50000 {
-			label = "linux";
-			reg = <0x50000 0x3b0000>;
+			label = "firmware";
+			reg = <0x50000 0x790000>;
+		};
+
+		partition@7e0000 {
+			label = "nvram";
+			reg = <0x7e0000 0x10000>;
+		};
+
+		factory: partition@7f0000 {
+			label = "factory";
+			reg = <0x7f0000 0x10000>;
 		};
 	};
 
@@ -68,14 +66,69 @@
 	gpio-leds {
 		compatible = "gpio-leds";
 
+		internet {
+			label = "f5d8235-v1:blue:internet";
+			gpios = <&gpio0 17 1>;
+		};
+
+		internet2 {
+			label = "f5d8235-v1:amber:internet";
+			gpios = <&gpio0 18 1>;
+		};
+
+		modem {
+			label = "f5d8235-v1:blue:modem";
+			gpios = <&gpio0 13 1>;
+		};
+
+		modem2 {
+			label = "f5d8235-v1:amber:modem";
+			gpios = <&gpio0 21 1>;
+		};
+
+		router {
+			label = "f5d8235-v1:blue:router";
+			gpios = <&gpio0 14 1>;
+		};
+
 		storage {
 			label = "f5d8235-v1:blue:storage";
 			gpios = <&gpio0 7 1>;
 		};
 
 		storage2 {
-			label = "f5d8235-v1:orange:storage";
+			label = "f5d8235-v1:amber:storage";
 			gpios = <&gpio0 8 1>;
+		};
+
+		security {
+			label = "f5d8235-v1:blue:security";
+			gpios = <&gpio0 10 1>;
+		};
+
+		security2 {
+			label = "f5d8235-v1:amber:security";
+			gpios = <&gpio0 12 1>;
+		};
+
+		wired {
+			label = "f5d8235-v1:blue:wired";
+			gpios = <&gpio0 5 1>;
+		};
+
+		wired2 {
+			label = "f5d8235-v1:amber:wired";
+			gpios = <&gpio0 20 1>;
+		};
+
+		wireless {
+			label = "f5d8235-v1:blue:wireless";
+			gpios = <&gpio0 6 1>;
+		};
+
+		wireless2 {
+			label = "f5d8235-v1:amber:wireless";
+			gpios = <&gpio0 19 1>;
 		};
 	};
 };
@@ -84,10 +137,14 @@
 	status = "okay";
 };
 
+&i2c {
+	status = "okay";
+};
+
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "spi", "i2c", "jtag", "rgmii", "mdio", "uartf";
+			ralink,group = "spi", "i2c", "jtag", "mdio", "uartlite";
 			ralink,function = "gpio";
 		};
 	};
@@ -95,17 +152,14 @@
 
 &ethernet {
 	status = "okay";
-	mtd-mac-address = <&factory 0x4>;
+	mtd-mac-address = <&uboot 0x40004>;
 
 	port@0 {
 		mediatek,fixed-link = <1000 1 1 1>;
 	};
 };
 
-/* FIXME: no u-boot partition and 0x40000@uboot is out of boundaries */
-/*&wmac {
+&wmac {
 	status = "okay";
-	ralink,mtd-eeprom = <&u-boot 0x40000>;
+	ralink,mtd-eeprom = <&uboot 0x40000>;
 };
-*/
-
