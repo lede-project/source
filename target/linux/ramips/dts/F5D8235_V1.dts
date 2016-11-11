@@ -16,25 +16,27 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 
-		uboot: partition@0 {
+		partition@0 {
 			label = "uboot";
-			reg = <0x0 0x50000>;
+			reg = <0x0 0x30000>;
+			read-only;
+		};
+
+		partition@30000 {
+			label = "uboot-env";
+			reg = <0x30000 0x10000>;
+			read-only;
+		};
+
+		factory: partition@40000 {
+			label = "factory";
+			reg = <0x40000 0x10000>;
 			read-only;
 		};
 
 		partition@50000 {
 			label = "firmware";
-			reg = <0x50000 0x790000>;
-		};
-
-		partition@7e0000 {
-			label = "nvram";
-			reg = <0x7e0000 0x10000>;
-		};
-
-		factory: partition@7f0000 {
-			label = "factory";
-			reg = <0x7f0000 0x10000>;
+			reg = <0x50000 0x7b0000>;
 		};
 	};
 
@@ -137,10 +139,6 @@
 	status = "okay";
 };
 
-&i2c {
-	status = "okay";
-};
-
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
@@ -152,7 +150,7 @@
 
 &ethernet {
 	status = "okay";
-	mtd-mac-address = <&uboot 0x40004>;
+	mtd-mac-address = <&factory 0x4>;
 
 	port@0 {
 		mediatek,fixed-link = <1000 1 1 1>;
@@ -161,5 +159,5 @@
 
 &wmac {
 	status = "okay";
-	ralink,mtd-eeprom = <&uboot 0x40000>;
+	ralink,mtd-eeprom = <&factory 0x0>;
 };
