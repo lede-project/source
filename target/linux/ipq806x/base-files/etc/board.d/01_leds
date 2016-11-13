@@ -12,16 +12,15 @@ board=$(ipq806x_board_name)
 
 case "$board" in
 c2600)
-	ucidef_set_led_usbdev "usb1" "USB 1" "${board}:blue:usb_2" "2-1"
-	ucidef_set_led_usbdev "usb2" "USB 2" "${board}:blue:usb_4" "4-1"
-	ucidef_set_led_netdev "wan" "WAN" "${board}:blue:wan" "eth0"
-	ucidef_set_led_netdev "lan" "LAN" "${board}:blue:lan" "br-lan"
-	ucidef_set_led_default "general" "general" "${board}:blue:ledgnr" "1"
+	ucidef_set_led_usbport "usb1" "USB 1" "${board}:white:usb_2" "usb1-port1" "usb2-port1"
+	ucidef_set_led_usbport "usb2" "USB 2" "${board}:white:usb_4" "usb3-port1" "usb4-port1"
+	ucidef_set_led_netdev "wan" "WAN" "${board}:white:wan" "eth0"
+	ucidef_set_led_netdev "lan" "LAN" "${board}:white:lan" "br-lan"
+	ucidef_set_led_default "general" "general" "${board}:white:ledgnr" "1"
 	;;
 d7800 |\
 r7500 |\
-r7500v2 |\
-r7800)
+r7500v2)
 	ucidef_set_led_usbdev "usb1" "USB 1" "${board}:white:usb1" "1-1"
 	ucidef_set_led_usbdev "usb2" "USB 2" "${board}:white:usb3" "3-1"
 	ucidef_set_led_netdev "wan" "WAN" "${board}:white:wan" "eth0"
@@ -29,9 +28,22 @@ r7800)
 	ucidef_set_led_default "wps" "WPS" "${board}:white:wps" "0"
 	ucidef_set_led_default "rfkill" "rfkill" "${board}:white:rfkill" "0"
 	;;
+r7800)
+	ucidef_set_led_usbdev "usb1" "USB 1" "${board}:white:usb1" "2-1"
+	ucidef_set_led_usbdev "usb2" "USB 2" "${board}:white:usb2" "4-1"
+	ucidef_set_led_netdev "wan" "WAN" "${board}:white:wan" "eth0"
+	ucidef_set_led_ide "esata" "eSATA" "${board}:white:esata"
+	ucidef_set_led_wlan "wps" "WPS" "${board}:white:wps" "phy0tpt"
+	ucidef_set_led_wlan "rfkill" "rfkill" "${board}:white:rfkill" "phy1tpt"
+	;;
 ea8500)
 	ucidef_set_led_wlan "wifi" "WIFI" "ea8500:green:wifi" "phy0radio"
 	ucidef_set_led_default "wps" "WPS" "ea8500:green:wps" "0"
+	;;
+nbg6817)
+	ucidef_set_led_wlan "wlan2g" "WLAN2g" "$board:amber:wifi" "phy1radio"
+	ucidef_set_led_wlan "wlan5g" "WLAN5G" "$board:amber:wifi5" "phy0radio"
+	ucidef_set_led_netdev "wan" "WAN" "$board:white:internet" "eth1"
 	;;
 *)
 	;;

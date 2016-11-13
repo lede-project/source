@@ -16,8 +16,6 @@ platform_check_image() {
 	case "$board" in
 	3g150b|\
 	3g300m|\
-	3g-6200n|\
-	3g-6200nl|\
 	a5-v11|\
 	ai-br100|\
 	air3gii|\
@@ -107,6 +105,7 @@ platform_check_image() {
 	psg1218|\
 	psr-680w|\
 	px-4885|\
+	rb750gr3|\
 	re6500|\
 	rp-n53|\
 	rt5350f-olinuxino|\
@@ -130,6 +129,7 @@ platform_check_image() {
 	ur-336un|\
 	v22rw-2x2|\
 	vocore|\
+	vr500|\
 	w150m|\
 	w306r-v20|\
 	w502u|\
@@ -145,6 +145,7 @@ platform_check_image() {
 	wl-330n3g|\
 	wl-341v3|\
 	wl-351|\
+	wl-wn575a3|\
 	wli-tx4-ag300n|\
 	wmr-300|\
 	wnce2001|\
@@ -178,15 +179,18 @@ platform_check_image() {
 		}
 		return 0
 		;;
-	ar670w)
-		[ "$magic" != "6d000080" ] && {
+	3g-6200n|\
+	3g-6200nl|\
+	br-6475nd)
+		[ "$magic" != "43535953" ] && {
 			echo "Invalid image type."
 			return 1
 		}
 		return 0
 		;;
-	br-6475nd)
-		[ "$magic" != "43535953" ] && {
+
+	ar670w)
+		[ "$magic" != "6d000080" ] && {
 			echo "Invalid image type."
 			return 1
 		}

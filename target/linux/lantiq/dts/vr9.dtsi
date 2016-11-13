@@ -1,3 +1,6 @@
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
 / {
 	#address-cells = <1>;
 	#size-cells = <1>;
@@ -11,6 +14,10 @@
 
 	memory@0 {
 		device_type = "memory";
+	};
+
+	cputemp@0 {
+		compatible = "lantiq,cputemp";
 	};
 
 	biu@1F800000 {
@@ -68,6 +75,14 @@
 			reg = <0x106a00 0x200>;
 		};
 
+		vmmc@107000 {
+			status = "disabled";
+			compatible = "lantiq,vmmc-xway";
+			reg = <0x103000 0x400>;
+			interrupt-parent = <&icu0>;
+			interrupts = <150 151 152 153 154 155>;
+		};
+
 		rcu0: rcu@203000 {
 			compatible = "lantiq,rcu-xrx200";
 			reg = <0x203000 0x1000>;
@@ -101,7 +116,7 @@
 			compatible = "lantiq,gptu-xway";
 			reg = <0xE100A00 0x100>;
 			interrupt-parent = <&icu0>;
-                        interrupts = <126 127 128 129 130 131>;
+			interrupts = <126 127 128 129 130 131>;
 		};
 
 		asc0: serial@E100400 {
@@ -200,10 +215,12 @@
 			interrupt-parent = <&icu0>;
 			interrupts = <161 144>;
 			compatible = "lantiq,pcie-xrx200";
-			gpio-reset = <&gpio 38 0>;
+			gpio-reset = <&gpio 38 GPIO_ACTIVE_HIGH>;
 		};
 
 		pci0: pci@E105400 {
+			status = "disabled";
+
 			#address-cells = <3>;
 			#size-cells = <2>;
 			#interrupt-cells = <1>;
@@ -213,7 +230,10 @@
 				0x1000000 0 0x00000000 0xAE00000 0 0x200000>; /* io space */
 			reg = <0x7000000 0x8000         /* config space */
 				0xE105400 0x400>;       /* pci bridge */
-			status = "disabled";
+			lantiq,bus-clock = <33333333>;
+			interrupt-map-mask = <0xf800 0x0 0x0 0x7>;
+			interrupt-map = <0x7000 0 0 1 &icu0 30 1>; /* slot 14, irq 30 */
+			req-mask = <0x1>; /* GNT1 */
 		};
 	};
 

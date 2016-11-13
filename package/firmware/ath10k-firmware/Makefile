@@ -8,7 +8,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ath10k-firmware
-PKG_SOURCE_VERSION:=307cb46b06661ebd3186723b5002de769c7add83
+PKG_SOURCE_VERSION:=b063774393b184c6e1626dec81cf5270cc213c69
+PKG_MIRROR_MD5SUM:=767c249578a4a2a14f202d92e1625af99153f29a5aeae14d04690d20c6b13897
 PKG_VERSION:=2016-09-13-$(PKG_SOURCE_VERSION)
 PKG_RELEASE:=1
 
@@ -66,14 +67,14 @@ $(Package/ath10k-firmware-default)
   CATEGORY:=Firmware
 endef
 
-QCA988X_FIRMWARE_FILE_CT:=firmware-2-ct-full-community-16.1.bin-lede
+QCA988X_FIRMWARE_FILE_CT:=firmware-2-ct-full-community.bin-18.rc1-lede
 QCA99X0_FIRMWARE_FILE_CT:=firmware-5-ct-full-community-7.bin-lede.004
 QCA9984_FIRMWARE_FILE_CT:=firmware-5-ct-full-community-7.bin-lede.004
 
 define Download/ath10k-firmware-qca988x-ct
   URL:=https://www.candelatech.com/downloads/
   FILE:=$(QCA988X_FIRMWARE_FILE_CT)
-  MD5SUM:=d7e081e9782936ed544b78994c9133fb
+  MD5SUM:=89b436bad5d80c57bbf74e498095c9d2
 endef
 $(eval $(call Download,ath10k-firmware-qca988x-ct))
 
@@ -249,7 +250,7 @@ define Package/ath10k-firmware-qca9984/install
 		$(PKG_BUILD_DIR)/QCA9984/hw1.0/board-2.bin \
 		$(1)/lib/firmware/ath10k/QCA9984/hw1.0/board-2.bin
 	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/QCA9984/hw1.0/firmware-5.bin_10.4-3.2-00072 \
+		$(PKG_BUILD_DIR)/QCA9984/hw1.0/3.3/firmware-5.bin_10.4-3.3-00092 \
 		$(1)/lib/firmware/ath10k/QCA9984/hw1.0/firmware-5.bin
 endef
 

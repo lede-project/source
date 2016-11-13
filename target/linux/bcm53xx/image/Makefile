@@ -73,6 +73,7 @@ DEVICE_VARS += PRODUCTID SIGNATURE NETGEAR_BOARD_ID NETGEAR_REGION
 BRCMFMAC_43602A1 := kmod-brcmfmac brcmfmac-firmware-43602a1-pcie
 BRCMFMAC_4366B1 := kmod-brcmfmac brcmfmac-firmware-4366b1-pcie
 USB2_PACKAGES := kmod-usb-ohci kmod-usb2 kmod-phy-bcm-ns-usb2
+USB2_PACKAGES += kmod-usb-ledtrig-usbport
 USB3_PACKAGES := $(USB2_PACKAGES) kmod-usb3 kmod-phy-bcm-ns-usb3
 
 define Device/Default
@@ -222,7 +223,7 @@ endef
 
 define Device/tenda-ac9
   DEVICE_TITLE := Tenda AC9
-  DEVICE_PACKAGES := $(USB2_PACKAGES)
+  DEVICE_PACKAGES := kmod-b43 $(USB2_PACKAGES)
   IMAGES := trx
   IMAGE/trx := append-rootfs | trx-serial
 endef

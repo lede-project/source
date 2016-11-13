@@ -1,6 +1,6 @@
 /dts-v1/;
 
-/include/ "P2812HNUFX.dtsi"
+#include "P2812HNUFX.dtsi"
 
 / {
 	model = "P2812HNUF1 - ZyXEL P-2812HNU-F1";
@@ -44,24 +44,28 @@
 				};
 			};
 		};
+
 		pcie@d900000 {
 			status = "disabled";
 		};
 	};
 
-	ralink_eep {
-		compatible = "ralink,eeprom";
-		ralink,eeprom = "RT3062.eeprom";
-	};
-
 	gpio-leds {
 		usb1: usb1 {
 			label = "p2812hnuf1:green:usb1";
-			gpios = <&gpio 38 1>;
+			gpios = <&gpio 38 GPIO_ACTIVE_LOW>;
 		};
 		usb2: usb2 {
 			label = "p2812hnuf1:green:usb2";
-			gpios = <&gpio 44 1>;
+			gpios = <&gpio 44 GPIO_ACTIVE_LOW>;
 		};
+	};
+};
+
+&pci0 {
+	wifi@1814,3062 {
+		compatible = "pci1814,3062";
+		reg = <0x7000 0 0 0 0>;
+		ralink,eeprom = "RT3062.eeprom";
 	};
 };

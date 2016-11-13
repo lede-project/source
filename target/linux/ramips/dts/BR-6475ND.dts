@@ -80,11 +80,6 @@
 			reg = <0x00070000 0x00790000>;
 			label = "firmware";
 		};
-
-		partition@170000 {
-			reg = <0x00270000 0x00590000>;
-			label = "rootfs";
-		};
 	};
 
 	rtl8367 {
@@ -162,11 +157,11 @@
 		pci-bridge@1 {
 			status = "okay";
 
-			wmac@0,0 {
+			wifi@0,0 {
+				compatible = "pci0,0";
+				reg = <0x10000 0 0 0 0>;
 				ralink,5ghz = <0>;
-				compatible = "ralink,rt2880-pci", "pciclass060400", "pciclass0604";
-				reg = < 0x10000 0 0 0 0 >;
-				ralink,eeprom = "rt2x00pci_1_0.eeprom";
+				ralink,mtd-eeprom = <&factory 0x8000>;
 			};
 		};
 	};

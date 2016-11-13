@@ -26,6 +26,9 @@ ipq806x_board_detect() {
 	*"DB149")
 		name="db149"
 		;;
+	*"NBG6817")
+		name="nbg6817"
+		;;
 	*"R7500")
 		name="r7500"
 		;;
@@ -58,4 +61,16 @@ ipq806x_board_name() {
 	[ -z "$name" ] && name="unknown"
 
 	echo "$name"
+}
+
+ipq806x_get_dt_led() {
+	local label
+	local ledpath
+	local basepath="/sys/firmware/devicetree/base"
+	local nodepath="$basepath/aliases/led-$1"
+
+	[ -f "$nodepath" ] && ledpath=$(cat "$nodepath")
+	[ -n "$ledpath" ] && label=$(cat "$basepath$ledpath/label")
+
+	echo "$label"
 }

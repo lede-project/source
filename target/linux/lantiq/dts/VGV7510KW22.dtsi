@@ -1,4 +1,4 @@
-/include/ "vr9.dtsi"
+#include "vr9.dtsi"
 
 / {
 	model = "VGV7510KW22 - o2 Box 6431";
@@ -19,10 +19,6 @@
 
 	memory@0 {
 		reg = <0x0 0x4000000>;
-	};
-
-	cputemp@0 {
-		compatible = "lantiq,cputemp";
 	};
 
 	fpi@10000000 {
@@ -76,18 +72,7 @@
 
 		ifxhcd@E101000 {
 			status = "okay";
-			gpios = <&gpio 47 0>;
-		};
-
-		pci@E105400 {
-			status = "okay";
-			lantiq,bus-clock = <33333333>;
-			interrupt-map-mask = <0xf800 0x0 0x0 0x7>;
-			interrupt-map = <
-				0x7000 0 0 1 &icu0 30 1 // slot 14, irq 30
-				>;
-			gpio-reset = <&gpio 21 0>;
-			req-mask = <0x1>;	/* GNT1 */
+			gpios = <&gpio 47 GPIO_ACTIVE_HIGH>;
 		};
 
 		pcie@d900000 {
@@ -102,11 +87,6 @@
 		phys = [ 00 01 ];
 	};
 
-	ralink_eep {
-		compatible = "ralink,eeprom";
-		ralink,eeprom = "RT3062.eeprom";
-	};
-
 	gpio-keys-polled {
 		compatible = "gpio-keys-polled";
 		#address-cells = <1>;
@@ -115,14 +95,14 @@
 
 		reset {
 			label = "reset";
-			gpios = <&gpio 6 1>;
-			linux,code = <0x198>;
+			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
 		};
 
 		wps {
 			label = "wps";
-			gpios = <&gpio 9 1>;
-			linux,code = <0x211>;
+			gpios = <&gpio 9 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
 		};
 	};
 
@@ -131,49 +111,63 @@
 
 		dsl: dsl {
 			label = "vgv7510kw22:green:dsl";
-			gpios = <&gpio 2 1>;
+			gpios = <&gpio 2 GPIO_ACTIVE_LOW>;
 		};
 
 		internet_red {
 			label = "vgv7510kw22:red:internet";
-			gpios = <&gpio 10 1>;
+			gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
 		};
 
 		info_red {
 			label = "vgv7510kw22:red:info";
-			gpios = <&gpio 12 1>;
+			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
 		};
 
 		power_green: power {
 			label = "vgv7510kw22:green:power";
-			gpios = <&gpio 14 1>;
+			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
 			default-state = "keep";
 		};
 
 		info_green {
 			label = "vgv7510kw22:green:info";
-			gpios = <&gpio 15 1>;
+			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
 		};
 
 		internet_green: internet_green {
 			label = "vgv7510kw22:green:internet";
-			gpios = <&gpio 19 1>;
+			gpios = <&gpio 19 GPIO_ACTIVE_LOW>;
 		};
 
 		wifi: wifi {
 			label = "vgv7510kw22:green:wlan";
-			gpios = <&gpio 20 1>;
+			gpios = <&gpio 20 GPIO_ACTIVE_LOW>;
 		};
 
 		power_red: power2 {
 			label = "vgv7510kw22:red:power";
-			gpios = <&gpio 28 1>;
+			gpios = <&gpio 28 GPIO_ACTIVE_LOW>;
 		};
 
 		phone {
 			label = "vgv7510kw22:green:telefon";
-			gpios = <&gpio 29 1>;
+			gpios = <&gpio 29 GPIO_ACTIVE_LOW>;
 		};
+	};
+};
+
+&pci0 {
+	status = "okay";
+	gpio-reset = <&gpio 21 GPIO_ACTIVE_HIGH>;
+
+	wifi@1814,3592 {
+		compatible = "pci1814,3592";
+		reg = <0x7000 0 0 0 0>;
+		ralink,mtd-eeprom = <&boardconfig 0x410>;
+		ralink,mtd-eeprom-swap;
+		mtd-mac-address = <&boardconfig 0x16>;
+		mtd-mac-address-increment = <1>;
 	};
 };
 
@@ -218,7 +212,7 @@
 		#size-cells = <0>;
 		reg = <1>;
 		mtd-mac-address = <&boardconfig 0x16>;
-		mtd-mac-address-increment = <2>;
+		mtd-mac-address-increment = <3>;
 		lantiq,wan;
 
 		ethernet@0 {

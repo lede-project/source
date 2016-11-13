@@ -1,6 +1,6 @@
 /dts-v1/;
 
-/include/ "vr9.dtsi"
+#include "vr9.dtsi"
 
 / {
 	model = "VG3503J - BT OpenReach VDSL Modem";
@@ -42,37 +42,12 @@
 					};
 
 					partition@20000 {
-						label = "kernel";
-						reg = <0x20000 0x300000>;
-					};
-
-					partition@1a0000 {
-						label = "rootfs";
-						reg = <0x320000 0x420000>;
-					};
-
-					partition@740000 {
-						label = "btagent";
-						reg = <0x740000 0x80000>;
-					};
-
-					partition@7c0000 {
-						label = "pri_bfocus_cfg";
-						reg = <0x7c0000 0x10000>;
-					};
-
-					partition@7d0000 {
-						label = "sec_bfocus_cfg";
-						reg = <0x7d0000 0x10000>;
-					};
-
-					partition@7e0000 {
-						label = "sysconfig";
-						reg = <0x7e0000 0x10000>;
+						label = "firmware";
+						reg = <0x20000 0x7d0000>;
 					};
 
 					partition@7f0000 {
-						label = "misc_cfg";
+						label = "uboot-env";
 						reg = <0x7f0000 0x10000>;
 					};
 				};
@@ -115,8 +90,8 @@
 		poll-interval = <100>;
 		reset {
 			label = "reset";
-			gpios = <&gpio 6 1>;
-			linux,code = <0x198>;
+			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
 		};
 	};
 
@@ -125,15 +100,15 @@
 
 		power_red: power2 {
 			label = "vg3503j:red:power";
-			gpios = <&gpio 14 1>;
+			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
 		};
 		dsl: dsl {
 			label = "vg3503j:green:dsl";
-			gpios = <&gpio 19 1>;
+			gpios = <&gpio 19 GPIO_ACTIVE_LOW>;
 		};
 		power_green: power {
 			label = "vg3503j:green:power";
-			gpios = <&gpio 28 1>;
+			gpios = <&gpio 28 GPIO_ACTIVE_LOW>;
 			default-state = "keep";
 		};
 	};
@@ -145,7 +120,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 		reg = <0>;
-		mac-address = [ 00 11 22 33 44 55 ];
+
 		lantiq,switch;
 		ethernet@2 {
 			compatible = "lantiq,xrx200-pdi-port";

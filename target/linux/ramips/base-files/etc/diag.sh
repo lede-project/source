@@ -19,6 +19,7 @@ get_status_led() {
 	asl26555|\
 	br-6425|\
 	br-6475nd|\
+	c50|\
 	dch-m225|\
 	dir-860l-b1|\
 	e1700|\
@@ -29,12 +30,16 @@ get_status_led() {
 	nbg-419n|\
 	nbg-419n2|\
 	pwh2004|\
+	vr500|\
 	wnce2001|\
 	wndr3700v5|\
 	x5|\
 	x8|\
 	xdxrn502j)
 		status_led="$board:green:power"
+		;;
+	3g-6200nl)
+		status_led="$board:green:internet"
 		;;
 	a5-v11|\
 	cs-qr10|\
@@ -87,15 +92,12 @@ get_status_led() {
 	wrh-300cr)
 		status_led="$board:green:wps"
 		;;
-	c50)
-		status_led="tp-link:blue:power"
-		;;
 	cf-wr800n|\
 	psg1208)
 		status_led="$board:white:wps"
 		;;
 	psg1218)
-		status_led="$board:blue:status"
+		status_led="$board:yellow:status"
 		;;
 	cy-swr1100|\
 	w502u)
@@ -185,6 +187,9 @@ get_status_led() {
 	wf-2881|\
 	wr512-3gn)
 		status_led="$board:green:wps"
+		;;
+	rb750gr3)
+		status_led="$board:green:usr"
 		;;
 	sap-g3200u3)
 		status_led="$board:green:usb"

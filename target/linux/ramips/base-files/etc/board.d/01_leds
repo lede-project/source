@@ -26,6 +26,9 @@ case $board in
 	set_usb_led "$board:blue:3g"
 	;;
 3g-6200nl|\
+wnce2001)
+	set_wifi_led "$board:green:wlan"
+	;;
 br-6475nd|\
 mzk-w300nh2)
 	set_wifi_led "$board:amber:wlan"
@@ -85,11 +88,12 @@ c20i)
 	ucidef_set_led_wlan "wlan" "wlan" "$board:blue:wlan" "phy0radio"
 	;;
 c50)
-	ucidef_set_led_default "power" "power" "$board:blue:power" "0"
-	ucidef_set_led_netdev "lan" "lan" "$board:blue:lan" "eth0.2"
-	set_usb_led "$board:blue:usb"
-	ucidef_set_led_wlan "wlan2g" "wlan2g" "$board:blue:wlan2g" "phy1radio"
-	ucidef_set_led_wlan "wlan5g" "wlan5g" "$board:blue:wlan5g" "phy0radio"
+	ucidef_set_led_default "power" "power" "$board:green:power" "0"
+	ucidef_set_led_switch "lan" "lan" "$board:green:lan" "switch0" "0x1e"
+	ucidef_set_led_switch "wan" "wan" "$board:green:wan" "switch0" "0x01"
+	set_usb_led "$board:green:usb"
+	ucidef_set_led_netdev "wlan2g" "wlan2g" "$board:green:wlan2g" wlan1
+	set_wifi_led "$board:green:wlan5g"
 	;;
 cf-wr800n)
 	ucidef_set_led_netdev "lan" "lan" "$board:white:ethernet" eth0.1
@@ -143,7 +147,8 @@ mzk-ex300np)
 	;;
 dir-810l|\
 mzk-750dhp|\
-mzk-dp150n)
+mzk-dp150n|\
+vr500)
 	ucidef_set_led_default "power" "power" "$board:green:power" "1"
 	;;
 dir-860l-b1)
@@ -260,7 +265,8 @@ psg1208)
 	set_wifi_led "$board:white:wlan2g"
 	;;
 psg1218)
-	ucidef_set_led_default "power" "power" "$board:red:status" "1"
+	ucidef_set_led_netdev "Network" "Network" "$board:blue:status" "eth0"
+	ucidef_set_led_default "status" "STATUS" "$board:yellow:status" "0"
 	;;
 px-4885)
 	set_wifi_led "$board:orange:wifi"
@@ -306,8 +312,11 @@ whr-600d)
 	ucidef_set_led_default "power" "power" "$board:green:power" "1"
 	ucidef_set_led_default "router" "router" "$board:green:router" "1"
 	;;
-wnce2001)
-	set_wifi_led "$board:green:wlan"
+wl-wn575a3)
+	ucidef_set_rssimon "wlan1" "40000" "1"
+	ucidef_set_led_rssi "wifi-low" "wifi-low" "$board:green:wifi-low" "wlan1" "1" "49" "0" "1"
+	ucidef_set_led_rssi "wifi-med" "wifi-med" "$board:green:wifi-med" "wlan1" "50" "84" "0" "1"
+	ucidef_set_led_rssi "wifi-high" "wifi-high" "$board:green:wifi-high" "wlan1" "85" "100" "0" "1"
 	;;
 wrh-300cr)
 	set_wifi_led "$board:green:wlan"

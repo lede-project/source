@@ -47,8 +47,16 @@ board=$(ar71xx_board_name)
 case "$FIRMWARE" in
 "ath10k/cal-pci-0000:00:00.0.bin")
 	case $board in
+	dap-2695-a1)
+		ath10kcal_extract "radiocfg" 20480 2116
+		ath10kcal_patch_mac $(mtd_get_mac_ascii bdcfg wlanmac_a)
+		;;
 	dlan-pro-1200-ac)
 		ath10kcal_extract "art" 20480 2116
+		;;
+	dw33d)
+		ath10kcal_extract "art" 20480 2116
+		ath10kcal_patch_mac $(mtd_get_mac_binary art 18)
 		;;
 	mc-mac1200r)
 		ath10kcal_extract "art" 20480 2116
@@ -62,6 +70,7 @@ case "$FIRMWARE" in
 		ath10kcal_extract "caldata" 20480 2116
 		ath10kcal_patch_mac $(macaddr_add $(cat /sys/class/net/eth1/address) +2)
 		;;
+	dir-869-a1 | \
 	qihoo-c301)
 		ath10kcal_extract "radiocfg" 20480 2116
 		ath10kcal_patch_mac $(mtd_get_mac_ascii devdata wlan5mac)
@@ -76,6 +85,10 @@ case "$FIRMWARE" in
 	om5p-acv2)
 		ath10kcal_extract "ART" 20480 2116
 		ath10kcal_patch_mac $(macaddr_add $(cat /sys/class/net/eth0/address) +16)
+		;;
+	tl-wpa8630)
+		ath10kcal_extract "ART" 20480 2116
+		ath10kcal_patch_mac $(macaddr_add $(cat /sys/class/net/eth0/address) +1)
 		;;
 	unifiac-lite | \
 	unifiac-pro)

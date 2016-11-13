@@ -176,12 +176,25 @@ sub mconf_depends {
 		next if $package{$depend} and $package{$depend}->{buildonly};
 		if ($flags =~ /\+/) {
 			if ($vdep = $package{$depend}->{vdepends}) {
-				my @vdeps = @$vdep;
-				$depend = shift @vdeps;
+				my @vdeps;
+				$depend = undef;
+
+				foreach my $v (@$vdep) {
+					if ($package{$v} && $package{$v}->{variant_default}) {
+						$depend = $v;
+					} else {
+						push @vdeps, $v;
+					}
+				}
+
+				if (!$depend) {
+					$depend = shift @vdeps;
+				}
+
 				if (@vdeps > 1) {
-					$condition = '!('.join("||", map { "PACKAGE_".$_ } @vdeps).')';
+					$condition = ($condition ? "$condition && " : '') . '!('.join("||", map { "PACKAGE_".$_ } @vdeps).')';
 				} elsif (@vdeps > 0) {
-					$condition = '!PACKAGE_'.$vdeps[0];
+					$condition = ($condition ? "$condition && " : '') . '!PACKAGE_'.$vdeps[0];
 				}
 			}
 
@@ -351,7 +364,7 @@ sub print_package_overrides() {
 	keys %overrides > 0 or return;
 	print "\tconfig OVERRIDE_PKGS\n";
 	print "\t\tstring\n";
-	print "\t\tdefault \"".join(" ", keys %overrides)."\"\n\n";
+	print "\t\tdefault \"".join(" ", sort keys %overrides)."\"\n\n";
 }
 
 sub gen_package_config() {

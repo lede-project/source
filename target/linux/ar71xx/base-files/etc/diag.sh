@@ -43,7 +43,8 @@ get_status_led() {
 	ap83|\
 	mr12|\
 	mr16|\
-	nbg6616)
+	nbg6616|\
+	tl-wpa8630)
 		status_led="$board:green:power"
 		;;
 	ap96)
@@ -73,7 +74,8 @@ get_status_led() {
 	cap324)
 		status_led="pcs:green:power"
 		;;
-	c-55)
+	c-55|\
+	c-60)
 		status_led="$board:green:pwr"
 		;;
 	cap4200ag)
@@ -110,6 +112,9 @@ get_status_led() {
 	dir-835-a1)
 		status_led="d-link:amber:power"
 		;;
+	dir-869-a1)
+		status_led="d-link:white:status"
+		;;
 	dlan-hotspot)
 		status_led="devolo:green:wifi"
 		;;
@@ -125,6 +130,12 @@ get_status_led() {
 	dragino2|\
 	oolite)
 		status_led="$board:red:system"
+		;;
+	dw33d)
+		status_led="$board:blue:status"
+		;;
+	eap120)
+		status_led="$(ar71xx_board_name):green:system"
 		;;
 	eap300v2)
 		status_led="engenius:blue:power"
@@ -343,6 +354,7 @@ get_status_led() {
 	tl-wr703n|\
 	tl-wr710n|\
 	tl-wr720n-v3|\
+	tl-wr802n-v1|\
 	tl-wr810n|\
 	tl-wr941nd-v6)
 		status_led="tp-link:blue:system"

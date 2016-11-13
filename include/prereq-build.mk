@@ -109,8 +109,8 @@ $(eval $(call SetupHostCommand,diff,Please install diffutils, \
 	diff --version 2>&1 | grep diff))
 
 $(eval $(call SetupHostCommand,cp,Please install GNU fileutils, \
-	gcp --help, \
-	cp --help))
+	gcp --help 2>&1 | grep 'Copy SOURCE', \
+	cp --help 2>&1 | grep 'Copy SOURCE'))
 
 $(eval $(call SetupHostCommand,seq,, \
 	gseq --version, \
@@ -163,9 +163,6 @@ $(eval $(call SetupHostCommand,git,Please install Git (git-core) >= 1.7.12.2, \
 
 $(eval $(call SetupHostCommand,file,Please install the 'file' package, \
 	file --version 2>&1 | grep file))
-
-$(eval $(call SetupHostCommand,xz,Please install xz-utils, \
-	xz --version | grep XZ))
 
 ifneq ($(HOST_OS),Darwin)
 $(eval $(call SetupHostCommand,openssl,Please install the 'openssl' utility, \

@@ -19,16 +19,16 @@ proto_qmi_init_config() {
 	proto_config_add_string modes
 	proto_config_add_boolean ipv6
 	proto_config_add_boolean dhcp
-	proto_config_add_int metric
+	proto_config_add_defaults
 }
 
 proto_qmi_setup() {
 	local interface="$1"
 
-	local device apn auth username password pincode delay modes ipv6 dhcp metric
+	local device apn auth username password pincode delay modes ipv6 dhcp $PROTO_DEFAULT_OPTIONS
 	local cid_4 pdh_4 cid_6 pdh_6 ipv4
 	local ip subnet gateway dns1 dns2 ip_6 ip_prefix_length gateway_6 dns1_6 dns2_6
-	json_get_vars device apn auth username password pincode delay modes ipv6 dhcp metric
+	json_get_vars device apn auth username password pincode delay modes ipv6 dhcp $PROTO_DEFAULT_OPTIONS
 
 	ipv4=1
 
@@ -82,6 +82,12 @@ proto_qmi_setup() {
 		return 1
 	}
 
+	# try to clear previous autoconnect state
+	# do not reuse previous wds client id to prevent hangs caused by stale data
+	uqmi -s -d "$device" \
+		--stop-network 0xffffffff \
+		--autoconnect > /dev/null
+
 	uqmi -s -d "$device" --set-data-format 802.3
 	uqmi -s -d "$device" --wda-set-data-format 802.3
 
@@ -106,7 +112,8 @@ proto_qmi_setup() {
 		${auth:+--auth-type $auth} \
 		${username:+--username $username} \
 		${password:+--password $password} \
-		--ip-family ipv4`
+		--ip-family ipv4 \
+		--autoconnect`
 	[ $? -ne 0 ] && {
 		echo "Unable to connect IPv4"
 		uqmi -s -d "$device" --set-client-id wds,"$cid_4" --release-client-id wds
@@ -121,7 +128,7 @@ proto_qmi_setup() {
 				${auth:+--auth-type $auth} \
 				${username:+--username $username} \
 				${password:+--password $password} \
-				--ip-family ipv6`
+				--ip-family ipv6 --autoconnect`
 			[ $? -ne 0 ] && {
 				echo "Unable to connect IPv6"
 				uqmi -s -d "$device" --set-client-id wds,"$cid_6" --release-client-id wds
@@ -139,27 +146,20 @@ proto_qmi_setup() {
 		return 1
 	}
 
-	if [ -z "$dhcp" -o "$dhcp" = 0 ]; then
-		echo "Setting up $ifname"
-		[ -n "$ipv4" ] && {
-			json_load "$(uqmi -s -d $device --set-client-id wds,$cid_4 --get-current-settings)"
-			json_select ipv4
-			json_get_vars ip subnet gateway dns1 dns2
+	echo "Setting up $ifname"
+	proto_init_update "$ifname" 1
+	proto_add_data
+	[ -n "$ipv4" ] && {
+		json_add_string "cid_4" "$cid_4"
+		json_add_string "pdh_4" "$pdh_4"
+	}
+	[ -n "$ipv6" ] && {
+		json_add_string "cid_6" "$cid_6"
+		json_add_string "pdh_6" "$pdh_6"
+	}
 
-			proto_init_update "$ifname" 1
-			proto_set_keep 1
-			proto_add_ipv4_address "$ip" "$subnet"
-			proto_add_dns_server "$dns1"
-			proto_add_dns_server "$dns2"
-			proto_add_ipv4_route "0.0.0.0" 0 "$gateway"
-			proto_add_data
-			json_add_string "cid_4" "$cid_4"
-			json_add_string "pdh_4" "$pdh_4"
-			proto_close_data
-			proto_send_update "$interface"
-		}
-	
-		[ -n "$ipv6" ] && {
+	[ -n "$ipv6" ] && {
+		if [ -z "$dhcp" -o "$dhcp" = 0 ]; then
 			json_load "$(uqmi -s -d $device --set-client-id wds,$cid_6 --get-current-settings)"
 			json_select ipv6
 			json_get_var ip_6 ip
@@ -168,58 +168,56 @@ proto_qmi_setup() {
 			json_get_var dns2_6 dns2
 			json_get_var ip_prefix_length ip-prefix-length
 
-			proto_init_update "$ifname" 1
-			proto_set_keep 1
 			# RFC 7278: Extend an IPv6 /64 Prefix to LAN
 			proto_add_ipv6_address "$ip_6" "128"
 			proto_add_ipv6_prefix "${ip_6}/${ip_prefix_length}"
 			proto_add_ipv6_route "$gateway_6" "128"
-			proto_add_ipv6_route "::0" 0 "$gateway_6" "" "" "${ip_6}/${ip_prefix_length}"
-			proto_add_dns_server "$dns1_6"
-			proto_add_dns_server "$dns2_6"
+			[ "$defaultroute" = 0 ] || proto_add_ipv6_route "::0" 0 "$gateway_6" "" "" "${ip_6}/${ip_prefix_length}"
+			[ "$peerdns" = 0 ] || {
+				proto_add_dns_server "$dns1_6"
+				proto_add_dns_server "$dns2_6"
+			}
 			proto_add_data
 			json_add_string "cid_6" "$cid_6"
 			json_add_string "pdh_6" "$pdh_6"
-			proto_close_data
-			proto_send_update "$interface"
-		}
-	else
-		echo "Starting DHCP on $ifname"
-		proto_init_update "$ifname" 1
-		proto_add_data
-		[ -n "$ipv4" ] && {
-			json_add_string "cid_4" "$cid_4"
-			json_add_string "pdh_4" "$pdh_4"
-		}
-		[ -n "$ipv6" ] && {
-			json_add_string "cid_6" "$cid_6"
-			json_add_string "pdh_6" "$pdh_6"
-		}
-		proto_close_data
-		proto_send_update "$interface"
-
-		[ -n "$ipv4" ] && {
-			json_init
-			json_add_string name "${interface}_4"
-			json_add_string ifname "@$interface"
-			json_add_string proto "dhcp"
-			json_add_int metric "$metric"
-			json_close_object
-			ubus call network add_dynamic "$(json_dump)"
-		}
-
-		[ -n "$ipv6" ] && {
+		else
 			json_init
 			json_add_string name "${interface}_6"
 			json_add_string ifname "@$interface"
 			json_add_string proto "dhcpv6"
-			json_add_int metric "$metric"
+			proto_add_dynamic_defaults
 			# RFC 7278: Extend an IPv6 /64 Prefix to LAN
 			json_add_string extendprefix 1
 			json_close_object
 			ubus call network add_dynamic "$(json_dump)"
-		}
-	fi
+		fi
+	}
+
+	proto_close_data
+	proto_send_update "$interface"
+
+	[ -n "$ipv4" ] && {
+		json_init
+		json_add_string name "${interface}_4"
+		json_add_string ifname "@$interface"
+		json_add_string proto "dhcp"
+		proto_add_dynamic_defaults
+		json_close_object
+		ubus call network add_dynamic "$(json_dump)"
+	}
+}
+
+qmi_wds_stop() {
+	local cid="$1"
+	local pdh="$2"
+
+	[ -n "$cid" ] || return
+
+	# disable previous autoconnect state using the global handle
+	uqmi -s -d "$device" --set-client-id wds,"$cid" --stop-network "0xffffffff"
+
+	[ -n "$pdh" ] && uqmi -s -d "$device" --set-client-id wds,"$cid" --stop-network "$pdh"
+	uqmi -s -d "$device" --set-client-id wds,"$cid" --release-client-id wds
 }
 
 proto_qmi_teardown() {
@@ -236,18 +234,8 @@ proto_qmi_teardown() {
 	json_select data
 	json_get_vars cid_4 pdh_4 cid_6 pdh_6
 
-	[ -n "$cid_4" ] && {
-		[ -n "$pdh_4" ] && {
-			uqmi -s -d "$device" --set-client-id wds,"$cid_4" --stop-network "$pdh_4"
-			uqmi -s -d "$device" --set-client-id wds,"$cid_4" --release-client-id wds
-		}
-	}
-	[ -n "$cid_6" ] && {
-		[ -n "$pdh_6" ] && {
-			uqmi -s -d "$device" --set-client-id wds,"$cid_6" --stop-network "$pdh_6"
-			uqmi -s -d "$device" --set-client-id wds,"$cid_6" --release-client-id wds
-		}
-	}
+	qmi_wds_stop "$cid_4" "$pdh_4"
+	qmi_wds_stop "$cid_6" "$pdh_6"
 
 	proto_init_update "*" 0
 	proto_send_update "$interface"

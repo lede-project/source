@@ -367,6 +367,9 @@ ramips_board_detect() {
 	*"Q7")
 		name="zte-q7"
 		;;
+	*"RB750Gr3")
+		name="rb750gr3"
+		;;
 	*"RE6500")
 		name="re6500"
 		;;
@@ -442,6 +445,9 @@ ramips_board_detect() {
 	*"VoCore")
 		name="vocore"
 		;;
+	*"VR500")
+		name="vr500"
+		;;
 	*"W150M")
 		name="w150m"
 		;;
@@ -492,6 +498,9 @@ ramips_board_detect() {
 		;;
 	*"WL-351 v1 002")
 		name="wl-351"
+		;;
+	*"WL-WN575A3")
+		name="wl-wn575a3"
 		;;
 	*"WLI-TX4-AG300N")
 		name="wli-tx4-ag300n"

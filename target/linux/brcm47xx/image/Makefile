@@ -41,7 +41,7 @@ define trxalign/jffs2-64k
 -a 0x10000 -f $(KDIR)/root.$(1)
 endef
 define trxalign/squashfs
--a 1024 -f $(KDIR)/root.$(1) $(if $(2),-f $(2)) -a 0x10000 -A $(KDIR)/fs_mark
+-a 1024 -f $(1) $(if $(2),-f $(2)) -a 0x10000 -A $(KDIR)/fs_mark
 endef
 
 #################################################
@@ -51,10 +51,11 @@ endef
 define Build/trx-with-loader
 	$(STAGING_DIR_HOST)/bin/trx \
 		-m 33554432 \
-		-o $@ \
+		-o $@.new \
 		-f $(KDIR)/loader.gz \
 		-f $(IMAGE_KERNEL) \
-		$(call trxalign/$(FILESYSTEM),$(FILESYSTEM))
+		$(call trxalign/$(FILESYSTEM),$@)
+	mv $@.new $@
 endef
 
 define Build/trx-v2-with-loader
@@ -64,20 +65,21 @@ define Build/trx-v2-with-loader
 		-o $@.new \
 		-f $(KDIR)/loader.gz \
 		-f $(KDIR)/vmlinux.lzma \
-		$(call trxalign/$(FILESYSTEM),$(FILESYSTEM),$@)
+		$(call trxalign/$(FILESYSTEM),$@,$@.pattern)
 	mv $@.new $@
 endef
 
 define Build/trx-without-loader
 	$(STAGING_DIR_HOST)/bin/trx \
 		-m 33554432 \
-		-o $@ \
+		-o $@.new \
 		-f $(IMAGE_KERNEL) \
-		$(call trxalign/$(FILESYSTEM),$(FILESYSTEM))
+		$(call trxalign/$(FILESYSTEM),$@)
+	mv $@.new $@
 endef
 
 define Build/asus-trx
-	$(STAGING_DIR_HOST)/bin/asustrx -p "$(PRODUCTID)" -i $@ -o $@.new
+	$(STAGING_DIR_HOST)/bin/asustrx -p $(PRODUCTID) -i $@ -o $@.new
 	mv $@.new $@
 endef
 
@@ -99,7 +101,7 @@ define Build/linksys-bin
 endef
 
 define Build/linksys-pattern-partition
-	$(STAGING_DIR_HOST)/bin/addpattern -5 -p $(DEVICE_ID) -v v$(VERSION) $(if $(SERIAL),-s $(SERIAL)) -i /dev/null -o $@
+	$(STAGING_DIR_HOST)/bin/addpattern -5 -p $(DEVICE_ID) -v v$(VERSION) $(if $(SERIAL),-s $(SERIAL)) -i /dev/null -o $@.pattern
 endef
 
 define Build/motorola-bin
@@ -138,74 +140,43 @@ define Device/Default
 	KERNEL_NAME = vmlinux.lzma
 	FILESYSTEMS := $(FS_64K)
 	IMAGES := trx
-	IMAGE/trx := trx-with-loader
+	IMAGE/trx := append-rootfs | trx-with-loader
 endef
 
 define Device/standard
+  DEVICE_TITLE := Image with LZMA loader and LZMA compressed kernel
 endef
 
 define Device/standard-noloader-gz
-	KERNEL_NAME = vmlinux.gz
-	IMAGE/trx := trx-without-loader
+  DEVICE_TITLE := Image with gzipped kernel
+  KERNEL_NAME = vmlinux.gz
+  IMAGE/trx := append-rootfs | trx-without-loader
 endef
 
 define Device/standard-noloader-nodictionarylzma
-	KERNEL_NAME = vmlinux-nodictionary.lzma
-	IMAGE/trx := trx-without-loader
+  DEVICE_TITLE := Image with LZMA compressed kernel matching CFE decompressor
+  KERNEL_NAME = vmlinux-nodictionary.lzma
+  IMAGE/trx := append-rootfs | trx-without-loader
 endef
 
 define Device/asus
 	IMAGES := trx
-	IMAGE/trx := trx-with-loader | asus-trx
-endef
-
-define AsusDevice
-  define Device/asus-$(1)
-	$$(Device/asus)
-	PRODUCTID := $(2)
-  endef
-  TARGET_DEVICES += asus-$(1)
+	IMAGE/trx := append-rootfs | trx-with-loader | asus-trx
 endef
 
 define Device/linksys
 	IMAGES := bin
-	IMAGE/bin := trx-with-loader | linksys-bin
-endef
-
-define LinksysDevice
-  define Device/linksys-$(1)
-	$$(Device/linksys)
-	DEVICE_ID := $(2)
-	VERSION := $(3)
-  endef
-  TARGET_DEVICES += linksys-$(1)
+	IMAGE/bin := append-rootfs | trx-with-loader | linksys-bin
 endef
 
 define Device/motorola
 	IMAGES := bin
-	IMAGE/bin := trx-with-loader | motorola-bin
-endef
-
-define MotorolaDevice
-  define Device/motorola-$(1)
-	$$(Device/motorola)
-	MOTOROLA_DEVICE := $(2)
-  endef
-  TARGET_DEVICES += motorola-$(1)
+	IMAGE/bin := append-rootfs | trx-with-loader | motorola-bin
 endef
 
 define Device/netgear
 	IMAGES := chk
-	IMAGE/chk := trx-with-loader | netgear-chk
-endef
-
-define NetgearDevice
-  define Device/netgear-$(1)
-	$$(Device/netgear)
-	NETGEAR_BOARD_ID := $(2)
-	NETGEAR_REGION := $(3)
-  endef
-  TARGET_DEVICES += netgear-$(1)
+	IMAGE/chk := append-rootfs | trx-with-loader | netgear-chk
 endef
 
 #################################################
@@ -214,109 +185,298 @@ endef
 
 ifeq ($(SUBTARGET),generic)
   # BCM4705 with tg3
-  $(eval $(call LinksysDevice,wrt300n-v1.1,EWC2,1.51.2))
-  $(eval $(call LinksysDevice,wrt310n-v1,310N,1.0.10))
-  $(eval $(call LinksysDevice,wrt350n-v1,EWCG,1.04.1))
-  $(eval $(call LinksysDevice,wrt610n-v1,610N,1.0.1))
+define Device/linksys-wrt300n-v1.1
+  DEVICE_TITLE := Linksys WRT300N v1.1
+  $(Device/linksys)
+  DEVICE_ID := EWC2
+  VERSION := 1.51.2
+endef
+TARGET_DEVICES += linksys-wrt300n-v1.1
+
+define Device/linksys-wrt310n-v1
+  DEVICE_TITLE := Linksys WRT310N v1
+  $(Device/linksys)
+  DEVICE_ID := 310N
+  VERSION := 1.0.10
+endef
+TARGET_DEVICES += linksys-wrt310n-v1
+
+define Device/linksys-wrt350n-v1
+  DEVICE_TITLE := Linksys WRT350N v1
+  $(Device/linksys)
+  DEVICE_ID := EWCG
+  VERSION := 1.04.1
+endef
+TARGET_DEVICES += linksys-wrt350n-v1
+
+define Device/linksys-wrt610n-v1
+  DEVICE_TITLE := Linksys WRT610N v1
+  $(Device/linksys)
+  DEVICE_ID := 610N
+  VERSION := 1.0.1
+endef
+TARGET_DEVICES += linksys-wrt610n-v1
 
   # BCMA SoC with SSB WiFi
-  $(eval $(call LinksysDevice,wrt610n-v2,610N,2.0.0))
-  $(eval $(call LinksysDevice,e3000-v1,61XN,1.0.3))
+define Device/linksys-wrt610n-v2
+  DEVICE_TITLE := Linksys WRT610N v2
+  $(Device/linksys)
+  DEVICE_ID := 610N
+  VERSION := 2.0.0
+endef
+TARGET_DEVICES += linksys-wrt610n-v2
 
-  TARGET_DEVICES += standard
+define Device/linksys-e3000-v1
+  DEVICE_TITLE := Linksys E3000 v1
+  $(Device/linksys)
+  DEVICE_ID := 61XN
+  VERSION := 1.0.3
+endef
+TARGET_DEVICES += linksys-e3000-v1
+
+TARGET_DEVICES += standard
 endif
 
 #################################################
 # Subtarget legacy
 #################################################
 
-define Device/dlink-dwl-3150
-	IMAGES := bin
-	IMAGE/bin := trx-with-loader | tailed-bin
-	BIN_TAIL := BCM-5352-2050-0000000-01
+ifeq ($(SUBTARGET),legacy)
+
+define Device/asus-wl-300g
+  DEVICE_TITLE := Asus WL-300g
+  $(Device/asus)
+  PRODUCTID := "WL300g      "
 endef
+TARGET_DEVICES += asus-wl-300g
+
+define Device/asus-wl-320gp
+  DEVICE_TITLE := Asus WL-320gP
+  $(Device/asus)
+  PRODUCTID := "WL320gP     "
+endef
+TARGET_DEVICES += asus-wl-320gp
+
+define Device/asus-wl-330ge
+  DEVICE_TITLE := Asus WL-330gE
+  $(Device/asus)
+  PRODUCTID := "WL-330gE    "
+endef
+TARGET_DEVICES += asus-wl-330ge
+
+define Device/asus-wl-500gp-v1
+  DEVICE_TITLE := Asus WL-500gP v1
+  $(Device/asus)
+  PRODUCTID := "WL500gp     "
+endef
+TARGET_DEVICES += asus-wl-500gp-v1
+
+define Device/asus-wl-500gp-v2
+  DEVICE_TITLE := Asus WL-500gP v2
+  $(Device/asus)
+  PRODUCTID := "WL500gpv2   "
+endef
+TARGET_DEVICES += asus-wl-500gp-v2
+
+define Device/asus-wl-500w
+  DEVICE_TITLE := Asus WL-500W
+  $(Device/asus)
+  PRODUCTID := "WL500W      "
+endef
+TARGET_DEVICES += asus-wl-500w
+
+define Device/asus-wl-520gu
+  DEVICE_TITLE := Asus WL-520gU
+  $(Device/asus)
+  PRODUCTID := "WL520gu     "
+endef
+TARGET_DEVICES += asus-wl-520gu
+
+define Device/asus-wl-550ge
+  DEVICE_TITLE := Asus WL-550gE
+  $(Device/asus)
+  PRODUCTID := "WL550gE     "
+endef
+TARGET_DEVICES += asus-wl-550ge
+
+define Device/asus-wl-hdd25
+  DEVICE_TITLE := Asus WL-HDD25
+  $(Device/asus)
+  PRODUCTID := "WLHDD       "
+endef
+TARGET_DEVICES += asus-wl-hdd25
+
+define Device/dlink-dwl-3150
+  DEVICE_TITLE := D-Link DWL-3150
+  IMAGES := bin
+  IMAGE/bin := append-rootfs | trx-with-loader | tailed-bin
+  BIN_TAIL := BCM-5352-2050-0000000-01
+endef
+TARGET_DEVICES += dlink-dwl-3150
 
 define Device/edimax-ps1208-mfg
-	IMAGES := bin
-	IMAGE/bin := trx-with-loader | edimax-bin
+  DEVICE_TITLE := Edimax PS-1208MFg
+  IMAGES := bin
+  IMAGE/bin := append-rootfs | trx-with-loader | edimax-bin
 endef
+TARGET_DEVICES += edimax-ps1208-mfg
 
 define Device/huawei-e970
-	KERNEL_NAME = vmlinux.gz
-	IMAGES := bin
-	IMAGE/bin := trx-without-loader | huawei-bin
+  DEVICE_TITLE := Huawei E970
+  KERNEL_NAME = vmlinux.gz
+  IMAGES := bin
+  IMAGE/bin := append-rootfs | trx-without-loader | huawei-bin
 endef
+TARGET_DEVICES += huawei-e970
+
+define Device/linksys-wrt54g3g
+  DEVICE_TITLE := Linksys WRT54G3G
+  $(Device/linksys)
+  DEVICE_ID := W54F
+  VERSION := 2.20.1
+endef
+TARGET_DEVICES += linksys-wrt54g3g
+
+define Device/linksys-wrt54g3g-em
+  DEVICE_TITLE := Linksys WRT54G3G-EM
+  $(Device/linksys)
+  DEVICE_ID := W3GN
+  VERSION := 2.20.1
+endef
+TARGET_DEVICES += linksys-wrt54g3g-em
 
 define Device/linksys-wrt54g3gv2-vf
-	FILESYSTEMS := $(FS_128K)
-	IMAGES := noheader.bin bin
-	IMAGE/noheader.bin := linksys-pattern-partition | trx-v2-with-loader
-	IMAGE/bin := linksys-pattern-partition | trx-v2-with-loader | linksys-bin
-	DEVICE_ID := 3G2V
-	VERSION := 3.00.24
-	SERIAL := 6
+  DEVICE_TITLE := Linksys WRT54G3GV2-VF
+  FILESYSTEMS := $(FS_128K)
+  IMAGES := noheader.bin bin
+  IMAGE/noheader.bin := linksys-pattern-partition | append-rootfs | trx-v2-with-loader
+  IMAGE/bin := linksys-pattern-partition | append-rootfs | trx-v2-with-loader | linksys-bin
+  DEVICE_ID := 3G2V
+  VERSION := 3.00.24
+  SERIAL := 6
 endef
+TARGET_DEVICES += linksys-wrt54g3gv2-vf
+
+define Device/linksys-wrt54g
+  DEVICE_TITLE := Linksys WRT54G
+  $(Device/linksys)
+  DEVICE_ID := W54G
+  VERSION := 4.71.1
+endef
+TARGET_DEVICES += linksys-wrt54g
 
 define Device/linksys-wrt54gs
-	$(Device/linksys)
-	FILESYSTEMS := $(FS_128K)
-	DEVICE_ID := W54S
-	VERSION := 4.80.1
+  DEVICE_TITLE := Linksys WRT54GS
+  $(Device/linksys)
+  FILESYSTEMS := $(FS_128K)
+  DEVICE_ID := W54S
+  VERSION := 4.80.1
 endef
+TARGET_DEVICES += linksys-wrt54gs
+
+define Device/linksys-wrt54gs-v4
+  DEVICE_TITLE := Linksys WRT54GS v4
+  $(Device/linksys)
+  DEVICE_ID := W54s
+  VERSION := 1.09.1
+endef
+TARGET_DEVICES += linksys-wrt54gs-v4
 
 define Device/linksys-wrtsl54gs
-	$(Device/linksys)
-	FILESYSTEMS := $(FS_128K)
-	DEVICE_ID := W54U
-	VERSION := 2.08.1
+  DEVICE_TITLE := Linksys WRTSL54GS
+  $(Device/linksys)
+  FILESYSTEMS := $(FS_128K)
+  DEVICE_ID := W54U
+  VERSION := 2.08.1
 endef
+TARGET_DEVICES += linksys-wrtsl54gs
+
+define Device/linksys-wrt150n
+  DEVICE_TITLE := Linksys WRT150N
+  $(Device/linksys)
+  DEVICE_ID := N150
+  VERSION := 1.51.3
+endef
+TARGET_DEVICES += linksys-wrt150n
+
+define Device/linksys-wrt160n-v1
+  DEVICE_TITLE := Linksys WRT160N v1
+  $(Device/linksys)
+  DEVICE_ID := N150
+  VERSION := 1.50.1
+endef
+TARGET_DEVICES += linksys-wrt160n-v1
+
+define Device/linksys-wrt300n-v1
+  DEVICE_TITLE := Linksys WRT300N v1
+  $(Device/linksys)
+  IMAGES := bin trx
+  DEVICE_ID := EWCB
+  VERSION := 1.03.6
+endef
+TARGET_DEVICES += linksys-wrt300n-v1
+
+define Device/motorola-wa840g
+  DEVICE_TITLE := Motorola WA840G
+  $(Device/motorola)
+  MOTOROLA_DEVICE := 2
+endef
+TARGET_DEVICES += motorola-wa840g
+
+define Device/motorola-we800g
+  DEVICE_TITLE := Motorola WE800G
+  $(Device/motorola)
+  MOTOROLA_DEVICE := 3
+endef
+TARGET_DEVICES += motorola-we800g
+
+define Device/motorola-wr850g
+  DEVICE_TITLE := Motorola WR850G
+  $(Device/motorola)
+  MOTOROLA_DEVICE := 1
+endef
+TARGET_DEVICES += motorola-wr850g
+
+define Device/netgear-wgr614-v8
+  DEVICE_TITLE := Netgear WGR614 v8
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H072T00_NETGEAR
+  NETGEAR_REGION := 2
+endef
+TARGET_DEVICES += netgear-wgr614-v8
 
 define Device/netgear-wgt634u
-	FILESYSTEMS := $(FS_128K)
-	IMAGES := bin
-	IMAGE/bin := trx-with-loader | prepend-with-elf
+  DEVICE_TITLE := Netgear WGT634U
+  FILESYSTEMS := $(FS_128K)
+  IMAGES := bin
+  IMAGE/bin := append-rootfs | trx-with-loader | prepend-with-elf
 endef
+TARGET_DEVICES += netgear-wgt634u
+
+define Device/netgear-wndr3300-v1
+  DEVICE_TITLE := Netgear WNDR3300 v1
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H093T00_NETGEAR
+  NETGEAR_REGION := 2
+endef
+TARGET_DEVICES += netgear-wndr3300-v1
+
+define Device/netgear-wnr834b-v2
+  DEVICE_TITLE := Netgear WNR834B v2
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H081T00_NETGEAR
+  NETGEAR_REGION := 2
+endef
+TARGET_DEVICES += netgear-wnr834b-v2
 
 define Device/usrobotics-usr5461
-	IMAGES := bin
-	IMAGE/bin := trx-with-loader | usrobotics-bin
+  DEVICE_TITLE := USRobotics USR5461
+  IMAGES := bin
+  IMAGE/bin := append-rootfs | trx-with-loader | usrobotics-bin
 endef
+TARGET_DEVICES += usrobotics-usr5461
 
-ifeq ($(SUBTARGET),legacy)
-  TARGET_DEVICES += \
-	dlink-dwl-3150 \
-	edimax-ps1208-mfg \
-	huawei-e970 \
-	linksys-wrt54g3gv2-vf \
-	linksys-wrt54gs \
-	linksys-wrtsl54gs \
-	netgear-wgt634u \
-	usrobotics-usr5461
-
-  $(eval $(call AsusDevice,wl-300g,WL300g      ))
-  $(eval $(call AsusDevice,wl-320gp,WL320gP     ))
-  $(eval $(call AsusDevice,wl-330ge,WL-330gE    ))
-  $(eval $(call AsusDevice,wl-500gp-v1,WL500gp     ))
-  $(eval $(call AsusDevice,wl-500gp-v2,WL500gpv2   ))
-  $(eval $(call AsusDevice,wl-500w,WL500W      ))
-  $(eval $(call AsusDevice,wl-520gu,WL520gu     ))
-  $(eval $(call AsusDevice,wl-550ge,WL550gE     ))
-  $(eval $(call AsusDevice,wl-hdd25,WLHDD       ))
-  $(eval $(call LinksysDevice,wrt54g3g,W54F,2.20.1))
-  $(eval $(call LinksysDevice,wrt54g3g-em,W3GN,2.20.1))
-  $(eval $(call LinksysDevice,wrt54g,W54G,4.71.1))
-  $(eval $(call LinksysDevice,wrt54gs-v4,W54s,1.09.1))
-  $(eval $(call LinksysDevice,wrt150n,N150,1.51.3))
-  $(eval $(call LinksysDevice,wrt160n-v1,N150,1.50.1))
-  $(eval $(call LinksysDevice,wrt300n-v1,EWCB,1.03.6))
-  $(eval $(call MotorolaDevice,wa840g,2))
-  $(eval $(call MotorolaDevice,we800g,3))
-  $(eval $(call MotorolaDevice,wr850g,1))
-  $(eval $(call NetgearDevice,wgr614-v8,U12H072T00_NETGEAR,2))
-  $(eval $(call NetgearDevice,wndr3300-v1,U12H093T00_NETGEAR,2))
-  $(eval $(call NetgearDevice,wnr834b-v2,U12H081T00_NETGEAR,2))
-
-  TARGET_DEVICES += standard standard-noloader-gz
+TARGET_DEVICES += standard standard-noloader-gz
 endif
 
 #################################################
@@ -324,60 +484,405 @@ endif
 #################################################
 
 ifeq ($(SUBTARGET),mips74k)
-  $(eval $(call AsusDevice,rt-ac53u,RT-AC53U))
-# $(eval $(call AsusDevice,rt-ac66u,RT-AC66U))
-  $(eval $(call AsusDevice,rt-n10,RT-N10      ))
-  $(eval $(call AsusDevice,rt-n10p,RT-N10P))
-  $(eval $(call AsusDevice,rt-n10p-v2,RT-N10PV2))
-  $(eval $(call AsusDevice,rt-n10u,RT-N10U))
-  $(eval $(call AsusDevice,rt-n10u-b,RT-N10U))
-  $(eval $(call AsusDevice,rt-n12,RT-N12      ))
-  $(eval $(call AsusDevice,rt-n12-b1,RT-N12B1))
-  $(eval $(call AsusDevice,rt-n12-c1,RT-N12C1))
-  $(eval $(call AsusDevice,rt-n12-d1,RT-N12D1))
-  $(eval $(call AsusDevice,rt-n12hp,RT-N12HP))
-  $(eval $(call AsusDevice,rt-n14uhp,RT-N14UHP))
-  $(eval $(call AsusDevice,rt-n15u,RT-N15U))
-  $(eval $(call AsusDevice,rt-n16,RT-N16))
-  $(eval $(call AsusDevice,rt-n53,RT-N53))
-  $(eval $(call AsusDevice,rt-n66u,RT-N66U))
-  $(eval $(call AsusDevice,rt-n66w,RT-N66U))
-  $(eval $(call LinksysDevice,wrt160n-v3,N150,3.0.3))
-  $(eval $(call LinksysDevice,wrt310n-v2,310N,2.0.1))
-  $(eval $(call LinksysDevice,wrt320n-v1,320N,1.0.5))
-  $(eval $(call LinksysDevice,e900-v1,E900,1.0.4))
-  $(eval $(call LinksysDevice,e1000-v1-v2-v2.1,E100,1.1.3))
-  $(eval $(call LinksysDevice,e1200-v1,E120,1.0.3))
-  $(eval $(call LinksysDevice,e1200-v2,E122,1.0.4))
-  $(eval $(call LinksysDevice,e1500-v1,E150,1.0.5))
-  $(eval $(call LinksysDevice,e1550-v1,1550,1.0.3))
-  $(eval $(call LinksysDevice,e2000-v1,32XN,1.0.4))
-  $(eval $(call LinksysDevice,e2500-v1,E25X,1.0.7))
-  $(eval $(call LinksysDevice,e2500-v2,E25X,2.0.0))
-  $(eval $(call LinksysDevice,e2500-v2.1,25RU,2.1.0))
-  $(eval $(call LinksysDevice,e2500-v3,25V3,3.0.0))
-  $(eval $(call LinksysDevice,e3200-v1,3200,1.0.1))
-  $(eval $(call LinksysDevice,e4200-v1,4200,1.0.5))
-  $(eval $(call NetgearDevice,wgr614-v10_north-america,U12H139T01_NETGEAR,2))
-  $(eval $(call NetgearDevice,wgr614-v10_other-regions,U12H139T01_NETGEAR,1))
-  $(eval $(call NetgearDevice,wn2500rp-v1,U12H197T00_NETGEAR,1))
-  $(eval $(call NetgearDevice,wndr3400-v1,U12H155T00_NETGEAR,2))
-  $(eval $(call NetgearDevice,wndr3400-v2,U12H187T00_NETGEAR,2))
-  $(eval $(call NetgearDevice,wndr3400-v3,U12H208T00_NETGEAR,1))
-  $(eval $(call NetgearDevice,wndr3700-v3,U12H194T00_NETGEAR,2))
-#  $(eval $(call NetgearDevice,wndr3400-vcna,U12H155T01_NETGEAR,2))
-  $(eval $(call NetgearDevice,wndr4000,U12H181T00_NETGEAR,2))
-  $(eval $(call NetgearDevice,wnr1000-v3,U12H139T00_NETGEAR,2))
-  $(eval $(call NetgearDevice,wnr2000v2,U12H114T00_NETGEAR,2))
-  $(eval $(call NetgearDevice,wnr3000rp,U12H163T01_NETGEAR,1))
-  $(eval $(call NetgearDevice,wnr3500l-v1-north-america,U12H136T99_NETGEAR,2))
-  $(eval $(call NetgearDevice,wnr3500l-v1-other-regions,U12H136T99_NETGEAR,1))
-  $(eval $(call NetgearDevice,wnr3500l-v2,U12H172T00_NETGEAR,1))
-#  $(eval $(call NetgearDevice,wnr3500u,U12H136T00_NETGEAR,2))
-  $(eval $(call NetgearDevice,wnr3500-v2,U12H127T00_NETGEAR,2))
-#  $(eval $(call NetgearDevice,wnr3500-v2-vc,U12H127T70_NETGEAR,2))
+define Device/asus-rt-ac53u
+  DEVICE_TITLE := Asus RT-AC53U
+  $(Device/asus)
+  PRODUCTID := RT-AC53U
+endef
+TARGET_DEVICES += asus-rt-ac53u
 
-  TARGET_DEVICES += standard standard-noloader-nodictionarylzma
+define Device/asus-rt-ac66u
+  DEVICE_TITLE := Asus RT-AC66U
+  $(Device/asus)
+  PRODUCTID := RT-AC66U
+endef
+#  TARGET_DEVICES += asus-rt-ac66u
+
+define Device/asus-rt-n10
+  DEVICE_TITLE := Asus RT-N10
+  $(Device/asus)
+  PRODUCTID := "RT-N10      "
+endef
+TARGET_DEVICES += asus-rt-n10
+
+define Device/asus-rt-n10p
+  DEVICE_TITLE := Asus RT-N10P
+  $(Device/asus)
+  PRODUCTID := RT-N10P
+endef
+TARGET_DEVICES += asus-rt-n10p
+
+define Device/asus-rt-n10p-v2
+  DEVICE_TITLE := Asus RT-N10P v2
+  $(Device/asus)
+  PRODUCTID := RT-N10PV2
+endef
+TARGET_DEVICES += asus-rt-n10p-v2
+
+define Device/asus-rt-n10u
+  DEVICE_TITLE := Asus RT-N10U
+  $(Device/asus)
+  PRODUCTID := RT-N10U
+endef
+TARGET_DEVICES += asus-rt-n10u
+
+define Device/asus-rt-n10u-b
+  DEVICE_TITLE := Asus RT-N10U B
+  $(Device/asus)
+  PRODUCTID := RT-N10U
+endef
+TARGET_DEVICES += asus-rt-n10u-b
+
+define Device/asus-rt-n12
+  DEVICE_TITLE := Asus RT-N12
+  $(Device/asus)
+  PRODUCTID := "RT-N12      "
+endef
+TARGET_DEVICES += asus-rt-n12
+
+define Device/asus-rt-n12-b1
+  DEVICE_TITLE := Asus RT-N12 B1
+  $(Device/asus)
+  PRODUCTID := RT-N12B1
+endef
+TARGET_DEVICES += asus-rt-n12-b1
+
+define Device/asus-rt-n12-c1
+  DEVICE_TITLE := Asus RT-N12 C1
+  $(Device/asus)
+  PRODUCTID := RT-N12C1
+endef
+TARGET_DEVICES += asus-rt-n12-c1
+
+define Device/asus-rt-n12-d1
+  DEVICE_TITLE := Asus RT-N12 D1
+  $(Device/asus)
+  PRODUCTID := RT-N12D1
+endef
+TARGET_DEVICES += asus-rt-n12-d1
+
+define Device/asus-rt-n12hp
+  DEVICE_TITLE := Asus RT-N12HP
+  $(Device/asus)
+  PRODUCTID := RT-N12HP
+endef
+TARGET_DEVICES += asus-rt-n12hp
+
+define Device/asus-rt-n14uhp
+  DEVICE_TITLE := Asus RT-N14UHP
+  $(Device/asus)
+  PRODUCTID := RT-N14UHP
+endef
+TARGET_DEVICES += asus-rt-n14uhp
+
+define Device/asus-rt-n15u
+  DEVICE_TITLE := Asus RT-N15U
+  $(Device/asus)
+  PRODUCTID := RT-N15U
+endef
+TARGET_DEVICES += asus-rt-n15u
+
+define Device/asus-rt-n16
+  DEVICE_TITLE := Asus RT-N16
+  $(Device/asus)
+  PRODUCTID := RT-N16
+endef
+TARGET_DEVICES += asus-rt-n16
+
+define Device/asus-rt-n53
+  DEVICE_TITLE := Asus RT-N53
+  $(Device/asus)
+  PRODUCTID := RT-N53
+endef
+TARGET_DEVICES += asus-rt-n53
+
+define Device/asus-rt-n66u
+  DEVICE_TITLE := Asus RT-N66U
+  $(Device/asus)
+  PRODUCTID := RT-N66U
+endef
+TARGET_DEVICES += asus-rt-n66u
+
+define Device/asus-rt-n66w
+  DEVICE_TITLE := Asus RT-N66W
+  $(Device/asus)
+  PRODUCTID := RT-N66U
+endef
+TARGET_DEVICES += asus-rt-n66w
+
+define Device/linksys-wrt160n-v3
+  DEVICE_TITLE := Linksys WRT160N v3
+  $(Device/linksys)
+  DEVICE_ID := N150
+  VERSION := 3.0.3
+endef
+TARGET_DEVICES += linksys-wrt160n-v3
+
+define Device/linksys-wrt310n-v2
+  DEVICE_TITLE := Linksys WRT310N v2
+  $(Device/linksys)
+  DEVICE_ID := 310N
+  VERSION := 2.0.1
+endef
+TARGET_DEVICES += linksys-wrt310n-v2
+
+define Device/linksys-wrt320n-v1
+  DEVICE_TITLE := Linksys WRT320N v1
+  $(Device/linksys)
+  DEVICE_ID := 320N
+  VERSION := 1.0.5
+endef
+TARGET_DEVICES += linksys-wrt320n-v1
+
+define Device/linksys-e900-v1
+  DEVICE_TITLE := Linksys E900 v1
+  $(Device/linksys)
+  DEVICE_ID := E900
+  VERSION := 1.0.4
+endef
+TARGET_DEVICES += linksys-e900-v1
+
+define Device/linksys-e1000-v1-v2-v2.1
+  DEVICE_TITLE := Linksys E1000 v1 v2 v2.1
+  $(Device/linksys)
+  DEVICE_ID := E100
+  VERSION := 1.1.3
+endef
+TARGET_DEVICES += linksys-e1000-v1-v2-v2.1
+
+define Device/linksys-e1200-v1
+  DEVICE_TITLE := Linksys E1200 v1
+  $(Device/linksys)
+  DEVICE_ID := E120
+  VERSION := 1.0.3
+endef
+TARGET_DEVICES += linksys-e1200-v1
+
+define Device/linksys-e1200-v2
+  DEVICE_TITLE := Linksys E1200 v2
+  $(Device/linksys)
+  DEVICE_ID := E122
+  VERSION := 1.0.4
+endef
+TARGET_DEVICES += linksys-e1200-v2
+
+define Device/linksys-e1500-v1
+  DEVICE_TITLE := Linksys E1500 v1
+  $(Device/linksys)
+  DEVICE_ID := E150
+  VERSION := 1.0.5
+endef
+TARGET_DEVICES += linksys-e1500-v1
+
+define Device/linksys-e1550-v1
+  DEVICE_TITLE := Linksys E1550 v1
+  $(Device/linksys)
+  DEVICE_ID := 1550
+  VERSION := 1.0.3
+endef
+TARGET_DEVICES += linksys-e1550-v1
+
+define Device/linksys-e2000-v1
+  DEVICE_TITLE := Linksys E2000 v1
+  $(Device/linksys)
+  DEVICE_ID := 32XN
+  VERSION := 1.0.4
+endef
+TARGET_DEVICES += linksys-e2000-v1
+
+define Device/linksys-e2500-v1
+  DEVICE_TITLE := Linksys E2500 v1
+  $(Device/linksys)
+  DEVICE_ID := E25X
+  VERSION := 1.0.7
+endef
+TARGET_DEVICES += linksys-e2500-v1
+
+define Device/linksys-e2500-v2
+  DEVICE_TITLE := Linksys E2500 v2
+  $(Device/linksys)
+  DEVICE_ID := E25X
+  VERSION := 2.0.0
+endef
+TARGET_DEVICES += linksys-e2500-v2
+
+define Device/linksys-e2500-v2.1
+  DEVICE_TITLE := Linksys E2500 v2.1
+  $(Device/linksys)
+  DEVICE_ID := 25RU
+  VERSION := 2.1.0
+endef
+TARGET_DEVICES += linksys-e2500-v2.1
+
+define Device/linksys-e2500-v3
+  DEVICE_TITLE := Linksys E2500 v3
+  $(Device/linksys)
+  DEVICE_ID := 25V3
+  VERSION := 3.0.0
+endef
+TARGET_DEVICES += linksys-e2500-v3
+
+define Device/linksys-e3200-v1
+  DEVICE_TITLE := Linksys E3200 v1
+  $(Device/linksys)
+  DEVICE_ID := 3200
+  VERSION := 1.0.1
+endef
+TARGET_DEVICES += linksys-e3200-v1
+
+define Device/linksys-e4200-v1
+  DEVICE_TITLE := Linksys E4200 v1
+  $(Device/linksys)
+  DEVICE_ID := 4200
+  VERSION := 1.0.5
+endef
+TARGET_DEVICES += linksys-e4200-v1
+
+define Device/netgear-wgr614-v10_north-america
+  DEVICE_TITLE := Netgear WGR614 v10 North America
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H139T01_NETGEAR
+  NETGEAR_REGION := 2
+endef
+TARGET_DEVICES += netgear-wgr614-v10_north-america
+
+define Device/netgear-wgr614-v10_other-regions
+  DEVICE_TITLE := Netgear WGR614 v10 Other Regions
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H139T01_NETGEAR
+  NETGEAR_REGION := 1
+endef
+TARGET_DEVICES += netgear-wgr614-v10_other-regions
+
+define Device/netgear-wn2500rp-v1
+  DEVICE_TITLE := Netgear WN2500RP v1
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H197T00_NETGEAR
+  NETGEAR_REGION := 1
+endef
+TARGET_DEVICES += netgear-wn2500rp-v1
+
+define Device/netgear-wndr3400-v1
+  DEVICE_TITLE := Netgear WNDR3400 v1
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H155T00_NETGEAR
+  NETGEAR_REGION := 2
+endef
+TARGET_DEVICES += netgear-wndr3400-v1
+
+define Device/netgear-wndr3400-v2
+  DEVICE_TITLE := Netgear WNDR3400 v2
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H187T00_NETGEAR
+  NETGEAR_REGION := 2
+endef
+TARGET_DEVICES += netgear-wndr3400-v2
+
+define Device/netgear-wndr3400-v3
+  DEVICE_TITLE := Netgear WNDR3400 v3
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H208T00_NETGEAR
+  NETGEAR_REGION := 1
+endef
+TARGET_DEVICES += netgear-wndr3400-v3
+
+define Device/netgear-wndr3700-v3
+  DEVICE_TITLE := Netgear WNDR3700 v3
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H194T00_NETGEAR
+  NETGEAR_REGION := 2
+endef
+TARGET_DEVICES += netgear-wndr3700-v3
+
+define Device/netgear-wndr3400-vcna
+  DEVICE_TITLE := Netgear WNDR3400 vcna
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H155T01_NETGEAR
+  NETGEAR_REGION := 2
+endef
+#  TARGET_DEVICES += netgear-wndr3400-vcna
+
+define Device/netgear-wndr4000
+  DEVICE_TITLE := Netgear WNDR4000
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H181T00_NETGEAR
+  NETGEAR_REGION := 2
+endef
+TARGET_DEVICES += netgear-wndr4000
+
+define Device/netgear-wnr1000-v3
+  DEVICE_TITLE := Netgear WNR1000 v3
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H139T00_NETGEAR
+  NETGEAR_REGION := 2
+endef
+TARGET_DEVICES += netgear-wnr1000-v3
+
+define Device/netgear-wnr2000v2
+  DEVICE_TITLE := Netgear WNR2000 v2
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H114T00_NETGEAR
+  NETGEAR_REGION := 2
+endef
+TARGET_DEVICES += netgear-wnr2000v2
+
+define Device/netgear-wnr3000rp
+  DEVICE_TITLE := Netgear WNR3000RP
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H163T01_NETGEAR
+  NETGEAR_REGION := 1
+endef
+TARGET_DEVICES += netgear-wnr3000rp
+
+define Device/netgear-wnr3500l-v1-north-america
+  DEVICE_TITLE := Netgear WNR3500L v1 North America
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H136T99_NETGEAR
+  NETGEAR_REGION := 2
+endef
+TARGET_DEVICES += netgear-wnr3500l-v1-north-america
+
+define Device/netgear-wnr3500l-v1-other-regions
+  DEVICE_TITLE := Netgear WNR3500L v1 Other Regions
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H136T99_NETGEAR
+  NETGEAR_REGION := 1
+endef
+TARGET_DEVICES += netgear-wnr3500l-v1-other-regions
+
+define Device/netgear-wnr3500l-v2
+  DEVICE_TITLE := Netgear WNR3500L v2
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H172T00_NETGEAR
+  NETGEAR_REGION := 1
+endef
+TARGET_DEVICES += netgear-wnr3500l-v2
+
+define Device/netgear-wnr3500u
+  DEVICE_TITLE := Netgear WNR3500U
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H136T00_NETGEAR
+  NETGEAR_REGION := 2
+endef
+#  TARGET_DEVICES += netgear-wnr3500u
+
+define Device/netgear-wnr3500-v2
+  DEVICE_TITLE := Netgear WNR3500 v2
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H127T00_NETGEAR
+  NETGEAR_REGION := 2
+endef
+TARGET_DEVICES += netgear-wnr3500-v2
+
+define Device/netgear-wnr3500-v2-vc
+  DEVICE_TITLE := Netgear WNR3500 v2 vc
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H127T70_NETGEAR
+  NETGEAR_REGION := 2
+endef
+#  TARGET_DEVICES += netgear-wnr3500-v2-vc
+
+TARGET_DEVICES += standard standard-noloader-nodictionarylzma
 endif
 
 #################################################

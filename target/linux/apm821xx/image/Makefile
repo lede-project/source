@@ -80,6 +80,7 @@ define Device/mr24
 		      MerakiAdd-dtb | pad-to 2047k | MerakiAdd-initramfs | \
 		      MerakiNAND
   IMAGE/sysupgrade.tar := sysupgrade-tar
+  UBINIZE_OPTS := -E 5
 endef
 TARGET_DEVICES += mr24
 
@@ -141,7 +142,7 @@ endef
 define Device/WNDR4700
   DEVICE_TITLE := Netgear Centria N900 WNDR4700/WNDR4720
   DEVICE_PACKAGES := badblocks block-mount e2fsprogs \
-	kmod-ath9k kmod-dm kmod-fs-ext4 kmod-fs-vfat kmod-ledtrig-usbdev \
+	kmod-ath9k kmod-dm kmod-fs-ext4 kmod-fs-vfat kmod-usb-ledtrig-usbport \
 	kmod-md-mod kmod-nls-cp437 kmod-nls-iso8859-1 kmod-nls-iso8859-15 \
 	kmod-nls-utf8 kmod-usb3 kmod-usb-dwc2 kmod-usb-storage \
 	partx-utils swconfig wpad-mini
@@ -162,6 +163,7 @@ define Device/WNDR4700
   IMAGE/sysupgrade.tar := sysupgrade-tar
   NETGEAR_BOARD_ID := WNDR4700
   NETGEAR_HW_ID := 29763875+128+256
+  UBINIZE_OPTS := -E 5
 endef
 TARGET_DEVICES += WNDR4700
 
@@ -196,24 +198,6 @@ define Build/hdd-img
 	$(if $(CONFIG_TARGET_IMAGES_GZIP),gzip -9n -c $@ > $(BIN_DIR)/$(notdir $@).gz)
 endef
 
-define Build/uRamdisk
-	$(STAGING_DIR_HOST)/bin/mkimage \
-		-A powerpc -T ramdisk -C gzip \
-		-n "$(DEVICE_NAME) rootfs" \
-		-d $@ $@.new
-	mv $@.new $@
-endef
-
-define Build/recovery-tar
-	sh ./mbl_gen_recovery_tar.sh \
-		--profile $(DEVICE_PROFILE) \
-		--dtb $(IMAGE_KERNEL).dtb \
-		--dtbname $(DEVICE_DTB) \
-		--kernel $(IMAGE_KERNEL) \
-		--rootfs $@ \
-		$@
-endef
-
 define Build/export-dtb
 	cp $(IMAGE_KERNEL).dtb $@
 endef
@@ -223,13 +207,13 @@ define Device/MyBookLiveDefault
   BLOCKSIZE := 1k
   DTB_SIZE := 16384
   KERNEL := kernel-bin | dtb | gzip | uImage gzip
+  KERNEL_INITRAMFS := kernel-bin | dtb | gzip | uImage gzip
   BOOT_SIZE := 8
-  IMAGES := rootfs.img recovery.tar kernel.dtb
+  IMAGES := rootfs.img kernel.dtb
   DEVICE_DTB := apollo3g.dtb
   FILESYSTEMS := ext4
   IMAGE/kernel.dtb := export-dtb
   IMAGE/rootfs.img := boot-script | boot-img | hdd-img
-  IMAGE/recovery.tar := append-rootfs | gzip | uRamdisk | recovery-tar
 endef
 
 define Device/MyBookLiveSingle
@@ -244,7 +228,7 @@ TARGET_DEVICES += MyBookLiveSingle
 define Device/MyBookLiveDuo
 $(Device/MyBookLiveDefault)
   DEVICE_TITLE := Western Digital My Book Live Duo
-  DEVICE_PACKAGES := kmod-usb-dwc2 kmod-ledtrig-usbdev kmod-usb-storage kmod-fs-vfat wpad-mini
+  DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport kmod-usb-storage kmod-fs-vfat wpad-mini
   DEVICE_DTS := apollo3g-duo
   DEVICE_PROFILE := ap2nc
 endef
