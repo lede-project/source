@@ -26,9 +26,9 @@
 		mdio-gpio0 = &mdio0;
 
 		led-boot = &power;
-		led-failsafe = &ledgnr;
+		led-failsafe = &power;
 		led-running = &power;
-		led-upgrade = &ledgnr;
+		led-upgrade = &power;
 	};
 
 	chosen {
@@ -366,24 +366,22 @@
 
 		wifi {
 			label = "wifi";
-			gpios = <&qcom_pinmux 49 GPIO_ACTIVE_LOW>;
+			gpios = <&qcom_pinmux 54 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RFKILL>;
 		};
-
 		reset {
 			label = "reset";
-			gpios = <&qcom_pinmux 64 GPIO_ACTIVE_LOW>;
+			gpios = <&qcom_pinmux 7 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 		};
-
 		wps {
 			label = "wps";
-			gpios = <&qcom_pinmux 65 GPIO_ACTIVE_LOW>;
+			gpios = <&qcom_pinmux 67 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_WPS_BUTTON>;
 		};
 		ledgeneral {
 			label = "ledgeneral";
-			gpios = <&qcom_pinmux 16 GPIO_ACTIVE_LOW>;
+			gpios = <&qcom_pinmux 53 GPIO_ACTIVE_LOW>;
 			linux,code = <BTN_0>;
 		};
 	};
@@ -392,32 +390,44 @@
 		compatible = "gpio-leds";
 
 		lan {
-			label = "ad7200:white:lan";
-			gpios = <&qcom_pinmux 6 GPIO_ACTIVE_HIGH>;
+			label = "ad7200:blue:lan";
+			gpios = <&qcom_pinmux 2 GPIO_ACTIVE_HIGH>;
 		};
-		usb4 {
-			label = "ad7200:white:usb_4";
-			gpios = <&qcom_pinmux 7 GPIO_ACTIVE_HIGH>;
+		usb1 {
+			label = "ad7200:blue:usb_1";
+			gpios = <&qcom_pinmux 16 GPIO_ACTIVE_HIGH>;
 		};
-		usb2 {
-			label = "ad7200:white:usb_2";
+		usb3 {
+			label = "ad7200:blue:usb_3";
 			gpios = <&qcom_pinmux 8 GPIO_ACTIVE_HIGH>;
 		};
 		wps {
-			label = "ad7200:white:wps";
-			gpios = <&qcom_pinmux 9 GPIO_ACTIVE_HIGH>;
+			label = "ad7200:blue:wps";
+			gpios = <&qcom_pinmux 55 GPIO_ACTIVE_HIGH>;
+		};
+		wan_orange {
+			label = "ad7200:orange:wan";
+			gpios = <&qcom_pinmux 26 GPIO_ACTIVE_LOW>;
 		};
 		wan_blue {
-			label = "ad7200:white:wan";
+			label = "ad7200:blue:wan";
 			gpios = <&qcom_pinmux 33 GPIO_ACTIVE_LOW>;
 		};
 		power: status {
-			label = "ad7200:white:status";
-			gpios = <&qcom_pinmux 53 GPIO_ACTIVE_HIGH>;
-		};
-		ledgnr: ledgnr {
-			label = "ad7200:white:ledgnr";
+			label = "ad7200:blue:status";
 			gpios = <&qcom_pinmux 66 GPIO_ACTIVE_HIGH>;
+		};
+		wlan2g {
+			label = "ad7200:blue:wlan2g";
+			gpios = <&qcom_pinmux 17 GPIO_ACTIVE_HIGH>;
+		};
+		wlan5g {
+			label = "ad7200:blue:wlan5g";
+			gpios = <&qcom_pinmux 15 GPIO_ACTIVE_HIGH>;
+		};
+		wlan60g {
+			label = "ad7200:blue:wlan60g";
+			gpios = <&qcom_pinmux 56 GPIO_ACTIVE_HIGH>;
 		};
 	};
 	
