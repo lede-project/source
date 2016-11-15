@@ -373,4 +373,6 @@ IPT_BUILTIN += $(EBTABLES_IP4-y)
 IPT_BUILTIN += $(EBTABLES_IP6-y)
 IPT_BUILTIN += $(EBTABLES_WATCHERS-y)
 
+-include $(INCLUDE_DIR)/netfilter-user.mk
+
 endif # __inc_netfilter
