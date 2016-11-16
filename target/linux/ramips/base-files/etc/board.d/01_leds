@@ -160,7 +160,9 @@ ex2700)
 	;;
 f5d8235-v1|\
 f5d8235-v2)
+	ucidef_set_led_default "power" "POWER" "$board:blue:router" "1"
 	set_usb_led "$board:blue:storage"
+	set_wifi_led "$board:blue:wireless"
 	;;
 fonera20n)
 	set_usb_led "$board:orange:usb"
