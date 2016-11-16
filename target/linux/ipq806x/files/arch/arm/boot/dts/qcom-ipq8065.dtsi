@@ -29,13 +29,14 @@
 			qcom,saw = <&saw0>;
 			clocks = <&kraitcc 0>, <&kraitcc 4>;
 			clock-names = "cpu", "l2";
-			qcom,imem = <&imem>;
+			qcom,imem = <&qfprom>;
 			clock-latency = <100000>;
 			cpu-supply = <&smb208_s2a>;
 			voltage-tolerance = <5>;
 			cooling-min-state = <0>;
 			cooling-max-state = <10>;
 			#cooling-cells = <2>;
+			cpu-idle-states = <&CPU_SPC>;
 		};
 
 		cpu1: cpu@1 {
@@ -48,12 +49,13 @@
 			qcom,saw = <&saw1>;
 			clocks = <&kraitcc 1>, <&kraitcc 4>;
 			clock-names = "cpu", "l2";
-			qcom,imem = <&imem>;
+			qcom,imem = <&qfprom>;
 			clock-latency = <100000>;
 			cpu-supply = <&smb208_s2b>;
 			cooling-min-state = <0>;
 			cooling-max-state = <10>;
 			#cooling-cells = <2>;
+			cpu-idle-states = <&CPU_SPC>;
 		};
 
 		L2: l2-cache {
@@ -64,6 +66,16 @@
 
 		qcom,l2 {
 			qcom,l2-rates = <384000000 1000000000 1200000000>;
+		};
+
+		idle-states {
+			CPU_SPC: spc {
+				compatible = "qcom,idle-state-spc",
+						"arm,idle-state";
+				entry-latency-us = <400>;
+				exit-latency-us = <900>;
+				min-residency-us = <3000>;
+			};
 		};
 	};
 
@@ -89,6 +101,19 @@
 	};
 
 	clocks {
+
+		cxo_board {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <25000000>;
+		};
+
+		pxo_board {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <25000000>;
+		};
+
 		sleep_clk: sleep_clk {
 			compatible = "fixed-clock";
 			clock-frequency = <32768>;
@@ -175,7 +200,7 @@
 			reg-names = "lpass-lpaif";
 		};
 
-		imem: memory@700000 {
+		qfprom: qfprom@700000 {
 			compatible = "qcom,qfprom", "syscon";
 			reg = <0x00700000 0x1000>;
 			#address-cells = <1>;
@@ -198,6 +223,14 @@
 
 			#address-cells = <1>;
 			#size-cells = <0>;
+
+			clocks = <&gcc RPM_MSG_RAM_H_CLK>;
+			clock-names = "ram";
+
+			rpmcc: clock-controller {
+				compatible	= "qcom,rpmcc-ipq806x", "qcom,rpmcc";
+				#clock-cells = <1>;
+			};
 
 			smb208_regulators {
 				compatible = "qcom,rpm-smb208-regulators";
@@ -272,7 +305,7 @@
 				mux {
 					pins = "gpio3";
 					function = "pcie1_rst";
-					drive-strength = <12>;
+					drive-strength = <2>;
 					bias-disable;
 				};
 			};
@@ -281,7 +314,7 @@
 				mux {
 					pins = "gpio48";
 					function = "pcie2_rst";
-					drive-strength = <12>;
+					drive-strength = <2>;
 					bias-disable;
 				};
 			};
@@ -290,8 +323,9 @@
 				mux {
 					pins = "gpio63";
 					function = "pcie3_rst";
-					drive-strength = <12>;
+					drive-strength = <2>;
 					bias-disable;
+					output-low;
 				};
 			};
 		};
