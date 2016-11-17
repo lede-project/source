@@ -21,8 +21,8 @@ PKG_SOURCE_URL:=$(LINUX_SITE)
 HOST_BUILD_DIR:=$(KERNEL_BUILD_DIR)/linux-$(LINUX_VERSION)
 PKG_MD5SUM:=$(LINUX_KERNEL_MD5SUM)
 LINUX_DIR := $(HOST_BUILD_DIR)
-FILES_DIR := 
-PATCH_DIR := ./patches$(if $(wildcard ./patches-$(LINUX_VERSION)),-$(LINUX_VERSION))
+FILES_DIR := $(foreach dir,$(wildcard $(PLATFORM_DIR)/files $(PLATFORM_DIR)/files-$(LINUX_VERSION)),"$(dir)")
+PATCH_DIR := $(PLATFORM_DIR)/patches$(if $(wildcard $(PLATFORM_DIR)/patches-$(KERNEL_PATCHVER)),-$(KERNEL_PATCHVER))
 
 include $(INCLUDE_DIR)/toolchain-build.mk
 include $(INCLUDE_DIR)/kernel-defaults.mk
