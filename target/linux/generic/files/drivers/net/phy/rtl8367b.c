@@ -139,18 +139,20 @@
 #define RTL8367B_CHIP_DEBUG1_REG		0x1304
 
 #define RTL8367B_DIS_REG			0x1305
+#define RTL8367B_DIS_REG_2			0x13c3
 #define   RTL8367B_DIS_SKIP_MII_RXER(_x)	BIT(12 + (_x))
 #define   RTL8367B_DIS_RGMII_SHIFT(_x)		(4 * (_x))
 #define   RTL8367B_DIS_RGMII_MASK		0x7
+#define   RTL8367B_RGMII_MASK			0xF
 
-#define RTL8367B_EXT_RGMXF_REG(_x)		(0x1306 + (_x))
+#define RTL8367B_EXT_RGMXF_REG(_x)		(0x1306 + (_x) + ((_x > 1)? 0xBD : 0))
 #define   RTL8367B_EXT_RGMXF_DUMMY0_SHIFT	5
 #define   RTL8367B_EXT_RGMXF_DUMMY0_MASK	0x7ff
 #define   RTL8367B_EXT_RGMXF_TXDELAY_SHIFT	3
 #define   RTL8367B_EXT_RGMXF_TXDELAY_MASK	1
 #define   RTL8367B_EXT_RGMXF_RXDELAY_MASK	0x7
 
-#define RTL8367B_DI_FORCE_REG(_x)		(0x1310 + (_x))
+#define RTL8367B_DI_FORCE_REG(_x)		(0x1310 + (_x) + ((_x > 1)? 0xB2 : 0))
 #define   RTL8367B_DI_FORCE_MODE		BIT(12)
 #define   RTL8367B_DI_FORCE_NWAY		BIT(7)
 #define   RTL8367B_DI_FORCE_TXPAUSE		BIT(6)
@@ -770,8 +772,13 @@ static int rtl8367b_extif_set_mode(struct rtl8366_smi *smi, int id,
 	switch (mode) {
 	case RTL8367_EXTIF_MODE_RGMII:
 	case RTL8367_EXTIF_MODE_RGMII_33V:
-		REG_WR(smi, RTL8367B_CHIP_DEBUG0_REG, 0x0367);
-		REG_WR(smi, RTL8367B_CHIP_DEBUG1_REG, 0x7777);
+		/* Disable bypass line rate */
+		REG_RMW(smi, RTL8367B_BYPASS_LINE_RATE_REG, BIT(id), 0);
+
+		if (id == 2)
+			REG_RMW(smi,
+				RTL8367B_DIS_REG_2,
+				RTL8367B_RGMII_MASK, mode);
 		break;
 
 	case RTL8367_EXTIF_MODE_TMII_MAC:
@@ -801,9 +808,10 @@ static int rtl8367b_extif_set_mode(struct rtl8366_smi *smi, int id,
 		return -EINVAL;
 	}
 
-	REG_RMW(smi, RTL8367B_DIS_REG,
-		RTL8367B_DIS_RGMII_MASK << RTL8367B_DIS_RGMII_SHIFT(id),
-		mode << RTL8367B_DIS_RGMII_SHIFT(id));
+	if (id != 2)
+		REG_RMW(smi, RTL8367B_DIS_REG,
+			RTL8367B_DIS_RGMII_MASK << RTL8367B_DIS_RGMII_SHIFT(id),
+			mode << RTL8367B_DIS_RGMII_SHIFT(id));
 
 	return 0;
 }
