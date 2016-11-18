@@ -55,6 +55,7 @@ struct rtl8367_platform_data {
 
 	struct rtl8367_extif_config *extif0_cfg;
 	struct rtl8367_extif_config *extif1_cfg;
+	struct rtl8367_extif_config *extif2_cfg;
 };
 
 #endif /*  _RTL8367_H */
