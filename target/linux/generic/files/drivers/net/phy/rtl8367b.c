@@ -247,6 +247,8 @@
 #define RTL8367B_LEDGROUPMASK	0x7
 #define RTL8367B_SEL_LEDRATE_MASK	0xE
 
+#define RTL8367B_EN_PHY_GREEN_OFFSET	6
+
 struct rtl8367b_initval {
 	u16 reg;
 	u16 val;
@@ -1476,6 +1478,38 @@ static int rtl8367b_sw_set_led(struct switch_dev *dev,
 	return rtl8367b_led_group_set_mode(smi, 0, val->value.i);
 }
 
+static int rtl8367b_sw_get_green(struct switch_dev *dev,
+					const struct switch_attr *attr,
+					struct switch_val *val)
+{
+	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
+	u32 data;
+	int err;
+	/* Read green flag */
+	REG_RD(smi, RTL8367B_REG_PHY_AD, &data);
+	val->value.i = ((data & BIT(RTL8367B_EN_PHY_GREEN_OFFSET)) >> RTL8367B_EN_PHY_GREEN_OFFSET == 1)? 1 : 0;
+
+	return 0;
+}
+
+static int rtl8367b_sw_set_green(struct switch_dev *dev,
+					const struct switch_attr *attr,
+					struct switch_val *val)
+{
+	int err;
+	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
+
+	if (val->value.i > 1)
+		return -EINVAL;
+
+	REG_RMW(smi,
+		RTL8367B_REG_PHY_AD,
+		BIT(RTL8367B_EN_PHY_GREEN_OFFSET),
+		val->value.i << RTL8367B_EN_PHY_GREEN_OFFSET);
+
+	return 0;
+}
+
 static int rtl8367b_sw_reset_port_mibs(struct switch_dev *dev,
 					const struct switch_attr *attr,
 					struct switch_val *val)
@@ -1535,7 +1569,14 @@ static struct switch_attr rtl8367b_globals[] = {
 		.get = rtl8367b_sw_get_led_blink,
 		.set = rtl8367b_sw_set_led_blink,
 		.max = 7,
-	}
+	}, {
+		.type = SWITCH_TYPE_INT,
+		.name = "green",
+		.description = "Set green mode (0 - disable)",
+		.get = rtl8367b_sw_get_green,
+		.set = rtl8367b_sw_set_green,
+		.max = 1,
+	},
 };
 
 static struct switch_attr rtl8367b_port[] = {
