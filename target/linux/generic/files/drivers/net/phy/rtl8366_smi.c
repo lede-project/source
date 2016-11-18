@@ -2,6 +2,7 @@
  * Realtek RTL8366 SMI interface driver
  *
  * Copyright (C) 2009-2010 Gabor Juhos <juhosg@openwrt.org>
+ * Copyright (C) 2016 Vitaly Chekryzhev <13hakta@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published
@@ -18,6 +19,7 @@
 #include <linux/of.h>
 #include <linux/of_platform.h>
 #include <linux/of_gpio.h>
+#include <linux/of_mdio.h>
 #include <linux/rtl8366.h>
 
 #ifdef CONFIG_RTL8366_SMI_DEBUG_FS
@@ -25,16 +27,6 @@
 #endif
 
 #include "rtl8366_smi.h"
-
-#define RTL8366_SMI_ACK_RETRY_COUNT         5
-
-#define RTL8366_SMI_HW_STOP_DELAY		25	/* msecs */
-#define RTL8366_SMI_HW_START_DELAY		100	/* msecs */
-
-static inline void rtl8366_smi_clk_delay(struct rtl8366_smi *smi)
-{
-	ndelay(smi->clk_delay);
-}
 
 static void rtl8366_smi_start(struct rtl8366_smi *smi)
 {
@@ -206,34 +198,63 @@ int rtl8366_smi_read_reg(struct rtl8366_smi *smi, u32 addr, u32 *data)
 
 	spin_lock_irqsave(&smi->lock, flags);
 
-	rtl8366_smi_start(smi);
+	if (smi->mdio_enabled) {
+		/* Write Start command to register 29 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
 
-	/* send READ command */
-	ret = rtl8366_smi_write_byte(smi, smi->cmd_read);
-	if (ret)
-		goto out;
+		/* Write address control code to register 31 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_CTRL0_REG, MDC_MDIO_ADDR_OP);
 
-	/* set ADDR[7:0] */
-	ret = rtl8366_smi_write_byte(smi, addr & 0xff);
-	if (ret)
-		goto out;
+		/* Write Start command to register 29 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
 
-	/* set ADDR[15:8] */
-	ret = rtl8366_smi_write_byte(smi, addr >> 8);
-	if (ret)
-		goto out;
+		/* Write address to register 23 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_ADDRESS_REG, addr);
 
-	/* read DATA[7:0] */
-	rtl8366_smi_read_byte0(smi, &lo);
-	/* read DATA[15:8] */
-	rtl8366_smi_read_byte1(smi, &hi);
+		/* Write Start command to register 29 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
 
-	*data = ((u32) lo) | (((u32) hi) << 8);
+		/* Write read control code to register 21 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_CTRL1_REG, MDC_MDIO_READ_OP);
 
-	ret = 0;
+		/* Write Start command to register 29 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
 
- out:
-	rtl8366_smi_stop(smi);
+		/* Read data from register 25 */
+		*data = smi->mii_bus->read(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_DATA_READ_REG);
+
+		ret = (*data == 0xffff)? 1 : 0;
+	} else {
+		rtl8366_smi_start(smi);
+
+		/* send READ command */
+		ret = rtl8366_smi_write_byte(smi, smi->cmd_read);
+		if (ret)
+			goto out;
+
+		/* set ADDR[7:0] */
+		ret = rtl8366_smi_write_byte(smi, addr & 0xff);
+		if (ret)
+			goto out;
+
+		/* set ADDR[15:8] */
+		ret = rtl8366_smi_write_byte(smi, addr >> 8);
+		if (ret)
+			goto out;
+
+		/* read DATA[7:0] */
+		rtl8366_smi_read_byte0(smi, &lo);
+		/* read DATA[15:8] */
+		rtl8366_smi_read_byte1(smi, &hi);
+
+		*data = ((u32) lo) | (((u32) hi) << 8);
+
+		ret = 0;
+
+	out:
+		rtl8366_smi_stop(smi);
+	}
+
 	spin_unlock_irqrestore(&smi->lock, flags);
 
 	return ret;
@@ -248,40 +269,69 @@ static int __rtl8366_smi_write_reg(struct rtl8366_smi *smi,
 
 	spin_lock_irqsave(&smi->lock, flags);
 
-	rtl8366_smi_start(smi);
+	if (smi->mdio_enabled) {
+		/* Write Start command to register 29 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
 
-	/* send WRITE command */
-	ret = rtl8366_smi_write_byte(smi, smi->cmd_write);
-	if (ret)
-		goto out;
+		/* Write address control code to register 31 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_CTRL0_REG, MDC_MDIO_ADDR_OP);
 
-	/* set ADDR[7:0] */
-	ret = rtl8366_smi_write_byte(smi, addr & 0xff);
-	if (ret)
-		goto out;
+		/* Write Start command to register 29 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
 
-	/* set ADDR[15:8] */
-	ret = rtl8366_smi_write_byte(smi, addr >> 8);
-	if (ret)
-		goto out;
+		/* Write address to register 23 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_ADDRESS_REG, addr);
 
-	/* write DATA[7:0] */
-	ret = rtl8366_smi_write_byte(smi, data & 0xff);
-	if (ret)
-		goto out;
+		/* Write Start command to register 29 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
 
-	/* write DATA[15:8] */
-	if (ack)
-		ret = rtl8366_smi_write_byte(smi, data >> 8);
-	else
-		ret = rtl8366_smi_write_byte_noack(smi, data >> 8);
-	if (ret)
-		goto out;
+		/* Write data to register 24 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_DATA_WRITE_REG, data);
 
-	ret = 0;
+		/* Write Start command to register 29 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_START_REG, MDC_MDIO_START_OP);
 
- out:
-	rtl8366_smi_stop(smi);
+		/* Write data control code to register 21 */
+		smi->mii_bus->write(smi->mii_bus, RTL_MDIO_PHYID, MDC_MDIO_CTRL1_REG, MDC_MDIO_WRITE_OP);
+
+		ret = 0;
+	} else {
+		rtl8366_smi_start(smi);
+
+		/* send WRITE command */
+		ret = rtl8366_smi_write_byte(smi, smi->cmd_write);
+		if (ret)
+			goto out;
+
+		/* set ADDR[7:0] */
+		ret = rtl8366_smi_write_byte(smi, addr & 0xff);
+		if (ret)
+			goto out;
+
+		/* set ADDR[15:8] */
+		ret = rtl8366_smi_write_byte(smi, addr >> 8);
+		if (ret)
+			goto out;
+
+		/* write DATA[7:0] */
+		ret = rtl8366_smi_write_byte(smi, data & 0xff);
+		if (ret)
+			goto out;
+
+		/* write DATA[15:8] */
+		if (ack)
+			ret = rtl8366_smi_write_byte(smi, data >> 8);
+		else
+			ret = rtl8366_smi_write_byte_noack(smi, data >> 8);
+		if (ret)
+			goto out;
+
+		ret = 0;
+
+	out:
+		rtl8366_smi_stop(smi);
+	}
+
 	spin_unlock_irqrestore(&smi->lock, flags);
 
 	return ret;
@@ -919,6 +969,21 @@ static int rtl8366_smi_mii_init(struct rtl8366_smi *smi)
 {
 	int ret;
 	int i;
+	struct mii_bus *bus;
+	struct device_node *np;
+
+	if (smi->mdio_enabled) {
+		np = of_parse_phandle(smi->parent->of_node, "mdio", 0);
+
+		if (np) {
+			bus = of_mdio_find_bus(np);
+
+			if (bus) {
+				smi->mii_bus = bus;
+				return 0;
+			} else return -EPROBE_DEFER;
+		} else return -ENODEV;
+	}
 
 	smi->mii_bus = mdiobus_alloc();
 	if (smi->mii_bus == NULL) {
@@ -953,8 +1018,10 @@ static int rtl8366_smi_mii_init(struct rtl8366_smi *smi)
 
 static void rtl8366_smi_mii_cleanup(struct rtl8366_smi *smi)
 {
-	mdiobus_unregister(smi->mii_bus);
-	mdiobus_free(smi->mii_bus);
+	if (!smi->mdio_enabled) {
+		mdiobus_unregister(smi->mii_bus);
+		mdiobus_free(smi->mii_bus);
+	}
 }
 
 int rtl8366_sw_reset_switch(struct switch_dev *dev)
@@ -1242,21 +1309,23 @@ static int __rtl8366_smi_init(struct rtl8366_smi *smi, const char *name)
 {
 	int err;
 
-	err = gpio_request(smi->gpio_sda, name);
-	if (err) {
-		printk(KERN_ERR "rtl8366_smi: gpio_request failed for %u, err=%d\n",
-			smi->gpio_sda, err);
-		goto err_out;
-	}
+	if (!smi->mdio_enabled) {
+		err = gpio_request(smi->gpio_sda, name);
+		if (err) {
+			printk(KERN_ERR "rtl8366_smi: gpio_request failed for %u, err=%d\n",
+				smi->gpio_sda, err);
+			goto err_out;
+		}
 
-	err = gpio_request(smi->gpio_sck, name);
-	if (err) {
-		printk(KERN_ERR "rtl8366_smi: gpio_request failed for %u, err=%d\n",
-			smi->gpio_sck, err);
-		goto err_free_sda;
-	}
+		err = gpio_request(smi->gpio_sck, name);
+		if (err) {
+			printk(KERN_ERR "rtl8366_smi: gpio_request failed for %u, err=%d\n",
+				smi->gpio_sck, err);
+			goto err_free_sda;
+		}
 
-	spin_lock_init(&smi->lock);
+		spin_lock_init(&smi->lock);
+	}
 
 	/* start the switch */
 	if (smi->hw_reset) {
@@ -1277,8 +1346,10 @@ static void __rtl8366_smi_cleanup(struct rtl8366_smi *smi)
 	if (smi->hw_reset)
 		smi->hw_reset(true);
 
-	gpio_free(smi->gpio_sck);
-	gpio_free(smi->gpio_sda);
+	if (!smi->mdio_enabled) {
+		gpio_free(smi->gpio_sck);
+		gpio_free(smi->gpio_sda);
+	}
 }
 
 enum rtl8366_type rtl8366_smi_detect(struct rtl8366_platform_data *pdata)
@@ -1331,8 +1402,15 @@ int rtl8366_smi_init(struct rtl8366_smi *smi)
 	if (err)
 		goto err_out;
 
-	dev_info(smi->parent, "using GPIO pins %u (SDA) and %u (SCK)\n",
-		 smi->gpio_sda, smi->gpio_sck);
+	err = rtl8366_smi_mii_init(smi);
+	if (err)
+		goto err_free_sck;
+
+	if (smi->mdio_enabled)
+		dev_info(smi->parent, "using bus %s\n", smi->mii_bus->name);
+	else
+		dev_info(smi->parent, "using GPIO pins %u (SDA) and %u (SCK)\n",
+			smi->gpio_sda, smi->gpio_sck);
 
 	err = smi->ops->detect(smi);
 	if (err) {
@@ -1361,10 +1439,6 @@ int rtl8366_smi_init(struct rtl8366_smi *smi)
 	if (err)
 		goto err_free_sck;
 
-	err = rtl8366_smi_mii_init(smi);
-	if (err)
-		goto err_free_sck;
-
 	rtl8366_debugfs_init(smi);
 
 	return 0;
@@ -1387,6 +1461,9 @@ EXPORT_SYMBOL_GPL(rtl8366_smi_cleanup);
 #ifdef CONFIG_OF
 int rtl8366_smi_probe_of(struct platform_device *pdev, struct rtl8366_smi *smi)
 {
+	smi->mdio_enabled = of_property_read_bool(pdev->dev.of_node, "mdio");
+
+	if (!smi->mdio_enabled) {
 	int sck = of_get_named_gpio(pdev->dev.of_node, "gpio-sck", 0);
 	int sda = of_get_named_gpio(pdev->dev.of_node, "gpio-sda", 0);
 
@@ -1397,6 +1474,7 @@ int rtl8366_smi_probe_of(struct platform_device *pdev, struct rtl8366_smi *smi)
 
 	smi->gpio_sda = sda;
 	smi->gpio_sck = sck;
+	}
 
 	return 0;
 }
@@ -1416,6 +1494,7 @@ int rtl8366_smi_probe_plat(struct platform_device *pdev, struct rtl8366_smi *smi
 		return -EINVAL;
 	}
 
+	smi->mdio_enabled = false;
 	smi->gpio_sda = pdata->gpio_sda;
 	smi->gpio_sck = pdata->gpio_sck;
 	smi->hw_reset = pdata->hw_reset;
@@ -1450,4 +1529,5 @@ EXPORT_SYMBOL_GPL(rtl8366_smi_probe);
 
 MODULE_DESCRIPTION("Realtek RTL8366 SMI interface driver");
 MODULE_AUTHOR("Gabor Juhos <juhosg@openwrt.org>");
+MODULE_AUTHOR("Vitaly Chekryzhev <13hakta@gmail.com>");
 MODULE_LICENSE("GPL v2");
