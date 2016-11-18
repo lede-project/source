@@ -592,9 +592,11 @@ static int rtl8366_init_vlan(struct rtl8366_smi *smi)
 		if (err)
 			return err;
 
-		err = rtl8366_set_pvid(smi, port, (port + 1));
-		if (err)
-			return err;
+		if (port != smi->cpu_port) {
+			err = rtl8366_set_pvid(smi, port, (port + 1));
+			if (err)
+				return err;
+		}
 	}
 
 	return rtl8366_enable_vlan(smi, 1);
