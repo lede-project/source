@@ -2,6 +2,7 @@
  * Platform driver for the Realtek RTL8367R-VB ethernet switches
  *
  * Copyright (C) 2012 Gabor Juhos <juhosg@openwrt.org>
+ * Copyright (C) 2016 Vitaly Chekryzhev <13hakta@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published
@@ -223,6 +224,25 @@
 	 RTL8367B_PORT_3 | RTL8367B_PORT_4 | RTL8367B_PORT_E0 | \
 	 RTL8367B_PORT_E1 | RTL8367B_PORT_E2)
 
+#define RTL8367B_PORT_ALL_EXTERNAL \
+	(RTL8367B_PORT_0 | RTL8367B_PORT_1 | RTL8367B_PORT_2 | \
+	RTL8367B_PORT_3 | RTL8367B_PORT_4)
+
+#define RTL8367B_REG_LED_MODE	0x1b02
+#define RTL8367B_REG_LED_CONFIGURATION	0x1b03
+#define RTL8367B_REG_LED_SYS_CONFIG	0x1b00
+#define RTL8367B_REG_PARA_LED_IO_EN1	0x1b24
+#define RTL8367B_REG_SCAN0_LED_IO_EN	0x1b26
+#define RTL8367B_LED_CONFIG_SEL_OFFSET	14
+#define RTL8367B_LED_SERI_CLK_EN_OFFSET	0
+#define RTL8367B_LED_SELECT_OFFSET	0
+#define RTL8367B_LED_SERI_DATA_EN_OFFSET	1
+#define RTL8367B_LED0_CFG_MASK	0xF
+#define RTL8367B_LED1_CFG_MASK	0xF0
+#define RTL8367B_LED2_CFG_MASK	0xF00
+#define RTL8367B_LEDGROUPNO	3
+#define RTL8367B_LEDGROUPMASK	0x7
+#define RTL8367B_SEL_LEDRATE_MASK	0xE
 
 struct rtl8367b_initval {
 	u16 reg;
@@ -918,6 +938,86 @@ static int rtl8367b_cpu_init_of(struct rtl8366_smi *smi)
 }
 #endif
 
+static int rtl8367b_led_group_enable(struct rtl8366_smi *smi, u32 group)
+{
+	return rtl8366_smi_rmwr(smi,
+	RTL8367B_REG_PARA_LED_IO_EN1 + group / 2,
+	0xFF << ((group % 2) * 8), RTL8367B_PORT_ALL_EXTERNAL);
+}
+
+/* Set serial/parallel led mode */
+static int rtl8367b_led_op_mode(struct rtl8366_smi *smi, u32 mode)
+{
+	int err;
+
+	/* Invalid input parameter */
+	if (mode > 1)
+		return -EINVAL;
+
+	/* Set parallel mode */
+	err = rtl8366_smi_rmwr(smi, RTL8367B_REG_LED_SYS_CONFIG, BIT(RTL8367B_LED_SELECT_OFFSET), mode);
+	if (err) return err;
+
+	/* Disable serial CLK mode */
+	err = rtl8366_smi_rmwr(smi, RTL8367B_REG_SCAN0_LED_IO_EN, BIT(RTL8367B_LED_SERI_CLK_EN_OFFSET), mode);
+	if (err) return err;
+
+	/* Disable serial DATA mode */
+	err = rtl8366_smi_rmwr(smi,
+		RTL8367B_REG_SCAN0_LED_IO_EN,
+		BIT(RTL8367B_LED_SERI_DATA_EN_OFFSET),
+		mode << RTL8367B_LED_SERI_DATA_EN_OFFSET);
+	if (err) return err;
+
+	return 0;
+}
+
+static int rtl8367b_led_group_set_mode(struct rtl8366_smi *smi,
+				u32 group, u32 mode)
+{
+	int err;
+
+	if(group > 2)
+		return -EINVAL;
+
+	if(mode > 15)
+		return -EINVAL;
+
+	/* Switch off bit */
+	err = rtl8366_smi_rmwr(smi,
+		RTL8367B_REG_LED_CONFIGURATION,
+		BIT(RTL8367B_LED_CONFIG_SEL_OFFSET), 0);
+	if (err) return err;
+
+	return rtl8366_smi_rmwr(smi, RTL8367B_REG_LED_CONFIGURATION,
+	0xF << (4 * group),
+	mode << (4 * group));
+}
+
+static int rtl8367b_set_led_blinkrate(struct rtl8366_smi *smi, u32 blinkRate)
+{
+	int err;
+
+	if (blinkRate > 7)
+		return -EINVAL;
+
+	REG_RMW(smi, RTL8367B_REG_LED_MODE, RTL8367B_SEL_LEDRATE_MASK, blinkRate);
+
+	return 0;
+}
+
+static int rtl8367b_get_led_blinkrate(struct rtl8366_smi *smi, u32 *blinkRate)
+{
+	int err;
+
+	err = rtl8366_smi_read_reg(smi, RTL8367B_REG_LED_MODE, blinkRate);
+	if (err) return err;
+
+	*blinkRate = *blinkRate & RTL8367B_SEL_LEDRATE_MASK;
+
+	return 0;
+}
+
 static int rtl8367b_setup(struct rtl8366_smi *smi)
 {
 	struct rtl8367_platform_data *pdata;
@@ -969,6 +1069,17 @@ static int rtl8367b_setup(struct rtl8366_smi *smi)
 				RTL8367B_PORT_MISC_CFG_EGRESS_MODE_SHIFT,
 			RTL8367B_PORT_MISC_CFG_EGRESS_MODE_ORIGINAL <<
 				RTL8367B_PORT_MISC_CFG_EGRESS_MODE_SHIFT);
+
+	/* setup LEDs */
+	err = rtl8367b_led_group_enable(smi, 0);
+	if (err) return err;
+
+	/* Set led to parallel mode */
+	err = rtl8367b_led_op_mode(smi, 0);
+	if (err) return err;
+
+	err = rtl8367b_led_group_set_mode(smi, 0, 2);
+	if (err) return err;
 
 	return 0;
 }
@@ -1297,6 +1408,57 @@ static int rtl8367b_sw_set_max_length(struct switch_dev *dev,
 					RTL8367B_SWC0_MAX_LENGTH_MASK, max_len);
 }
 
+static int rtl8367b_sw_get_led_blink(struct switch_dev *dev,
+					const struct switch_attr *attr,
+					struct switch_val *val)
+{
+	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
+	u32 data;
+
+	if (rtl8367b_get_led_blinkrate(smi, &data))
+		return -EIO;
+
+	val->value.i = data;
+
+	return 0;
+}
+
+static int rtl8367b_sw_set_led_blink(struct switch_dev *dev,
+					const struct switch_attr *attr,
+					struct switch_val *val)
+{
+	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
+
+	if (val->value.i > 15)
+		return -EINVAL;
+
+	return rtl8367b_set_led_blinkrate(smi, val->value.i);
+}
+
+static int rtl8367b_sw_get_led(struct switch_dev *dev,
+					const struct switch_attr *attr,
+					struct switch_val *val)
+{
+	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
+	u32 data;
+
+	rtl8366_smi_read_reg(smi, RTL8367B_REG_LED_CONFIGURATION, &data);
+	val->value.i = data & 0xF;
+
+	return 0;
+}
+
+static int rtl8367b_sw_set_led(struct switch_dev *dev,
+					const struct switch_attr *attr,
+					struct switch_val *val)
+{
+	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
+
+	if (val->value.i > 15)
+		return -EINVAL;
+
+	return rtl8367b_led_group_set_mode(smi, 0, val->value.i);
+}
 
 static int rtl8367b_sw_reset_port_mibs(struct switch_dev *dev,
 					const struct switch_attr *attr,
@@ -1343,6 +1505,20 @@ static struct switch_attr rtl8367b_globals[] = {
 		.set = rtl8367b_sw_set_max_length,
 		.get = rtl8367b_sw_get_max_length,
 		.max = 3,
+	}, {
+		.type = SWITCH_TYPE_INT,
+		.name = "led",
+		.description = "Set LED mode led (0 - disable)",
+		.get = rtl8367b_sw_get_led,
+		.set = rtl8367b_sw_set_led,
+		.max = 15,
+	}, {
+		.type = SWITCH_TYPE_INT,
+		.name = "blink",
+		.description = "Set LED blink rate (0:43ms, 1:84ms, 2:120ms, 3:170ms, 4:340ms, 5:670ms)",
+		.get = rtl8367b_sw_get_led_blink,
+		.set = rtl8367b_sw_set_led_blink,
+		.max = 7,
 	}
 };
 
@@ -1609,5 +1785,6 @@ module_platform_driver(rtl8367b_driver);
 
 MODULE_DESCRIPTION("Realtek RTL8367B ethernet switch driver");
 MODULE_AUTHOR("Gabor Juhos <juhosg@openwrt.org>");
+MODULE_AUTHOR("Vitaly Chekryzhev <13hakta@gmail.com>");
 MODULE_LICENSE("GPL v2");
 MODULE_ALIAS("platform:" RTL8367B_DRIVER_NAME);
