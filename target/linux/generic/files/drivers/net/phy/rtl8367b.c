@@ -24,6 +24,7 @@
 #define RTL8367B_RESET_DELAY	1000	/* msecs*/
 
 #define RTL8367B_PHY_ADDR_MAX	8
+#define RTL8367B_PHY_ADDR_MAX_INT	4
 #define RTL8367B_PHY_REG_MAX	31
 
 #define RTL8367B_VID_MASK	0x3fff
@@ -230,6 +231,8 @@
 	(RTL8367B_PORT_0 | RTL8367B_PORT_1 | RTL8367B_PORT_2 | \
 	RTL8367B_PORT_3 | RTL8367B_PORT_4)
 
+#define	RTL8367B_PHY_PAGE_ADDRESS	0x1F
+
 #define RTL8367B_REG_PHY_AD	0x130f
 #define RTL8367B_PDNPHY_OFFSET	5
 
@@ -340,6 +343,12 @@ rtl8367b_mib_counters[RTL8367B_NUM_MIB_COUNTERS] = {
 		if (err) \
 			return err; \
 	} while (0)
+
+#define REG_RD_PHY(_smi, _addr, _reg, _val) \
+	REG_RD(_smi, RTL8367B_INTERNAL_PHY_REG(_addr, _reg), _val);
+
+#define REG_WR_PHY(_smi, _addr, _reg, _val) \
+	REG_WR(_smi, RTL8367B_INTERNAL_PHY_REG(_addr, _reg), _val);
 
 static const struct rtl8367b_initval rtl8367r_vb_initvals_0[] = {
 	{0x1B03, 0x0876}, {0x1200, 0x7FC4}, {0x0301, 0x0026}, {0x1722, 0x0E14},
@@ -699,6 +708,42 @@ static int rtl8367b_write_phy_reg(struct rtl8366_smi *smi,
 
 		udelay(1);
 	} while (1);
+
+	return 0;
+}
+
+static int rtl8367b_port_phy_reg_set(
+				struct rtl8366_smi *smi,
+				u32 phy_addr, u32 phy_reg, u32 value)
+{
+	int err;
+
+	if (phy_addr > RTL8367B_PHY_ADDR_MAX)
+		return -EINVAL;
+
+	if (phy_reg > RTL8367B_PHY_REG_MAX)
+		return -EINVAL;
+
+	REG_WR_PHY(smi, phy_addr, RTL8367B_PHY_PAGE_ADDRESS, 0);
+	REG_WR_PHY(smi, phy_addr, phy_reg, value);
+
+	return 0;
+}
+
+static int rtl8367b_port_phy_reg_get(
+				struct rtl8366_smi *smi,
+				u32 phy_addr, u32 phy_reg, u32 *value)
+{
+	int err;
+
+	if (phy_addr > RTL8367B_PHY_ADDR_MAX)
+		return -EINVAL;
+
+	if (phy_reg > RTL8367B_PHY_REG_MAX)
+		return -EINVAL;
+
+	REG_WR_PHY(smi, phy_addr, RTL8367B_PHY_PAGE_ADDRESS, 0);
+	REG_RD_PHY(smi, phy_addr, phy_reg, value);
 
 	return 0;
 }
@@ -1334,9 +1379,24 @@ static int rtl8367b_is_vlan_valid(struct rtl8366_smi *smi, unsigned vlan)
 static int rtl8367b_enable_port(struct rtl8366_smi *smi, int port, int enable)
 {
 	int err;
+	u32 reg_data;
 
+	dev_dbg(smi->parent, "port #%d set %s\n", port + 1, (enable == 1)? "on" : "off");
+
+	/* Port isolation */
 	REG_WR(smi, RTL8367B_PORT_ISOLATION_REG(port),
 		(enable) ? RTL8367B_PORTS_ALL : 0);
+
+	/* Power up/down port */
+	err = rtl8367b_port_phy_reg_get(smi, port, 0, &reg_data);
+	if (err == 0) {
+		if (enable)
+			reg_data &= ~(1U << 11);
+		else
+			reg_data |= (1U << 11);
+
+		rtl8367b_port_phy_reg_set(smi, port, 0, reg_data);
+	}
 
 	return 0;
 }
@@ -1493,6 +1553,7 @@ static int rtl8367b_sw_get_green(struct switch_dev *dev,
 	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
 	u32 data;
 	int err;
+
 	/* Read green flag */
 	REG_RD(smi, RTL8367B_REG_PHY_AD, &data);
 	val->value.i = ((data & BIT(RTL8367B_EN_PHY_GREEN_OFFSET)) >> RTL8367B_EN_PHY_GREEN_OFFSET == 1)? 1 : 0;
@@ -1531,6 +1592,39 @@ static int rtl8367b_sw_reset_port_mibs(struct switch_dev *dev,
 
 	return rtl8366_smi_rmwr(smi, RTL8367B_MIB_CTRL0_REG(port / 8), 0,
 				RTL8367B_MIB_CTRL0_PORT_RESET_MASK(port % 8));
+}
+
+static int rtl8367b_sw_set_port_disable(struct switch_dev *dev,
+					const struct switch_attr *attr,
+					struct switch_val *val)
+{
+	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
+
+	if (val->port_vlan > RTL8367B_PHY_ADDR_MAX_INT)
+		return -EINVAL;
+
+	if (val->port_vlan > RTL8367B_PHY_ADDR_MAX)
+		return -EINVAL;
+
+	return rtl8367b_enable_port(smi, val->port_vlan, 1 - val->value.i);
+}
+
+static int rtl8367b_sw_get_port_disable(struct switch_dev *dev,
+					const struct switch_attr *attr,
+					struct switch_val *val)
+{
+	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
+	int err;
+	u32 data;
+
+	if (val->port_vlan > RTL8367B_PHY_ADDR_MAX_INT)
+		return -EINVAL;
+
+	err = rtl8367b_port_phy_reg_get(smi, val->port_vlan, 0, &data);
+
+	val->value.i = ((data & (1 << 11)) >> 11);
+
+	return 0;
 }
 
 static struct switch_attr rtl8367b_globals[] = {
@@ -1600,6 +1694,13 @@ static struct switch_attr rtl8367b_port[] = {
 		.max = 33,
 		.set = NULL,
 		.get = rtl8366_sw_get_port_mib,
+	}, {
+		.type = SWITCH_TYPE_INT,
+		.name = "disable",
+		.description = "Get/Set port state (enabled or disabled)",
+		.max = 1,
+		.set = rtl8367b_sw_set_port_disable,
+		.get = rtl8367b_sw_get_port_disable,
 	},
 };
 
