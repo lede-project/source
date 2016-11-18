@@ -20,6 +20,9 @@ ipq806x_board_detect() {
 	*"C2600")
 		name="c2600"
 		;;
+	*"AD7200")
+		name="ad7200"
+		;;
 	*"D7800")
 		name="d7800"
 		;;

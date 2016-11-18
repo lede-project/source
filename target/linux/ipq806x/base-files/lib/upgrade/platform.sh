@@ -16,6 +16,7 @@ platform_check_image() {
 		nand_do_platform_check $board $1
 		return $?;
 		;;
+	ad7200 |\
 	c2600)
 		local magic_long="$(get_magic_long "$1")"
 		[ "$magic_long" != "27051956" ] && {
@@ -33,6 +34,7 @@ platform_pre_upgrade() {
 	local board=$(ipq806x_board_name)
 
 	case "$board" in
+	ad7200 |\
 	ap148 |\
 	d7800 |\
 	nbg6817 |\
@@ -51,6 +53,7 @@ platform_do_upgrade() {
 	local board=$(ipq806x_board_name)
 
 	case "$board" in
+	ad7200 |\
 	c2600)
 		PART_NAME="os-image:rootfs"
 		MTD_CONFIG_ARGS="-s 0x200000"

@@ -48,6 +48,7 @@ board=$(ipq806x_board_name)
 case "$FIRMWARE" in
 "ath10k/cal-pci-0000:01:00.0.bin")
 	case $board in
+	ad7200 |\
 	c2600)
 		ath10kcal_extract "radio" 4096 12064
 # 		ath10kcal_patch_mac $(macaddr_add $(mtd_get_mac_binary default-mac 8) -1)
@@ -67,6 +68,7 @@ case "$FIRMWARE" in
 	;;
 "ath10k/cal-pci-0001:01:00.0.bin")
 	case $board in
+	ad7200 |\
 	c2600)
 		ath10kcal_extract "radio" 20480 12064
 # 		ath10kcal_patch_mac $(macaddr_add $(mtd_get_mac_binary default-mac 8) -2)

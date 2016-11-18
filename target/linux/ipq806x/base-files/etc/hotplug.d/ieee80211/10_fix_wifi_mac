@@ -12,6 +12,7 @@ PHYNBR=${DEVPATH##*/phy}
 board=$(ipq806x_board_name)
 
 case "$board" in
+	ad7200 |\
 	c2600)
 		echo $(macaddr_add $(mtd_get_mac_binary default-mac 8)  $(($PHYNBR - 1)) ) > /sys${DEVPATH}/macaddress
 		;;
