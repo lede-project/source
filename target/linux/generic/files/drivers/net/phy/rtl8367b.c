@@ -228,6 +228,9 @@
 	(RTL8367B_PORT_0 | RTL8367B_PORT_1 | RTL8367B_PORT_2 | \
 	RTL8367B_PORT_3 | RTL8367B_PORT_4)
 
+#define RTL8367B_REG_PHY_AD	0x130f
+#define RTL8367B_PDNPHY_OFFSET	5
+
 #define RTL8367B_REG_LED_MODE	0x1b02
 #define RTL8367B_REG_LED_CONFIGURATION	0x1b03
 #define RTL8367B_REG_LED_SYS_CONFIG	0x1b00
@@ -1061,6 +1064,9 @@ static int rtl8367b_setup(struct rtl8366_smi *smi)
 	REG_RMW(smi, RTL8367B_SWC0_REG, RTL8367B_SWC0_MAX_LENGTH_MASK,
 		RTL8367B_SWC0_MAX_LENGTH_1536);
 
+	/* enable all PHY (if disabled by bootstrap) */
+	REG_RMW(smi, RTL8367B_REG_PHY_AD, BIT(RTL8367B_PDNPHY_OFFSET), 0);
+
 	/*
 	 * discard VLAN tagged packets if the port is not a member of
 	 * the VLAN with which the packets is associated.
@@ -1077,6 +1083,8 @@ static int rtl8367b_setup(struct rtl8366_smi *smi)
 				RTL8367B_PORT_MISC_CFG_EGRESS_MODE_SHIFT,
 			RTL8367B_PORT_MISC_CFG_EGRESS_MODE_ORIGINAL <<
 				RTL8367B_PORT_MISC_CFG_EGRESS_MODE_SHIFT);
+
+	REG_WR(smi, RTL8367B_CHIP_DEBUG1_REG, 0x7777);
 
 	/* setup LEDs */
 	err = rtl8367b_led_group_enable(smi, 0);
