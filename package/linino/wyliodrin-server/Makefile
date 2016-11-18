@@ -29,7 +29,7 @@ define Package/wyliodrin-server
   SECTION:=utils
   DEFAULT:=m
   CATEGORY:=Utilities
-  DEPENDS:=+libpthread +libcrypto +libc +libstdcpp +libhiredis +jansson +libevent2 +libstrophe +libcurl +libfuse +libopenssl
+  DEPENDS:=+libpthread +libc +libstdcpp +libhiredis +jansson +libevent2 +libstrophe +libcurl +libfuse +libopenssl +libwyliodrin
   URL:=https://github.com/Wyliodrin/wyliodrin-server.git
 endef
 
