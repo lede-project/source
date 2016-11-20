@@ -118,6 +118,9 @@ static const char c2600_vendor[] = "";
 /** Vendor information for EAP120 */
 static const char eap120_vendor[] = "EAP120(TP-LINK|UN|N300-2):1.0\r\n";
 
+/** Vendor information for RE450 */
+static const char re450_vendor[] = "";
+
 /**
     The flash partition table for CPE210/220/510/520;
     it is the same as the one used by the stock images.
@@ -211,6 +214,28 @@ static const struct flash_partition_entry eap120_partitions[] = {
 };
 
 /**
+    The flash partition table for RE450;
+    it is almost the same as the one used by the stock images,
+    576KB were moved from file-system to os-image.
+*/
+static const struct flash_partition_entry re450_partitions[] = {
+	{"fs-uboot", 0x00000, 0x20000},
+	{"os-image", 0x20000, 0x150000},
+	{"file-system", 0x170000, 0x4a0000},
+	{"partition-table", 0x600000, 0x02000},
+	{"default-mac", 0x610000, 0x00020},
+	{"pin", 0x610100, 0x00020},
+	{"product-info", 0x611100, 0x01000},
+	{"soft-version", 0x620000, 0x01000},
+	{"support-list", 0x621000, 0x01000},
+	{"profile", 0x622000, 0x08000},
+	{"user-config", 0x630000, 0x10000},
+	{"default-config", 0x640000, 0x10000},
+	{"radio", 0x7f0000, 0x10000},
+	{NULL, 0, 0}
+};
+
+/**
    The support list for CPE210/220
 */
 static const char cpe210_support_list[] =
@@ -258,6 +283,20 @@ static const char c9_support_list[] =
 static const char eap120_support_list[] =
 	"SupportList:\r\n"
 	"EAP120(TP-LINK|UN|N300-2):1.0\r\n";
+
+/**
+   The support list for RE450
+*/
+static const char re450_support_list[] =
+	"SupportList:\r\n"
+	"{product_name:RE450,product_ver:1.0.0,special_id:00000000}\r\n"
+	"{product_name:RE450,product_ver:1.0.0,special_id:55530000}\r\n"
+	"{product_name:RE450,product_ver:1.0.0,special_id:45550000}\r\n"
+	"{product_name:RE450,product_ver:1.0.0,special_id:4A500000}\r\n"
+	"{product_name:RE450,product_ver:1.0.0,special_id:43410000}\r\n"
+	"{product_name:RE450,product_ver:1.0.0,special_id:41550000}\r\n"
+	"{product_name:RE450,product_ver:1.0.0,special_id:4B520000}\r\n"
+	"{product_name:RE450,product_ver:1.0.0,special_id:55534100}\r\n";
 
 #define error(_ret, _errno, _str, ...)				\
 	do {							\
@@ -617,6 +656,40 @@ static void *generate_sysupgrade_image_eap120(const struct flash_partition_entry
 	return image;
 }
 
+static void *generate_sysupgrade_image_re450(const struct flash_partition_entry *flash_parts, const struct image_partition_entry *image_parts, size_t *len)
+{
+	const struct flash_partition_entry *flash_os_image = &flash_parts[1];
+	const struct flash_partition_entry *flash_file_system = &flash_parts[2];
+
+	const struct image_partition_entry *image_os_image = &image_parts[3];
+	const struct image_partition_entry *image_file_system = &image_parts[4];
+
+	assert(strcmp(flash_os_image->name, "os-image") == 0);
+	assert(strcmp(flash_file_system->name, "file-system") == 0);
+
+	assert(strcmp(image_os_image->name, "os-image") == 0);
+	assert(strcmp(image_file_system->name, "file-system") == 0);
+
+	if (image_os_image->size > flash_os_image->size)
+		error(1, 0, "kernel image too big (more than %u bytes)", (unsigned)flash_os_image->size);
+	if (image_file_system->size > flash_file_system->size)
+		error(1, 0, "rootfs image too big (more than %u bytes)", (unsigned)flash_file_system->size);
+
+	*len = flash_file_system->base - flash_os_image->base + image_file_system->size;
+
+	uint8_t *image = malloc(*len);
+	if (!image)
+		error(1, errno, "malloc");
+
+	memset(image, 0xff, *len);
+
+	memcpy(image, image_os_image->data, image_os_image->size);
+	memcpy(image + flash_file_system->base - flash_os_image->base, image_file_system->data, image_file_system->size);
+
+	return image;
+}
+
+
 struct device_info cpe210_info = {
 	.vendor = cpe510_vendor,
 	.support_list = cpe210_support_list,
@@ -654,6 +727,14 @@ struct device_info eap120_info = {
 	.support_trail = '\xff',
 	.partitions = eap120_partitions,
 	.generate_sysupgrade_image = &generate_sysupgrade_image_eap120,
+};
+
+struct device_info re450_info = {
+	.vendor = re450_vendor,
+	.support_list = re450_support_list,
+	.support_trail = '\x00',
+	.partitions = re450_partitions,
+	.generate_sysupgrade_image = &generate_sysupgrade_image_re450,
 };
 
 static void build_image(const char *output,
@@ -784,6 +865,8 @@ int main(int argc, char *argv[]) {
 		info = &eap120_info;
 	else if (strcmp(board, "ARCHERC9") == 0)
 		info = &e9_info;
+	else if (strcmp(board, "RE450") == 0)
+		info = &re450_info;
 	else
 		error(1, 0, "unsupported board %s", board);
 
