@@ -126,18 +126,18 @@ sub download
 			}
 		};
 	} else {
-		open WGET, "command -v curl >/dev/null 2>&1 && curl --connect-timeout 20 --retry 5 --location --insecure $curl_options '$mirror/$url_filename' || wget --tries=5 --timeout=20 --no-check-certificate $wget_options --output-document=- '$mirror/$url_filename' |" or die "Cannot launch curl or wget.\n";
+		open FETCH_FD, "command -v curl >/dev/null 2>&1 && curl --connect-timeout 20 --retry 5 --location --insecure $curl_options '$mirror/$url_filename' || wget --tries=5 --timeout=20 --no-check-certificate $wget_options --output-document=- '$mirror/$url_filename' |" or die "Cannot launch curl or wget.\n";
 		$hash_cmd and do {
 			open MD5SUM, "| $hash_cmd > '$target/$filename.hash'" or die "Cannot launch $hash_cmd.\n";
 		};
 		open OUTPUT, "> $target/$filename.dl" or die "Cannot create file $target/$filename.dl: $!\n";
 		my $buffer;
-		while (read WGET, $buffer, 1048576) {
+		while (read FETCH_FD, $buffer, 1048576) {
 			$hash_cmd and print MD5SUM $buffer;
 			print OUTPUT $buffer;
 		}
 		$hash_cmd and close MD5SUM;
-		close WGET;
+		close FETCH_FD;
 		close OUTPUT;
 
 		if ($? >> 8) {
