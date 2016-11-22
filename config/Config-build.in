@@ -71,6 +71,62 @@ menu "Global build settings"
 
 	source "config/Config-kernel.in"
 
+	comment "Default Crypto Options"
+
+	choice
+		prompt "Extent to prefer crypto"
+		default CRYPTO_DEFAULT_PACKAGE
+		help
+		  How strongly to insist on using cryptography
+		  when available (for package builds).
+		config CRYPTO_DEFAULT_PACKAGE
+			bool "According to package and SSL provider defaults"
+		config CRYPTO_DEFAULT_ALL
+			bool "Default to always enabled"
+		config CRYPTO_DEFAULT_NONE
+			bool "Default to not building crypto except internal wireless"
+	endchoice
+
+	choice
+		prompt "Default SSL provider"
+			default SSL_DEFAULT_SELECT_POLARSSL if !CRYPTO_DEFAULT_NONE
+			default SSL_NOSSL if CRYPTO_DEFAULT_NONE
+			help
+			  Set the SSL library to enable by default when there is a
+			  choice if libraries (e.g. to prefer openssl when both
+			  polarssl and openssl are options).  For "No SSL" option
+			  selects no SSL when that is an option, but doesn't
+			  prevent building packages requiring SSL (i.e. it's a
+			  default not a hard setting).
+			config SSL_DEFAULT_POLARSSL
+				bool "PolarSSL"
+				select PACKAGE_libpolarssl
+			config SSL_DEFAULT_OPENSSL
+				bool "OpenSSL"
+				select PACKAGE_libopenssl
+			config SSL_DEFAULT_MBEDTLS
+				bool "mbedtls"
+				select PACKAGE_libmbedtls
+			config SSL_DEFAULT_NOSSL
+				bool "No SSL"
+	endchoice
+
+	config SSL_DEFAULT_FALLBACK_OPENSSL
+		bool "Allow fallback to OpenSSL if default not available"
+		depends on !SSL_DEFAULT_OPENSSL
+		default y if !SSL_DEFAULT_NOSSL
+		help
+		 For non-openssl as the default SSL library, allow
+		  to build packages against openssl if the default
+		  library is not avaiable or not an option.
+		  NB: Saying n here will make packages that can
+		  only be built against openssl default to n.
+
+	config SSL_DEFAULT_NOOPENSSL
+		bool
+		default y
+		depends on ( !SSL_DEFAULT_OPENSSL && !SSL_DEFAULT_FALLBACK_OPENSSL )
+
 	comment "Package build options"
 
 	config DEBUG
