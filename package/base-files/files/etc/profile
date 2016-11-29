@@ -41,3 +41,14 @@ in order to prevent unauthorized SSH logins.
 --------------------------------------------------
 EOF
 fi
+
+service() {
+if [ -f "/etc/init.d/$1" ]; then
+        "/etc/init.d/$@"
+else
+	printf '%s\n%s\n' "unknown service" "list of available services :"
+	ls "/etc/init.d"
+	return 1
+fi
+}
+
