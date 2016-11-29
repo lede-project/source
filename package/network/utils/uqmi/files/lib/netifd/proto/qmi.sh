@@ -68,12 +68,14 @@ proto_qmi_setup() {
 	done
 
 	[ -n "$pincode" ] && {
-		uqmi -s -d "$device" --verify-pin1 "$pincode" || {
-			echo "Unable to verify PIN"
-			proto_notify_error "$interface" PIN_FAILED
-			proto_block_restart "$interface"
-			return 1
-		}
+		if uqmi -s -d "$device" --get-pin-status | grep -q '"pin1_status":"not_verified"'; then
+			uqmi -s -d "$device" --verify-pin1 "$pincode" || {
+				echo "Unable to verify PIN"
+				proto_notify_error "$interface" PIN_FAILED
+				proto_block_restart "$interface"
+				return 1
+			}
+		fi
 	}
 
 	[ -n "$apn" ] || {
