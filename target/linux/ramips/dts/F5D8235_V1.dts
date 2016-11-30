@@ -68,14 +68,69 @@
 	gpio-leds {
 		compatible = "gpio-leds";
 
+		internet {
+			label = "f5d8235-v1:blue:internet";
+			gpios = <&gpio0 17 1>;
+		};
+
+		internet2 {
+			label = "f5d8235-v1:amber:internet";
+			gpios = <&gpio0 18 1>;
+		};
+
+		modem {
+			label = "f5d8235-v1:blue:modem";
+			gpios = <&gpio0 13 1>;
+		};
+
+		modem2 {
+			label = "f5d8235-v1:amber:modem";
+			gpios = <&gpio0 21 1>;
+		};
+
+		router {
+			label = "f5d8235-v1:blue:router";
+			gpios = <&gpio0 14 1>;
+		};
+
 		storage {
 			label = "f5d8235-v1:blue:storage";
 			gpios = <&gpio0 7 1>;
 		};
 
 		storage2 {
-			label = "f5d8235-v1:orange:storage";
+			label = "f5d8235-v1:amber:storage";
 			gpios = <&gpio0 8 1>;
+		};
+
+		security {
+			label = "f5d8235-v1:blue:security";
+			gpios = <&gpio0 10 1>;
+		};
+
+		security2 {
+			label = "f5d8235-v1:amber:security";
+			gpios = <&gpio0 12 1>;
+		};
+
+		wired {
+			label = "f5d8235-v1:blue:wired";
+			gpios = <&gpio0 5 1>;
+		};
+
+		wired2 {
+			label = "f5d8235-v1:amber:wired";
+			gpios = <&gpio0 20 1>;
+		};
+
+		wireless {
+			label = "f5d8235-v1:blue:wireless";
+			gpios = <&gpio0 6 1>;
+		};
+
+		wireless2 {
+			label = "f5d8235-v1:amber:wireless";
+			gpios = <&gpio0 19 1>;
 		};
 	};
 };
