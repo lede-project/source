@@ -1,6 +1,6 @@
 --- a/arch/mips/ralink/of.c
 +++ b/arch/mips/ralink/of.c
-@@ -81,13 +81,21 @@
+@@ -81,13 +81,23 @@
  
  void __init plat_mem_setup(void)
  {
@@ -17,6 +17,8 @@
 +		dtb = (void *)fw_passed_dtb;
 +	else if (__dtb_start != __dtb_end)
 +		dtb = (void *)__dtb_start;
++	else
++		dtb = &__image_dtb;
 +
 +	if (dtb)
 +		__dt_setup_arch(dtb);
