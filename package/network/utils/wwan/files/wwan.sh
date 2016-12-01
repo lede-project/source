@@ -66,15 +66,15 @@ proto_wwan_setup() {
 		}
 	}
 
-	[ -z "$ctl_device" ] && for net in $(ls /sys/class/net/ | grep wwan); do
+	[ -z "$ctl_device" ] && for net in $(ls /sys/class/net/ | grep -e wwan -e usb); do
 		[ -z "$ctl_device" ] || continue
 		driver=$(grep DRIVER /sys/class/net/$net/device/uevent | cut -d= -f2)
 		case "$driver" in
 		qmi_wwan|cdc_mbim)
 			ctl_device=/dev/$(ls /sys/class/net/$net/device/usbmisc)
 			;;
-		sierra_net|*cdc_ncm)
-			ctl_device=/dev/$(cd /sys/class/net/$net/; find ../../../ -name ttyUSB* |xargs basename | head -n1)
+		sierra_net|cdc_ether|*cdc_ncm)
+			ctl_device=/dev/$(cd /sys/class/net/$net/; find ../../../ -name ttyUSB* |xargs -n1 basename | head -n1)
 			;;
 		*) continue;;
 		esac
@@ -97,6 +97,7 @@ proto_wwan_setup() {
 	cdc_mbim)	proto_mbim_setup $@ ;;
 	sierra_net)	proto_directip_setup $@ ;;
 	comgt)		proto_3g_setup $@ ;;
+	cdc_ether)	proto_ncm_setup $@ ;;
 	*cdc_ncm)	proto_ncm_setup $@ ;;
 	esac
 }
@@ -112,6 +113,7 @@ proto_wwan_teardown() {
 	cdc_mbim)	proto_mbim_teardown $@ ;;
 	sierra_net)	proto_mbim_teardown $@ ;;
 	comgt)		proto_3g_teardown $@ ;;
+	cdc_ether)	proto_ncm_teardown $@ ;;
 	*cdc_ncm)	proto_ncm_teardown $@ ;;
 	esac
 }

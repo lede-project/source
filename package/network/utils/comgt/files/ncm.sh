@@ -84,6 +84,7 @@ proto_ncm_setup() {
 	[ -n "$delay" ] && sleep "$delay"
 
 	manufacturer=`gcom -d "$device" -s /etc/gcom/getcardinfo.gcom | awk '/Manufacturer/ { print tolower($2) }'`
+	manufacturer=`gcom -d "$device" -s /etc/gcom/getcardinfo.gcom | head -2 | tail -1 | tr -d "\r" | tr [A-Z] [a-z]`
 	[ $? -ne 0 ] && {
 		echo "Failed to get modem information"
 		proto_notify_error "$interface" GETINFO_FAILED
@@ -115,6 +116,16 @@ proto_ncm_setup() {
 			return 1
 		}
 	}
+
+        json_get_values configure configure
+        for i in $configure; do
+                eval COMMAND="$i" gcom -d "$device" -s /etc/gcom/runcommand.gcom || {
+                        echo "Failed to configure modem"
+                        proto_notify_error "$interface" INITIALIZE_FAILED
+                        return 1
+                }
+        done
+
 	[ -n "$mode" ] && {
 		json_select modes
 		json_get_var setmode "$mode"
@@ -126,17 +137,26 @@ proto_ncm_setup() {
 		json_select ..
 	}
 
-	json_get_vars connect
-	eval COMMAND="$connect" gcom -d "$device" -s /etc/gcom/runcommand.gcom || {
-		echo "Failed to connect"
-		proto_notify_error "$interface" CONNECT_FAILED
-		return 1
-	}
+#	json_get_vars connect
+#	eval COMMAND="$connect" gcom -d "$device" -s /etc/gcom/runcommand.gcom || {
+#		echo "Failed to connect"
+#		proto_notify_error "$interface" CONNECT_FAILED
+#		return 1
+#	}
 
 	echo "Connected, starting DHCP on $ifname"
 	
 	proto_init_update "$ifname" 1
 	proto_send_update "$interface"
+
+	son_load "$(cat /etc/gcom/ncm.json)"
+	son_select "$manufacturer"
+	son_get_vars connect
+	val COMMAND="$connect" gcom -d "$device" -s /etc/gcom/runcommand.gcom || {
+               echo "Failed to connect"
+               proto_notify_error "$interface" CONNECT_FAILED
+               return 1
+	}
 
 	json_init
 	json_add_string name "${interface}_4"
@@ -164,9 +184,10 @@ proto_ncm_teardown() {
 	local device
 	json_get_vars device
 
-	echo "Stopping network"
+	echo "Stopping network device:$device"
 
 	manufacturer=`gcom -d "$device" -s /etc/gcom/getcardinfo.gcom | awk '/Manufacturer/ { print tolower($2) }'`
+	manufacturer=`gcom -d "$device" -s /etc/gcom/getcardinfo.gcom | sed '2q;d' | tr -d "\n\r" | tr [A-Z] [a-z]`
 	[ $? -ne 0 ] && {
 		echo "Failed to get modem information"
 		proto_notify_error "$interface" GETINFO_FAILED
