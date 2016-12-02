@@ -84,7 +84,9 @@ proto_ncm_setup() {
 	[ -n "$delay" ] && sleep "$delay"
 
 	manufacturer=`gcom -d "$device" -s /etc/gcom/getcardinfo.gcom | awk '/Manufacturer/ { print tolower($2) }'`
-	manufacturer=`gcom -d "$device" -s /etc/gcom/getcardinfo.gcom | head -2 | tail -1 | tr -d "\r" | tr [A-Z] [a-z]`
+	[ -z $manufacturer ] && {
+		manufacturer=`gcom -d "$device" -s /etc/gcom/getcardinfo.gcom | head -2 | tail -1 | tr -d "\r" | tr [A-Z] [a-z]`
+	}
 	[ $? -ne 0 ] && {
 		echo "Failed to get modem information"
 		proto_notify_error "$interface" GETINFO_FAILED
@@ -149,10 +151,10 @@ proto_ncm_setup() {
 	proto_init_update "$ifname" 1
 	proto_send_update "$interface"
 
-	son_load "$(cat /etc/gcom/ncm.json)"
-	son_select "$manufacturer"
-	son_get_vars connect
-	val COMMAND="$connect" gcom -d "$device" -s /etc/gcom/runcommand.gcom || {
+	json_load "$(cat /etc/gcom/ncm.json)"
+	json_select "$manufacturer"
+	json_get_vars connect
+	eval COMMAND="$connect" gcom -d "$device" -s /etc/gcom/runcommand.gcom || {
                echo "Failed to connect"
                proto_notify_error "$interface" CONNECT_FAILED
                return 1
@@ -187,7 +189,9 @@ proto_ncm_teardown() {
 	echo "Stopping network device:$device"
 
 	manufacturer=`gcom -d "$device" -s /etc/gcom/getcardinfo.gcom | awk '/Manufacturer/ { print tolower($2) }'`
-	manufacturer=`gcom -d "$device" -s /etc/gcom/getcardinfo.gcom | sed '2q;d' | tr -d "\n\r" | tr [A-Z] [a-z]`
+	[ -z $manufacturer ] && {
+		manufacturer=`gcom -d "$device" -s /etc/gcom/getcardinfo.gcom | sed '2q;d' | tr -d "\n\r" | tr [A-Z] [a-z]`
+	}
 	[ $? -ne 0 ] && {
 		echo "Failed to get modem information"
 		proto_notify_error "$interface" GETINFO_FAILED
