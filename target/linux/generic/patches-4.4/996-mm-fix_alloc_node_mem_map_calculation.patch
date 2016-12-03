@@ -1,0 +1,11 @@
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5326,7 +5326,7 @@
+ 		mem_map = NODE_DATA(0)->node_mem_map;
+ #if defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP) || defined(CONFIG_FLATMEM)
+ 		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
+-			mem_map -= offset;
++			mem_map -= offset + (pgdat->node_start_pfn - ARCH_PFN_OFFSET);
+ #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
+ 	}
+ #endif

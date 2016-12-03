@@ -42,6 +42,11 @@
 /* Port Enable Control register */
 #define RTL8366S_PECR				0x0001
 
+/* Green Ethernet Feature (based on GPL_BELKIN_F5D8235-4_v1000 v1.01.24) */
+#define RTL8366S_GREEN_ETHERNET_CTRL_REG	0x000a
+#define RTL8366S_GREEN_ETHERNET_TX_BIT		(1 << 3)
+#define RTL8366S_GREEN_ETHERNET_RX_BIT		(1 << 4)
+
 /* Switch Security Control registers */
 #define RTL8366S_SSCR0				0x0002
 #define RTL8366S_SSCR1				0x0003
@@ -70,6 +75,11 @@
 #define RTL8366S_PHY_NO_OFFSET			9
 #define RTL8366S_PHY_NO_MASK			(0x1f << 9)
 
+#define RTL8366S_PHY_1000BASET_CTRL_REG		9
+#define RTL8366S_PHY_AN_CTRL_REG		4
+#define RTL8366S_PHY_CTRL_REG			0
+#define RTL8366S_PHY_POWER_SAVING_CTRL_REG	12
+
 /* LED control registers */
 #define RTL8366S_LED_BLINKRATE_REG		0x0420
 #define RTL8366S_LED_BLINKRATE_BIT		0
@@ -93,7 +103,6 @@
 #define RTL8366S_MIB_CTRL_GLOBAL_RESET_MASK	0x0004
 #define RTL8366S_MIB_CTRL_PORT_RESET_BIT	0x0003
 #define RTL8366S_MIB_CTRL_PORT_RESET_MASK	0x01FC
-
 
 #define RTL8366S_PORT_VLAN_CTRL_BASE		0x0058
 #define RTL8366S_PORT_VLAN_CTRL_REG(_p)  \
@@ -250,43 +259,6 @@ static int rtl8366s_reset_chip(struct rtl8366_smi *smi)
 	return 0;
 }
 
-static int rtl8366s_setup(struct rtl8366_smi *smi)
-{
-	struct rtl8366_platform_data *pdata;
-	int err;
-
-	pdata = smi->parent->platform_data;
-	if (pdata && pdata->num_initvals && pdata->initvals) {
-		unsigned i;
-
-		dev_info(smi->parent, "applying initvals\n");
-		for (i = 0; i < pdata->num_initvals; i++)
-			REG_WR(smi, pdata->initvals[i].reg,
-			       pdata->initvals[i].val);
-	}
-
-	/* set maximum packet length to 1536 bytes */
-	REG_RMW(smi, RTL8366S_SGCR, RTL8366S_SGCR_MAX_LENGTH_MASK,
-		RTL8366S_SGCR_MAX_LENGTH_1536);
-
-	/* enable learning for all ports */
-	REG_WR(smi, RTL8366S_SSCR0, 0);
-
-	/* enable auto ageing for all ports */
-	REG_WR(smi, RTL8366S_SSCR1, 0);
-
-	/*
-	 * discard VLAN tagged packets if the port is not a member of
-	 * the VLAN with which the packets is associated.
-	 */
-	REG_WR(smi, RTL8366S_VLAN_MEMBERINGRESS_REG, RTL8366S_PORT_ALL);
-
-	/* don't drop packets whose DA has not been learned */
-	REG_RMW(smi, RTL8366S_SSCR2, RTL8366S_SSCR2_DROP_UNKNOWN_DA, 0);
-
-	return 0;
-}
-
 static int rtl8366s_read_phy_reg(struct rtl8366_smi *smi,
 				 u32 phy_no, u32 page, u32 addr, u32 *data)
 {
@@ -349,6 +321,115 @@ static int rtl8366s_write_phy_reg(struct rtl8366_smi *smi,
 	ret = rtl8366_smi_write_reg(smi, reg, data);
 	if (ret)
 		return ret;
+
+	return 0;
+}
+
+static int rtl8366s_setup(struct rtl8366_smi *smi)
+{
+	struct rtl8366_platform_data *pdata;
+	u32 data;
+	int err;
+	unsigned i;
+	unsigned length;
+	u32 phyData;
+
+	/* rtl8366s chip defaults (based on GPL_BELKIN_F5D8235-4_v1000 v1.01.24) */
+	u32 chipDefault[][2] = {{0x0242, 0x02BF},{0x0245, 0x02BF},{0x0248, 0x02BF},{0x024B, 0x02BF},
+				{0x024E, 0x02BF},{0x0251, 0x02BF},
+				{0x0254, 0x0A3F},{0x0256, 0x0A3F},{0x0258, 0x0A3F},{0x025A, 0x0A3F},
+				{0x025C, 0x0A3F},{0x025E, 0x0A3F},
+				{0x0263, 0x007C},{0x0100, 0x0004},
+				{0xBE5B, 0x3500},{0x800E, 0x200F},{0xBE1D, 0x0F00},{0x8001, 0x5011},
+				{0x800A, 0xA2F4},{0x800B, 0x17A3},{0xBE4B, 0x17A3},{0xBE41, 0x5011},
+				{0xBE17, 0x2100},{0x8000, 0x8304},{0xBE40, 0x8304},{0xBE4A, 0xA2F4},
+				{0x800C, 0xA8D5},{0x8014, 0x5500},{0x8015, 0x0004},{0xBE4C, 0xA8D5},
+				{0xBE59, 0x0008},{0xBE09, 0x0E00},{0xBE36, 0x1036},{0xBE37, 0x1036},
+				{0x800D, 0x00FF},{0xBE4D, 0x00FF}};
+
+	length = sizeof(chipDefault)/sizeof(chipDefault[0]);
+
+	for (i = 0; i < length; i++)
+		REG_WR(smi, chipDefault[i][0], chipDefault[i][1]);
+
+	pdata = smi->parent->platform_data;
+	if (pdata && pdata->num_initvals && pdata->initvals) {
+		dev_info(smi->parent, "applying initvals\n");
+		for (i = 0; i < pdata->num_initvals; i++)
+			REG_WR(smi, pdata->initvals[i].reg, pdata->initvals[i].val);
+	}
+
+	/* enable Green Ethernet features (Generic Power Saving was activated above at 0xBE5B) */
+	REG_RMW(smi, RTL8366S_GREEN_ETHERNET_CTRL_REG, 0, (RTL8366S_GREEN_ETHERNET_TX_BIT | RTL8366S_GREEN_ETHERNET_RX_BIT));
+
+	for (i = 0; i <= RTL8366S_PHY_NO_MAX; i++) {
+		err = rtl8366s_read_phy_reg(smi, i, 0, RTL8366S_PHY_POWER_SAVING_CTRL_REG, &phyData);
+		if (err)
+			return err;
+
+		/* (1<<12) Power Saving Feature */
+		data = 0x1000;
+
+		phyData |= data;
+		err = rtl8366s_write_phy_reg(smi, i, 0, RTL8366S_PHY_POWER_SAVING_CTRL_REG, phyData);
+		if (err)
+			return err;
+
+		err = rtl8366s_read_phy_reg(smi, i, 0, RTL8366S_PHY_1000BASET_CTRL_REG, &phyData);
+		if (err)
+			return err;
+
+		/* (1<<9) Full_1000 */
+		data = 0x0200;
+
+		phyData &= data;
+		err = rtl8366s_write_phy_reg(smi, i, 0, RTL8366S_PHY_1000BASET_CTRL_REG, phyData);
+		if (err)
+			return err;
+
+		err = rtl8366s_read_phy_reg(smi, i, 0, RTL8366S_PHY_AN_CTRL_REG, &phyData);
+		if (err)
+			return err;
+
+		/* (1<<5) Half_10 | (1<<6) Full_10 | (1<<7) Half_100 | (1<<8) Full_100 | (1<<10) FC | (1<<11) AsyFC */
+		data = 0xde0;
+
+		phyData = (phyData & (~0x0de0)) | data;
+		err = rtl8366s_write_phy_reg(smi, i, 0, RTL8366S_PHY_AN_CTRL_REG, phyData);
+		if (err)
+			return err;
+
+		err = rtl8366s_read_phy_reg(smi, i, 0, RTL8366S_PHY_CTRL_REG, &phyData);
+		if (err)
+			return err;
+
+		/* (1<<6) 1000Mpbs | (1<<8) FD | (1<<9) Restart AN | (1<<12) AN */
+		data = 0x1340;
+
+		phyData = (phyData & (~0x3140)) | data;
+		err = rtl8366s_write_phy_reg(smi, i, 0, RTL8366S_PHY_CTRL_REG, phyData);
+		if (err)
+			return err;
+	}
+
+	/* set maximum packet length to 1536 bytes */
+	REG_RMW(smi, RTL8366S_SGCR, RTL8366S_SGCR_MAX_LENGTH_MASK,
+		RTL8366S_SGCR_MAX_LENGTH_1536);
+
+	/* enable learning for all ports */
+	REG_WR(smi, RTL8366S_SSCR0, 0);
+
+	/* enable auto ageing for all ports */
+	REG_WR(smi, RTL8366S_SSCR1, 0);
+
+	/*
+	 * discard VLAN tagged packets if the port is not a member of
+	 * the VLAN with which the packets is associated.
+	 */
+	REG_WR(smi, RTL8366S_VLAN_MEMBERINGRESS_REG, RTL8366S_PORT_ALL);
+
+	/* don't drop packets whose DA has not been learned */
+	REG_RMW(smi, RTL8366S_SSCR2, RTL8366S_SSCR2_DROP_UNKNOWN_DA, 0);
 
 	return 0;
 }
