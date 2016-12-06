@@ -25,6 +25,8 @@ r7800)
 	ucidef_set_led_usbport "usb2" "USB 2" "${board}:white:usb2" "usb3-port1" "usb4-port1"
 	ucidef_set_led_netdev "wan" "WAN" "${board}:white:wan" "eth0"
 	ucidef_set_led_ide "esata" "eSATA" "${board}:white:esata"
+	ucidef_set_led_wlan "wlan2g" "WLAN 2G" "${board}:white:wifi" "phy1tpt"
+	ucidef_set_led_wlan "wlan5g" "WLAN 5G" "${board}:white:wps" "phy0tpt"
 	;;
 fritz4040)
 	ucidef_set_led_wlan "wlan" "WLAN" "$board:green:wlan" "phy0tpt" "phy1tpt"
