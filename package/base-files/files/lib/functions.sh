@@ -218,6 +218,26 @@ add_group_and_user() {
 	fi
 }
 
+default_preinst() {
+	local pkgname="$(basename ${1%.*})"
+	local ret=0
+
+	# On real system doing upgrade first stop running service
+	if [ -z "$IPKG_INSTROOT" -a "$PKG_UPGRADE" = "1" ]; then
+		for i in $(grep -s "^/etc/init.d/" "/usr/lib/opkg/info/${pkgname}.list"); do
+			"$i" stop
+		done
+	fi
+
+	# now do what was in original preinst
+	if [ -f "${IPKG_INSTROOT}/usr/lib/opkg/info/${pkgname}.preinst-pkg" ]; then
+		( . "${IPKG_INSTROOT}/usr/lib/opkg/info/${pkgname}.preinst-pkg" )
+		ret=$?
+	fi
+
+	return $ret
+}
+
 default_postinst() {
 	local root="${IPKG_INSTROOT}"
 	local pkgname="$(basename ${1%.*})"

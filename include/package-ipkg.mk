@@ -128,7 +128,7 @@ ifeq ($(DUMP),)
     $(FixupReverseDependencies)
 
     $(eval $(call BuildIPKGVariable,$(1),conffiles))
-    $(eval $(call BuildIPKGVariable,$(1),preinst,,1))
+    $(eval $(call BuildIPKGVariable,$(1),preinst,-pkg,1))
     $(eval $(call BuildIPKGVariable,$(1),postinst,-pkg,1))
     $(eval $(call BuildIPKGVariable,$(1),prerm,-pkg,1))
     $(eval $(call BuildIPKGVariable,$(1),postrm,,1))
@@ -199,6 +199,11 @@ $(_endef)
 		chmod 644 control; \
 		( \
 			echo "#!/bin/sh"; \
+			echo ". \$$$${IPKG_INSTROOT}/lib/functions.sh"; \
+			echo "default_preinst \$$$$0 \$$$$@"; \
+		) > preinst; \
+		( \
+			echo "#!/bin/sh"; \
 			echo "[ \"\$$$${IPKG_NO_SCRIPT}\" = \"1\" ] && exit 0"; \
 			echo ". \$$$${IPKG_INSTROOT}/lib/functions.sh"; \
 			echo "default_postinst \$$$$0 \$$$$@"; \
@@ -208,7 +213,7 @@ $(_endef)
 			echo ". \$$$${IPKG_INSTROOT}/lib/functions.sh"; \
 			echo "default_prerm \$$$$0 \$$$$@"; \
 		) > prerm; \
-		chmod 0755 postinst prerm; \
+		chmod 0755 preinst postinst prerm; \
 		$($(1)_COMMANDS) \
 	)
 
