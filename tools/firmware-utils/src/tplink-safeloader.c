@@ -118,6 +118,9 @@ static const char c2600_vendor[] = "";
 /** Vendor information for EAP120 */
 static const char eap120_vendor[] = "EAP120(TP-LINK|UN|N300-2):1.0\r\n";
 
+/** Vendor information for TL-WR1043ND v4 */
+static const char tlwr1043ndv4_vendor[] = "";
+
 /**
     The flash partition table for CPE210/220/510/520;
     it is the same as the one used by the stock images.
@@ -211,6 +214,29 @@ static const struct flash_partition_entry eap120_partitions[] = {
 };
 
 /**
+    The flash partition table for the TL-WR1043ND v4
+    We use a bigger os-image partition than the stock images (and thus
+    smaller file-system), as our kernel doesn't fit in the stock firmware's
+    1MB os-image.
+*/
+static const struct flash_partition_entry tlwr1043ndv4_partitions[] = {
+	{"fs-uboot", 0x00000, 0x20000},
+	{"os-image", 0x20000, 0x180000},
+	{"file-system", 0x1a0000, 0xdb0000},
+	{"default-mac", 0xf50000, 0x00200},
+	{"pin", 0xf50200, 0x00200},
+	{"product-info", 0xf50400, 0x0fc00},
+	{"soft-version", 0xf60000, 0x0b000},
+	{"support-list", 0xf6b000, 0x04000},
+	{"profile", 0xf70000, 0x04000},
+	{"default-config", 0xf74000, 0x0b000},
+	{"user-config", 0xf80000, 0x40000},
+	{"partition-table", 0xfc0000, 0x10000},
+	{"log", 0xfd0000, 0x20000},
+	{"radio", 0xff0000, 0x10000},
+	{NULL, 0, 0}
+};
+/**
    The support list for CPE210/220
 */
 static const char cpe210_support_list[] =
@@ -251,6 +277,10 @@ static const char c9_support_list[] =
 	"{product_name:ArcherC9,"
 	"product_ver:1.0.0,"
 	"special_id:00000000}\n";
+
+static const char tlwr1043ndv4_support_list[] =
+	"SupportList:\n"
+	"{product_name:TL-WR1043ND,product_ver:4.0.0,special_id:45550000}\n";
 
 /**
    The support list for EAP120
@@ -617,6 +647,38 @@ static void *generate_sysupgrade_image_eap120(const struct flash_partition_entry
 	return image;
 }
 
+static void *generate_sysupgrade_image_tlwr1043ndv4(const struct flash_partition_entry *flash_parts, const struct image_partition_entry *image_parts, size_t *len)
+{
+	const struct flash_partition_entry *flash_os_image = &flash_parts[1];
+	const struct flash_partition_entry *flash_file_system = &flash_parts[2];
+
+	const struct image_partition_entry *image_os_image = &image_parts[3];
+	const struct image_partition_entry *image_file_system = &image_parts[4];
+
+	assert(strcmp(flash_os_image->name, "os-image") == 0);
+	assert(strcmp(flash_file_system->name, "file-system") == 0);
+
+	assert(strcmp(image_os_image->name, "os-image") == 0);
+	assert(strcmp(image_file_system->name, "file-system") == 0);
+
+	if (image_os_image->size > flash_os_image->size)
+		error(1, 0, "kernel image too big (more than %u bytes)", (unsigned)flash_os_image->size);
+	if (image_file_system->size > flash_file_system->size)
+		error(1, 0, "rootfs image too big (more than %u bytes)", (unsigned)flash_file_system->size);
+
+	*len = flash_file_system->base - flash_os_image->base + image_file_system->size;
+
+	uint8_t *image = malloc(*len);
+	if (!image)
+		error(1, errno, "malloc");
+
+	memset(image, 0xff, *len);
+	memcpy(image, image_os_image->data, image_os_image->size);
+	memcpy(image + flash_file_system->base - flash_os_image->base, image_file_system->data, image_file_system->size);
+
+	return image;
+}
+
 struct device_info cpe210_info = {
 	.vendor = cpe510_vendor,
 	.support_list = cpe210_support_list,
@@ -654,6 +716,14 @@ struct device_info eap120_info = {
 	.support_trail = '\xff',
 	.partitions = eap120_partitions,
 	.generate_sysupgrade_image = &generate_sysupgrade_image_eap120,
+};
+
+struct device_info tlwr1043ndv4_info = {
+	.vendor = tlwr1043ndv4_vendor,
+	.support_list = tlwr1043ndv4_support_list,
+	.support_trail = '\x00',
+	.partitions = tlwr1043ndv4_partitions,
+	.generate_sysupgrade_image = &generate_sysupgrade_image_tlwr1043ndv4,
 };
 
 static void build_image(const char *output,
@@ -784,6 +854,8 @@ int main(int argc, char *argv[]) {
 		info = &eap120_info;
 	else if (strcmp(board, "ARCHERC9") == 0)
 		info = &e9_info;
+	else if (strcmp(board, "TLWR1043NDV4") == 0)
+		info = &tlwr1043ndv4_info;
 	else
 		error(1, 0, "unsupported board %s", board);
 
