@@ -1392,7 +1392,7 @@
 +
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -3372,6 +3372,19 @@ static inline void netif_tx_unlock_bh(st
+@@ -3410,6 +3410,19 @@ static inline void netif_tx_unlock_bh(st
  	}						\
  }
  
@@ -1506,7 +1506,7 @@
  extern struct kmem_cache *skbuff_head_cache;
  
  void kfree_skb_partial(struct sk_buff *skb, bool head_stolen);
-@@ -3381,6 +3400,10 @@ static inline void __nf_copy(struct sk_b
+@@ -3408,6 +3427,10 @@ static inline void __nf_copy(struct sk_b
  	if (copy)
  		dst->nfctinfo = src->nfctinfo;
  #endif
@@ -1545,7 +1545,7 @@
  	if (qdisc_run_begin(q))
 --- a/include/net/sch_generic.h
 +++ b/include/net/sch_generic.h
-@@ -508,6 +508,12 @@ static inline int qdisc_enqueue(struct s
+@@ -517,6 +517,12 @@ static inline int qdisc_enqueue(struct s
  	return sch->enqueue(skb, sch);
  }
  
@@ -1603,14 +1603,6 @@
  
  static struct sk_buff *validate_xmit_vlan(struct sk_buff *skb,
  					  netdev_features_t features)
-@@ -2846,6 +2855,7 @@ struct sk_buff *validate_xmit_skb_list(s
- 	}
- 	return head;
- }
-+EXPORT_SYMBOL(validate_xmit_skb_list);
- 
- static void qdisc_pkt_len_init(struct sk_buff *skb)
- {
 --- a/net/core/skbuff.c
 +++ b/net/core/skbuff.c
 @@ -82,6 +82,87 @@ struct kmem_cache *skbuff_head_cache __r
@@ -1741,7 +1733,7 @@
  
  	/* Note : this field could be in headers_start/headers_end section
  	 * It is not yet because we do not want to have a 16 bit hole
-@@ -3362,6 +3469,13 @@ void __init skb_init(void)
+@@ -3344,6 +3451,13 @@ void __init skb_init(void)
  						0,
  						SLAB_HWCACHE_ALIGN|SLAB_PANIC,
  						NULL);
