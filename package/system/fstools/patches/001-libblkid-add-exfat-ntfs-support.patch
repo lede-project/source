@@ -1,6 +1,6 @@
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -29,6 +29,8 @@ ADD_LIBRARY(blkid-tiny SHARED
+@@ -30,6 +30,8 @@ ADD_LIBRARY(blkid-tiny SHARED
  		libblkid-tiny/squashfs.c
  		libblkid-tiny/btrfs.c
  		libblkid-tiny/f2fs.c
@@ -185,7 +185,7 @@
  	ret = read(pr->fd, probe_buffer, len);
  
  	if (ret != len)
-@@ -153,6 +157,61 @@ int blkid_probe_sprintf_uuid(blkid_probe
+@@ -152,6 +156,61 @@ int blkid_probe_sprintf_uuid(blkid_probe
  	return 0;
  }
  
@@ -247,7 +247,7 @@
  static const struct blkid_idinfo *idinfos[] =
  {
  	&vfat_idinfo,
-@@ -170,6 +229,8 @@ static const struct blkid_idinfo *idinfo
+@@ -169,6 +228,8 @@ static const struct blkid_idinfo *idinfo
  	&hfs_idinfo,
  	&btrfs_idinfo,
  	&f2fs_idinfo,

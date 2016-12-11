@@ -1,6 +1,6 @@
 --- a/block.c
 +++ b/block.c
-@@ -238,6 +238,55 @@ static void parse_mount_options(struct m
+@@ -241,6 +241,55 @@ static void parse_mount_options(struct m
  	free(optstr);
  }
  
@@ -56,7 +56,7 @@
  static int mount_add(struct uci_section *s)
  {
  	struct blob_attr *tb[__MOUNT_MAX] = { 0 };
-@@ -548,6 +597,7 @@ static int print_block_uci(struct blkid_
+@@ -530,6 +579,7 @@ static int print_block_uci(struct probe_
  		printf("\toption\tuuid\t'%s'\n", pr->uuid);
  	else
  		printf("\toption\tdevice\t'%s'\n", pr->dev);
@@ -64,57 +64,40 @@
  	printf("\toption\tenabled\t'0'\n\n");
  
  	return 0;
-@@ -732,8 +782,28 @@ static int mount_device(struct blkid_str
- 		if (check_fs)
- 			check_filesystem(pr);
+@@ -855,8 +905,34 @@ static int handle_mount(const char *sour
+ 	size_t mount_opts_len;
+ 	char *mount_opts = NULL, *ptr;
  
--		err = mount(pr->dev, target, pr->id->name, m->flags,
--		            (m->options) ? (m->options) : (""));
-+		if (strcmp(pr->id->name, "ntfs-3g") && strcmp(pr->id->name, "ntfs") && strcmp(pr->id->name, "exfat"))
+-	err = mount(source, target, fstype, m ? m->flags : 0,
+-	            (m && m->options) ? m->options : "");
++	if (strcmp(fstype, "ntfs-3g") && strcmp(fstype, "ntfs") && strcmp(fstype, "exfat"))
++	{
++		err = mount(source, target, fstype, m ? m->flags : 0,
++		            (m && m->options) ? m->options : "");
++	}
++	else
++	{
++		char cmd[1024];
++		const char *param;
++		param = mount_flags_to_string(m ? m->flags : 0);
++		if (strcmp(fstype, "exfat"))
 +		{
-+			err = mount(pr->dev, target, pr->id->name, m->flags,
-+		    		(m->options) ? (m->options) : (""));
-+		}
-+		else
-+		{
-+			char cmd[1024];
-+			const char *param;
-+
-+			param = mount_flags_to_string(m->flags);
-+
-+			if (strcmp(pr->id->name, "exfat"))
++			err = mount(source, target, "ufsd", m->flags, (m->options) ? (m->options) : (""));
++			if(err)
++			{
 +				snprintf(cmd, sizeof (cmd), "ntfs-3g -o \"%s,%s\" %s %s >/dev/null",
-+					param, (m->options) ? (m->options) : (""), pr->dev, target);
++					param, (m->options) ? (m->options) : (""), source, target);
++				err = system(cmd);
++			}
 +
-+			else
-+				snprintf(cmd, sizeof (cmd), "mount -t exfat -o \"%s,%s\" %s %s >/dev/null",
-+					param, (m->options) ? (m->options) : (""), pr->dev, target);
-+
-+			err = system(cmd);
-+		}
- 		if (err)
- 			ULOG_ERR("mounting %s (%s) as %s failed (%d) - %s\n",
- 			         pr->dev, pr->id->name, target, err, strerror(err));
-@@ -752,7 +822,21 @@ static int mount_device(struct blkid_str
- 		if (check_fs)
- 			check_filesystem(pr);
- 
--		err = mount(pr->dev, target, pr->id->name, 0, "");
-+		if (strcmp(pr->id->name, "ntfs-3g") && strcmp(pr->id->name, "ntfs") && strcmp(pr->id->name, "exfat"))
-+		{
-+			err = mount(pr->dev, target, pr->id->name, 0, "");
 +		}
 +		else
 +		{
-+			char cmd[1024];
-+
-+			if (strcmp(pr->id->name, "exfat"))
-+				snprintf(cmd, sizeof (cmd), "ntfs-3g %s %s >/dev/null", pr->dev, target);
-+			else
-+				snprintf(cmd, sizeof (cmd), "mount -t exfat %s %s >/dev/null", pr->dev, target);
-+
++			snprintf(cmd, sizeof (cmd), "mount -t exfat -o \"%s,%s\" %s %s >/dev/null",
++				param, (m->options) ? (m->options) : (""), source, target);
 +			err = system(cmd);
 +		}
- 		if (err)
- 			ULOG_ERR("mounting %s (%s) as %s failed (%d) - %s\n",
- 			         pr->dev, pr->id->name, target, err, strerror(err));
++	}
+ 
+ 	/* Requested file system type is not available in kernel,
+ 	   attempt to call mount helper. */

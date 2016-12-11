@@ -1,0 +1,45 @@
+--- a/block.c
++++ b/block.c
+@@ -566,25 +566,6 @@ static void cache_load(int mtd)
+ 	_cache_load("/dev/mapper/*");
+ }
+ 
+-
+-static int print_block_uci(struct probe_info *pr)
+-{
+-	if (!strcmp(pr->type, "swap")) {
+-		printf("config 'swap'\n");
+-	} else {
+-		printf("config 'mount'\n");
+-		printf("\toption\ttarget\t'/mnt/%s'\n", basename(pr->dev));
+-	}
+-	if (pr->uuid)
+-		printf("\toption\tuuid\t'%s'\n", pr->uuid);
+-	else
+-		printf("\toption\tdevice\t'%s'\n", pr->dev);
+-	printf("\toption\tfstype\t'%s'\n", (!strcmp(pr->id->name, "ntfs") ? "ntfs-3g" : pr->id->name));
+-	printf("\toption\tenabled\t'0'\n\n");
+-
+-	return 0;
+-}
+-
+ static struct probe_info* find_block_info(char *uuid, char *label, char *path)
+ {
+ 	struct probe_info *pr = NULL;
+@@ -1525,7 +1506,6 @@ static int main_umount(int argc, char **
+ 
+ static int main_detect(int argc, char **argv)
+ {
+-	struct probe_info *pr;
+ 
+ 	cache_load(0);
+ 	printf("config 'global'\n");
+@@ -1535,8 +1515,6 @@ static int main_detect(int argc, char **
+ 	printf("\toption\tauto_mount\t'1'\n");
+ 	printf("\toption\tdelay_root\t'5'\n");
+ 	printf("\toption\tcheck_fs\t'0'\n\n");
+-	list_for_each_entry(pr, &devices, list)
+-		print_block_uci(pr);
+ 
+ 	return 0;
+ }
