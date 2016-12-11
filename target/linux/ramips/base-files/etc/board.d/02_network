@@ -63,6 +63,7 @@ ramips_setup_interfaces()
 		ucidef_set_interface_lan "eth0.2"
 		;;
 	3g-6200n|\
+	ac1200pro|\
 	ai-br100|\
 	db-wrt01|\
 	dir-300-b7|\
@@ -87,13 +88,9 @@ ramips_setup_interfaces()
 	sk-wb8|\
 	vr500|\
 	wf-2881|\
-	whr-300hp2|\
-	whr-600d|\
 	witi|\
 	wl-wn575a3|\
 	wndr3700v5|\
-	wsr-1166|\
-	wsr-600|\
 	wt1520|\
 	y1|\
 	youku-yk1|\
@@ -104,6 +101,13 @@ ramips_setup_interfaces()
 	zbt-wr8305rt)
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "2:lan" "3:lan" "4:wan" "6@eth0"
+		;;
+	whr-300hp2|\
+	whr-600d|\
+	wsr-1166|\
+	wsr-600)
+		ucidef_add_switch "switch0" \
+			"0:lan:1" "1:lan:2" "2:lan:3" "3:lan:4" "4:wan:5" "6@eth0"
 		;;
 	ar670w|\
 	ar725w|\
@@ -125,7 +129,6 @@ ramips_setup_interfaces()
 	c50|\
 	dir-645|\
 	dir-860l-b1|\
-	f5d8235-v1|\
 	f5d8235-v2|\
 	gl-mt300a|\
 	gl-mt300n|\
@@ -200,6 +203,10 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "5:lan" "0:wan" "6@eth0"
 		;;
+	kng_rc)
+		ucidef_add_switch "switch1" \
+			"0:lan" "1:lan" "2:lan" "3:lan" "4:wan" "7t@eth0"
+		;;
 	mlwg2|\
 	wizard8800|\
 	wl-330n)
@@ -222,15 +229,21 @@ ramips_setup_interfaces()
 			"0:lan" "1:lan" "2:lan" "3:lan" "4:wan" "8@eth0"
 		;;
 	tew-691gr|\
-	tew-692gr)
+	tew-692gr|\
+	wlr-6000)
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "5:wan" "0@eth0"
 		;;
+	f5d8235-v1|\
 	tew-714tru|\
 	v11st-fe|\
 	wzr-agl300nh)
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "0:wan" "5@eth0"
+		;;
+	w2914nsv2)
+		ucidef_add_switch "switch0" \
+			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "4:wan:5" "6@eth0"
 		;;
 	wcr-150gn)
 		ucidef_add_switch "switch0" \
@@ -315,6 +328,9 @@ ramips_setup_macs()
 		[ -n "$lan_mac" ] || lan_mac=$(cat /sys/class/net/eth0/address)
 		wan_mac=$(macaddr_add "$lan_mac" 1)
 		;;
+	kng_rc)
+		wan_mac=$(mtd_get_mac_binary factory 28)
+		;;
 	linkits7688 | \
 	linkits7688d)
 		wan_mac=$(mtd_get_mac_binary factory 4)
@@ -378,6 +394,9 @@ ramips_setup_macs()
 	wizfi630a)
 		lan_mac=$(mtd_get_mac_binary factory 4)
 		wan_mac=$(mtd_get_mac_binary factory 40)
+		;;
+	wlr-6000)
+		wan_mac=$(macaddr_add "$(mtd_get_mac_binary factory 32772)" 2)
 		;;
 	wsr-1166)
 		local index="$(find_mtd_index "board_data")"

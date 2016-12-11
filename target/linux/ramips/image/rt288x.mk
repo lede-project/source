@@ -6,13 +6,6 @@ define Build/gemtek-header
 	mkheader_gemtek $@ $@.new $(1) && mv $@.new $@
 endef
 
-define Build/airlink-header
-	mkwrgimg -i $@ \
-		-d "/dev/mtdblock/2" \
-		-s "wrgn16a_airlink_ar670w" \
-		-o $@.new && mv $@.new $@
-endef
-
 define Device/ar670w
   DTS := AR670W
   BLOCKSIZE := 64k
@@ -20,7 +13,8 @@ define Device/ar670w
   IMAGE_SIZE := $(ralink_default_fw_size_4M)
   KERNEL := $(KERNEL_DTB)
   IMAGES += factory.bin
-  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | gemtek-header ar725w
+  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+	wrg-header wrgn16a_airlink_ar670w
 endef
 TARGET_DEVICES += ar670w
 
@@ -28,7 +22,8 @@ define Device/ar725w
   DTS := AR725W
   DEVICE_TITLE := Gemtek AR725W
   IMAGES += factory.bin
-  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | gemtek-header ar725w
+  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+	gemtek-header ar725w
 endef
 TARGET_DEVICES += ar725w
 
@@ -36,7 +31,8 @@ define Device/f5d8235v1
   DTS := F5D8235_V1
   IMAGE_SIZE := 7744k
   DEVICE_TITLE := Belkin F5D8235 V1
-  DEVICE_PACKAGES := kmod-switch-rtl8366s
+  DEVICE_PACKAGES := kmod-switch-rtl8366s kmod-usb-core kmod-usb-ohci \
+    kmod-usb-ohci-pci kmod-usb2 kmod-usb2-pci kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += f5d8235v1
 

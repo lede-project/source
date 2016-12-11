@@ -38,12 +38,14 @@ enum ath79_mach_type {
 	ATH79_MACH_AP152,			/* Atheros AP152 reference board */
 	ATH79_MACH_AP81,			/* Atheros AP81 reference board */
 	ATH79_MACH_AP83,			/* Atheros AP83 */
+	ATH79_MACH_AP90Q,			/* YunCore AP90Q */
 	ATH79_MACH_AP96,			/* Atheros AP96 */
 	ATH79_MACH_ARCHER_C5,			/* TP-LINK Archer C5 board */
 	ATH79_MACH_ARCHER_C7,			/* TP-LINK Archer C7 board */
 	ATH79_MACH_ARCHER_C7_V2,		/* TP-LINK Archer C7 V2 board */
 	ATH79_MACH_ARDUINO_YUN,			/* Yun */
 	ATH79_MACH_AW_NR580,			/* AzureWave AW-NR580 */
+	ATH79_MACH_BHR_4GRV2,			/* Buffalo BHR-4GRV2 */
 	ATH79_MACH_BHU_BXU2000N2_A1,		/* BHU BXU2000n-2 A1 */
 	ATH79_MACH_BSB,				/* Smart Electronics Black Swift board */
 	ATH79_MACH_C55,				/* AirTight Networks C-55 */
@@ -52,8 +54,15 @@ enum ath79_mach_type {
 	ATH79_MACH_CAP4200AG,			/* Senao CAP4200AG */
 	ATH79_MACH_CARAMBOLA2,			/* 8devices Carambola2 */
 	ATH79_MACH_CF_E316N_V2,			/* COMFAST CF-E316N v2 */
+	ATH79_MACH_CF_E320N_V2,			/* COMFAST CF-E320N v2 */
+	ATH79_MACH_CF_E380AC_V1,		/* COMFAST CF-E380AC v1 */
+	ATH79_MACH_CF_E380AC_V2,		/* COMFAST CF-E380AC v2 */
+	ATH79_MACH_CF_E520N,			/* COMFAST CF-E520N */
+	ATH79_MACH_CF_E530N,			/* COMFAST CF-E530N */
 	ATH79_MACH_CPE210,			/* TP-LINK CPE210 */
 	ATH79_MACH_CPE510,			/* TP-LINK CPE510 */
+	ATH79_MACH_CPE830,			/* YunCore CPE830 */
+	ATH79_MACH_CPE870,			/* YunCore CPE870 */
 	ATH79_MACH_CR3000,			/* PowerCloud CR3000 */
 	ATH79_MACH_CR5000,			/* PowerCloud CR5000 */
 	ATH79_MACH_DAP_2695_A1,			/* D-Link DAP-2695 rev. A1 */

@@ -1,3 +1,12 @@
+define Device/ap90q
+  DEVICE_TITLE := YunCore AP90Q
+  BOARDNAME = AP90Q
+  IMAGE_SIZE = 16000k
+  CONSOLE = ttyS0,115200
+  MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env),16000k(firmware),64k(art)ro
+endef
+TARGET_DEVICES += ap90q
+
 define Device/bsb
   DEVICE_TITLE := Smart Electronics Black Swift board
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2
@@ -23,20 +32,71 @@ define Device/cf-e316n-v2
   BOARDNAME = CF-E316N-V2
   IMAGE_SIZE = 16192k
   CONSOLE = ttyS0,115200
-  MTDPARTS = spi0.0:64k(u-boot)ro,64k(art)ro,16192k(firmware),64k(nvram)ro
+  MTDPARTS = spi0.0:64k(u-boot)ro,64k(art)ro,16192k(firmware),64k(art-backup)ro
 endef
 TARGET_DEVICES += cf-e316n-v2
 
-define Device/domywifi-dw33d
-  DEVICE_TITLE := DomyWifi DW33D
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage kmod-ledtrig-usbdev kmod-ath10k
-  BOARDNAME = DW33D
-  IMAGE_SIZE = 16000k
-  CONSOLE = ttyS0,115200
-  MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,14528k(rootfs),1472k(kernel),64k(art)ro,16000k@0x50000(firmware);ar934x-nfc:96m(rootfs_data),32m(backup)ro
-  IMAGE/sysupgrade.bin = append-rootfs | pad-rootfs | pad-to 14528k | append-kernel | check-size $$$$(IMAGE_SIZE)
+define Device/cf-e320n-v2
+  $(Device/cf-e316n-v2)
+  DEVICE_TITLE := COMFAST CF-E320N v2
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
+  BOARDNAME = CF-E320N-V2
 endef
-TARGET_DEVICES += domywifi-dw33d
+TARGET_DEVICES += cf-e320n-v2
+
+define Device/cf-e380ac-v1
+  DEVICE_TITLE := COMFAST CF-E380AC v1
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k ath10k-firmware-qca988x
+  BOARDNAME = CF-E380AC-V1
+  IMAGE_SIZE = 16128k
+  CONSOLE = ttyS0,115200
+  MTDPARTS = spi0.0:128k(u-boot)ro,64k(art)ro,16128k(firmware),64k(art-backup)ro
+endef
+TARGET_DEVICES += cf-e380ac-v1
+
+define Device/cf-e380ac-v2
+  $(Device/cf-e380ac-v1)
+  DEVICE_TITLE := COMFAST CF-E380AC v2
+  BOARDNAME = CF-E380AC-V2
+  IMAGE_SIZE = 16000k
+  MTDPARTS = spi0.0:256k(u-boot)ro,64k(art)ro,16000k(firmware),64k(art-backup)ro
+endef
+TARGET_DEVICES += cf-e380ac-v2
+
+define Device/cf-e520n
+  DEVICE_TITLE := COMFAST CF-E520N
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
+  BOARDNAME = CF-E520N
+  IMAGE_SIZE = 8000k
+  CONSOLE = ttyS0,115200
+  MTDPARTS = spi0.0:64k(u-boot)ro,64k(art)ro,8000k(firmware),64k(art-backup)ro
+endef
+TARGET_DEVICES += cf-e520n
+
+define Device/cf-e530n
+  $(Device/cf-e520n)
+  DEVICE_TITLE := COMFAST CF-E530N
+  BOARDNAME = CF-E530N
+endef
+TARGET_DEVICES += cf-e530n
+
+define Device/cpe830
+  $(Device/ap90q)
+  DEVICE_TITLE := YunCore CPE830
+  DEVICE_PACKAGES := rssileds
+  BOARDNAME = CPE830
+endef
+TARGET_DEVICES += cpe830
+
+define Device/cpe870
+  DEVICE_TITLE := YunCore CPE870
+  DEVICE_PACKAGES := rssileds
+  BOARDNAME = CPE870
+  IMAGE_SIZE = 7936k
+  CONSOLE = ttyS0,115200
+  MTDPARTS = spi0.0:64k(u-boot)ro,64k(u-boot-env),7936k(firmware),64k(config)ro,64k(art)ro
+endef
+TARGET_DEVICES += cpe870
 
 define Device/dragino2
   BOARDNAME := DRAGINO2
@@ -626,3 +686,24 @@ define Device/dap-2695-a1
 endef
 
 TARGET_DEVICES += dap-2695-a1
+
+define Build/mkbuffaloimg
+	$(STAGING_DIR_HOST)/bin/mkbuffaloimg -B $(BOARDNAME) \
+		-R $$(($(subst k, * 1024,$(ROOTFS_SIZE)))) \
+		-K $$(($(subst k, * 1024,$(KERNEL_SIZE)))) \
+		-i $@ -o $@.new
+	mv $@.new $@
+endef
+
+define Device/bhr-4grv2
+  DEVICE_TITLE := Buffalo BHR-4GRV2
+  BOARDNAME := BHR-4GRV2
+  ROOTFS_SIZE := 14528k
+  KERNEL_SIZE := 1472k
+  IMAGE_SIZE := 16000k
+  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,14528k(rootfs),1472k(kernel),64k(art)ro,16000k@0x50000(firmware)
+  IMAGES := sysupgrade.bin factory.bin
+  IMAGE/sysupgrade.bin = append-rootfs | pad-rootfs | pad-to $$$$(ROOTFS_SIZE) | append-kernel | check-size $$$$(IMAGE_SIZE)
+  IMAGE/factory.bin = append-kernel | pad-to $$$$(KERNEL_SIZE) | append-rootfs | mkbuffaloimg
+endef
+TARGET_DEVICES += bhr-4grv2

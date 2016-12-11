@@ -1,4 +1,4 @@
-From 7106c05e5f71588e746c786f93b1fca9dcdd3c50 Mon Sep 17 00:00:00 2001
+From 64f24afea7e30d68004f0d8db7822f87859d8dac Mon Sep 17 00:00:00 2001
 From: popcornmix <popcornmix@gmail.com>
 Date: Wed, 18 Dec 2013 22:16:19 +0000
 Subject: [PATCH] config: Enable CONFIG_MEMCG, but leave it disabled (due to
@@ -10,7 +10,7 @@ Subject: [PATCH] config: Enable CONFIG_MEMCG, but leave it disabled (due to
 
 --- a/kernel/cgroup.c
 +++ b/kernel/cgroup.c
-@@ -5307,7 +5307,7 @@ int __init cgroup_init_early(void)
+@@ -5310,7 +5310,7 @@ int __init cgroup_init_early(void)
  	return 0;
  }
  
@@ -19,7 +19,7 @@ Subject: [PATCH] config: Enable CONFIG_MEMCG, but leave it disabled (due to
  
  /**
   * cgroup_init - cgroup initialization
-@@ -5803,6 +5803,27 @@ static int __init cgroup_disable(char *s
+@@ -5806,6 +5806,27 @@ static int __init cgroup_disable(char *s
  }
  __setup("cgroup_disable=", cgroup_disable);
  

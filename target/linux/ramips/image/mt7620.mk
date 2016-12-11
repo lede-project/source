@@ -37,11 +37,15 @@ define Build/elecom-header
 	$(STAGING_DIR_HOST)/bin/tar -cf $@ -C $(KDIR) v_0.0.0.bin v_0.0.0.md5
 endef
 
+define Build/zyimage
+	$(STAGING_DIR_HOST)/bin/zyimage $(1) $@
+endef
+
 define Device/ArcherC20i
   DTS := ArcherC20i
   KERNEL := $(KERNEL_DTB)
   KERNEL_INITRAMFS := $(KERNEL_DTB) | tplink-header ArcherC20i -c
-  IMAGE/sysupgrade.bin := append-kernel | tplink-header ArcherC20i -j -r $(KDIR)/root.squashfs
+  IMAGE/sysupgrade.bin := append-kernel | tplink-header ArcherC20i -j -r $(KDIR)/root.squashfs | append-metadata
   DEVICE_TITLE := TP-Link ArcherC20i
 endef
 TARGET_DEVICES += ArcherC20i
@@ -50,7 +54,7 @@ define Device/ArcherC50
   DTS := ArcherC50
   KERNEL := $(KERNEL_DTB)
   KERNEL_INITRAMFS := $(KERNEL_DTB) | tplink-header ArcherC50 -c
-  IMAGE/sysupgrade.bin := append-kernel | tplink-header ArcherC50 -j -r $(KDIR)/root.squashfs
+  IMAGE/sysupgrade.bin := append-kernel | tplink-header ArcherC50 -j -r $(KDIR)/root.squashfs | append-metadata
   DEVICE_TITLE := TP-Link ArcherC50
 endef
 TARGET_DEVICES += ArcherC50
@@ -61,7 +65,8 @@ define Device/ex2700
   IMAGE_SIZE := $(ralink_default_fw_size_4M)
   IMAGES += factory.bin
   KERNEL := $(KERNEL_DTB) | uImage lzma | pad-kernel-ex2700
-  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | netgear-header -B EX2700 -H 29764623+4+0+32+2x2+0
+  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+	netgear-header -B EX2700 -H 29764623+4+0+32+2x2+0
   DEVICE_TITLE := Netgear EX2700
 endef
 TARGET_DEVICES += ex2700
@@ -71,7 +76,9 @@ define Device/wt3020-4M
   BLOCKSIZE := 4k
   IMAGE_SIZE := $(ralink_default_fw_size_4M)
   IMAGES += factory.bin
-  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | poray-header -B WT3020 -F 4M
+  SUPPORTED_DEVICES := wt3020
+  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+	poray-header -B WT3020 -F 4M
   DEVICE_TITLE := Nexx WT3020 (4MB)
 endef
 TARGET_DEVICES += wt3020-4M
@@ -79,7 +86,9 @@ TARGET_DEVICES += wt3020-4M
 define Device/wt3020-8M
   DTS := WT3020-8M
   IMAGES += factory.bin
-  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | poray-header -B WT3020 -F 8M
+  SUPPORTED_DEVICES := wt3020
+  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+	poray-header -B WT3020 -F 8M
   DEVICE_TITLE := Nexx WT3020 (8MB)
 endef
 TARGET_DEVICES += wt3020-8M
@@ -88,7 +97,8 @@ define Device/wrh-300cr
   DTS := WRH-300CR
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   IMAGES += factory.bin
-  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | elecom-header
+  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+	elecom-header
   DEVICE_TITLE := Elecom WRH-300CR 
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci
 endef
@@ -97,7 +107,8 @@ TARGET_DEVICES += wrh-300cr
 define Device/e1700
   DTS := E1700
   IMAGES += factory.bin
-  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | umedia-header 0x013326
+  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+	umedia-header 0x013326
   DEVICE_TITLE := Linksys E1700
 endef
 TARGET_DEVICES += e1700
@@ -407,7 +418,7 @@ define Device/dch-m225
   IMAGE/sysupgrade.bin := \
 	append-kernel | pad-offset $$$$(BLOCKSIZE) 64 | append-rootfs | \
 	seama -m "dev=/dev/mtdblock/2" -m "type=firmware" | \
-	pad-rootfs | check-size $$$$(IMAGE_SIZE)
+	pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
   IMAGE/factory.bin := \
 	append-kernel | pad-offset $$$$(BLOCKSIZE) 64 | \
 	append-rootfs | pad-rootfs -x 64 | \
@@ -418,3 +429,14 @@ define Device/dch-m225
   DEVICE_PACKAGES := kmod-mt76
 endef
 TARGET_DEVICES += dch-m225
+
+define Device/kng_rc
+  DTS := kng_rc
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := ZyXEL Keenetic Viva
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport kmod-switch-rtl8366-smi kmod-switch-rtl8367b
+  IMAGES += factory.bin
+  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+	zyimage -d 8997 -v "ZyXEL Keenetic Viva"
+endef
+TARGET_DEVICES += kng_rc

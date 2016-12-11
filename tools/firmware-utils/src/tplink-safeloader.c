@@ -67,6 +67,13 @@ struct flash_partition_entry {
 	uint32_t size;
 };
 
+struct device_info {
+	const char *vendor;
+	const char *support_list;
+	char support_trail;
+	const struct flash_partition_entry *partitions;
+	void *(*generate_sysupgrade_image)(const struct flash_partition_entry *flash_parts, const struct image_partition_entry *image_parts, size_t *len);
+};
 
 /** The content of the soft-version structure */
 struct __attribute__((__packed__)) soft_version {
@@ -165,6 +172,25 @@ static const struct flash_partition_entry c2600_partitions[] = {
 	{NULL, 0, 0}
 };
 
+static const struct flash_partition_entry c5_partitions[] = {
+	{"fs-uboot", 0x00000, 0x40000},
+	{"os-image", 0x40000, 0x200000},
+	{"file-system", 0x240000, 0xc00000},
+	{"default-mac", 0xe40000, 0x00200},
+	{"pin", 0xe40200, 0x00200},
+	{"product-info", 0xe40400, 0x00200},
+	{"partition-table", 0xe50000, 0x10000},
+	{"soft-version", 0xe60000, 0x00200},
+	{"support-list", 0xe61000, 0x0f000},
+	{"profile", 0xe70000, 0x10000},
+	{"default-config", 0xe80000, 0x10000},
+	{"user-config", 0xe90000, 0x50000},
+	{"log", 0xee0000, 0x100000},
+	{"radio_bk", 0xfe0000, 0x10000},
+	{"radio", 0xff0000, 0x10000},
+	{NULL, 0, 0}
+};
+
 /**    The flash partition table for EAP120;
     it is the same as the one used by the stock images.
 */
@@ -209,6 +235,12 @@ static const char cpe510_support_list[] =
 static const char c2600_support_list[] =
 	"SupportList:\r\n"
 	"{product_name:Archer C2600,product_ver:1.0.0,special_id:00000000}\r\n";
+
+static const char c9_support_list[] =
+	"SupportList:\n"
+	"{product_name:ArcherC9,"
+	"product_ver:1.0.0,"
+	"special_id:00000000}\n";
 
 /**
    The support list for EAP120
@@ -316,14 +348,14 @@ static struct image_partition_entry make_soft_version(uint32_t rev) {
 }
 
 /** Generates the support-list partition */
-static struct image_partition_entry make_support_list(const char *support_list, bool trailzero) {
-	size_t len = strlen(support_list);
+static struct image_partition_entry make_support_list(struct device_info *info) {
+	size_t len = strlen(info->support_list);
 	struct image_partition_entry entry = alloc_image_partition("support-list", len + 9);
 
 	put32(entry.data, len);
 	memset(entry.data+4, 0, 4);
-	memcpy(entry.data+8, support_list, len);
-	entry.data[len+8] = trailzero ? '\x00' : '\xff';
+	memcpy(entry.data+8, info->support_list, len);
+	entry.data[len+8] = info->support_trail;
 
 	return entry;
 }
@@ -575,101 +607,66 @@ static void *generate_sysupgrade_image_eap120(const struct flash_partition_entry
 	return image;
 }
 
-/** Generates an image for CPE210/220/510/520 and writes it to a file */
-static void do_cpe(const char *output,
+struct device_info cpe210_info = {
+	.vendor = cpe510_vendor,
+	.support_list = cpe210_support_list,
+	.support_trail = '\xff',
+	.partitions = cpe510_partitions,
+	.generate_sysupgrade_image = &generate_sysupgrade_image,
+};
+
+struct device_info cpe510_info = {
+	.vendor = cpe510_vendor,
+	.support_list = cpe510_support_list,
+	.support_trail = '\xff',
+	.partitions = cpe510_partitions,
+	.generate_sysupgrade_image = &generate_sysupgrade_image,
+};
+
+struct device_info c2600_info = {
+	.vendor = c2600_vendor,
+	.support_list = c2600_support_list,
+	.support_trail = '\x00',
+	.partitions = c2600_partitions,
+	.generate_sysupgrade_image = &generate_sysupgrade_image_c2600,
+};
+
+struct device_info e9_info = {
+	.vendor = c2600_vendor,
+	.support_list = c9_support_list,
+	.support_trail = '\x00',
+	.partitions = c5_partitions,
+};
+
+struct device_info eap120_info = {
+	.vendor = eap120_vendor,
+	.support_list = eap120_support_list,
+	.support_trail = '\xff',
+	.partitions = eap120_partitions,
+	.generate_sysupgrade_image = &generate_sysupgrade_image_eap120,
+};
+
+static void build_image(const char *output,
 		const char *kernel_image,
 		const char *rootfs_image,
 		uint32_t rev,
 		bool add_jffs2_eof,
 		bool sysupgrade,
-		const char *support_list) {
+		struct device_info *info) {
 	struct image_partition_entry parts[6] = {};
 
-	parts[0] = make_partition_table(cpe510_partitions);
+	parts[0] = make_partition_table(info->partitions);
 	parts[1] = make_soft_version(rev);
-	parts[2] = make_support_list(support_list, false);
+	parts[2] = make_support_list(info);
 	parts[3] = read_file("os-image", kernel_image, false);
 	parts[4] = read_file("file-system", rootfs_image, add_jffs2_eof);
 
 	size_t len;
 	void *image;
 	if (sysupgrade)
-		image = generate_sysupgrade_image(cpe510_partitions, parts, &len);
+		image = info->generate_sysupgrade_image(info->partitions, parts, &len);
 	else
-		image = generate_factory_image(cpe510_vendor, parts, &len);
-
-	FILE *file = fopen(output, "wb");
-	if (!file)
-		error(1, errno, "unable to open output file");
-
-	if (fwrite(image, len, 1, file) != 1)
-		error(1, 0, "unable to write output file");
-
-	fclose(file);
-
-	free(image);
-
-	size_t i;
-	for (i = 0; parts[i].name; i++)
-		free_image_partition(parts[i]);
-}
-
-/** Generates an image for C2600 and writes it to a file */
-static void do_c2600(const char *output, const char *kernel_image, const char *rootfs_image, uint32_t rev, bool add_jffs2_eof, bool sysupgrade) {
-	struct image_partition_entry parts[6] = {};
-
-	parts[0] = make_partition_table(c2600_partitions);
-	parts[1] = make_soft_version(rev);
-	parts[2] = make_support_list(c2600_support_list, true);
-	parts[3] = read_file("os-image", kernel_image, false);
-	parts[4] = read_file("file-system", rootfs_image, add_jffs2_eof);
-
-	size_t len;
-	void *image;
-	if (sysupgrade)
-		image = generate_sysupgrade_image_c2600(c2600_partitions, parts, &len);
-	else
-		image = generate_factory_image(c2600_vendor, parts, &len);
-
-	FILE *file = fopen(output, "wb");
-	if (!file)
-		error(1, errno, "unable to open output file");
-
-	if (fwrite(image, len, 1, file) != 1)
-		error(1, 0, "unable to write output file");
-
-	fclose(file);
-
-	free(image);
-
-	size_t i;
-	for (i = 0; parts[i].name; i++)
-		free_image_partition(parts[i]);
-}
-
-
-/** Generates an image for EAP120 and writes it to a file */
-static void do_eap(const char *output,
-		const char *kernel_image,
-		const char *rootfs_image,
-		uint32_t rev,
-		bool add_jffs2_eof,
-		bool sysupgrade,
-		const char *support_list) {
-	struct image_partition_entry parts[6] = {};
-
-	parts[0] = make_partition_table(eap120_partitions);
-	parts[1] = make_soft_version(rev);
-	parts[2] = make_support_list(support_list, false);
-	parts[3] = read_file("os-image", kernel_image, false);
-	parts[4] = read_file("file-system", rootfs_image, add_jffs2_eof);
-
-	size_t len;
-	void *image;
-	if (sysupgrade)
-		image = generate_sysupgrade_image_eap120(eap120_partitions, parts, &len);
-	else
-		image = generate_factory_image(eap120_vendor, parts, &len);
+		image = generate_factory_image(info->vendor, parts, &len);
 
 	FILE *file = fopen(output, "wb");
 	if (!file)
@@ -710,6 +707,7 @@ int main(int argc, char *argv[]) {
 	const char *board = NULL, *kernel_image = NULL, *rootfs_image = NULL, *output = NULL;
 	bool add_jffs2_eof = false, sysupgrade = false;
 	unsigned rev = 0;
+	struct device_info *info;
 
 	while (true) {
 		int c;
@@ -767,15 +765,19 @@ int main(int argc, char *argv[]) {
 		error(1, 0, "no output filename has been specified");
 
 	if (strcmp(board, "CPE210") == 0)
-		do_cpe(output, kernel_image, rootfs_image, rev, add_jffs2_eof, sysupgrade, cpe210_support_list);
+		info = &cpe210_info;
 	else if (strcmp(board, "CPE510") == 0)
-		do_cpe(output, kernel_image, rootfs_image, rev, add_jffs2_eof, sysupgrade, cpe510_support_list);
+		info = &cpe510_info;
 	else if (strcmp(board, "C2600") == 0)
-		do_c2600(output, kernel_image, rootfs_image, rev, add_jffs2_eof, sysupgrade);
+		info = &c2600_info;
 	else if (strcmp(board, "EAP120") == 0)
-		do_eap(output, kernel_image, rootfs_image, rev, add_jffs2_eof, sysupgrade, eap120_support_list);
+		info = &eap120_info;
+	else if (strcmp(board, "ARCHERC9") == 0)
+		info = &e9_info;
 	else
 		error(1, 0, "unsupported board %s", board);
+
+	build_image(output, kernel_image, rootfs_image, rev, add_jffs2_eof, sysupgrade, info);
 
 	return 0;
 }

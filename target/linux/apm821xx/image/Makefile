@@ -22,6 +22,10 @@ define Build/dtb
 	$(call Image/BuildDTB,../dts/$(DEVICE_DTS).dts,$@.dtb,,--space $(DTB_SIZE))
 endef
 
+define Build/export-dtb
+	cp $(IMAGE_KERNEL).dtb $@
+endef
+
 ifeq ($(SUBTARGET),nand)
 
 define Image/cpiogz
@@ -83,6 +87,38 @@ define Device/mr24
   UBINIZE_OPTS := -E 5
 endef
 TARGET_DEVICES += mr24
+
+define Device/mx60
+  DEVICE_TITLE := Cisco Meraki MX60
+  DEVICE_PACKAGES := kmod-spi-gpio swconfig kmod-usb-ledtrig-usbport \
+	kmod-usb-dwc2 kmod-usb-storage block-mount
+  DEVICE_PROFILE := MX60
+  DEVICE_DTS := MX60
+  BLOCKSIZE := 63k
+  IMAGES := sysupgrade.tar
+  DTB_SIZE := 64512
+  # The kernel size will need to match the offset defined in mkmerakifw.c,
+  # otherwise the final image will fail to boot. This is set within the
+  # MX60 kernel header definition which is found at
+  # ./tools/firmware-utils/src/mkmerakifw.c, line 103~
+  KERNEL_SIZE := 2984k
+  IMAGE_SIZE := 1021m
+  KERNEL := kernel-bin | gzip | uImage gzip | MerakiAdd-dtb | MerakiNAND
+  KERNEL_INITRAMFS := copy-file $(KDIR)/vmlinux | gzip | uImage gzip | \
+		      check-size $$(KERNEL_SIZE) | \
+		      MerakiAdd-dtb | pad-to 2047k | MerakiAdd-initramfs | \
+		      MerakiNAND
+  IMAGE/sysupgrade.tar := sysupgrade-tar
+  UBINIZE_OPTS := -E 5
+endef
+TARGET_DEVICES += mx60
+
+define Device/mx60w
+$(Device/mx60)
+  DEVICE_TITLE := Cisco Meraki MX60W
+  DEVICE_PACKAGES += kmod-ath9k wpad-mini
+endef
+TARGET_DEVICES += mx60w
 
 define Build/create-uImage-dtb
 	# flat_dt target expect FIT image - which WNDR4700's uboot doesn't support
@@ -154,13 +190,14 @@ define Device/WNDR4700
   BLOCKSIZE := 128k
   DTB_SIZE := 131008
   IMAGE_SIZE := 24960k
-  IMAGES := factory.img sysupgrade.tar
+  IMAGES := factory.img sysupgrade.tar kernel.dtb
   KERNEL_SIZE := 1920k
   KERNEL := dtb | kernel-bin | lzma | uImage lzma | pad-offset $$(BLOCKSIZE) 64 | append-fakerootfs
   KERNEL_INITRAMFS := kernel-bin | gzip | dtb | wndr4700-specialImage gzip
   IMAGE/factory.img := create-uImage-dtb | append-kernel | pad-to 2M | append-ubi | \
 		       netgear-dni | check-size $$$$(IMAGE_SIZE)
   IMAGE/sysupgrade.tar := sysupgrade-tar
+  IMAGE/kernel.dtb := export-dtb | uImage none
   NETGEAR_BOARD_ID := WNDR4700
   NETGEAR_HW_ID := 29763875+128+256
   UBINIZE_OPTS := -E 5
@@ -196,10 +233,6 @@ endef
 define Build/hdd-img
 	./mbl_gen_hdd_img.sh $@ $@.boot $(IMAGE_ROOTFS)
 	$(if $(CONFIG_TARGET_IMAGES_GZIP),gzip -9n -c $@ > $(BIN_DIR)/$(notdir $@).gz)
-endef
-
-define Build/export-dtb
-	cp $(IMAGE_KERNEL).dtb $@
 endef
 
 define Device/MyBookLiveDefault

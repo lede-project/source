@@ -1,4 +1,4 @@
-rootfs_type=$(patsubst jffs2-%,jffs2,$(patsubst squashfs-%,squashfs,$(1)))
+rootfs_type=$(patsubst squashfs-%,squashfs,$(1))
 
 # $(1): rootfs type.
 # $(2): board name.
@@ -134,9 +134,6 @@ define CatFiles
 	if [ $(2) -eq 0 ]; then \
 		filename="$(3)"; fstype=$${filename##*\.}; \
 		case "$${fstype}" in \
-		"jffs2-64k") bs=65536;; \
-		"jffs2-128k") bs=131072;; \
-		"jffs2-256k") bs=262144;; \
 		*) bs=`stat -c%s $(1)`;; \
 		esac; \
 		( dd if=$(1) bs=$${bs} conv=sync;  cat $(3) ) > $(5); \
@@ -233,9 +230,6 @@ all0315n_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,256k(u-boot-env),13568k(firmwa
 ap81_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,5120k(rootfs),2688k(kernel),64k(art)ro,7808k@0x50000(firmware)
 ap83_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,128k(u-boot-env)ro,4096k(rootfs),3648k(kernel),64k(art)ro,7744k@0x60000(firmware)
 ap96_mtdlayout=mtdparts=spi0.0:192k(u-boot)ro,64k(u-boot-env)ro,6144k(rootfs),1728k(kernel),64k(art)ro,7872k@0x40000(firmware)
-ap113_mtd_layout=mtdparts=spi0.0:64k(u-boot)ro,3008k(rootfs),896k(uImage),64k(NVRAM),64k(ART)ro,3904k@0x10000(firmware)
-ap121_mtdlayout_2M=mtdparts=spi0.0:64k(u-boot)ro,1216k(rootfs),704k(kernel),64k(art)ro,1920k@0x10000(firmware)
-ap121_mtdlayout_4M=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,2448k(rootfs),1200k(kernel),64k(nvram),64k(art)ro,3648k@0x50000(firmware)
 ap121_mtdlayout_8M=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,6144k(rootfs),1600k(kernel),64k(nvram),64k(art)ro,7744k@0x50000(firmware)
 ap121_mtdlayout_16M=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,10944k(rootfs),4992k(kernel),64k(nvram),64k(art)ro,15936k@0x50000(firmware)
 ap132_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,1408k(kernel),6400k(rootfs),64k(art)ro,7808k@0x50000(firmware)
@@ -271,7 +265,6 @@ ew-dorin_mtdlayout_16M=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env),16000k(fir
 f9k1115v2_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env),14464k(rootfs),1408k(kernel),64k(nvram)ro,64k(envram)ro,64k(art)ro,15872k@0x50000(firmware)
 dlrtdev_mtdlayout=mtdparts=spi0.0:256k(uboot)ro,64k(config)ro,6208k(firmware),64k(caldata)ro,640k(certs),960k(unknown)ro,64k@0x7f0000(caldata_copy)
 dlrtdev_mtdlayout_fat=mtdparts=spi0.0:256k(uboot)ro,64k(config)ro,7168k(firmware),640k(certs),64k(caldata)ro,64k@0x660000(caldata_orig),6208k@0x50000(firmware_orig)
-pb92_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,2752k(rootfs),896k(kernel),64k(nvram),64k(art)ro,3648k@0x50000(firmware)
 planex_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,7744k(firmware),128k(art)ro
 ubntxm_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,7552k(firmware),256k(cfg)ro,64k(EEPROM)ro
 uap_pro_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,1536k(kernel),14208k(rootfs),256k(cfg)ro,64k(EEPROM)ro,15744k@0x50000(firmware)
@@ -301,8 +294,6 @@ define Image/BuildKernel
 	cp $(KDIR)/vmlinux.elf $(VMLINUX).elf
 	cp $(KDIR)/vmlinux $(VMLINUX).bin
 	dd if=$(KDIR)/vmlinux.bin.lzma of=$(VMLINUX).lzma bs=65536 conv=sync
-	dd if=$(KDIR)/vmlinux.bin.gz of=$(VMLINUX).gz bs=65536 conv=sync
-	$(call MkuImage,gzip,,$(KDIR)/vmlinux.bin.gz,$(UIMAGE)-gzip.bin)
 	$(call MkuImage,lzma,,$(KDIR)/vmlinux.bin.lzma,$(UIMAGE)-lzma.bin)
 	cp $(KDIR)/loader-generic.elf $(VMLINUX)-lzma.elf
 	-mkdir -p $(KDIR_TMP)
@@ -312,8 +303,6 @@ define Image/BuildKernel/Initramfs
 	cp $(KDIR)/vmlinux-initramfs.elf $(VMLINUX)-initramfs.elf
 	cp $(KDIR)/vmlinux-initramfs $(VMLINUX)-initramfs.bin
 	dd if=$(KDIR)/vmlinux-initramfs.bin.lzma of=$(VMLINUX)-initramfs.lzma bs=65536 conv=sync
-	dd if=$(KDIR)/vmlinux-initramfs.bin.gz of=$(VMLINUX)-initramfs.gz bs=65536 conv=sync
-	$(call MkuImage,gzip,,$(KDIR)/vmlinux-initramfs.bin.gz,$(UIMAGE)-initramfs-gzip.bin)
 	$(call MkuImage,lzma,,$(KDIR)/vmlinux-initramfs.bin.lzma,$(UIMAGE)-initramfs-lzma.bin)
 	cp $(KDIR)/loader-generic-initramfs.elf $(VMLINUX)-initramfs-lzma.elf
 	$(call Image/Build/Initramfs)
@@ -479,12 +468,6 @@ define Image/Build/dLAN
 	$(eval rootsize=$(call mtdpartsize,rootfs,$(4)))
 	$(eval kernsize=$(call mtdpartsize,kernel,$(4)))
 	$(call Sysupgrade/$(5),$(1),$(2),$(if $(6),$(6),$(kernsize)),$(if $(rootsize),$(rootsize),$(fwsize)))
-	if [ -e "$(call factoryname,$(1),$(2))" ]; then \
-		dd if=$(KDIR_TMP)/vmlinux-$(2).uImage \
-			of=$(call imgname,kernel,$(2)).bin bs=64k conv=sync; \
-		dd if=$(KDIR)/root.$(1) \
-			of=$(call imgname,$(1),$(2)-rootfs).bin bs=128k conv=sync; \
-	fi
 endef
 
 Image/Build/dLANLzma/buildkernel=$(call MkuImageLzma,$(2),$(3) $(4))
@@ -496,12 +479,6 @@ define Image/Build/Ath
 	$(eval rootsize=$(call mtdpartsize,rootfs,$(4)))
 	$(eval kernsize=$(call mtdpartsize,kernel,$(4)))
 	$(call Sysupgrade/$(5),$(1),$(2),$(if $(6),$(6),$(kernsize)),$(if $(rootsize),$(rootsize),$(fwsize)))
-	if [ -e "$(call sysupname,$(1),$(2))" ]; then \
-		dd if=$(KDIR_TMP)/vmlinux-$(2).uImage \
-			of=$(call imgname,kernel,$(2)).bin bs=64k conv=sync; \
-		dd if=$(KDIR)/root.$(1) \
-			of=$(call imgname,$(1),$(2)-rootfs).bin bs=128k conv=sync; \
-	fi
 endef
 
 Image/Build/AthGzip/buildkernel=$(call MkuImageGzip,$(2),$(3) $(4))
@@ -543,10 +520,6 @@ define Image/Build/EnGenius
 	$(eval kernsize=$(call mtdpartsize,kernel,$(4)))
 	$(call Sysupgrade/$(5),$(1),$(2),$(if $(6),$(6),$(kernsize)),$(if $(rootsize),$(rootsize),$(fwsize)))
 	if [ -e "$(call sysupname,$(1),$(2))" ]; then \
-		dd if=$(KDIR_TMP)/vmlinux-$(2).uImage \
-			of=$(call imgname,kernel,$(2)).bin bs=64k conv=sync; \
-		dd if=$(KDIR)/root.$(1) \
-			of=$(call imgname,$(1),$(2)-rootfs).bin bs=128k conv=sync; \
 		mksenaofw -e $(call sysupname,$(1),$(2)) \
 			-o $(call imgname,$(1),$(2))-factory.dlf \
 			-r 0x101 -p $(7) -t 2; \
@@ -866,23 +839,14 @@ define Image/Build/Zcomax
 		$(STAGING_DIR_HOST)/bin/mkzcfw \
 			-B $(2) \
 			-k $(KDIR_TMP)/vmlinux-$(2).uImage \
-			-r $(BIN_DIR)/$(IMG_PREFIX)-root.$(1) \
+			-r $(KDIR)/root.$(1) \
 			-o $(call imgname,$(1),$(2))-factory.img; \
 	fi
 endef
 
 
-# $(1): template name to be defined, etc. squashfs-only, 64k, 64kraw, etc.
-# $(2): jffs2 blocksize.
-define Jffs2Template
-  define Image/Build/Template/$(1)/jffs2-$(2)
-    $$(call Image/Build/$$(1),jffs2-$(2),$$(2),$$(3),$$(4),$$(5),$$(6),$$(7),$$(8),$$(9),$$(10))
-  endef
-endef
-
 # $(1): template name to be defined.
 # $(2): squashfs suffix to be used.
-# $(3): jffs2 suffix to be used.
 define BuildTemplate
   # $(1)     : name of build method.
   # $(2)     : board name.
@@ -900,17 +864,16 @@ define BuildTemplate
   define Image/Build/Template/$(1)/squashfs
     $$(call Image/Build/$$(1),squashfs$(2),$$(2),$$(3),$$(4),$$(5),$$(6),$$(7),$$(8),$$(9),$$(10))
   endef
-  $(if $(3),$(foreach bs,$(3),$(eval $(call Jffs2Template,$(1),$(bs)))))
 endef
 
 $(eval $(call BuildTemplate,squashfs-only))
-$(eval $(call BuildTemplate,64k,-64k,64k))
-$(eval $(call BuildTemplate,64kraw,-raw,64k))
+$(eval $(call BuildTemplate,64k,-64k))
+$(eval $(call BuildTemplate,64kraw,-raw))
 $(eval $(call BuildTemplate,64kraw-nojffs,-raw))
-$(eval $(call BuildTemplate,128k,,128k))
-$(eval $(call BuildTemplate,128kraw,-raw,128k))
-$(eval $(call BuildTemplate,256k,,256k))
-$(eval $(call BuildTemplate,all,,64k 128k 256k))
+$(eval $(call BuildTemplate,128k))
+$(eval $(call BuildTemplate,128kraw,-raw))
+$(eval $(call BuildTemplate,256k))
+$(eval $(call BuildTemplate,all))
 
 ifeq ($(SUBTARGET),generic)
 $(eval $(call SingleProfile,ALFA,64k,ALFANX,alfa-nx,ALFA-NX,ttyS0,115200,$$(alfa_mtdlayout_8M),1638400,6291456,vmlinux.gz.uImage,pb9x-2.6.31-jffs2))
@@ -926,12 +889,8 @@ $(eval $(call SingleProfile,AthLzma,64k,ALFAAP120C,alfa-ap120c,ALFA-AP120C,ttyS0
 $(eval $(call SingleProfile,AthLzma,64k,ALFAAP96,alfa-ap96,ALFA-AP96,ttyS0,115200,$$(alfa_ap96_mtdlayout),RKuImage))
 $(eval $(call SingleProfile,AthLzma,64k,ALL0258N,all0258n,ALL0258N,ttyS0,115200,$$(all0258n_mtdlayout),KRuImage,65536))
 $(eval $(call SingleProfile,AthLzma,256k,ALL0315N,all0315n,ALL0315N,ttyS0,115200,$$(all0315n_mtdlayout),KRuImage,262144))
-$(eval $(call SingleProfile,AthLzma,64k,AP113,ap113,AP113,ttyS0,115200,$$(ap113_mtd_layout),RK))
-$(eval $(call SingleProfile,AthLzma,64k,AP121_2M,ap121-2M,AP121,ttyATH0,115200,$$(ap121_mtdlayout_2M),RKuImage))
-$(eval $(call SingleProfile,AthLzma,64k,AP121_4M,ap121-4M,AP121,ttyATH0,115200,$$(ap121_mtdlayout_4M),RKuImage))
 $(eval $(call SingleProfile,AthLzma,64k,AP121_8M,ap121-8M,AP121,ttyATH0,115200,$$(ap121_mtdlayout_8M),RKuImage))
 $(eval $(call SingleProfile,AthLzma,64k,AP121_16M,ap121-16M,AP121,ttyATH0,115200,$$(ap121_mtdlayout_16M),RKuImage))
-$(eval $(call SingleProfile,AthLzma,64k,AP121MINI,ap121-mini,AP121-MINI,ttyATH0,115200,$$(ap121_mtdlayout_4M),RKuImage))
 $(eval $(call SingleProfile,AthLzma,64k,AP132,ap132,AP132,ttyS0,115200,$$(ap132_mtdlayout),KRuImage))
 $(eval $(call SingleProfile,AthLzma,64k,AP135,ap135-020,AP135-020,ttyS0,115200,$$(ap135_mtdlayout),RKuImage))
 $(eval $(call SingleProfile,AthLzma,64k,AP136_010,ap136-010,AP136-010,ttyS0,115200,$$(ap136_mtdlayout),RKuImage))
@@ -947,7 +906,6 @@ $(eval $(call SingleProfile,AthLzma,64k,EWDORINAP,ew-dorin,EW-DORIN,ttyATH0,1152
 $(eval $(call SingleProfile,AthLzma,64k,EWDORINRT,ew-dorin-router,EW-DORIN-ROUTER,ttyATH0,115200,$$(ew-dorin_mtdlayout_4M),KRuImage,65536))
 $(eval $(call SingleProfile,AthLzma,64k,EWDORIN16M,ew-dorin-16M,EW-DORIN,ttyATH0,115200,$$(ew-dorin_mtdlayout_16M),KRuImage,65536))
 $(eval $(call SingleProfile,AthLzma,64k,HORNETUBx2,hornet-ub-x2,HORNET-UB,ttyATH0,115200,$$(alfa_mtdlayout_16M),KRuImage,65536))
-$(eval $(call SingleProfile,AthLzma,64k,PB92,pb92,PB92,ttyS0,115200,$$(pb92_mtdlayout),KRuImage))
 $(eval $(call SingleProfile,AthLzma,64k,TUBE2H16M,tube2h-16M,TUBE2H,ttyATH0,115200,$$(alfa_mtdlayout_16M),KRuImage,65536))
 $(eval $(call SingleProfile,AthLzma,64k,WLR8100,wlr8100,WLR8100,ttyS0,115200,$$(wlr8100_mtdlayout),KRuImage))
 $(eval $(call SingleProfile,AthLzma,64k,WPJ342_16M,wpj342-16M,WPJ342,ttyS0,115200,$$(wpj342_mtdlayout_16M),KRuImage,65536))
@@ -1007,7 +965,6 @@ $(eval $(call SingleProfile,EnGenius,64k,ESR900,esr900,ESR900,ttyS0,115200,$$(es
 $(eval $(call SingleProfile,EnGenius,64k,ESR1750,esr1750,ESR1750,ttyS0,115200,$$(esr1750_mtdlayout),KRuImage,,0x61))
 $(eval $(call SingleProfile,EnGenius,64k,EPG5000,epg5000,EPG5000,ttyS0,115200,$$(epg5000_mtdlayout),KRuImage,,0x71))
 
-$(eval $(call SingleProfile,MyLoader,64k,WP543_2M,wp543,,ttyS0,115200,0x200000,2M))
 $(eval $(call SingleProfile,MyLoader,64k,WP543_4M,wp543,,ttyS0,115200,0x400000,4M))
 $(eval $(call SingleProfile,MyLoader,64k,WP543_8M,wp543,,ttyS0,115200,0x800000,8M))
 $(eval $(call SingleProfile,MyLoader,64k,WP543_16M,wp543,,ttyS0,115200,0x1000000,16M))
@@ -1079,20 +1036,13 @@ define Image/Build/squashfs
 	cp $(KDIR)/root.squashfs $(KDIR)/root.squashfs-raw
 	cp $(KDIR)/root.squashfs $(KDIR)/root.squashfs-64k
 	$(STAGING_DIR_HOST)/bin/padjffs2 $(KDIR)/root.squashfs-64k 64
-	cp $(KDIR)/root.squashfs-64k $(BIN_DIR)/$(IMG_PREFIX)-root.squashfs-64k
 	$(call prepare_generic_squashfs,$(KDIR)/root.squashfs)
 	dd if=$(KDIR)/root.$(1) of=$(BIN_DIR)/$(IMG_PREFIX)-root.$(1) bs=128k conv=sync
 endef
 
-define Image/Build/jffs2
-	dd if=$(KDIR)/root.$(1) of=$(BIN_DIR)/$(IMG_PREFIX)-root.$(1) bs=128k conv=sync
-endef
-
 define Image/Prepare
-	gzip -9n -c $(KDIR)/vmlinux > $(KDIR)/vmlinux.bin.gz
 	$(call CompressLzma,$(KDIR)/vmlinux,$(KDIR)/vmlinux.bin.lzma)
 ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
-	gzip -9n -c $(KDIR)/vmlinux-initramfs > $(KDIR)/vmlinux-initramfs.bin.gz
 	$(call CompressLzma,$(KDIR)/vmlinux-initramfs,$(KDIR)/vmlinux-initramfs.bin.lzma)
 	$(call Image/BuildLoader,generic,elf,,,-initramfs)
 endif

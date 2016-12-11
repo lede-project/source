@@ -24,6 +24,7 @@ get_status_led() {
 	dir-860l-b1|\
 	e1700|\
 	fonera20n|\
+	kng_rc|\
 	mzk-750dhp|\
 	mzk-dp150n|\
 	mzk-w300nh2|\
@@ -53,10 +54,7 @@ get_status_led() {
 	mzk-ex750np)
 		status_led="$board:red:power"
 		;;
-	ai-br100|\
-	ht-tm02)
-		status_led="$board:blue:wlan"
-		;;
+	ac1200pro|\
 	all0239-3g|\
 	dcs-930|\
 	dir-300-b1|\
@@ -69,6 +67,7 @@ get_status_led() {
 	dir-615-h1|\
 	dir-620-a1|\
 	dir-620-d1|\
+	dwr-512-b|\
 	hpm|\
 	hw550-3g|\
 	mac1200rv2|\
@@ -81,6 +80,10 @@ get_status_led() {
 	zbt-wg2626|\
 	zbt-wg3526)
 		status_led="$board:green:status"
+		;;
+	ai-br100|\
+	ht-tm02)
+		status_led="$board:blue:wlan"
 		;;
 	atp-52b|\
 	ip2202)
@@ -122,6 +125,9 @@ get_status_led() {
 	esr-9753|\
 	pbr-d1)
 		status_led="$board:orange:power"
+		;;
+	f5d8235-v1)
+		status_led="$board:blue:wired"
 		;;
 	f5d8235-v2)
 		status_led="$board:blue:router"
@@ -173,7 +179,6 @@ get_status_led() {
 	px-4885|\
 	re6500|\
 	whr-1166d|\
-	whr-300hp2|\
 	whr-600d|\
 	widora-neo)
 		status_led="$board:orange:wifi"
@@ -189,7 +194,7 @@ get_status_led() {
 		status_led="$board:green:wps"
 		;;
 	rb750gr3)
-		status_led="$board:green:usr"
+		status_led="$board:blue:pwr"
 		;;
 	sap-g3200u3)
 		status_led="$board:green:usb"
@@ -207,12 +212,16 @@ get_status_led() {
 		status_led="$board:amber:power"
 		;;
 	whr-g300n|\
+	wlr-6000)
+		status_led="$board:red:power"
+		;;
 	wzr-agl300nh)
 		status_led="$board:green:router"
 		;;
 	wizfi630a)
 		status_led="$board::run"
 		;;
+	whr-300hp2|\
 	wsr-1166|\
 	wsr-600)
 		status_led="$board:green:power"

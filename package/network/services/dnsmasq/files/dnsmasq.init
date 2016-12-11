@@ -35,7 +35,7 @@ hex_to_hostid() {
         export "$var=$(
                 printf "%0x:%0x"  \
                         $(((0x$hex >> 16) % 65536)) \
-                        $(( 0x$hex        % 256))
+                        $(( 0x$hex        % 65536))
         )"
 
         return 0
@@ -786,7 +786,7 @@ dnsmasq_stop()
 
 service_triggers()
 {
-	procd_add_reload_trigger "dhcp"
+	procd_add_reload_trigger "dhcp" "system"
 	procd_add_raw_trigger "interface.*" 2000 /etc/init.d/dnsmasq reload
 }
 
@@ -826,6 +826,7 @@ start_service() {
 
 reload_service() {
 	rc_procd start_service "$@"
+	killall -HUP dnsmasq
 	return 0
 }
 

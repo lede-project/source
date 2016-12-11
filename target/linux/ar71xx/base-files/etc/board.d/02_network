@@ -69,6 +69,8 @@ ar71xx_setup_interfaces()
 	bullet-m|\
 	c-55|\
 	cap4200ag|\
+	cf-e380ac-v1|\
+	cf-e380ac-v2|\
 	eap120|\
 	eap300v2|\
 	eap7660d|\
@@ -167,6 +169,7 @@ ar71xx_setup_interfaces()
 		;;
 	ap135-020|\
 	ap136-020|\
+	bhr-4grv2|\
 	tew-823dru|\
 	tl-wr1043nd-v2|\
 	wzr-450hp2)
@@ -345,9 +348,13 @@ ar71xx_setup_interfaces()
 	rb-450)
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
 		ucidef_add_switch "switch0" \
-			"0:lan" "1:lan" "2:lan" "3:lan" "5@eth1"
+			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "5@eth1"
 		;;
-	rb-450g|\
+	rb-450g)
+		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		ucidef_add_switch "switch0" \
+			"0@eth1" "1:lan:1" "2:lan:4" "3:lan:3" "4:lan:2"
+		;;
 	routerstation-pro)
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
 		ucidef_add_switch "switch0" \

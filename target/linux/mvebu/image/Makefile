@@ -61,11 +61,12 @@ define Device/Default
   BOARD_NAME = $$(DEVICE_DTS)
   KERNEL_NAME := zImage
   KERNEL := kernel-bin | append-dtb | uImage none
+  SUPPORTED_DEVICES = $$(DEVICE_DTS)
 endef
 
 define Device/UBI
   IMAGES := sysupgrade.bin
-  IMAGE/sysupgrade.bin := sysupgrade-tar
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 
 define Device/UBI-factory
@@ -143,15 +144,16 @@ define Device/linksys-wrt1900ac
 endef
 TARGET_DEVICES += linksys-wrt1900ac
 
-define Device/openblocks-ax3
+define Device/openblocks-ax3-4
   $(Device/UBI-factory)
   DEVICE_DTS := armada-xp-openblocks-ax3-4
+  SUPPORTED_DEVICES := $(1)
   BLOCKSIZE := 128k
   PAGESIZE := 1
   IMAGE/factory.img := append-kernel | pad-to $$(BLOCKSIZE) | append-ubi
   DEVICE_TITLE := Plat'Home OpenBlocks AX3
 endef
-TARGET_DEVICES += openblocks-ax3
+TARGET_DEVICES += openblocks-ax3-4
 
 define Device/armada-385-db-ap
   $(Device/NAND-256K)
@@ -194,6 +196,7 @@ TARGET_DEVICES += armada-388-clearfog
 define Device/globalscale-mirabox
   $(Device/NAND-512K)
   DEVICE_DTS := armada-370-mirabox
+  SUPPORTED_DEVICES := mirabox
   DEVICE_TITLE := Globalscale Mirabox
 endef
 TARGET_DEVICES += globalscale-mirabox

@@ -2,6 +2,8 @@
 
 #include "vr9.dtsi"
 
+#include <dt-bindings/input/input.h>
+
 / {
 	model = "FRITZ7360SL - 1&1 HomeServer";
 
@@ -94,14 +96,6 @@
 		};
 	};
 
-	ath9k_eep {
-		compatible = "ath9k,eeprom";
-		ath,eep-flash = <&urlader 0x985>;
-		ath,eep-endian;
-		ath,eep-swap;
-		ath,pci-slot = <0>;
-	};
-
 	gphy-xrx200 {
 		compatible = "lantiq,phy-xrx200";
 		firmware = "lantiq/vr9_phy11g_a2x.bin";
@@ -114,14 +108,14 @@
 		#size-cells = <0>;
 		poll-interval = <100>;
 		dect {
-			label = "power";
+			label = "dect";
 			gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
-			linux,code = <BTN_2>;
+			linux,code = <KEY_PHONE>;
 		};
 		wifi {
 			label = "wifi";
 			gpios = <&gpio 29 GPIO_ACTIVE_HIGH>;
-			linux,code = <BTN_1>;
+			linux,code = <KEY_WLAN>;
 		};
 	};
 
@@ -212,6 +206,22 @@
 		phy13: ethernet-phy@13 {
 			reg = <0x13>;
 			compatible = "lantiq,phy11g", "ethernet-phy-ieee802.3-c22";
+		};
+	};
+};
+
+&pcie0 {
+	pcie@0 {
+		reg = <0 0 0 0 0>;
+		#interrupt-cells = <1>;
+		#size-cells = <2>;
+		#address-cells = <3>;
+		device_type = "pci";
+
+		wifi@168c,002e {
+			compatible = "pci168c,002e";
+			reg = <0 0 0 0 0>;
+			qca,no-eeprom; /* load from ath9k-eeprom-pci-0000:01:00.0.bin */
 		};
 	};
 };

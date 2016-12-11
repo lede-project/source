@@ -2,8 +2,9 @@
 
 #include "mt7621.dtsi"
 
+#include <dt-bindings/input/input.h>
+
 / {
-	compatible = "ralink,mt7621-eval-board", "ralink,mt7621-soc";
 	model = "Planex VR500";
 
 	memory@0 {
@@ -33,13 +34,9 @@
 		reset {
 			label = "reset";
 			gpios = <&gpio1 15 1>;
-			linux,code = <0x198>;
+			linux,code = <KEY_RESTART>;
 		};
 	};
-};
-
-&xhci {
-	status = "okay";
 };
 
 &spi0 {
@@ -50,8 +47,8 @@
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		linux,modalias = "m25p80";
 		spi-max-frequency = <10000000>;
+		m25p,chunked-io = <32>;
 
 		partition@0 {
 			label = "u-boot";
@@ -85,8 +82,4 @@
 			ralink,function = "gpio";
 		};
 	};
-};
-
-&pcie {
-	status = "disabled";
 };

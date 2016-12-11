@@ -64,8 +64,9 @@ define Device/Default
   DEVICE_DTS := $(1)
   DEVICE_DTS_DIR := ../dts
   IMAGE_SIZE :=
+  SUPPORTED_DEVICES = $$(DEVICE_DTS)
   IMAGES := sysupgrade.bin
-  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE)
+  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
 endef
 DEVICE_VARS += IMAGE_SIZE
 
@@ -85,7 +86,7 @@ endef
 
 define Device/NAND
   $(Device/NAND/$(SUBTARGET))
-  IMAGE/sysupgrade.bin := sysupgrade-tar
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 
 define Device/lantiqBrnImage
@@ -110,12 +111,11 @@ ifeq ($(SUBTARGET),xway_legacy)
 define Device/ARV4520PW
   IMAGE_SIZE := 3648k
   DEVICE_TITLE := Easybox 800, WAV-281 - ARV4520PW
-  DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-usb-ledtrig-usbport \
+  DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-b kmod-ltq-atm-danube \
 	ltq-adsl-app ppp-mod-pppoa \
-	kmod-rt61-pci wpad-mini \
-	swconfig
+	kmod-rt61-pci wpad-mini
 endef
 TARGET_DEVICES += ARV4520PW
 
@@ -125,43 +125,40 @@ define Device/ARV4525PW
   DEVICE_PACKAGES := kmod-ath5k wpad-mini \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-b kmod-ltq-atm-danube \
-	ltq-adsl-app ppp-mod-pppoa
+	ltq-adsl-app ppp-mod-pppoa -swconfig
 endef
 TARGET_DEVICES += ARV4525PW
 
 define Device/ARV452CQW
   IMAGE_SIZE := 3776k
   DEVICE_TITLE := Easybox 801 - ARV452CQW
-  DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-usb-ledtrig-usbport \
+  DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport \
 	kmod-ath5k wpad-mini \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-b kmod-ltq-atm-danube \
-	ltq-adsl-app ppp-mod-pppoa \
-	swconfig
+	ltq-adsl-app ppp-mod-pppoa
 endef
 TARGET_DEVICES += ARV452CQW
 
 define Device/ARV4518PWR01
   IMAGE_SIZE := 3776k
   DEVICE_TITLE := ARV4518PWR01
-  DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-usb-ledtrig-usbport \
+  DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-a kmod-ltq-atm-danube \
 	ltq-adsl-app ppp-mod-pppoa \
-	kmod-ath5k wpad-mini \
-	swconfig
+	kmod-ath5k wpad-mini
 endef
 TARGET_DEVICES += ARV4518PWR01
 
 define Device/ARV4518PWR01A
   IMAGE_SIZE := 3776k
   DEVICE_TITLE := ARV4518PWR01A
-  DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-usb-ledtrig-usbport \
+  DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-a kmod-ltq-atm-danube \
 	ltq-adsl-app ppp-mod-pppoa \
-	kmod-ath5k wpad-mini \
-	swconfig
+	kmod-ath5k wpad-mini
 endef
 TARGET_DEVICES += ARV4518PWR01A
 
@@ -174,13 +171,12 @@ ifeq ($(SUBTARGET),xway)
 define Device/BTHOMEHUBV2B
   $(Device/NAND)
   DEVICE_TITLE := BT Home Hub 2B
-  DEVICE_PACKAGES := kmod-ltq-hcd-danube \
+  DEVICE_PACKAGES := kmod-usb-dwc2 \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-a kmod-ltq-atm-danube \
 	kmod-ltq-deu-danube \
 	ltq-adsl-app ppp-mod-pppoa \
-	kmod-ath9k wpad-mini \
-	swconfig
+	kmod-ath9k kmod-owl-loader wpad-mini
 endef
 TARGET_DEVICES += BTHOMEHUBV2B
 
@@ -196,7 +192,7 @@ define Device/ACMP252
   DEVICE_PACKAGES := kmod-rt2x00-pci wpad-mini \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-a kmod-ltq-ptm-danube \
-	ltq-adsl-app
+	ltq-adsl-app -swconfig
 endef
 TARGET_DEVICES += ACMP252
 
@@ -208,8 +204,7 @@ define Device/ARV4510PW
 	kmod-ltq-adsl-danube-fw-a kmod-ltq-atm-danube \
 	ltq-adsl-app ppp-mod-pppoa \
 	kmod-ltq-tapi kmod-ltq-vmmc \
-	kmod-rt2800-pci kmod-ath5k wpad-mini \
-	swconfig
+	kmod-rt2800-pci kmod-ath5k wpad-mini
 endef
 TARGET_DEVICES += ARV4510PW
 
@@ -219,18 +214,17 @@ define Device/ARV7525PW
   DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-b kmod-ltq-atm-danube \
-	ltq-adsl-app ppp-mod-pppoa
+	ltq-adsl-app ppp-mod-pppoa -swconfig
 endef
 TARGET_DEVICES += ARV7525PW
 
 define Device/ARV4519PW
   IMAGE_SIZE := 3776k
   DEVICE_TITLE := Vodafone, Pirelli - ARV4519PW
-  DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-usb-ledtrig-usbport \
+  DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-a kmod-ltq-atm-danube \
-	ltq-adsl-app ppp-mod-pppoa \
-	swconfig
+	ltq-adsl-app ppp-mod-pppoa
 endef
 TARGET_DEVICES += ARV4519PW
 
@@ -240,96 +234,88 @@ define Device/ARV7506PW11
   DEVICE_PACKAGES := kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-b kmod-ltq-atm-danube \
 	ltq-adsl-app ppp-mod-pppoa \
-	kmod-rt2800-pci wpad-mini \
-	swconfig
+	kmod-rt2800-pci wpad-mini
 endef
 TARGET_DEVICES += ARV7506PW11
 
 define Device/ARV7510PW22
   IMAGE_SIZE := 31232k
   DEVICE_TITLE := Astoria - ARV7510PW22
-  DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-usb-ledtrig-usbport \
+  DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-a kmod-ltq-atm-danube \
 	ltq-adsl-app ppp-mod-pppoa \
 	kmod-ltq-tapi kmod-ltq-vmmc \
 	kmod-rt2800-pci wpad-mini \
-	kmod-usb-uhci kmod-usb2 kmod-usb2-pci \
-	swconfig
+	kmod-usb-uhci kmod-usb2 kmod-usb2-pci
 endef
 TARGET_DEVICES += ARV7510PW22
 
 define Device/ARV7518PW
   IMAGE_SIZE := 7872k
   DEVICE_TITLE := Astoria - ARV7518PW
-  DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-usb-ledtrig-usbport \
+  DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-a kmod-ltq-atm-danube \
 	ltq-adsl-app ppp-mod-pppoa \
-	kmod-ath9k wpad-mini \
-	swconfig
+	kmod-ath9k kmod-owl-loader wpad-mini
 endef
 TARGET_DEVICES += ARV7518PW
 
 define Device/ARV7519PW
   IMAGE_SIZE := 15488k
   DEVICE_TITLE := Astoria - ARV7519PW
-  DEVICE_PACKAGES := kmod-ltq-hcd-danube \
+  DEVICE_PACKAGES := kmod-usb-dwc2 \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-a kmod-ltq-atm-danube \
 	ltq-adsl-app ppp-mod-pppoa \
-	kmod-rt2800-pci wpad-mini \
-	swconfig
+	kmod-rt2800-pci wpad-mini
 endef
 TARGET_DEVICES += ARV7519PW
 
 define Device/ARV752DPW
   IMAGE_SIZE := 7872k
   DEVICE_TITLE := Easybox 802 - ARV752DPW
-  DEVICE_PACKAGES := kmod-ltq-hcd-danube kmod-usb-ledtrig-usbport \
+  DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-b kmod-ltq-atm-danube \
 	ltq-adsl-app ppp-mod-pppoa \
 	kmod-ltq-tapi kmod-ltq-vmmc \
-	kmod-rt2800-pci wpad-mini \
-	swconfig
+	kmod-rt2800-pci wpad-mini
 endef
 TARGET_DEVICES += ARV752DPW
 
 define Device/ARV752DPW22
   IMAGE_SIZE := 7616k
   DEVICE_TITLE := Easybox 803 - ARV752DPW22
-  DEVICE_PACKAGES := kmod-usb2-pci kmod-usb-uhci kmod-ltq-hcd-danube kmod-usb-ledtrig-usbport \
+  DEVICE_PACKAGES := kmod-usb2-pci kmod-usb-uhci kmod-usb-dwc2 kmod-usb-ledtrig-usbport \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-b kmod-ltq-atm-danube \
 	ltq-adsl-app ppp-mod-pppoa \
 	kmod-ltq-tapi kmod-ltq-vmmc \
-	kmod-rt2800-pci wpad-mini \
-	swconfig
+	kmod-rt2800-pci wpad-mini
 endef
 TARGET_DEVICES += ARV752DPW22
 
 define Device/ARV8539PW22
   IMAGE_SIZE := 7616k
   DEVICE_TITLE := Speedport W504V Typ A - ARV8539PW22
-  DEVICE_PACKAGES := kmod-ltq-hcd-danube \
+  DEVICE_PACKAGES := kmod-usb-dwc2 \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-b kmod-ltq-atm-danube \
 	ltq-adsl-app ppp-mod-pppoa \
-	kmod-ath9k wpad-mini \
-	swconfig
+	kmod-ath9k kmod-owl-loader wpad-mini
 endef
 TARGET_DEVICES += ARV8539PW22
 
 define Device/GIGASX76X
   IMAGE_SIZE := 7680k
   DEVICE_TITLE := Gigaset sx76x
-  DEVICE_PACKAGES := kmod-ltq-hcd-danube \
+  DEVICE_PACKAGES := kmod-usb-dwc2 \
 	kmod-ltq-adsl-danube-mei kmod-ltq-adsl-danube \
 	kmod-ltq-adsl-danube-fw-b kmod-ltq-atm-danube \
 	ltq-adsl-app ppp-mod-pppoe \
-	kmod-ath5k wpad-mini \
-	swconfig
+	kmod-ath5k wpad-mini
 endef
 TARGET_DEVICES += GIGASX76X
 
@@ -344,8 +330,8 @@ define Device/BTHOMEHUBV3A
 	kmod-ltq-adsl-ar9-fw-a kmod-ltq-atm-ar9 \
 	kmod-ltq-deu-ar9 \
 	ltq-adsl-app ppp-mod-pppoa \
-	kmod-ath9k wpad-mini \
-	swconfig uboot-envtools
+	kmod-ath9k kmod-owl-loader wpad-mini \
+	uboot-envtools
 endef
 TARGET_DEVICES += BTHOMEHUBV3A
 
@@ -358,10 +344,10 @@ define Device/DGN3500
 	factory-NA.bin factory-WW.bin
   IMAGE/sysupgrade-NA.bin := \
 	append-kernel | append-rootfs | dgn3500-sercom-footer 0x0 "NA" | \
-	pad-rootfs | check-size $$$$(IMAGE_SIZE)
+	pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
   IMAGE/sysupgrade-WW.bin := \
 	append-kernel | append-rootfs | dgn3500-sercom-footer 0x0 "WW" | \
-	pad-rootfs | check-size $$$$(IMAGE_SIZE)
+	pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
   IMAGE/factory-NA.bin := \
 	pad-extra $(DGN3500_KERNEL_OFFSET_DEC) | append-kernel | append-rootfs | \
 	dgn3500-sercom-footer $(DGN3500_KERNEL_OFFSET_HEX) "NA" | pad-rootfs | \
@@ -372,11 +358,11 @@ define Device/DGN3500
 	check-size 16320k | pad-to 16384k
   DEVICE_TITLE := Netgear DGN3500
   DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport \
-	kmod-ath9k wpad-mini \
+	kmod-ath9k kmod-owl-loader wpad-mini \
 	kmod-ltq-adsl-ar9-mei kmod-ltq-adsl-ar9 \
 	kmod-ltq-adsl-ar9-fw-a kmod-ltq-atm-ar9 \
 	ltq-adsl-app ppp-mod-pppoa \
-	kmod-ltq-deu-ar9 swconfig
+	kmod-ltq-deu-ar9
 endef
 TARGET_DEVICES += DGN3500
 
@@ -385,18 +371,18 @@ define Device/DGN3500B
   IMAGES += factory.bin
   IMAGE/sysupgrade.bin := \
 	append-kernel | append-rootfs | dgn3500-sercom-footer 0x0 "DE" | \
-	pad-rootfs | check-size $$$$(IMAGE_SIZE)
+	pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
   IMAGE/factory.bin := \
 	pad-extra $(DGN3500_KERNEL_OFFSET_DEC) | append-kernel | append-rootfs | \
 	dgn3500-sercom-footer $(DGN3500_KERNEL_OFFSET_HEX) "DE" | pad-rootfs | \
 	check-size 16320k | pad-to 16384k
   DEVICE_TITLE := Netgear DGN3500B
   DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport \
-	kmod-ath9k wpad-mini \
+	kmod-ath9k kmod-owl-loader wpad-mini \
 	kmod-ltq-adsl-ar9-mei kmod-ltq-adsl-ar9 \
 	kmod-ltq-adsl-ar9-fw-b kmod-ltq-atm-ar9 \
 	ltq-adsl-app ppp-mod-pppoa \
-	kmod-ltq-deu-ar9 swconfig
+	kmod-ltq-deu-ar9
 endef
 TARGET_DEVICES += DGN3500B
 
@@ -408,7 +394,7 @@ define Device/WBMRA
 	kmod-ltq-adsl-ar9-mei kmod-ltq-adsl-ar9 \
 	kmod-ltq-adsl-ar9-fw-a kmod-ltq-atm-ar9 \
 	ltq-adsl-app ppp-mod-pppoa \
-	kmod-ath9k wpad-mini swconfig
+	kmod-ath9k kmod-owl-loader wpad-mini
 endef
 TARGET_DEVICES += WBMRA
 
@@ -420,7 +406,7 @@ define Device/WBMRB
 	kmod-ltq-adsl-ar9-mei kmod-ltq-adsl-ar9 \
 	kmod-ltq-adsl-ar9-fw-b kmod-ltq-atm-ar9 \
 	ltq-adsl-app ppp-mod-pppoa \
-	kmod-ath9k wpad-mini swconfig
+	kmod-ath9k kmod-owl-loader wpad-mini
 endef
 TARGET_DEVICES += WBMRB
 
@@ -428,12 +414,11 @@ define Device/FRITZ7320
   $(Device/AVM)
   IMAGE_SIZE := 15744k
   DEVICE_TITLE := 1&1 HomeServer - FRITZ7320
-  DEVICE_PACKAGES := kmod-ath9k wpad-mini \
+  DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-mini \
 	kmod-ltq-adsl-ar9-mei kmod-ltq-adsl-ar9 \
 	kmod-ltq-adsl-ar9-fw-b kmod-ltq-atm-ar9 \
 	ltq-adsl-app ppp-mod-pppoa \
-	kmod-ltq-deu-ar9 kmod-usb-dwc2 \
-	kmod-ath9k wpad-mini
+	kmod-ltq-deu-ar9 kmod-usb-dwc2 -swconfig
 endef
 TARGET_DEVICES += FRITZ7320
 
@@ -445,8 +430,7 @@ define Device/H201L
 	kmod-ltq-adsl-ar9-fw-b kmod-ltq-atm-ar9 \
 	ltq-adsl-app ppp-mod-pppoe \
 	kmod-ltq-deu-ar9 kmod-usb-dwc2 kmod-usb-ledtrig-usbport \
-	kmod-ltq-tapi kmod-ltq-vmmc \
-	swconfig
+	kmod-ltq-tapi kmod-ltq-vmmc
 endef
 TARGET_DEVICES += H201L
 
@@ -457,8 +441,7 @@ define Device/P2601HNFX
 	kmod-ltq-adsl-ar9-mei kmod-ltq-adsl-ar9 \
 	kmod-ltq-adsl-ar9-fw-b kmod-ltq-atm-ar9 \
 	ltq-adsl-app ppp-mod-pppoe \
-	kmod-ltq-deu-ar9 kmod-usb-dwc2 \
-	swconfig
+	kmod-ltq-deu-ar9 kmod-usb-dwc2
 endef
 TARGET_DEVICES += P2601HNFX
 
@@ -494,7 +477,8 @@ TARGET_DEVICES += ARV7519RW22
 define Device/BTHOMEHUBV5A
   $(Device/NAND)
   DEVICE_TITLE := BT Home Hub 5A
-  DEVICE_PACKAGES := kmod-ath9k kmod-ath10k ath10k-firmware-qca988x wpad-mini kmod-usb-dwc2
+  DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader \
+	kmod-ath10k ath10k-firmware-qca988x wpad-mini kmod-usb-dwc2
 endef
 TARGET_DEVICES += BTHOMEHUBV5A
 
@@ -502,14 +486,14 @@ define Device/EASY80920NAND
   $(Device/lantiqFullImage)
   IMAGE_SIZE := 64512k
   DEVICE_TITLE := Lantiq VR9 - EASY80920NAND
-  DEVICE_PACKAGES := kmod-ath9k wpad-mini kmod-usb-dwc2 kmod-usb-ledtrig-usbport
+  DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-mini kmod-usb-dwc2 kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += EASY80920NAND
 
 define Device/EASY80920NOR
   IMAGE_SIZE := 7936k
   DEVICE_TITLE := Lantiq VR9 - EASY80920NOR
-  DEVICE_PACKAGES := kmod-ath9k wpad-mini kmod-usb-dwc2 kmod-usb-ledtrig-usbport
+  DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-mini kmod-usb-dwc2 kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += EASY80920NOR
 
@@ -525,7 +509,7 @@ define Device/FRITZ7360SL
   $(Device/AVM)
   IMAGE_SIZE := 15744k
   DEVICE_TITLE := 1&1 HomeServer - FRITZ7360SL
-  DEVICE_PACKAGES := kmod-ath9k wpad-mini kmod-usb-dwc2
+  DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-mini kmod-usb-dwc2
 endef
 TARGET_DEVICES += FRITZ7360SL
 
@@ -547,7 +531,7 @@ TARGET_DEVICES += WBMR300
 define Device/VGV7510KW22NOR
   IMAGE_SIZE := 15232k
   DEVICE_TITLE := o2 Box 6431 / Arcadyan VGV7510KW22 (NOR)
-  DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini kmod-usb-dwc2
+  DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini kmod-usb-dwc2 kmod-ltq-tapi kmod-ltq-vmmc
 endef
 TARGET_DEVICES += VGV7510KW22NOR
 
@@ -558,14 +542,14 @@ define Device/VGV7510KW22BRN
   MAGIC := 0x12345678
   CRC32_POLY := 0x2083b8ed
   DEVICE_TITLE := o2 Box 6431 / Arcadyan VGV7510KW22 (BRN)
-  DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini kmod-usb-dwc2
+  DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini kmod-usb-dwc2 kmod-ltq-tapi kmod-ltq-vmmc
 endef
 TARGET_DEVICES += VGV7510KW22BRN
 
 define Device/VGV7519NOR
   IMAGE_SIZE := 15360k
   DEVICE_TITLE := Experiabox 8 VGV7519
-  DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini kmod-usb-dwc2
+  DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini kmod-usb-dwc2 kmod-ltq-tapi kmod-ltq-vmmc
 endef
 TARGET_DEVICES += VGV7519NOR
 
@@ -576,9 +560,90 @@ define Device/VGV7519BRN
   MAGIC := 0x12345678
   CRC32_POLY := 0x2083b8ed
   DEVICE_TITLE := Experiabox 8 VGV7519 (BRN)
-  DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini kmod-usb-dwc2
+  DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini kmod-usb-dwc2 kmod-ltq-tapi kmod-ltq-vmmc
 endef
 TARGET_DEVICES += VGV7519BRN
+
+endif
+
+
+ifeq ($(SUBTARGET),falcon)
+
+define Device/EASY98000
+  IMAGE_SIZE := 3904k
+  DEVICE_TITLE := EASY98000 - Lantiq Falcon Eval Board NOR
+  DEVICE_DTS := EASY98000NOR
+  DEVICE_PACKAGES := kmod-dm9000 kmod-i2c-lantiq kmod-eeprom-at24
+endef
+TARGET_DEVICES += EASY98000
+
+define Device/EASY98000NAND
+  IMAGE_SIZE := 3904k
+  DEVICE_TITLE := EASY98000 - Lantiq Falcon Eval Board NAND
+  DEVICE_PACKAGES := kmod-dm9000 kmod-i2c-lantiq kmod-eeprom-at24
+endef
+TARGET_DEVICES += EASY98000NAND
+
+define Device/EASY98000SFLASH
+  IMAGE_SIZE := 7424k
+  DEVICE_TITLE := EASY98000 - Lantiq Falcon Eval Board SFLASH
+  DEVICE_PACKAGES := kmod-dm9000 kmod-i2c-lantiq kmod-eeprom-at24
+endef
+TARGET_DEVICES += EASY98000SFLASH
+
+define Device/FALCON-MDU
+  IMAGE_SIZE := 7424k
+  DEVICE_TITLE := MDU - Lantiq Falcon / VINAXdp MDU Board
+endef
+TARGET_DEVICES += FALCON-MDU
+
+define Device/EASY88388
+  IMAGE_SIZE := 7424k
+  DEVICE_TITLE := EASY88388 - Lantiq Falcon FTTDP8 Reference Board
+endef
+TARGET_DEVICES += EASY88388
+
+define Device/EASY88444
+  IMAGE_SIZE := 7424k
+  DEVICE_TITLE := EASY88444 - Lantiq Falcon FTTdp G.FAST Reference Board
+endef
+TARGET_DEVICES += EASY88444
+
+define Device/FALCON-SFP
+  IMAGE_SIZE := 7424k
+  DEVICE_TITLE := SFP - Lantiq Falcon SFP Stick
+endef
+TARGET_DEVICES += FALCON-SFP
+
+define Device/EASY98035SYNCE
+  IMAGE_SIZE := 7424k
+  DEVICE_TITLE := EASY98035SYNCE - Lantiq Falcon SFP Stick with Synchronous Ethernet
+endef
+TARGET_DEVICES += EASY98035SYNCE
+
+define Device/EASY98035SYNCE1588
+  IMAGE_SIZE := 7424k
+  DEVICE_TITLE := EASY98035SYNCE1588 - Lantiq Falcon SFP Stick with SyncE and IEEE1588
+endef
+TARGET_DEVICES += EASY98035SYNCE1588
+
+define Device/EASY98020
+  IMAGE_SIZE := 7424k
+  DEVICE_TITLE := EASY98020 - Lantiq Falcon SFU Reference Board
+endef
+TARGET_DEVICES += EASY98020
+
+define Device/EASY98020V18
+  IMAGE_SIZE := 7424k
+  DEVICE_TITLE := EASY98020V18 - Lantiq Falcon SFU Reference Board V1.8
+endef
+TARGET_DEVICES += EASY98020V18
+
+define Device/EASY98021
+  IMAGE_SIZE := 7424k
+  DEVICE_TITLE := EASY98021 - Lantiq Falcon HGU Reference Board
+endef
+TARGET_DEVICES += EASY98021
 
 endif
 

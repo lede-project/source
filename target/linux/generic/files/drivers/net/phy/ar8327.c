@@ -223,9 +223,7 @@ ar8327_led_work_func(struct work_struct *work)
 
 	aled = container_of(work, struct ar8327_led, led_work);
 
-	spin_lock(&aled->lock);
 	pattern = aled->pattern;
-	spin_unlock(&aled->lock);
 
 	ar8327_set_led_pattern(aled->sw_priv, aled->led_num,
 			       pattern);
@@ -308,9 +306,7 @@ ar8327_led_enable_hw_mode_show(struct device *dev,
 	struct ar8327_led *aled = led_cdev_to_ar8327_led(led_cdev);
 	ssize_t ret = 0;
 
-	spin_lock(&aled->lock);
-	ret += sprintf(buf, "%d\n", aled->enable_hw_mode);
-	spin_unlock(&aled->lock);
+	ret += scnprintf(buf, PAGE_SIZE, "%d\n", aled->enable_hw_mode);
 
 	return ret;
 }
@@ -689,12 +685,20 @@ ar8327_init_port(struct ar8xxx_priv *priv, int port)
 	else
 		t = AR8216_PORT_STATUS_LINK_AUTO;
 
-	ar8xxx_write(priv, AR8327_REG_PORT_STATUS(port), t);
+	if (port != AR8216_PORT_CPU && port != 6) {
+		/*hw limitation:if configure mac when there is traffic,
+		port MAC may work abnormal. Need disable lan&wan mac at fisrt*/
+		ar8xxx_write(priv, AR8327_REG_PORT_STATUS(port), 0);
+		msleep(100);
+		t |= AR8216_PORT_STATUS_FLOW_CONTROL;
+		ar8xxx_write(priv, AR8327_REG_PORT_STATUS(port), t);
+	} else {
+		ar8xxx_write(priv, AR8327_REG_PORT_STATUS(port), t);
+	}
+
 	ar8xxx_write(priv, AR8327_REG_PORT_HEADER(port), 0);
 
-	t = 1 << AR8327_PORT_VLAN0_DEF_SVID_S;
-	t |= 1 << AR8327_PORT_VLAN0_DEF_CVID_S;
-	ar8xxx_write(priv, AR8327_REG_PORT_VLAN0(port), t);
+	ar8xxx_write(priv, AR8327_REG_PORT_VLAN0(port), 0);
 
 	t = AR8327_PORT_VLAN1_OUT_MODE_UNTOUCH << AR8327_PORT_VLAN1_OUT_MODE_S;
 	ar8xxx_write(priv, AR8327_REG_PORT_VLAN1(port), t);
@@ -1437,4 +1441,3 @@ const struct ar8xxx_chip ar8337_chip = {
 	.mib_decs = ar8236_mibs,
 	.mib_func = AR8327_REG_MIB_FUNC
 };
-

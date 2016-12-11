@@ -1,11 +1,11 @@
 /dts-v1/;
 
 #include "mt7621.dtsi"
+
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/gpio/gpio.h>
 
 / {
-	compatible = "mediatek,mt7621-eval-board", "mediatek,mt7621-soc";
 	model = "MikroTik RB750Gr3";
 
 	memory@0 {
@@ -19,6 +19,11 @@
 
 	gpio-leds {
 		compatible = "gpio-leds";
+
+		pwr {
+			label = "rb750gr3:blue:pwr";
+			gpios = <&gpio0 16 GPIO_ACTIVE_HIGH>;
+		};
 
 		usr {
 			label = "rb750gr3:green:usr";
@@ -49,6 +54,12 @@
 		compatible = "gpio-export";
 		#size-cells = <0>;
 
+		buzzer {
+			gpio-export,name = "buzzer";
+			gpio-export,output = <0>;
+			gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;
+		};
+
 		usb {
 			gpio-export,name = "usb";
 			gpio-export,output = <1>;
@@ -65,8 +76,8 @@
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		linux,modalias = "m25p80";
 		spi-max-frequency = <10000000>;
+		m25p,chunked-io = <32>;
 
 		partition@0 {
 			label = "u-boot";
@@ -102,7 +113,7 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "i2c", "rgmii2", "sdhci";
+			ralink,group = "i2c", "uart2", "uart3", "pcie", "rgmii2", "jtag";
 			ralink,function = "gpio";
 		};
 	};
@@ -110,12 +121,4 @@
 
 &sdhci {
 	status = "okay";
-};
-
-&xhci {
-	status = "okay";
-};
-
-&pcie {
-	status = "disabled";
 };

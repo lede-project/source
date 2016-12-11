@@ -251,6 +251,11 @@ define KernelPackage/ath9k/config
                bool "Enable TX99 support"
                depends on PACKAGE_kmod-ath9k
 
+	config ATH9K_UBNTHSR
+		bool "Support for Ubiquiti UniFi Outdoor+ access point"
+		depends on PACKAGE_kmod-ath9k && TARGET_ar71xx_generic
+		default y
+
 endef
 
 define KernelPackage/ath9k-htc
@@ -1378,7 +1383,7 @@ endef
 define KernelPackage/wlcore
   $(call KernelPackage/mac80211/Default)
   TITLE:=TI common driver part
-  DEPENDS+= @TARGET_omap +kmod-mac80211 +@DRIVER_11N_SUPPORT
+  DEPENDS+= +kmod-mmc +kmod-mac80211 +@DRIVER_11N_SUPPORT
   FILES:= \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/ti/wlcore/wlcore.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/ti/wlcore/wlcore_sdio.ko
@@ -1503,6 +1508,7 @@ config-$(CONFIG_PCI) += ATH9K_PCI
 config-$(CONFIG_ATH_USER_REGD) += ATH_USER_REGD
 config-$(CONFIG_ATH9K_SUPPORT_PCOEM) += ATH9K_PCOEM
 config-$(CONFIG_ATH9K_TX99) += ATH9K_TX99
+config-$(CONFIG_ATH9K_UBNTHSR) += ATH9K_UBNTHSR
 
 config-$(call config_package,ath9k-htc) += ATH9K_HTC
 config-$(call config_package,ath10k) += ATH10K ATH10K_PCI

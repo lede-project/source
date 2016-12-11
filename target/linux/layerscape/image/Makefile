@@ -58,7 +58,7 @@ ifeq ($(SUBTARGET),32b)
 endif
   IMAGE/firmware.bin = append-ls-rcw $(1) | pad-to 1M | append-ls-uboot $(1) | pad-to 3M | \
   					append-ls-fman $(1) | pad-to 4M | append-ls-dtb $$(DEVICE_DTS) | pad-to 5M | \
-  					append-kernel | pad-to 10M | append-rootfs | pad-to 64M | check-size 67108865
+  					append-kernel | pad-to 10M | append-rootfs | pad-rootfs | check-size 67108865
 endef
 TARGET_DEVICES += ls1043ardb
 
@@ -72,10 +72,6 @@ ifeq ($(SUBTARGET),32b)
   DEVICE_DTS = ../../../arm64/boot/dts/freescale/fsl-ls1012a-rdb
 endif
   IMAGE/firmware.bin = append-ls-rcw $(1) | pad-to 1M | append-ls-uboot $(1) | pad-to 3M | \
-  					append-ls-dtb $$(DEVICE_DTS) | pad-to 4M | append-kernel | pad-to 9M | \
-  					append-rootfs | pad-to 32M | check-size 33554433
-  IMAGES += firmware.ext4.bin
-  IMAGE/firmware.ext4.bin = append-ls-rcw $(1) | pad-to 1M | append-ls-uboot $(1) | pad-to 3M | \
   					append-ls-dtb $$(DEVICE_DTS) | pad-to 4M | append-kernel | pad-to 9M | \
   					append-ls-rootfs-ext4 $(1) 23M | check-size 33554433
 endef

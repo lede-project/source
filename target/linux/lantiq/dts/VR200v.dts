@@ -2,6 +2,8 @@
 
 #include "vr9.dtsi"
 
+#include <dt-bindings/input/input.h>
+
 / {
 	model = "VR200v - TP-LINK Archer VR200v";
 
@@ -111,7 +113,7 @@
 		dect_paging {
 			label = "dect_paging";
 			gpios = <&gpio 39 GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_WPS_BUTTON>;
+			linux,code = <KEY_PHONE>;
 		};
 	};
 

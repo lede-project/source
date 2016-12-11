@@ -16,9 +16,12 @@ board=$(ar71xx_board_name)
 case "$board" in
 alfa-ap120c | \
 all0258n | \
+ap90q | \
 cap324 | \
 cap4200ag | \
 carambola2 | \
+cpe830 | \
+cpe870 | \
 cr3000 | \
 cr5000 | \
 eap300v2 | \

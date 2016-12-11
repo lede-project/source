@@ -178,10 +178,18 @@ platform_check_image() {
 	ap132|\
 	ap81|\
 	ap83|\
+	ap90q|\
 	bullet-m|\
 	c-55|\
 	carambola2|\
 	cf-e316n-v2|\
+	cf-e320n-v2|\
+	cf-e380ac-v1|\
+	cf-e380ac-v2|\
+	cf-e520n|\
+	cf-e530n|\
+	cpe830|\
+	cpe870|\
 	dgl-5500-a1|\
 	dhp-1565-a1|\
 	dir-505-a1|\
@@ -263,6 +271,7 @@ platform_check_image() {
 	ap152|\
 	ap96|\
 	arduino-yun|\
+	bhr-4grv2|\
 	bxu2000n-2-a1|\
 	db120|\
 	dr344|\
@@ -354,6 +363,7 @@ platform_check_image() {
 	tl-wa750re|\
 	tl-wa7510n|\
 	tl-wa801nd-v2|\
+	tl-wa801nd-v3|\
 	tl-wa830re-v2|\
 	tl-wa850re|\
 	tl-wa860re|\

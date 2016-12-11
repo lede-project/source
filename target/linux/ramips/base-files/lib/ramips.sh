@@ -13,6 +13,9 @@ ramips_board_detect() {
 	machine=$(awk 'BEGIN{FS="[ \t]+:[ \t]"} /machine/ {print $2}' /proc/cpuinfo)
 
 	case "$machine" in
+	*"11AC NAS Router")
+		name="w2914nsv2"
+		;;
 	*"3G150B")
 		name="3g150b"
 		;;
@@ -115,6 +118,9 @@ ramips_board_detect() {
 	*"DCS-930L B1")
 		name="dcs-930l-b1"
 		;;
+	*"Digineo AC1200 Pro")
+		name="ac1200pro"
+		;;
 	*"DIR-300 B1")
 		name="dir-300-b1"
 		;;
@@ -159,6 +165,9 @@ ramips_board_detect() {
 		;;
 	*"DuZun DM06")
 		name="duzun-dm06"
+		;;
+	*"DWR-512 B")
+		name="dwr-512-b"
 		;;
 	*"E1700")
 		name="e1700"
@@ -451,6 +460,9 @@ ramips_board_detect() {
 	*"W150M")
 		name="w150m"
 		;;
+	*"W2914NS v2")
+		name="w2914nsv2"
+		;;
 	*"W306R V2.0")
 		name="w306r-v20"
 		;;
@@ -504,6 +516,9 @@ ramips_board_detect() {
 		;;
 	*"WLI-TX4-AG300N")
 		name="wli-tx4-ag300n"
+		;;
+	*"WLR-6000")
+		name="wlr-6000"
 		;;
 	*"WMR-300")
 		name="wmr-300"
@@ -579,6 +594,9 @@ ramips_board_detect() {
 		;;
 	*"ZBT-WR8305RT")
 		name="zbt-wr8305rt"
+		;;
+	*"ZyXEL Keenetic Viva")
+		name="kng_rc"
 		;;
 	*"YK1")
 		name="youku-yk1"

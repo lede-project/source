@@ -37,7 +37,9 @@ define Device/Default
   KERNEL := $(KERNEL_DTB) | uImage lzma
   IMAGES := sysupgrade.bin
   IMAGE_SIZE := $(ralink_default_fw_size_8M)
-  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE)
+  SUPPORTED_DEVICES = $(1)
+  sysupgrade_bin := append-kernel | append-rootfs | pad-rootfs
+  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
 endef
 
 define Build/patch-dtb
@@ -95,6 +97,11 @@ endef
 
 define Build/seama-seal
 	$(call Build/seama,-s $@.seama $(1))
+endef
+
+define Build/wrg-header
+	mkwrgimg -i $@ -d "/dev/mtdblock/2" -s $(1) -o $@.new
+	mv $@.new $@
 endef
 
 #

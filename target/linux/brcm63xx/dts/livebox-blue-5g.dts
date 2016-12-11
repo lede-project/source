@@ -21,13 +21,13 @@
 		debounce-interval = <60>;
 
 		button1 {
-			label = "BTN_1";
+			label = "1";
 			gpios = <&gpio1 4 1>;
-			linux,code = <BTN_1>;
+			linux,code = <KEY_RESTART>;
 		};
 
 		button2 {
-			label = "BTN_2";
+			label = "2";
 			gpios = <&gpio0 7 1>;
 			linux,code = <BTN_2>;
 		};
@@ -37,28 +37,28 @@
 		compatible = "gpio-leds";
 
 		red_adsl_fail {
-			label = "Livebox-blue-5g:red:adsl-fail";
+			label = "Livebox1:red:adsl-fail-power";
 			gpios = <&gpio0 0 0>;
 			default-state = "on";
 		};
 
 		red_adsl {
-			label = "Livebox-blue-5g:red:adsl-fail";
+			label = "Livebox1:red:adsl";
 			gpios = <&gpio0 1 0>;
 		};
 
 		red_traffic {
-			label = "Livebox-blue-5g:red:adsl-fail";
+			label = "Livebox1:red:traffic";
 			gpios = <&gpio0 2 0>;
 		};
 
 		red_phone {
-			label = "Livebox-blue-5g:red:adsl-fail";
+			label = "Livebox1:red:phone";
 			gpios = <&gpio0 3 0>;
 		};
 
 		red_wifi {
-			label = "Livebox-blue-5g:red:adsl-fail";
+			label = "Livebox1:red:wifi";
 			gpios = <&gpio0 4 0>;
 		};
 	};
@@ -68,5 +68,5 @@
 	reg = <0x1e400000 0x800000>;
 	status = "ok";
 
-	linux,part-probe = "redboot";
+	linux,part-probe = "RedBoot";
 };

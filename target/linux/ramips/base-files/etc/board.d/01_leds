@@ -54,7 +54,7 @@ wf-2881)
 	set_usb_led "$board:green:usb"
 	;;
 all0256n)
-	ucidef_set_rssimon "wlan0" "40000" "1"
+	ucidef_set_rssimon "wlan0" "200000" "1"
 	ucidef_set_led_rssi "rssilow" "RSSILOW" "$board:green:rssilow" "wlan0" "1" "40" "0" "6"
 	ucidef_set_led_rssi "rssimedium" "RSSIMEDIUM" "$board:green:rssimed" "wlan0" "30" "80" "-29" "5"
 	ucidef_set_led_rssi "rssihigh" "RSSIHIGH" "$board:green:rssihigh" "wlan0" "70" "100" "-69" "8"
@@ -158,7 +158,11 @@ ex2700)
 	ucidef_set_led_default "power_r" "POWER (red)" "$board:red:power" "0"
 	set_wifi_led "$board:green:router"
 	;;
-f5d8235-v1|\
+f5d8235-v1)
+	ucidef_set_led_default "lan" "lan" "$board:blue:wired" "0"
+	set_usb_led "$board:blue:storage"
+	set_wifi_led "$board:blue:wireless"
+	;;
 f5d8235-v2)
 	set_usb_led "$board:blue:storage"
 	;;
@@ -202,6 +206,10 @@ hpm)
 ht-tm02)
 	ucidef_set_led_netdev "eth" "Ethernet" "$board:green:lan" "eth0"
 	set_wifi_led "$board:blue:wlan"
+	;;
+kng_rc)
+	set_usb_led "$board:green:usb"
+	set_wifi_led "$board:green:wifi"
 	;;
 m2m)
 	set_wifi_led "$board:blue:wifi"
@@ -299,6 +307,9 @@ vocore)
 	ucidef_set_led_netdev "eth" "ETH" "$board:orange:eth" "eth0"
 	set_wifi_led "$board:green:status"
 	;;
+w2914nsv2)
+	set_usb_led "$board:green:usb"
+	;;
 w502u)
 	set_usb_led "$board:blue:usb"
 	set_wifi_led "rt2800pci-phy0::radio"
@@ -313,7 +324,7 @@ whr-600d)
 	ucidef_set_led_default "router" "router" "$board:green:router" "1"
 	;;
 wl-wn575a3)
-	ucidef_set_rssimon "wlan1" "40000" "1"
+	ucidef_set_rssimon "wlan1" "200000" "1"
 	ucidef_set_led_rssi "wifi-low" "wifi-low" "$board:green:wifi-low" "wlan1" "1" "49" "0" "1"
 	ucidef_set_led_rssi "wifi-med" "wifi-med" "$board:green:wifi-med" "wlan1" "50" "84" "0" "1"
 	ucidef_set_led_rssi "wifi-high" "wifi-high" "$board:green:wifi-high" "wlan1" "85" "100" "0" "1"
@@ -328,11 +339,18 @@ wndr3700v5)
 wt3020)
 	ucidef_set_led_default "power" "power" "$board:blue:power" "0"
 	;;
-y1|\
-y1s)
-	ucidef_set_led_default "power" "power" "$board:blue:power" "1"
+y1)
 	set_usb_led "$board:blue:usb"
-	set_wifi_led "$board:blue:wifi"
+	ucidef_set_led_netdev "wifi" "WIFI" "$board:blue:wifi" "wlan1"
+	ucidef_set_led_netdev "wifi5g" "WIFI5G" "$board:blue:wifi5g" "wlan0"
+	ucidef_set_led_netdev "lan" "LAN" "$board:blue:lan" "eth0.1" "tx rx"
+	ucidef_set_led_netdev "wan" "WAN" "$board:blue:internet" "eth0.2" "tx rx"
+	;;
+y1s)
+	set_usb_led "$board:blue:usb"
+	ucidef_set_led_netdev "wifi" "WIFI" "$board:yellow:wifi" "wlan1"
+	ucidef_set_led_netdev "wifi5g" "WIFI5G" "$board:blue:wifi" "wlan0"
+	ucidef_set_led_netdev "wan" "WAN" "$board:blue:internet" "eth0.2" "tx rx"
 	;;
 zbt-ape522ii)
 	ucidef_set_led_netdev "wlan2g4" "wlan1-link" "$board:green:wlan2g4" "wlan1"

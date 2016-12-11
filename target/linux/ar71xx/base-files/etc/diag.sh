@@ -47,11 +47,22 @@ get_status_led() {
 	tl-wpa8630)
 		status_led="$board:green:power"
 		;;
+	ap90q|\
+	cpe830|\
+	cpe870|\
+	gl-inet)
+		status_led="$board:green:lan"
+		;;
 	ap96)
 		status_led="$board:green:led2"
 		;;
 	aw-nr580)
 		status_led="$board:green:ready"
+		;;
+	bhr-4grv2|\
+	wzr-hp-ag300h|\
+	wzr-hp-g300nh2)
+		status_led="buffalo:red:diag"
 		;;
 	bsb)
 		status_led="$board:red:sys"
@@ -81,8 +92,17 @@ get_status_led() {
 	cap4200ag)
 		status_led="senao:green:pwr"
 		;;
-	cf-e316n-v2)
+	cf-e316n-v2|\
+	cf-e520n|\
+	cf-e530n)
 		status_led="$board:blue:wan"
+		;;
+	cf-e320n-v2)
+		status_led="$board:blue:wlan"
+		;;
+	cf-e380ac-v1|\
+	cf-e380ac-v2)
+		status_led="$board:blue:wlan2g"
 		;;
 	cpe510)
 		status_led="tp-link:green:link4"
@@ -153,9 +173,6 @@ get_status_led() {
 		;;
 	f9k1115v2)
 		status_led="belkin:blue:status"
-		;;
-	gl-inet)
-		status_led="$board:green:lan"
 		;;
 	epg5000|\
 	esr1750)
@@ -333,6 +350,7 @@ get_status_led() {
 	tl-wr741nd|\
 	tl-wr741nd-v4|\
 	tl-wr742n-v5|\
+	tl-wa801nd-v3|\
 	tl-wr841n-v1|\
 	tl-wr841n-v7|\
 	tl-wr841n-v8|\
@@ -397,10 +415,6 @@ get_status_led() {
 		;;
 	wlae-ag300n)
 		status_led="buffalo:green:status"
-		;;
-	wzr-hp-ag300h|\
-	wzr-hp-g300nh2)
-		status_led="buffalo:red:diag"
 		;;
 	r6100|\
 	wndap360|\
