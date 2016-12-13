@@ -20,10 +20,11 @@ DEFAULT_PACKAGES += \
 	kmod-ata-core kmod-ata-ahci kmod-ata-ahci-platform \
 	kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport \
 	kmod-usb3 kmod-usb-dwc3-of-simple kmod-usb-phy-qcom-dwc3 \
-	kmod-ath10k wpad-mini \
+	kmod-ath10k wpad \
 	uboot-envtools \
 	block-mount e2fsprogs openssl-util luci luci-app-minidlna \
-	luci-app-upnp luci-app-transmission transmission-daemon-openssl \
-	kmod-usb-storage kmod-fs-ext4 minidlna miniupnpd nano htop
+	luci-app-transmission transmission-daemon-openssl \
+	kmod-usb-storage kmod-fs-ext4 minidlna nano htop \
+	aria2 luci-app-aria2 samba36-server luci-app-samba 6to4
 
 $(eval $(call BuildTarget))
