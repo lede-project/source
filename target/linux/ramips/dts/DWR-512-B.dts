@@ -110,10 +110,10 @@
         spidev@1 {
 		#address-cells = <1>;
 		#size-cells = <1>;
-                compatible = "linux,spidev";
+                compatible = "siliconlabs,si3210";
 
                 reg = <0>;
-                spi-max-frequency = <30000000>;
+                spi-max-frequency = <1000000>;
         };
 };
 
