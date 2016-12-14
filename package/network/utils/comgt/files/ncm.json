@@ -63,5 +63,21 @@
 		},
 		"connect": "AT*ENAP=1,1",
 		"disconnect": "AT*ENAP=0"
+	},
+	"mtk2": {
+                "initialize": [
+			"AT+CFUN=1"
+		],
+                "configure": [
+			"AT+CREG?",
+			"AT+CGDCONT=1,\\\"${pdptype}\\\",\\\"${apn}\\\",0,0",
+                        "AT+CGACT=1,1"
+                ],
+                "modes": {
+                        "umts": "AT",
+                        "gsm": "AT"
+                },
+                "connect": "AT+CGDATA=\\\"M-MBIM\\\",1,1",
+                "disconnect": "AT+CGACT=0,1"
 	}
 }
