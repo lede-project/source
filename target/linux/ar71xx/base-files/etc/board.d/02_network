@@ -266,6 +266,7 @@ ar71xx_setup_interfaces()
 	tl-wdr6500-v2|\
 	tl-wr841n-v8|\
 	tl-wr842n-v2|\
+	tl-wr940n-v4|\
 	tl-wr941nd-v5|\
 	tl-wr941nd-v6|\
 	wnr1000-v2|\
