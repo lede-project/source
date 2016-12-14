@@ -45,23 +45,11 @@ static struct mtd_partition wnr2000_partitions[] = {
 	}, {
 		.name		= "rootfs",
 		.offset		= 0x050000,
-		.size		= 0x240000,
-	}, {
-		.name		= "user-config",
-		.offset		= 0x290000,
-		.size		= 0x010000,
+		.size		= 0x260000,
 	}, {
 		.name		= "uImage",
-		.offset		= 0x2a0000,
-		.size		= 0x120000,
-	}, {
-		.name		= "language_table",
-		.offset		= 0x3c0000,
-		.size		= 0x020000,
-	}, {
-		.name		= "rootfs_checksum",
-		.offset		= 0x3e0000,
-		.size		= 0x010000,
+		.offset		= 0x2b0000,
+		.size		= 0x138000,
 	}, {
 		.name		= "art",
 		.offset		= 0x3f0000,
