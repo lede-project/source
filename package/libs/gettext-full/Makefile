@@ -89,5 +89,7 @@ define Package/libintl-full/install
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libintl.so* $(1)/usr/lib/
 endef
 
+ifneq ($(CONFIG_TARGET_x86),y)
 $(eval $(call HostBuild))
+endif
 $(eval $(call BuildPackage,libintl-full))
