@@ -197,19 +197,24 @@ $(_endef)
 			printf "Description: "; echo "$$$$DESCRIPTION" | sed -e 's,^[[:space:]]*, ,g'; \
 		) > control; \
 		chmod 644 control; \
-		( \
-			echo "#!/bin/sh"; \
-			echo "[ \"\$$$${IPKG_NO_SCRIPT}\" = \"1\" ] && exit 0"; \
-			echo ". \$$$${IPKG_INSTROOT}/lib/functions.sh"; \
-			echo "default_postinst \$$$$0 \$$$$@"; \
-		) > postinst; \
-		( \
-			echo "#!/bin/sh"; \
-			echo ". \$$$${IPKG_INSTROOT}/lib/functions.sh"; \
-			echo "default_prerm \$$$$0 \$$$$@"; \
-		) > prerm; \
-		chmod 0755 postinst prerm; \
 		$($(1)_COMMANDS) \
+		if [ "$${IPKG_NO_DEFAULT}" = "1" ]; then \
+			cat postinst-pkg > postinst; \
+			cat prerm-pkg    > prerm; \
+		else \
+			( \
+				echo "#!/bin/sh"; \
+				echo "[ \"\$$$${IPKG_NO_SCRIPT}\" = \"1\" ] && exit 0"; \
+				echo ". \$$$${IPKG_INSTROOT}/lib/functions.sh"; \
+				echo "default_postinst \$$$$0 \$$$$@"; \
+			) > postinst; \
+			( \
+				echo "#!/bin/sh"; \
+				echo ". \$$$${IPKG_INSTROOT}/lib/functions.sh"; \
+				echo "default_prerm \$$$$0 \$$$$@"; \
+			) > prerm; \
+		fi; \
+		chmod 0755 postinst prerm; \
 	)
 
     ifneq ($$(KEEP_$(1)),)
