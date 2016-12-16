@@ -53,11 +53,11 @@
 #define   RTL8367B_TA_CTRL_TABLE_CVLAN		3
 #define   RTL8367B_TA_CTRL_TABLE_L2		4
 #define   RTL8367B_TA_CTRL_CVLAN_READ \
-		((RTL8367B_TA_CTRL_CMD_READ << RTL8367B_TA_CTRL_CMD_SHIFT) | \
-		 RTL8367B_TA_CTRL_TABLE_CVLAN)
+			((RTL8367B_TA_CTRL_CMD_READ << RTL8367B_TA_CTRL_CMD_SHIFT) | \
+			RTL8367B_TA_CTRL_TABLE_CVLAN)
 #define   RTL8367B_TA_CTRL_CVLAN_WRITE \
-		((RTL8367B_TA_CTRL_CMD_WRITE << RTL8367B_TA_CTRL_CMD_SHIFT) | \
-		 RTL8367B_TA_CTRL_TABLE_CVLAN)
+			((RTL8367B_TA_CTRL_CMD_WRITE << RTL8367B_TA_CTRL_CMD_SHIFT) | \
+			RTL8367B_TA_CTRL_TABLE_CVLAN)
 
 #define RTL8367B_TA_ADDR_REG			0x0501/*GOOD*/
 #define   RTL8367B_TA_ADDR_MASK			0x3fff/*GOOD*/
@@ -299,25 +299,25 @@ rtl8367b_mib_counters[RTL8367B_NUM_MIB_COUNTERS] = {
 	{0, 120, 2, "inKnownMulticastPkts"		},
 };
 
-#define REG_RD(_smi, _reg, _val)					\
-	do {								\
-		err = rtl8366_smi_read_reg(_smi, _reg, _val);		\
-		if (err)						\
-			return err;					\
+#define REG_RD(_smi, _reg, _val) \
+	do { \
+		err = rtl8366_smi_read_reg(_smi, _reg, _val); \
+		if (err) \
+			return err; \
 	} while (0)
 
-#define REG_WR(_smi, _reg, _val)					\
-	do {								\
-		err = rtl8366_smi_write_reg(_smi, _reg, _val);		\
-		if (err)						\
-			return err;					\
+#define REG_WR(_smi, _reg, _val) \
+	do { \
+		err = rtl8366_smi_write_reg(_smi, _reg, _val); \
+		if (err) \
+			return err; \
 	} while (0)
 
-#define REG_RMW(_smi, _reg, _mask, _val)				\
-	do {								\
-		err = rtl8366_smi_rmwr(_smi, _reg, _mask, _val);	\
-		if (err)						\
-			return err;					\
+#define REG_RMW(_smi, _reg, _mask, _val) \
+	do { \
+		err = rtl8366_smi_rmwr(_smi, _reg, _mask, _val); \
+		if (err) \
+			return err; \
 	} while (0)
 
 static const struct rtl8367b_initval rtl8367r_vb_initvals_0[] = {
@@ -575,8 +575,8 @@ static const struct rtl8367b_initval rtl8367r_vb_initvals_1[] = {
 };
 
 static int rtl8367b_write_initvals(struct rtl8366_smi *smi,
-				  const struct rtl8367b_initval *initvals,
-				  int count)
+				const struct rtl8367b_initval *initvals,
+				int count)
 {
 	int err;
 	int i;
@@ -606,11 +606,11 @@ static int rtl8367b_read_phy_reg(struct rtl8366_smi *smi,
 
 	/* prepare address */
 	REG_WR(smi, RTL8367B_IA_ADDRESS_REG,
-	       RTL8367B_INTERNAL_PHY_REG(phy_addr, phy_reg));
+		RTL8367B_INTERNAL_PHY_REG(phy_addr, phy_reg));
 
 	/* send read command */
 	REG_WR(smi, RTL8367B_IA_CTRL_REG,
-	       RTL8367B_IA_CTRL_CMD_MASK | RTL8367B_IA_CTRL_RW_READ);
+		RTL8367B_IA_CTRL_CMD_MASK | RTL8367B_IA_CTRL_RW_READ);
 
 	timeout = 5;
 	do {
@@ -635,7 +635,7 @@ static int rtl8367b_read_phy_reg(struct rtl8366_smi *smi,
 }
 
 static int rtl8367b_write_phy_reg(struct rtl8366_smi *smi,
-				 u32 phy_addr, u32 phy_reg, u32 val)
+				u32 phy_addr, u32 phy_reg, u32 val)
 {
 	int timeout;
 	u32 data;
@@ -659,11 +659,11 @@ static int rtl8367b_write_phy_reg(struct rtl8366_smi *smi,
 
 	/* prepare address */
 	REG_WR(smi, RTL8367B_IA_ADDRESS_REG,
-	       RTL8367B_INTERNAL_PHY_REG(phy_addr, phy_reg));
+		RTL8367B_INTERNAL_PHY_REG(phy_addr, phy_reg));
 
 	/* send write command */
 	REG_WR(smi, RTL8367B_IA_CTRL_REG,
-	       RTL8367B_IA_CTRL_CMD_MASK | RTL8367B_IA_CTRL_RW_WRITE);
+		RTL8367B_IA_CTRL_CMD_MASK | RTL8367B_IA_CTRL_RW_WRITE);
 
 	timeout = 5;
 	do {
@@ -743,7 +743,7 @@ static int rtl8367b_reset_chip(struct rtl8366_smi *smi)
 }
 
 static int rtl8367b_extif_set_mode(struct rtl8366_smi *smi, int id,
-				   enum rtl8367_extif_mode mode)
+				enum rtl8367_extif_mode mode)
 {
 	int err;
 
@@ -763,7 +763,7 @@ static int rtl8367b_extif_set_mode(struct rtl8366_smi *smi, int id,
 
 	case RTL8367_EXTIF_MODE_GMII:
 		REG_RMW(smi, RTL8367B_CHIP_DEBUG0_REG,
-		        RTL8367B_CHIP_DEBUG0_DUMMY0(id),
+			RTL8367B_CHIP_DEBUG0_DUMMY0(id),
 			RTL8367B_CHIP_DEBUG0_DUMMY0(id));
 		REG_RMW(smi, RTL8367B_EXT_RGMXF_REG(id), BIT(6), BIT(6));
 		break;
@@ -790,7 +790,7 @@ static int rtl8367b_extif_set_mode(struct rtl8366_smi *smi, int id,
 }
 
 static int rtl8367b_extif_set_force(struct rtl8366_smi *smi, int id,
-				    struct rtl8367_port_ability *pa)
+				struct rtl8367_port_ability *pa)
 {
 	u32 mask;
 	u32 val;
@@ -818,7 +818,7 @@ static int rtl8367b_extif_set_force(struct rtl8366_smi *smi, int id,
 }
 
 static int rtl8367b_extif_set_rgmii_delay(struct rtl8366_smi *smi, int id,
-					 unsigned txdelay, unsigned rxdelay)
+					unsigned txdelay, unsigned rxdelay)
 {
 	u32 mask;
 	u32 val;
@@ -837,7 +837,7 @@ static int rtl8367b_extif_set_rgmii_delay(struct rtl8366_smi *smi, int id,
 }
 
 static int rtl8367b_extif_init(struct rtl8366_smi *smi, int id,
-			       struct rtl8367_extif_config *cfg)
+			struct rtl8367_extif_config *cfg)
 {
 	enum rtl8367_extif_mode mode;
 	int err;
@@ -854,7 +854,7 @@ static int rtl8367b_extif_init(struct rtl8366_smi *smi, int id,
 			return err;
 
 		err = rtl8367b_extif_set_rgmii_delay(smi, id, cfg->txdelay,
-						     cfg->rxdelay);
+						cfg->rxdelay);
 		if (err)
 			return err;
 	}
@@ -864,7 +864,7 @@ static int rtl8367b_extif_init(struct rtl8366_smi *smi, int id,
 
 #ifdef CONFIG_OF
 static int rtl8367b_extif_init_of(struct rtl8366_smi *smi, int id,
-				  const char *name)
+				const char *name)
 {
 	struct rtl8367_extif_config *cfg;
 	const __be32 *prop;
@@ -901,7 +901,7 @@ static int rtl8367b_extif_init_of(struct rtl8366_smi *smi, int id,
 }
 #else
 static int rtl8367b_extif_init_of(struct rtl8366_smi *smi, int id,
-				  const char *name)
+				const char *name)
 {
 	return -EINVAL;
 }
@@ -963,7 +963,7 @@ static int rtl8367b_setup(struct rtl8366_smi *smi)
 }
 
 static int rtl8367b_get_mib_counter(struct rtl8366_smi *smi, int counter,
-				    int port, unsigned long long *val)
+					int port, unsigned long long *val)
 {
 	struct rtl8366_mib_counter *mib;
 	int offset;
@@ -973,7 +973,7 @@ static int rtl8367b_get_mib_counter(struct rtl8366_smi *smi, int counter,
 	u64 mibvalue;
 
 	if (port > RTL8367B_NUM_PORTS ||
-	    counter >= RTL8367B_NUM_MIB_COUNTERS)
+		counter >= RTL8367B_NUM_MIB_COUNTERS)
 		return -EINVAL;
 
 	mib = &rtl8367b_mib_counters[counter];
@@ -1032,11 +1032,11 @@ static int rtl8367b_get_vlan_4k(struct rtl8366_smi *smi, u32 vid,
 
 	vlan4k->vid = vid;
 	vlan4k->member = (data[0] >> RTL8367B_TA_VLAN0_MEMBER_SHIFT) &
-			 RTL8367B_TA_VLAN0_MEMBER_MASK;
+			RTL8367B_TA_VLAN0_MEMBER_MASK;
 	vlan4k->untag = (data[0] >> RTL8367B_TA_VLAN0_UNTAG_SHIFT) &
 			RTL8367B_TA_VLAN0_UNTAG_MASK;
 	vlan4k->fid = (data[1] >> RTL8367B_TA_VLAN1_FID_SHIFT) &
-		      RTL8367B_TA_VLAN1_FID_MASK;
+			RTL8367B_TA_VLAN1_FID_MASK;
 
 	return 0;
 }
@@ -1049,26 +1049,26 @@ static int rtl8367b_set_vlan_4k(struct rtl8366_smi *smi,
 	int i;
 
 	if (vlan4k->vid >= RTL8367B_NUM_VIDS ||
-	    vlan4k->member > RTL8367B_TA_VLAN0_MEMBER_MASK ||
-	    vlan4k->untag > RTL8367B_UNTAG_MASK ||
-	    vlan4k->fid > RTL8367B_FIDMAX)
+		vlan4k->member > RTL8367B_TA_VLAN0_MEMBER_MASK ||
+		vlan4k->untag > RTL8367B_UNTAG_MASK ||
+		vlan4k->fid > RTL8367B_FIDMAX)
 		return -EINVAL;
 
 	memset(data, 0, sizeof(data));
 
 	data[0] = (vlan4k->member & RTL8367B_TA_VLAN0_MEMBER_MASK) <<
-		  RTL8367B_TA_VLAN0_MEMBER_SHIFT;
+		RTL8367B_TA_VLAN0_MEMBER_SHIFT;
 	data[0] |= (vlan4k->untag & RTL8367B_TA_VLAN0_UNTAG_MASK) <<
-		   RTL8367B_TA_VLAN0_UNTAG_SHIFT;
+		RTL8367B_TA_VLAN0_UNTAG_SHIFT;
 	data[1] = (vlan4k->fid & RTL8367B_TA_VLAN1_FID_MASK) <<
-		  RTL8367B_TA_VLAN1_FID_SHIFT;
+		RTL8367B_TA_VLAN1_FID_SHIFT;
 
 	for (i = 0; i < ARRAY_SIZE(data); i++)
 		REG_WR(smi, RTL8367B_TA_WRDATA_REG(i), data[i]);
 
 	/* write VID */
 	REG_WR(smi, RTL8367B_TA_ADDR_REG,
-	       vlan4k->vid & RTL8367B_TA_VLAN_VID_MASK);
+		vlan4k->vid & RTL8367B_TA_VLAN_VID_MASK);
 
 	/* write table access control word */
 	REG_WR(smi, RTL8367B_TA_CTRL_REG, RTL8367B_TA_CTRL_CVLAN_WRITE);
@@ -1092,11 +1092,11 @@ static int rtl8367b_get_vlan_mc(struct rtl8366_smi *smi, u32 index,
 		REG_RD(smi, RTL8367B_VLAN_MC_BASE(index) + i, &data[i]);
 
 	vlanmc->member = (data[0] >> RTL8367B_VLAN_MC0_MEMBER_SHIFT) &
-			 RTL8367B_VLAN_MC0_MEMBER_MASK;
+			RTL8367B_VLAN_MC0_MEMBER_MASK;
 	vlanmc->fid = (data[1] >> RTL8367B_VLAN_MC1_FID_SHIFT) &
-		      RTL8367B_VLAN_MC1_FID_MASK;
+			RTL8367B_VLAN_MC1_FID_MASK;
 	vlanmc->vid = (data[3] >> RTL8367B_VLAN_MC3_EVID_SHIFT) &
-		      RTL8367B_VLAN_MC3_EVID_MASK;
+			RTL8367B_VLAN_MC3_EVID_MASK;
 
 	return 0;
 }
@@ -1109,20 +1109,20 @@ static int rtl8367b_set_vlan_mc(struct rtl8366_smi *smi, u32 index,
 	int i;
 
 	if (index >= RTL8367B_NUM_VLANS ||
-	    vlanmc->vid >= RTL8367B_NUM_VIDS ||
-	    vlanmc->priority > RTL8367B_PRIORITYMAX ||
-	    vlanmc->member > RTL8367B_VLAN_MC0_MEMBER_MASK ||
-	    vlanmc->untag > RTL8367B_UNTAG_MASK ||
-	    vlanmc->fid > RTL8367B_FIDMAX)
+		vlanmc->vid >= RTL8367B_NUM_VIDS ||
+		vlanmc->priority > RTL8367B_PRIORITYMAX ||
+		vlanmc->member > RTL8367B_VLAN_MC0_MEMBER_MASK ||
+		vlanmc->untag > RTL8367B_UNTAG_MASK ||
+		vlanmc->fid > RTL8367B_FIDMAX)
 		return -EINVAL;
 
 	data[0] = (vlanmc->member & RTL8367B_VLAN_MC0_MEMBER_MASK) <<
-		  RTL8367B_VLAN_MC0_MEMBER_SHIFT;
+		RTL8367B_VLAN_MC0_MEMBER_SHIFT;
 	data[1] = (vlanmc->fid & RTL8367B_VLAN_MC1_FID_MASK) <<
-		  RTL8367B_VLAN_MC1_FID_SHIFT;
+		RTL8367B_VLAN_MC1_FID_SHIFT;
 	data[2] = 0;
 	data[3] = (vlanmc->vid & RTL8367B_VLAN_MC3_EVID_MASK) <<
-		   RTL8367B_VLAN_MC3_EVID_SHIFT;
+		RTL8367B_VLAN_MC3_EVID_SHIFT;
 
 	for (i = 0; i < ARRAY_SIZE(data); i++)
 		REG_WR(smi, RTL8367B_VLAN_MC_BASE(index) + i, data[i]);
@@ -1141,7 +1141,7 @@ static int rtl8367b_get_mc_index(struct rtl8366_smi *smi, int port, int *val)
 	REG_RD(smi, RTL8367B_VLAN_PVID_CTRL_REG(port), &data);
 
 	*val = (data >> RTL8367B_VLAN_PVID_CTRL_SHIFT(port)) &
-	       RTL8367B_VLAN_PVID_CTRL_MASK;
+		RTL8367B_VLAN_PVID_CTRL_MASK;
 
 	return 0;
 }
@@ -1188,14 +1188,14 @@ static int rtl8367b_enable_port(struct rtl8366_smi *smi, int port, int enable)
 	int err;
 
 	REG_WR(smi, RTL8367B_PORT_ISOLATION_REG(port),
-	       (enable) ? RTL8367B_PORTS_ALL : 0);
+		(enable) ? RTL8367B_PORTS_ALL : 0);
 
 	return 0;
 }
 
 static int rtl8367b_sw_reset_mibs(struct switch_dev *dev,
-				  const struct switch_attr *attr,
-				  struct switch_val *val)
+				const struct switch_attr *attr,
+				struct switch_val *val)
 {
 	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
 
@@ -1204,8 +1204,8 @@ static int rtl8367b_sw_reset_mibs(struct switch_dev *dev,
 }
 
 static int rtl8367b_sw_get_port_link(struct switch_dev *dev,
-				    int port,
-				    struct switch_port_link *link)
+					int port,
+					struct switch_port_link *link)
 {
 	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
 	u32 data = 0;
@@ -1245,8 +1245,8 @@ static int rtl8367b_sw_get_port_link(struct switch_dev *dev,
 }
 
 static int rtl8367b_sw_get_max_length(struct switch_dev *dev,
-				     const struct switch_attr *attr,
-				     struct switch_val *val)
+					const struct switch_attr *attr,
+					struct switch_val *val)
 {
 	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
 	u32 data;
@@ -1259,8 +1259,8 @@ static int rtl8367b_sw_get_max_length(struct switch_dev *dev,
 }
 
 static int rtl8367b_sw_set_max_length(struct switch_dev *dev,
-				     const struct switch_attr *attr,
-				     struct switch_val *val)
+					const struct switch_attr *attr,
+					struct switch_val *val)
 {
 	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
 	u32 max_len;
@@ -1283,13 +1283,13 @@ static int rtl8367b_sw_set_max_length(struct switch_dev *dev,
 	}
 
 	return rtl8366_smi_rmwr(smi, RTL8367B_SWC0_REG,
-			        RTL8367B_SWC0_MAX_LENGTH_MASK, max_len);
+					RTL8367B_SWC0_MAX_LENGTH_MASK, max_len);
 }
 
 
 static int rtl8367b_sw_reset_port_mibs(struct switch_dev *dev,
-				       const struct switch_attr *attr,
-				       struct switch_val *val)
+					const struct switch_attr *attr,
+					struct switch_val *val)
 {
 	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
 	int port;
@@ -1328,7 +1328,7 @@ static struct switch_attr rtl8367b_globals[] = {
 		.type = SWITCH_TYPE_INT,
 		.name = "max_length",
 		.description = "Get/Set the maximum length of valid packets"
-			       "(0:1522, 1:1536, 2:1552, 3:16000)",
+				"(0:1522, 1:1536, 2:1552, 3:16000)",
 		.set = rtl8367b_sw_set_max_length,
 		.get = rtl8367b_sw_get_max_length,
 		.max = 3,
@@ -1447,7 +1447,7 @@ static int rtl8367b_detect(struct rtl8366_smi *smi)
 
 	/* TODO: improve chip detection */
 	rtl8366_smi_write_reg(smi, RTL8367B_RTL_MAGIC_ID_REG,
-			      RTL8367B_RTL_MAGIC_ID_VAL);
+				RTL8367B_RTL_MAGIC_ID_VAL);
 
 	ret = rtl8366_smi_read_reg(smi, RTL8367B_CHIP_NUMBER_REG, &chip_num);
 	if (ret) {
@@ -1510,7 +1510,7 @@ static struct rtl8366_smi_ops rtl8367b_smi_ops = {
 	.enable_port	= rtl8367b_enable_port,
 };
 
-static int  rtl8367b_probe(struct platform_device *pdev)
+static int rtl8367b_probe(struct platform_device *pdev)
 {
 	struct rtl8366_smi *smi;
 	int err;
@@ -1599,4 +1599,3 @@ MODULE_DESCRIPTION("Realtek RTL8367B ethernet switch driver");
 MODULE_AUTHOR("Gabor Juhos <juhosg@openwrt.org>");
 MODULE_LICENSE("GPL v2");
 MODULE_ALIAS("platform:" RTL8367B_DRIVER_NAME);
-
