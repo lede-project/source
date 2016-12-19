@@ -35,6 +35,16 @@ define Build/mktplinkfw-initramfs
 	@mv $@.new $@
 endef
 
+# add RE450 and similar header to the kernel image
+define Build/mktplinkfw-kernel
+	$(STAGING_DIR_HOST)/bin/mktplinkfw-kernel \
+		-H $(TPLINK_HWID) -N OpenWrt -V $(REVISION) \
+		-L $(KERNEL_LOADADDR) -E $(KERNEL_LOADADDR) \
+		-k $@ \
+		-o $@.new
+	@mv $@.new $@
+endef
+
 define Device/tplink
   TPLINK_HWREV := 0x1
   TPLINK_HEADER_VERSION := 1
@@ -108,6 +118,22 @@ $(Device/cpe510-520)
   TPLINK_BOARD_NAME := CPE210
 endef
 TARGET_DEVICES += cpe210-220 cpe510-520
+
+define Device/re450
+  DEVICE_TITLE := TP-LINK RE450
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x
+  MTDPARTS := spi0.0:128k(u-boot)ro,1344k(kernel),4672k(rootfs),64k(pation-table)ro,64k(product-info)ro,1856k(config)ro,64k(art)ro,6016k@0x20000(firmware)
+  IMAGE_SIZE := 7936k
+  BOARDNAME := RE450
+  TPLINK_BOARD_NAME := RE450
+  DEVICE_PROFILE := RE450
+  LOADER_TYPE := elf
+  KERNEL := kernel-bin | patch-cmdline | lzma | mktplinkfw-kernel
+  IMAGES := sysupgrade.bin factory.bin
+  IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade
+  IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
+endef
+TARGET_DEVICES += re450
 
 define Device/eap120
   DEVICE_TITLE := TP-LINK EAP120
