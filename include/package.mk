@@ -7,11 +7,10 @@
 
 __package_mk:=1
 
-all: $(if $(DUMP),dumpinfo,compile)
+all: $(if $(DUMP),dumpinfo,$(if $(CHECK),check,compile))
 
 PKG_BUILD_DIR ?= $(BUILD_DIR)/$(PKG_NAME)$(if $(PKG_VERSION),-$(PKG_VERSION))
 PKG_INSTALL_DIR ?= $(PKG_BUILD_DIR)/ipkg-install
-PKG_MD5SUM ?= unknown
 PKG_BUILD_PARALLEL ?=
 PKG_USE_MIPS16 ?= 1
 PKG_IREMAP ?= 1
@@ -118,17 +117,6 @@ ifeq ($(DUMP)$(filter prereq clean refresh update,$(MAKECMDGOALS)),)
   endif
 endif
 
-define Download/default
-  FILE:=$(PKG_SOURCE)
-  URL:=$(PKG_SOURCE_URL)
-  SUBDIR:=$(PKG_SOURCE_SUBDIR)
-  PROTO:=$(PKG_SOURCE_PROTO)
-  $(if $(PKG_SOURCE_MIRROR),MIRROR:=$(filter 1,$(PKG_MIRROR)))
-  $(if $(PKG_MIRROR_MD5SUM),MIRROR_MD5SUM:=$(PKG_MIRROR_MD5SUM))
-  VERSION:=$(PKG_SOURCE_VERSION)
-  MD5SUM:=$(PKG_MD5SUM)
-endef
-
 ifdef USE_GIT_TREE
   define Build/Prepare/Default
 	mkdir -p $(PKG_BUILD_DIR)
@@ -156,9 +144,8 @@ define Build/Exports/Default
 endef
 Build/Exports=$(Build/Exports/Default)
 
-define Build/DefaultTargets
+define Build/CoreTargets
   $(if $(QUILT),$(Build/Quilt))
-  $(if $(USE_SOURCE_DIR)$(USE_GIT_TREE),,$(if $(strip $(PKG_SOURCE_URL)),$(call Download,default)))
   $(call Build/Autoclean)
 
   download:
@@ -223,13 +210,18 @@ define Build/DefaultTargets
     compile: $(STAMP_INSTALLED)
   endif
 
-  define Build/DefaultTargets
-  endef
-
   prepare: $(STAMP_PREPARED)
   configure: $(STAMP_CONFIGURED)
   dist: $(STAMP_CONFIGURED)
   distcheck: $(STAMP_CONFIGURED)
+endef
+
+define Build/DefaultTargets
+  $(if $(USE_SOURCE_DIR)$(USE_GIT_TREE),,$(if $(strip $(PKG_SOURCE_URL)),$(call Download,default)))
+  $(if $(DUMP),,$(Build/CoreTargets))
+
+  define Build/DefaultTargets
+  endef
 endef
 
 define Build/IncludeOverlay
@@ -263,14 +255,14 @@ endif
   )
 
   $(if $(DUMP), \
-    $(Dumpinfo/Package), \
+    $(if $(CHECK),,$(Dumpinfo/Package)), \
     $(foreach target, \
       $(if $(Package/$(1)/targets),$(Package/$(1)/targets), \
         $(if $(PKG_TARGETS),$(PKG_TARGETS), ipkg) \
       ), $(BuildTarget/$(target)) \
     ) \
   )
-  $(if $(PKG_HOST_ONLY)$(DUMP),,$(call Build/DefaultTargets,$(1)))
+  $(if $(PKG_HOST_ONLY),,$(call Build/DefaultTargets,$(1)))
 endef
 
 define pkg_install_files
@@ -298,7 +290,7 @@ prepare-package-install:
 
 $(PACKAGE_DIR):
 	mkdir -p $@
-	
+
 dumpinfo:
 download:
 prepare:

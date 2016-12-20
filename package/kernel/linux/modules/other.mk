@@ -131,6 +131,7 @@ $(eval $(call KernelPackage,bluetooth-hci-h4p))
 
 
 define KernelPackage/dma-buf
+  SUBMENU:=$(OTHER_MENU)
   TITLE:=DMA shared buffer support
   HIDDEN:=1
   KCONFIG:=CONFIG_DMA_SHARED_BUFFER
@@ -383,7 +384,7 @@ define KernelPackage/sdhci
 	$(LINUX_DIR)/drivers/mmc/host/sdhci.ko \
 	$(LINUX_DIR)/drivers/mmc/host/sdhci-pltfm.ko
 
-  AUTOLOAD:=$(call AutoProbe,sdhci sdhci-pltfm,1)
+  AUTOLOAD:=$(call AutoProbe,sdhci-pltfm,1)
 endef
 
 define KernelPackage/sdhci/description
@@ -665,6 +666,22 @@ define KernelPackage/rtc-snvs/description
 endef
 
 $(eval $(call KernelPackage,rtc-snvs))
+
+define KernelPackage/rtc-rs5c372a
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=Ricoh R2025S/D, RS5C372A/B, RV5C386, RV5C387A
+  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  KCONFIG:=CONFIG_RTC_DRV_RS5C372 \
+	CONFIG_RTC_CLASS=y
+  FILES:=$(LINUX_DIR)/drivers/rtc/rtc-rs5c372.ko
+  AUTOLOAD:=$(call AutoLoad,50,rtc-rs5c372,1)
+endef
+
+define KernelPackage/rtc-rs5c372a/description
+ Kernel module for Ricoh R2025S/D, RS5C372A/B, RV5C386, RV5C387A RTC on chip module
+endef
+
+$(eval $(call KernelPackage,rtc-rs5c372a))
 
 
 define KernelPackage/mtdtests

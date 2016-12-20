@@ -8,14 +8,18 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
-PKG_NAME:=fsl-sdk
-PKG_VERSION:=v2.0
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:= \
-	http://git.freescale.com/git/cgit.cgi/ppc/sdk/u-boot.git/snapshot
-PKG_MD5SUM:=14f7ccc757bfa71c9b7fd68d24051231
+PKG_NAME:=uboot-layerscape
+PKG_VERSION:=v1.0
+PKG_RELEASE:=1
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/u-boot_$(PKG_NAME)-$(PKG_VERSION)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+PKG_MIRROR_HASH:=95eb52affe833a47a8868bcd31394246b8e4c1e5b6f9331d136dcafe94aeb3d6
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_URL:=https://github.com/fsl-jyt/u-boot.git
+PKG_SOURCE_VERSION:=aefcbf4c2bb36e1f0ead61181e5fe1119b5683ad
+
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
 
 PKG_LICENSE:=GPL-2.0 GPL-2.0+
 PKG_LICENSE_FILES:=Licenses/README
@@ -33,6 +37,11 @@ define uboot/ls1043ardb
 	CONFIG=ls1043ardb
 endef
 
+define uboot/ls1046ardb
+	TITLE:=U-Boot $(PKG_NAME)-$(PKG_VERSION) for NXP ls1046ardb 64b Dev Board
+	CONFIG=ls1046ardb_qspi
+endef
+
 define uboot/ls1012ardb
 	TITLE:=U-Boot $(PKG_NAME)-$(PKG_VERSION) for NXP ls1012ardb 64b Dev Board
 	CONFIG=ls1012ardb_qspi
@@ -41,6 +50,7 @@ endef
 
 UBOOTS := \
 	ls1043ardb \
+	ls1046ardb \
 	ls1012ardb
 
 define Package/uboot/template

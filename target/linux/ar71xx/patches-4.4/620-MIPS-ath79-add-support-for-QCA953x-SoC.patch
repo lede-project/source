@@ -22,7 +22,7 @@ meaning of the bits CPUCLK_FROM_CPUPLL and DDRCLK_FROM_DDRPLL is reversed.
 
 --- a/arch/mips/ath79/Kconfig
 +++ b/arch/mips/ath79/Kconfig
-@@ -117,6 +117,10 @@ config SOC_AR934X
+@@ -116,6 +116,10 @@ config SOC_AR934X
  	select PCI_AR724X if PCI
  	def_bool n
  
@@ -33,7 +33,7 @@ meaning of the bits CPUCLK_FROM_CPUPLL and DDRCLK_FROM_DDRPLL is reversed.
  config SOC_QCA955X
  	select HW_HAS_PCI
  	select PCI_AR724X if PCI
-@@ -156,7 +160,7 @@ config ATH79_DEV_USB
+@@ -155,7 +159,7 @@ config ATH79_DEV_USB
  	def_bool n
  
  config ATH79_DEV_WMAC
@@ -147,7 +147,7 @@ meaning of the bits CPUCLK_FROM_CPUPLL and DDRCLK_FROM_DDRPLL is reversed.
  	else
 --- a/arch/mips/ath79/common.c
 +++ b/arch/mips/ath79/common.c
-@@ -104,6 +104,8 @@ void ath79_device_reset_set(u32 mask)
+@@ -103,6 +103,8 @@ void ath79_device_reset_set(u32 mask)
  		reg = AR933X_RESET_REG_RESET_MODULE;
  	else if (soc_is_ar934x())
  		reg = AR934X_RESET_REG_RESET_MODULE;
@@ -156,7 +156,7 @@ meaning of the bits CPUCLK_FROM_CPUPLL and DDRCLK_FROM_DDRPLL is reversed.
  	else if (soc_is_qca955x())
  		reg = QCA955X_RESET_REG_RESET_MODULE;
  	else
-@@ -132,6 +134,8 @@ void ath79_device_reset_clear(u32 mask)
+@@ -131,6 +133,8 @@ void ath79_device_reset_clear(u32 mask)
  		reg = AR933X_RESET_REG_RESET_MODULE;
  	else if (soc_is_ar934x())
  		reg = AR934X_RESET_REG_RESET_MODULE;

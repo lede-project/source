@@ -250,6 +250,9 @@ tplink_board_detect() {
 	"090100"*)
 		model="TP-Link TL-WA901N/ND"
 		;;
+	"094000"*)
+		model="TP-Link TL-WR940N"
+		;;
 	"094100"*)
 		if [ "$hwid" = "09410002" -a "$mid" = "00420001" ]; then
 			model="Rosewill RNX-N360RT"
@@ -350,27 +353,10 @@ tplink_pharos_get_model_string() {
 tplink_pharos_board_detect() {
 	local model_string="$(tplink_pharos_get_model_string | tr -d '\r')"
 	local oIFS="$IFS"; IFS=":"; set -- $model_string; IFS="$oIFS"
-	local model
 
-	case "$1" in
-	'CPE210(TP-LINK|UN|N300-2)')
-		model='TP-Link CPE210'
-		;;
-	'CPE220(TP-LINK|UN|N300-2)')
-		model='TP-Link CPE220'
-		;;
-	'CPE510(TP-LINK|UN|N300-5)')
-		model='TP-Link CPE510'
-		;;
-	'CPE520(TP-LINK|UN|N300-5)')
-		model='TP-Link CPE520'
-		;;
-	'EAP120(TP-LINK|UN|N300-2)')
-		model='TP-Link EAP120'
-		;;
-	esac
+	local model="${1%%\(*}"
 
-	[ -n "$model" ] && AR71XX_MODEL="$model v$2"
+	AR71XX_MODEL="TP-Link $model v$2"
 }
 
 gl_inet_board_detect() {
@@ -435,9 +421,6 @@ ar71xx_board_detect() {
 	*"Arduino Yun")
 		name="arduino-yun"
 		;;
-	*AP113)
-		name="ap113"
-		;;
 	*"AP121 reference board")
 		name="ap121"
 		;;
@@ -464,12 +447,6 @@ ar71xx_board_detect() {
 		;;
 	*"AP152 reference board")
 		name="ap152"
-		;;
-	*AP81)
-		name="ap81"
-		;;
-	*AP83)
-		name="ap83"
 		;;
 	*AP90Q)
 		name="ap90q"
@@ -602,6 +579,9 @@ ar71xx_board_detect() {
 		;;
 	*"DW33D")
 		name="dw33d"
+		;;
+	*E2100L)
+		name="e2100l"
 		;;
 	*"EAP120")
 		name="eap120"
@@ -787,9 +767,6 @@ ar71xx_board_detect() {
 	*"PB44 reference board")
 		name="pb44"
 		;;
-	*PB92)
-		name="pb92"
-		;;
 	*"Qihoo 360 C301")
 		name="qihoo-c301"
 		;;
@@ -905,6 +882,9 @@ ar71xx_board_detect() {
 	*SOM9331)
 		name="som9331"
 		;;
+	*SR3200)
+		name="sr3200"
+		;;
 	*TEW-632BRP)
 		name="tew-632brp"
 		;;
@@ -928,6 +908,9 @@ ar71xx_board_detect() {
 		;;
 	*"TL-WR1043ND v2")
 		name="tl-wr1043nd-v2"
+		;;
+	*"TL-WR1043ND v4")
+		name="tl-wr1043nd-v4"
 		;;
 	*TL-WR2543N*)
 		name="tl-wr2543n"
@@ -1051,6 +1034,9 @@ ar71xx_board_detect() {
 		;;
 	*"TL-WR941N/ND v6")
 		name="tl-wr941nd-v6"
+		;;
+	*"TL-WR940N v4")
+		name="tl-wr940n-v4"
 		;;
 	*"TL-WR703N v1")
 		name="tl-wr703n"
@@ -1189,6 +1175,9 @@ ar71xx_board_detect() {
 		;;
 	*WHR-HP-G300N)
 		name="whr-hp-g300n"
+		;;
+	*XD3200)
+		name="xd3200"
 		;;
 	*Z1)
 		name="z1"

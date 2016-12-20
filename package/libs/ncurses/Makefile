@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ncurses
-PKG_VERSION:=5.9
-PKG_RELEASE:=4
+PKG_VERSION:=6.0
+PKG_RELEASE:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/ncurses
-PKG_MD5SUM:=8cb9c412e5f2d96bc6f459aa8c6282a1
+PKG_HASH:=f551c24b30ce8bfb6e96d9f59b42fbea30fa3a6123384172f9e7284bcf647260
 
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=README
@@ -41,6 +41,7 @@ define Package/libncursesw
   URL:=http://www.gnu.org/software/ncurses/
   PROVIDES:=libncurses
   DEPENDS:= +terminfo
+  ABI_VERSION:=$(PKG_VERSION)
 endef
 
 TARGET_CFLAGS += $(FPIC)
@@ -63,6 +64,7 @@ CONFIGURE_ARGS += \
 	--with-shared \
 	--with-terminfo-dirs=/usr/share/terminfo \
 	--with-default-terminfo-dir=/usr/share/terminfo \
+	--with-pkg-config-libdir=/usr/lib/pkgconfig \
 	--enable-widec \
 	--with-build-cppflags=-D_GNU_SOURCE
 
@@ -130,10 +132,10 @@ define Build/InstallDev
 	ln -s . $(1)/usr/include/ncursesw
 	$(TARGET_CROSS)ar rc $(1)/usr/lib/libtinfo.a
 	$(INSTALL_DIR) $(2)/bin
-	$(CP) $(PKG_INSTALL_DIR)/usr/bin/ncursesw5-config $(2)/bin/
+	$(CP) $(PKG_INSTALL_DIR)/usr/bin/ncursesw6-config $(2)/bin/
 	$(SED) 's,^\(prefix\|exec_prefix\)=.*,\1=$(STAGING_DIR)/usr,g' -e 's/$$$$INCS //g' \
-		$(2)/bin/ncursesw5-config
-	ln -sf $(STAGING_DIR)/host/bin/ncursesw5-config $(1)/usr/bin/ncursesw5-config
+		$(2)/bin/ncursesw6-config
+	ln -sf $(STAGING_DIR)/host/bin/ncursesw6-config $(1)/usr/bin/ncursesw6-config
 endef
 
 define Host/Compile

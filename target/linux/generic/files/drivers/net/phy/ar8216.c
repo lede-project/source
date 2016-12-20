@@ -536,7 +536,7 @@ ar8216_mangle_rx(struct net_device *dev, struct sk_buff *skb)
 	if ((buf[12 + 2] != 0x81) || (buf[13 + 2] != 0x00))
 		return;
 
-	port = buf[0] & 0xf;
+	port = buf[0] & 0x7;
 
 	/* no need to fix up packets coming from a tagged source */
 	if (priv->vlan_tagged & (1 << port))
@@ -949,7 +949,8 @@ ar8xxx_sw_set_pvid(struct switch_dev *dev, int port, int vlan)
 
 	/* make sure no invalid PVIDs get set */
 
-	if (vlan >= dev->vlans)
+	if (vlan < 0 || vlan >= dev->vlans ||
+	    port < 0 || port >= AR8X16_MAX_PORTS)
 		return -EINVAL;
 
 	priv->pvid[port] = vlan;
@@ -960,6 +961,10 @@ int
 ar8xxx_sw_get_pvid(struct switch_dev *dev, int port, int *vlan)
 {
 	struct ar8xxx_priv *priv = swdev_to_ar8xxx(dev);
+
+	if (port < 0 || port >= AR8X16_MAX_PORTS)
+		return -EINVAL;
+
 	*vlan = priv->pvid[port];
 	return 0;
 }
@@ -969,6 +974,10 @@ ar8xxx_sw_set_vid(struct switch_dev *dev, const struct switch_attr *attr,
 		  struct switch_val *val)
 {
 	struct ar8xxx_priv *priv = swdev_to_ar8xxx(dev);
+
+	if (val->port_vlan >= AR8X16_MAX_PORTS)
+		return -EINVAL;
+
 	priv->vlan_id[val->port_vlan] = val->value.i;
 	return 0;
 }
@@ -996,9 +1005,13 @@ static int
 ar8xxx_sw_get_ports(struct switch_dev *dev, struct switch_val *val)
 {
 	struct ar8xxx_priv *priv = swdev_to_ar8xxx(dev);
-	u8 ports = priv->vlan_table[val->port_vlan];
+	u8 ports;
 	int i;
 
+	if (val->port_vlan >= AR8X16_MAX_VLANS)
+		return -EINVAL;
+
+	ports = priv->vlan_table[val->port_vlan];
 	val->len = 0;
 	for (i = 0; i < dev->ports; i++) {
 		struct switch_port *p;
@@ -1378,7 +1391,7 @@ ar8xxx_sw_get_port_mib(struct switch_dev *dev,
 	struct ar8xxx_priv *priv = swdev_to_ar8xxx(dev);
 	const struct ar8xxx_chip *chip = priv->chip;
 	u64 *mib_stats, mib_data;
-	int port;
+	unsigned int port;
 	int ret;
 	char *buf = priv->buf;
 	char buf1[64];
@@ -1889,7 +1902,7 @@ ar8xxx_mib_stop(struct ar8xxx_priv *priv)
 	if (!ar8xxx_has_mib_counters(priv))
 		return;
 
-	cancel_delayed_work(&priv->mib_work);
+	cancel_delayed_work_sync(&priv->mib_work);
 }
 
 static struct ar8xxx_priv *
@@ -2171,6 +2184,8 @@ ar8xxx_phy_probe(struct phy_device *phydev)
 		swdev->devname, swdev->name, priv->chip_rev,
 		dev_name(&priv->mii_bus->dev));
 
+	list_add(&priv->list, &ar8xxx_dev_list);
+
 found:
 	priv->use_count++;
 
@@ -2198,8 +2213,6 @@ found:
 	}
 
 	phydev->priv = priv;
-
-	list_add(&priv->list, &ar8xxx_dev_list);
 
 	mutex_unlock(&ar8xxx_dev_list_lock);
 
@@ -2241,10 +2254,14 @@ ar8xxx_phy_remove(struct phy_device *phydev)
 		return;
 
 	phydev->priv = NULL;
-	if (--priv->use_count > 0)
-		return;
 
 	mutex_lock(&ar8xxx_dev_list_lock);
+
+	if (--priv->use_count > 0) {
+		mutex_unlock(&ar8xxx_dev_list_lock);
+		return;
+	}
+
 	list_del(&priv->list);
 	mutex_unlock(&ar8xxx_dev_list_lock);
 
@@ -2294,4 +2311,3 @@ ar8xxx_exit(void)
 module_init(ar8xxx_init);
 module_exit(ar8xxx_exit);
 MODULE_LICENSE("GPL");
-

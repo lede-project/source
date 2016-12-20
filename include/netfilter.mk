@@ -39,13 +39,12 @@ $(eval $(if $(NF_KMOD),$(call nf_add,IPT_CORE,CONFIG_IP_NF_FILTER, $(P_V4)iptabl
 $(eval $(if $(NF_KMOD),$(call nf_add,IPT_CORE,CONFIG_IP_NF_MANGLE, $(P_V4)iptable_mangle),))
 
 # userland only
-$(eval $(if $(NF_KMOD),,$(call nf_add,IPT_CORE,CONFIG_IP_NF_IPTABLES, xt_standard ipt_icmp xt_tcp xt_udp xt_comment xt_id xt_set xt_SET)))
+$(eval $(if $(NF_KMOD),,$(call nf_add,IPT_CORE,CONFIG_IP_NF_IPTABLES, xt_standard ipt_icmp xt_tcp xt_udp xt_comment xt_set xt_SET)))
 
 $(eval $(call nf_add,IPT_CORE,CONFIG_NETFILTER_XT_MATCH_LIMIT, $(P_XT)xt_limit))
 $(eval $(call nf_add,IPT_CORE,CONFIG_NETFILTER_XT_MATCH_MAC, $(P_XT)xt_mac))
 $(eval $(call nf_add,IPT_CORE,CONFIG_NETFILTER_XT_MATCH_MULTIPORT, $(P_XT)xt_multiport))
 $(eval $(call nf_add,IPT_CORE,CONFIG_NETFILTER_XT_MATCH_COMMENT, $(P_XT)xt_comment))
-$(eval $(call nf_add,IPT_CORE,CONFIG_NETFILTER_XT_MATCH_ID, $(P_XT)xt_id))
 
 #cluster
 $(eval $(call nf_add,IPT_CLUSTER,CONFIG_NETFILTER_XT_MATCH_CLUSTER, $(P_XT)xt_cluster))
@@ -72,7 +71,6 @@ $(eval $(if $(NF_KMOD),$(call nf_add,NF_CONNTRACK,CONFIG_NF_DEFRAG_IPV4, $(P_V4)
 $(eval $(if $(NF_KMOD),$(call nf_add,NF_CONNTRACK,CONFIG_NF_CONNTRACK_IPV4, $(P_V4)nf_conntrack_ipv4),))
 
 $(eval $(call nf_add,IPT_CONNTRACK,CONFIG_NETFILTER_XT_MATCH_STATE, $(P_XT)xt_state))
-$(eval $(call nf_add,IPT_CONNTRACK,CONFIG_IP_NF_RAW, $(P_V4)iptable_raw))
 $(eval $(call nf_add,IPT_CONNTRACK,CONFIG_NETFILTER_XT_TARGET_CT, $(P_XT)xt_CT))
 $(eval $(call nf_add,IPT_CONNTRACK,CONFIG_NETFILTER_XT_MATCH_CONNTRACK, $(P_XT)xt_conntrack))
 
@@ -151,7 +149,6 @@ $(eval $(if $(NF_KMOD),$(call nf_add,NF_CONNTRACK6,CONFIG_NF_CONNTRACK_IPV6, $(P
 $(eval $(if $(NF_KMOD),$(call nf_add,IPT_IPV6,CONFIG_IP6_NF_FILTER, $(P_V6)ip6table_filter),))
 $(eval $(if $(NF_KMOD),$(call nf_add,IPT_IPV6,CONFIG_IP6_NF_MANGLE, $(P_V6)ip6table_mangle),))
 $(eval $(if $(NF_KMOD),$(call nf_add,IPT_IPV6,CONFIG_IP6_NF_QUEUE, $(P_V6)ip6_queue),))
-$(eval $(if $(NF_KMOD),$(call nf_add,IPT_IPV6,CONFIG_IP6_NF_RAW, $(P_V6)ip6table_raw),))
 $(eval $(if $(NF_KMOD),$(call nf_add,IPT_IPV6,CONFIG_NF_LOG_IPV6, $(P_V6)nf_log_ipv6),))
 
 $(eval $(if $(NF_KMOD),,$(call nf_add,IPT_IPV6,CONFIG_IP6_NF_IPTABLES, ip6t_icmp6)))

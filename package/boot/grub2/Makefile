@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=grub
-PKG_VERSION:=2.02~beta2
+PKG_VERSION:=2.02~beta3
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
@@ -17,8 +17,9 @@ PKG_SOURCE_URL:=http://alpha.gnu.org/gnu/grub \
 	http://gnualpha.uib.no/grub/ \
 	http://mirrors.fe.up.pt/pub/gnu-alpha/grub/ \
 	http://www.nic.funet.fi/pub/gnu/alpha/gnu/grub/
-PKG_MD5SUM:=be62932eade308a364ea4bbc91295930
+PKG_HASH:=30ec3d555e52a702c3eef449872ef874eff28b320f40b55ffc47f70db8e5ada1
 
+PKG_FIXUP:=autoreconf
 HOST_BUILD_PARALLEL:=1
 PKG_BUILD_DEPENDS:=grub2/host
 
@@ -50,6 +51,9 @@ endef
 
 HOST_BUILD_PREFIX := $(STAGING_DIR_HOST)
 
+CONFIGURE_VARS += \
+	grub_build_mkfont_excuse="don't want fonts"
+
 CONFIGURE_ARGS += \
 	--target=$(REAL_GNU_TARGET_NAME) \
 	--disable-werror \
@@ -58,7 +62,11 @@ CONFIGURE_ARGS += \
 	--disable-libzfs \
 	--disable-grub-mkfont
 
+HOST_CONFIGURE_VARS += \
+	grub_build_mkfont_excuse="don't want fonts"
+
 HOST_CONFIGURE_ARGS += \
+	--disable-grub-mkfont \
 	--target=$(REAL_GNU_TARGET_NAME) \
 	--sbindir="$(STAGING_DIR_HOST)/bin" \
 	--disable-werror \

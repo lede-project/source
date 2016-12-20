@@ -110,6 +110,11 @@ tools-y += flock
 $(curdir)/builddirs := $(tools-y) $(tools-dep) $(tools-)
 $(curdir)/builddirs-default := $(tools-y)
 
+ifdef CHECK_ALL
+$(curdir)/builddirs-check:=$($(curdir)/builddirs)
+$(curdir)/builddirs-download:=$($(curdir)/builddirs)
+endif
+
 ifndef DUMP_TARGET_DB
 define PrepareStaging
 	@for dir in $(1); do ( \
@@ -145,4 +150,5 @@ $(curdir)//install = $(1)/compile
 
 tools_enabled = $(foreach tool,$(sort $(tools-y) $(tools-)),$(if $(filter $(tool),$(tools-y)),y,n))
 $(eval $(call stampfile,$(curdir),tools,install,,_$(subst $(space),,$(tools_enabled))))
+$(eval $(call stampfile,$(curdir),tools,check,$(TMP_DIR)/.build))
 $(eval $(call subdir,$(curdir)))

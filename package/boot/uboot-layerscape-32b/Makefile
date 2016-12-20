@@ -14,9 +14,10 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+PKG_MIRROR_HASH:=c40a891a41741b499ad19ce154dc3c8ea63c49bff34a23230780bd210bd7f399
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_URL:=https://github.com/fsl-jyt/uboot-ls-32b.git
-PKG_SOURCE_VERSION:=719f8b606334bc73367f78c204dce69786963b65
+PKG_SOURCE_VERSION:=763de09cc7265e3147e2df2e15f91c73231907f4
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -35,6 +36,11 @@ define uboot/ls1043ardb
 	CONFIG=ls1043ardb-uboot.bin
 endef
 
+define uboot/ls1046ardb
+	TITLE:=U-Boot binary $(PKG_NAME)-$(PKG_VERSION) for NXP ls1046ardb 32b Dev Board
+	CONFIG=ls1046ardb-uboot.bin
+endef
+
 define uboot/ls1012ardb
 	TITLE:=U-Boot binary $(PKG_NAME)-$(PKG_VERSION) for NXP ls1012ardb 32b Dev Board
 	CONFIG=ls1012ardb-uboot.bin.swap
@@ -42,6 +48,7 @@ endef
 
 UBOOTS := \
 	ls1043ardb \
+	ls1046ardb \
 	ls1012ardb
 
 define Package/uboot/template

@@ -5,10 +5,6 @@
 / {
 	model = "ACMP252 - AudioCodes MediaPack MP-252";
 
-	chosen {
-		bootargs = "console=ttyLTQ0,115200 init=/etc/preinit";
-	};
-
 	memory@0 {
 		reg = <0x0 0x4000000>;
 	};

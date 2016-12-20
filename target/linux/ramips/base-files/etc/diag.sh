@@ -126,6 +126,9 @@ get_status_led() {
 	pbr-d1)
 		status_led="$board:orange:power"
 		;;
+	f5d8235-v1)
+		status_led="$board:blue:wired"
+		;;
 	f5d8235-v2)
 		status_led="$board:blue:router"
 		;;
@@ -191,7 +194,7 @@ get_status_led() {
 		status_led="$board:green:wps"
 		;;
 	rb750gr3)
-		status_led="$board:green:usr"
+		status_led="$board:blue:pwr"
 		;;
 	sap-g3200u3)
 		status_led="$board:green:usb"

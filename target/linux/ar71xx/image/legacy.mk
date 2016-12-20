@@ -227,8 +227,6 @@ alfa_mtdlayout_8M=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,6144k(rootfs)
 alfa_mtdlayout_16M=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,15936k(firmware),64k(nvram),64k(art)ro
 all0258n_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env),6272k(firmware),1536k(failsafe),64k(art)ro
 all0315n_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,256k(u-boot-env),13568k(firmware),2048k(failsafe),256k(art)ro
-ap81_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,5120k(rootfs),2688k(kernel),64k(art)ro,7808k@0x50000(firmware)
-ap83_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,128k(u-boot-env)ro,4096k(rootfs),3648k(kernel),64k(art)ro,7744k@0x60000(firmware)
 ap96_mtdlayout=mtdparts=spi0.0:192k(u-boot)ro,64k(u-boot-env)ro,6144k(rootfs),1728k(kernel),64k(art)ro,7872k@0x40000(firmware)
 ap121_mtdlayout_8M=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,6144k(rootfs),1600k(kernel),64k(nvram),64k(art)ro,7744k@0x50000(firmware)
 ap121_mtdlayout_16M=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,10944k(rootfs),4992k(kernel),64k(nvram),64k(art)ro,15936k@0x50000(firmware)
@@ -278,6 +276,7 @@ wpj531_mtdlayout_16M=mtdparts=spi0.0:192k(u-boot)ro,16128k(firmware),64k(art)ro
 wpj558_mtdlayout_16M=mtdparts=spi0.0:192k(u-boot)ro,16128k(firmware),64k(art)ro
 wndap360_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,1728k(kernel),6016k(rootfs),64k(nvram)ro,64k(art)ro,7744k@0x50000(firmware)
 wnr2200_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,7808k(firmware),64k(art)ro
+wnr2000_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,3712k(firmware),64k(art)ro
 wnr2000v3_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,3712k(firmware),64k(art)ro
 wnr2000v4_mtdlayout=mtdparts=spi0.0:192k(u-boot)ro,64k(u-boot-env)ro,3776k(firmware),64k(art)ro
 r6100_mtdlayout=mtdparts=ar934x-nfc:128k(u-boot)ro,256k(caldata)ro,256k(caldata-backup),512k(config),512k(pot),2048k(kernel),122240k(ubi),25600k@0x1a0000(firmware),2048k(language),3072k(traffic_meter)
@@ -688,6 +687,10 @@ define Image/Build/Netgear
 				-o $(call imgname,$(1),$(2))-factory$$dashr.img; \
 		done; \
 	fi
+	if [ "$2" = "wnr2000" ]; then \
+		dd if=$(KDIR)/root.$(1) \
+			of=$(call imgname,$(1),$(2)-rootfs).bin bs=128k conv=sync; \
+	fi
 endef
 
 
@@ -880,8 +883,6 @@ $(eval $(call SingleProfile,ALFA,64k,ALFANX,alfa-nx,ALFA-NX,ttyS0,115200,$$(alfa
 $(eval $(call SingleProfile,ALFA,64k,HORNETUB,hornet-ub,HORNET-UB,ttyATH0,115200,$$(alfa_mtdlayout_8M),1638400,6291456,kernel_image,rootfs_image))
 $(eval $(call SingleProfile,ALFA,64k,TUBE2H8M,tube2h-8M,TUBE2H,ttyATH0,115200,$$(alfa_mtdlayout_8M),1638400,6291456,kernel.image,rootfs.image))
 
-$(eval $(call SingleProfile,AthGzip,64k,AP81,ap81,AP81,ttyS0,115200,$$(ap81_mtdlayout),RKuImage))
-$(eval $(call SingleProfile,AthGzip,64k,AP83,ap83,AP83,ttyS0,115200,$$(ap83_mtdlayout),RKuImage))
 $(eval $(call SingleProfile,AthGzip,64k,AP96,ap96,AP96,ttyS0,115200,$$(ap96_mtdlayout),RKuImage))
 $(eval $(call SingleProfile,AthGzip,64k,WNDAP360,wndap360,WNDAP360,ttyS0,9600,$$(wndap360_mtdlayout),KRuImage))
 
@@ -949,6 +950,7 @@ $(eval $(call SingleProfile,CameoDB120,64kraw,DIR835A1,dir-835-a1,DIR-835-A1,tty
 
 $(eval $(call SingleProfile,CameoDB120_8M,64kraw,TEW732BR,tew-732br,TEW-732BR,ttyS0,115200,"00DB120AR9341-RT-120906-NA"))
 
+$(eval $(call SingleProfile,CyberTANGZIP,64k,E2100L,e2100l,E2100L,ttyS0,115200,,1.00.01))
 $(eval $(call SingleProfile,CyberTANGZIP,64k,WRT160NL,wrt160nl,WRT160NL,ttyS0,115200,,1.00.01))
 
 $(eval $(call SingleProfile,CyberTANLZMA,64k,MYNETREXT,mynet-rext,MYNET-REXT,ttyS0,115200,$$(mynet_rext_mtdlayout) root=31:2,1.00.01))
@@ -974,6 +976,7 @@ $(eval $(call SingleProfile,MyLoader,64k,WPE72_16M,wpe72,,ttyS0,115200,0x1000000
 
 $(eval $(call SingleProfile,Netgear,64kraw,WNR2000V3,wnr2000v3,WNR2000V3,ttyS0,115200,$$(wnr2000v3_mtdlayout),0x32303033,WNR2000V3,"" NA,-H 29763551+04+32))
 $(eval $(call SingleProfile,NetgearLzma,64kraw,WNR2000V4,wnr2000v4,WNR2000V4,ttyS0,115200,$$(wnr2000v4_mtdlayout),0x32303034,WNR2000V4,"" NA,))
+$(eval $(call SingleProfile,Netgear,64kraw,WNR2000,wnr2000,WNR2000,ttyS0,115200,$$(wnr2000_mtdlayout),0x32303031,WNR2000,"" NA,))
 $(eval $(call SingleProfile,Netgear,64kraw,WNR2200,wnr2200,WNR2200,ttyS0,115200,$$(wnr2200_mtdlayout),0x32323030,wnr2200,"" NA,))
 $(eval $(call SingleProfile,Netgear,64kraw,REALWNR612V2,wnr612v2,WNR612V2,ttyS0,115200,$$(wnr2000v3_mtdlayout),0x32303631,WNR612V2,"",))
 $(eval $(call SingleProfile,Netgear,64kraw,N150R,n150r,WNR612V2,ttyS0,115200,$$(wnr2000v3_mtdlayout),0x32303631,N150R,"",))

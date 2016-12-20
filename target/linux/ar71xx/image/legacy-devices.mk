@@ -14,19 +14,6 @@ define LegacyDevice/TUBE2H8M
 endef
 LEGACY_DEVICES += TUBE2H8M
 
-define LegacyDevice/AP81
-  DEVICE_TITLE := Atheros AP81 reference board
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
-endef
-LEGACY_DEVICES += AP81
-
-define LegacyDevice/AP83
-  DEVICE_TITLE := Atheros AP83 reference board
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 \
-	  vsc7385-ucode-ap83 vsc7395-ucode-ap83
-endef
-LEGACY_DEVICES += AP83
-
 define LegacyDevice/AP96
   DEVICE_TITLE := Atheros AP96 reference board
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2
@@ -433,6 +420,11 @@ define LegacyDevice/WPE72_16M
   DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2
 endef
 LEGACY_DEVICES += WPE72_16M
+
+define LegacyDevice/WNR2000
+  DEVICE_TITLE := NETGEAR WNR2000V1
+endef
+LEGACY_DEVICES += WNR2000
 
 define LegacyDevice/WNR2000V3
   DEVICE_TITLE := NETGEAR WNR2000V3

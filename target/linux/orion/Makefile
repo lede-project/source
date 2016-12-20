@@ -9,16 +9,17 @@ include $(TOPDIR)/rules.mk
 ARCH:=arm
 BOARD:=orion
 BOARDNAME:=Marvell Orion
-FEATURES:=broken
+FEATURES:=broken rtc
 SUBTARGETS:=generic harddisk
 MAINTAINER:=Imre Kaloz <kaloz@openwrt.org>
 
-KERNEL_PATCHVER:=3.18
+KERNEL_PATCHVER:=4.4
 
 include $(INCLUDE_DIR)/target.mk
 
 KERNELNAME:=zImage
 
-DEFAULT_PACKAGES += kmod-ath9k kmod-crypto-mv-cesa wpad-mini kmod-i2c-core kmod-i2c-mv64xxx kmod-rtc-isl1208
+DEFAULT_PACKAGES += kmod-ath9k kmod-crypto-mv-cesa wpad-mini kmod-i2c-core \
+		    kmod-i2c-mv64xxx kmod-rtc-isl1208 uboot-envtools
 
 $(eval $(call BuildTarget))
