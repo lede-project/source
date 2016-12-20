@@ -11,11 +11,11 @@ Hence when a CPU reset occurs, early bootloaders don't need to be aware
 of BAR value or 4byte mode being enabled: they can still access the first
 16MiB of the SPI NOR memory using the regular 3byte address op codes.
 
-Signed-off-by: Cyrille Pitchen <cyrille.pitchen at atmel.com>
-Tested-by: Vignesh R <vigneshr at ti.com>
+Signed-off-by: Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Tested-by: Vignesh R <vigneshr@ti.com>
 ---
- drivers/mtd/spi-nor/spi-nor.c | 78 +++++++++++++++++++++++++++++++------------
- 1 file changed, 57 insertions(+), 21 deletions(-)
+ drivers/mtd/spi-nor/spi-nor.c | 101 +++++++++++++++++++++++++++++++++---------
+ 1 file changed, 80 insertions(+), 21 deletions(-)
 
 --- a/drivers/mtd/spi-nor/spi-nor.c
 +++ b/drivers/mtd/spi-nor/spi-nor.c
@@ -23,44 +23,67 @@ Tested-by: Vignesh R <vigneshr at ti.com>
  #define	SPI_NOR_DUAL_READ	0x20    /* Flash supports Dual Read */
  #define	SPI_NOR_QUAD_READ	0x40    /* Flash supports Quad Read */
  #define	USE_FSR			0x80	/* use flag status register */
-+#define	SPI_NOR_4B_OPCODES	BIT(10)	/*
++#define SPI_NOR_4B_OPCODES	BIT(11)	/*
 +					 * Use dedicated 4byte address op codes
 +					 * to support memory size above 128Mib.
 +					 */
  };
  
  #define JEDEC_MFR(info)	((info)->id[0])
-@@ -181,6 +185,55 @@ static inline struct spi_nor *mtd_to_spi
+@@ -181,6 +185,78 @@ static inline struct spi_nor *mtd_to_spi
  	return mtd->priv;
  }
  
 +
-+static u8 spi_nor_3to4_opcode(u8 opcode)
++static u8 spi_nor_convert_opcode(u8 opcode, const u8 table[][2])
 +{
-+#define ENTRY_3TO4(_opcode)	{ _opcode, _opcode##_4B }
-+	static const u8 spi_nor_3to4_table[][2] = {
-+		ENTRY_3TO4(SPINOR_OP_READ),
-+		ENTRY_3TO4(SPINOR_OP_READ_FAST),
-+		ENTRY_3TO4(SPINOR_OP_READ_1_1_2),
-+		ENTRY_3TO4(SPINOR_OP_READ_1_2_2),
-+		ENTRY_3TO4(SPINOR_OP_READ_1_1_4),
-+		ENTRY_3TO4(SPINOR_OP_READ_1_4_4),
-+		ENTRY_3TO4(SPINOR_OP_PP),
-+		ENTRY_3TO4(SPINOR_OP_PP_1_1_4),
-+		ENTRY_3TO4(SPINOR_OP_PP_1_4_4),
-+		ENTRY_3TO4(SPINOR_OP_BE_4K),
-+		ENTRY_3TO4(SPINOR_OP_BE_32K),
-+		ENTRY_3TO4(SPINOR_OP_SE),
-+	};
-+#undef ENTRY_3TO4
 +	size_t i;
 +
-+	for (i = 0; i < ARRAY_SIZE(spi_nor_3to4_table); ++i)
-+		if (spi_nor_3to4_table[i][0] == opcode)
-+			return spi_nor_3to4_table[i][1];
++	for (i = 0; table[i][0]; ++i)
++		if (table[i][0] == opcode)
++			return table[i][1];
 +
 +	/* No conversion found, keep input op code. */
 +	return opcode;
++}
++
++static inline u8 spi_nor_convert_3to4_read(u8 opcode)
++{
++	static const u8 spi_nor_3to4_read[][2] = {
++		{ SPINOR_OP_READ,	SPINOR_OP_READ_4B },
++		{ SPINOR_OP_READ_FAST,	SPINOR_OP_READ_FAST_4B },
++		{ SPINOR_OP_READ_1_1_2,	SPINOR_OP_READ_1_1_2_4B },
++		{ SPINOR_OP_READ_1_2_2,	SPINOR_OP_READ_1_2_2_4B },
++		{ SPINOR_OP_READ_1_1_4,	SPINOR_OP_READ_1_1_4_4B },
++		{ SPINOR_OP_READ_1_4_4,	SPINOR_OP_READ_1_4_4_4B },
++		{0, 0}
++	};
++
++	return spi_nor_convert_opcode(opcode, spi_nor_3to4_read);
++}
++
++static inline u8 spi_nor_convert_3to4_program(u8 opcode)
++{
++	static const u8 spi_nor_3to4_program[][2] = {
++		{ SPINOR_OP_PP,		SPINOR_OP_PP_4B },
++		{ SPINOR_OP_PP_1_1_4,	SPINOR_OP_PP_1_1_4_4B },
++		{ SPINOR_OP_PP_1_4_4,	SPINOR_OP_PP_1_4_4_4B },
++		{0, 0}
++	};
++
++	return spi_nor_convert_opcode(opcode, spi_nor_3to4_program);
++}
++
++static inline u8 spi_nor_convert_3to4_erase(u8 opcode)
++{
++	static const u8 spi_nor_3to4_erase[][2] = {
++		{ SPINOR_OP_BE_4K,	SPINOR_OP_BE_4K_4B },
++		{ SPINOR_OP_BE_32K,	SPINOR_OP_BE_32K_4B },
++		{ SPINOR_OP_SE,		SPINOR_OP_SE_4B },
++		{0, 0}
++	};
++
++	return spi_nor_convert_opcode(opcode, spi_nor_3to4_erase);
 +}
 +
 +static void spi_nor_set_4byte_opcodes(struct spi_nor *nor,
@@ -78,15 +101,15 @@ Tested-by: Vignesh R <vigneshr at ti.com>
 +		break;
 +	}
 +
-+	nor->read_opcode	= spi_nor_3to4_opcode(nor->read_opcode);
-+	nor->program_opcode	= spi_nor_3to4_opcode(nor->program_opcode);
-+	nor->erase_opcode	= spi_nor_3to4_opcode(nor->erase_opcode);
++	nor->read_opcode = spi_nor_convert_3to4_read(nor->read_opcode);
++	nor->program_opcode = spi_nor_convert_3to4_program(nor->program_opcode);
++	nor->erase_opcode = spi_nor_convert_3to4_erase(nor->erase_opcode);
 +}
 +
  /* Enable/disable 4-byte addressing mode. */
  static inline int set_4byte(struct spi_nor *nor, const struct flash_info *info,
  			    int enable)
-@@ -1270,27 +1323,10 @@ int spi_nor_scan(struct spi_nor *nor, co
+@@ -1274,27 +1350,10 @@ int spi_nor_scan(struct spi_nor *nor, co
  	else if (mtd->size > 0x1000000) {
  		/* enable 4-byte addressing if the device exceeds 16MiB */
  		nor->addr_width = 4;
