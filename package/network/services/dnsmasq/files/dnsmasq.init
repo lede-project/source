@@ -544,7 +544,7 @@ dnsmasq_start()
 	if [ ! -r "$dnsmasqconffile" ]; then
 		dnsmasqconffile=/etc/dnsmasq.conf
 	fi
-	[ -f $dnsmasqconffile ] && {
+	[ -r $dnsmasqconffile ] && {
 		xappend "--conf-file=$dnsmasqconffile"
 	}
 
