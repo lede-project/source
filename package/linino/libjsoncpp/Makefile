@@ -2,12 +2,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libjsoncpp
-PKG_VERSION:=1.7.7
+PKG_VERSION:=1.8.0
 PKG_RELEASE:=2
 
 PKG_SOURCE_PROTO:=git
 
-PKG_REVISION:=1.7.7
+PKG_REVISION:=1.8.0
 PKG_SOURCE_VERSION=$(PKG_REVISION)
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_URL:=https://github.com/open-source-parsers/jsoncpp.git
