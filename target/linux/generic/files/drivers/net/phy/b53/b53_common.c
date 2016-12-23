@@ -835,6 +835,28 @@ static int b53_port_set_link(struct switch_dev *sw_dev, int port,
 	return switch_generic_set_link(sw_dev, port, link);
 }
 
+static int
+b53_get_port_stats(struct switch_dev *dev,  int port,
+			struct switch_port_stats *stats)
+{
+	struct b53_device *priv = sw_to_b53(dev);
+	u64 txoctets, rxoctets;
+
+	if (!(BIT(port) & priv->enabled_ports))
+		return -EINVAL;
+
+	if (is5365(priv) && port == 5)
+		port = 8;
+
+	b53_read64(priv, B53_MIB_PAGE(port), 0x00, &txoctets);
+	b53_read64(priv, B53_MIB_PAGE(port), (is5365(priv) || is63xx(priv)) ? 0x44 : 0x50, &rxoctets);
+
+	stats->rx_bytes = rxoctets;
+	stats->tx_bytes = txoctets;
+
+	return 0;
+}
+
 static int b53_phy_read16(struct switch_dev *dev, int addr, u8 reg, u16 *value)
 {
 	struct b53_device *priv = sw_to_b53(dev);
@@ -1064,6 +1086,7 @@ static const struct switch_dev_ops b53_switch_ops_25 = {
 	.reset_switch = b53_global_reset_switch,
 	.get_port_link = b53_port_get_link,
 	.set_port_link = b53_port_set_link,
+	.get_port_stats = b53_get_port_stats,
 	.phy_read16 = b53_phy_read16,
 	.phy_write16 = b53_phy_write16,
 };
@@ -1090,6 +1113,7 @@ static const struct switch_dev_ops b53_switch_ops_65 = {
 	.reset_switch = b53_global_reset_switch,
 	.get_port_link = b53_port_get_link,
 	.set_port_link = b53_port_set_link,
+	.get_port_stats = b53_get_port_stats,
 	.phy_read16 = b53_phy_read16,
 	.phy_write16 = b53_phy_write16,
 };
@@ -1116,6 +1140,7 @@ static const struct switch_dev_ops b53_switch_ops = {
 	.reset_switch = b53_global_reset_switch,
 	.get_port_link = b53_port_get_link,
 	.set_port_link = b53_port_set_link,
+	.get_port_stats = b53_get_port_stats,
 	.phy_read16 = b53_phy_read16,
 	.phy_write16 = b53_phy_write16,
 };
