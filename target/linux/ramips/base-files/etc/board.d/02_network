@@ -48,6 +48,7 @@ ramips_setup_interfaces()
 	microwrt|\
 	mpr-a2|\
 	ncs601w|\
+	omega2p | \
 	timecloud|\
 	w150m|\
 	widora-neo|\
@@ -342,7 +343,8 @@ ramips_setup_macs()
 		wan_mac=$(mtd_get_mac_binary factory 28)
 		;;
 	linkits7688 | \
-	linkits7688d)
+	linkits7688d | \
+	omega2p)
 		wan_mac=$(mtd_get_mac_binary factory 4)
 		lan_mac=$(mtd_get_mac_binary factory 46)
 		;;

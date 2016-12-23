@@ -11,6 +11,14 @@ define Device/LinkIt7688
 endef
 TARGET_DEVICES += LinkIt7688
 
+define Device/omega2p
+  DTS := omega2p
+  IMAGE_SIZE := $(ralink_default_fw_size_32M)
+  DEVICE_TITLE := Onion Omega2+
+  DEVICE_PACKAGES:= kmod-usb2 kmod-usb-ohci uboot-envtools kmod-sdhci-mt7620
+endef
+TARGET_DEVICES += omega2p
+
 define Device/pbr-d1
   DTS := PBR-D1
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
