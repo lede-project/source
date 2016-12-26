@@ -34,6 +34,7 @@ endef
 
 define Device/dockstar
   DEVICE_DTS := kirkwood-dockstar
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-storage
   FILESYSTEMS := squashfs
   DEVICE_TITLE := Seagate FreeAgent Dockstar
   IMAGES += factory.bin
@@ -45,12 +46,14 @@ define Device/goflexnet
 $(Device/dockstar)
   DEVICE_TITLE := Seagate GoFlexNet
   DEVICE_DTS := kirkwood-goflexnet
+  DEVICE_PACKAGES += kmod-ata-core kmod-ata-marvell-sata
 endef
 
 define Device/goflexhome
 $(Device/dockstar)
   DEVICE_TITLE := Seagate GoFlexHome
   DEVICE_DTS := kirkwood-goflexhome
+  DEVICE_PACKAGES += kmod-ata-core kmod-ata-marvell-sata
 endef
 
 define Device/linksys-audi
@@ -89,6 +92,7 @@ define Device/ib62x0
 $(Device/dockstar)
   DEVICE_TITLE := RaidSonic ICY BOX IB-NAS62x0
   DEVICE_DTS := kirkwood-ib62x0
+  DEVICE_PACKAGES += kmod-ata-core kmod-ata-marvell-sata
 endef
 
 $(eval $(call BuildImage))
