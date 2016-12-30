@@ -527,3 +527,26 @@ define KernelPackage/scsi-tape
 endef
 
 $(eval $(call KernelPackage,scsi-tape))
+
+
+define KernelPackage/scsi-fusion
+  SUBMENU:=$(BLOCK_MENU)
+  TITLE:=Kernel support Fusion MPT
+  DEPENDS:=+kmod-scsi-core +kmod-libsas
+  KCONFIG:= \
+    CONFIG_FUSION=y \
+    CONFIG_FUSION_SPI=y \
+    CONFIG_FUSION_SAS=y \
+    CONFIG_FUSION_CTL=n \
+    CONFIG_FUSION_LOGGING=n \
+    CONFIG_FUSION_MAX_SGE=128
+  FILES:= \
+    $(LINUX_DIR)/drivers/message/fusion/mptbase.ko \
+    $(LINUX_DIR)/drivers/message/fusion/mptscsih.ko \
+    $(LINUX_DIR)/drivers/message/fusion/mptspi.ko \
+    $(LINUX_DIR)/drivers/message/fusion/mptsas.ko \
+    $(LINUX_DIR)/drivers/scsi/scsi_transport_spi.ko
+  AUTOLOAD:=$(call AutoLoad,41,mptbase mptscsih mptspi mptsas scsi_transport_spi,1)
+endef
+
+$(eval $(call KernelPackage,scsi-fusion))
