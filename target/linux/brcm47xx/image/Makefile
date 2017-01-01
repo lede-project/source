@@ -7,6 +7,8 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
+USB2_PACKAGES := kmod-usb2
+
 define Build/Clean
 	$(MAKE) -C lzma-loader clean
 endef
@@ -448,6 +450,7 @@ TARGET_DEVICES += netgear-wgr614-v8
 
 define Device/netgear-wgt634u
   DEVICE_TITLE := Netgear WGT634U
+  DEVICE_PACKAGES := kmod-ath5k $(USB2_PACKAGES)
   FILESYSTEMS := $(FS_128K)
   IMAGES := bin
   IMAGE/bin := append-rootfs | trx-with-loader | prepend-with-elf
@@ -763,6 +766,14 @@ define Device/netgear-wn2500rp-v1
 endef
 TARGET_DEVICES += netgear-wn2500rp-v1
 
+define Device/netgear-wn3000rp
+  DEVICE_TITLE := Netgear WN3000RP
+  $(Device/netgear)
+  NETGEAR_BOARD_ID := U12H163T01_NETGEAR
+  NETGEAR_REGION := 1
+endef
+TARGET_DEVICES += netgear-wn3000rp
+
 define Device/netgear-wndr3400-v1
   DEVICE_TITLE := Netgear WNDR3400 v1
   $(Device/netgear)
@@ -826,14 +837,6 @@ define Device/netgear-wnr2000v2
   NETGEAR_REGION := 2
 endef
 TARGET_DEVICES += netgear-wnr2000v2
-
-define Device/netgear-wnr3000rp
-  DEVICE_TITLE := Netgear WNR3000RP
-  $(Device/netgear)
-  NETGEAR_BOARD_ID := U12H163T01_NETGEAR
-  NETGEAR_REGION := 1
-endef
-TARGET_DEVICES += netgear-wnr3000rp
 
 define Device/netgear-wnr3500l-v1-north-america
   DEVICE_TITLE := Netgear WNR3500L v1 North America

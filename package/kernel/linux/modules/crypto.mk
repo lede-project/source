@@ -394,7 +394,7 @@ $(eval $(call KernelPackage,crypto-des))
 
 define KernelPackage/crypto-deflate
   TITLE:=Deflate compression CryptoAPI module
-  DEPENDS:=+kmod-lib-zlib
+  DEPENDS:=+kmod-lib-zlib-inflate +kmod-lib-zlib-deflate
   KCONFIG:=CONFIG_CRYPTO_DEFLATE
   FILES:=$(LINUX_DIR)/crypto/deflate.ko
   AUTOLOAD:=$(call AutoLoad,09,deflate)
@@ -661,15 +661,3 @@ define KernelPackage/crypto-xts
 endef
 
 $(eval $(call KernelPackage,crypto-xts))
-
-
-define KernelPackage/crypto-mv-cesa
-  TITLE:=Marvell crypto engine
-  DEPENDS:=+kmod-crypto-manager @TARGET_kirkwood||TARGET_orion
-  KCONFIG:=CONFIG_CRYPTO_DEV_MV_CESA
-  FILES:=$(LINUX_DIR)/drivers/crypto/mv_cesa.ko
-  AUTOLOAD:=$(call AutoLoad,09,mv_cesa)
-  $(call AddDepends/crypto)
-endef
-
-$(eval $(call KernelPackage,crypto-mv-cesa))

@@ -13,7 +13,6 @@ set_preinit_iface() {
 	ap135-020 |\
 	ap136-020 |\
 	ap147-010 |\
-	ap83 |\
 	archer-c5 |\
 	archer-c7 |\
 	bhr-4grv2 |\
@@ -38,6 +37,7 @@ set_preinit_iface() {
 	tl-wr841n-v8 |\
 	tl-wr842n-v2 |\
 	tl-wr941nd-v6 |\
+	tl-wr940n-v4 |\
 	wnr2000-v3 |\
 	wnr2200 |\
 	wnr612-v2 |\

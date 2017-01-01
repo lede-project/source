@@ -17,6 +17,16 @@ board=$(ramips_board_name)
 board_config_update
 
 case $board in
+11acnas|\
+all0239-3g|\
+hw550-3g|\
+mofi3500-3gn|\
+sap-g3200u3|\
+sk-wb8|\
+w2914nsv2|\
+wf-2881)
+	set_usb_led "$board:green:usb"
+	;;
 3g150b|\
 3g300m)
 	set_usb_led "$board:blue:3g"
@@ -44,14 +54,6 @@ ai-br100)
 air3gii)
 	set_wifi_led "$board:green:wlan"
 	set_usb_led "$board:green:mobile"
-	;;
-all0239-3g|\
-hw550-3g|\
-mofi3500-3gn|\
-sap-g3200u3|\
-sk-wb8|\
-wf-2881)
-	set_usb_led "$board:green:usb"
 	;;
 all0256n)
 	ucidef_set_rssimon "wlan0" "200000" "1"
@@ -120,7 +122,6 @@ dcs-930l-b1)
 	;;
 dir-300-b1|\
 dir-600-b1|\
-dir-600-b2|\
 dir-620-a1)
 	ucidef_set_led_default "wan" "WAN LED (amber)" "$board:amber:wan" "1"
 	set_wifi_led "rt2800pci-phy0::radio"
@@ -207,6 +208,8 @@ ht-tm02)
 	ucidef_set_led_netdev "eth" "Ethernet" "$board:green:lan" "eth0"
 	set_wifi_led "$board:blue:wlan"
 	;;
+kn_rc|\
+kn_rf|\
 kng_rc)
 	set_usb_led "$board:green:usb"
 	set_wifi_led "$board:green:wifi"
@@ -239,6 +242,12 @@ mpr-a2)
 mr-102n)
 	set_wifi_led "$board:green:wlan"
 	set_usb_led "$board:green:usb"
+	;;
+mr200)
+	ucidef_set_led_default "power" "power" "$board:white:power" "1"
+	ucidef_set_led_netdev "lan" "lan" "$board:white:lan" "eth0.1"
+	ucidef_set_led_netdev "wan" "wan" "$board:white:wan" "usb0"
+	set_wifi_led "$board:white:wlan"
 	;;
 mzk-ex750np)
 	ucidef_set_led_default "power" "power" "$board:red:power" "1"
@@ -306,9 +315,6 @@ tiny-ac)
 vocore)
 	ucidef_set_led_netdev "eth" "ETH" "$board:orange:eth" "eth0"
 	set_wifi_led "$board:green:status"
-	;;
-w2914nsv2)
-	set_usb_led "$board:green:usb"
 	;;
 w502u)
 	set_usb_led "$board:blue:usb"

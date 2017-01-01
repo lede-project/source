@@ -4,7 +4,7 @@
 
 define Build/tplink-header
 	$(STAGING_DIR_HOST)/bin/mktplinkfw2 -a 0x4 -V "ver. 2.0" -B $(1) \
-		-o $@.new -k $@  && mv $@.new $@
+		-o $@.new -k $@ -r $(IMAGE_ROOTFS) && mv $@.new $@
 endef
 
 define Build/pad-kernel-ex2700
@@ -17,13 +17,6 @@ define Build/netgear-header
 	$(STAGING_DIR_HOST)/bin/mkdniimg \
 		$(1) -v OpenWrt -i $@ \
 		-o $@.new && mv $@.new $@
-endef
-
-define Build/poray-header
-	mkporayfw $(1) \
-		-f $@ \
-		-o $@.new; \
-		mv $@.new $@
 endef
 
 define Build/elecom-header
@@ -43,21 +36,34 @@ endef
 
 define Device/ArcherC20i
   DTS := ArcherC20i
+  SUPPORTED_DEVICES := c20i
   KERNEL := $(KERNEL_DTB)
   KERNEL_INITRAMFS := $(KERNEL_DTB) | tplink-header ArcherC20i -c
-  IMAGE/sysupgrade.bin := append-kernel | tplink-header ArcherC20i -j -r $(KDIR)/root.squashfs | append-metadata
+  IMAGE/sysupgrade.bin := append-kernel | tplink-header ArcherC20i -j | append-metadata
   DEVICE_TITLE := TP-Link ArcherC20i
 endef
 TARGET_DEVICES += ArcherC20i
 
 define Device/ArcherC50
   DTS := ArcherC50
+  SUPPORTED_DEVICES := c50
   KERNEL := $(KERNEL_DTB)
   KERNEL_INITRAMFS := $(KERNEL_DTB) | tplink-header ArcherC50 -c
-  IMAGE/sysupgrade.bin := append-kernel | tplink-header ArcherC50 -j -r $(KDIR)/root.squashfs | append-metadata
+  IMAGE/sysupgrade.bin := append-kernel | tplink-header ArcherC50 -j | append-metadata
   DEVICE_TITLE := TP-Link ArcherC50
 endef
 TARGET_DEVICES += ArcherC50
+
+define Device/ArcherMR200
+  DTS := ArcherMR200
+  SUPPORTED_DEVICES := mr200
+  KERNEL := $(KERNEL_DTB)
+  KERNEL_INITRAMFS := $(KERNEL_DTB) | tplink-header ArcherMR200 -c
+  IMAGE/sysupgrade.bin := append-kernel | tplink-header ArcherMR200 -j | append-metadata
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-net kmod-usb-net-rndis kmod-usb-serial kmod-usb-serial-option adb
+  DEVICE_TITLE := TP-Link ArcherMR200
+endef
+TARGET_DEVICES += ArcherMR200
 
 define Device/ex2700
   DTS := EX2700
@@ -76,7 +82,6 @@ define Device/wt3020-4M
   BLOCKSIZE := 4k
   IMAGE_SIZE := $(ralink_default_fw_size_4M)
   IMAGES += factory.bin
-  SUPPORTED_DEVICES := wt3020
   IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
 	poray-header -B WT3020 -F 4M
   DEVICE_TITLE := Nexx WT3020 (4MB)
@@ -86,7 +91,6 @@ TARGET_DEVICES += wt3020-4M
 define Device/wt3020-8M
   DTS := WT3020-8M
   IMAGES += factory.bin
-  SUPPORTED_DEVICES := wt3020
   IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
 	poray-header -B WT3020 -F 8M
   DEVICE_TITLE := Nexx WT3020 (8MB)
@@ -429,6 +433,26 @@ define Device/dch-m225
   DEVICE_PACKAGES := kmod-mt76
 endef
 TARGET_DEVICES += dch-m225
+
+define Device/kn_rc
+  DTS := kn_rc
+  DEVICE_TITLE := ZyXEL Keenetic Omni
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport
+  IMAGES += factory.bin
+  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | check-size $$$$(IMAGE_SIZE) | \
+	zyimage -d 4882 -v "ZyXEL Keenetic Omni"
+endef
+TARGET_DEVICES += kn_rc
+
+define Device/kn_rf
+  DTS := kn_rf
+  DEVICE_TITLE := ZyXEL Keenetic Omni II
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport
+  IMAGES += factory.bin
+  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | check-size $$$$(IMAGE_SIZE) | \
+	zyimage -d 2102034 -v "ZyXEL Keenetic Omni II"
+endef
+TARGET_DEVICES += kn_rf
 
 define Device/kng_rc
   DTS := kng_rc

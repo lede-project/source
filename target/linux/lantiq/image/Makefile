@@ -569,13 +569,12 @@ endif
 
 ifeq ($(SUBTARGET),falcon)
 
-define Device/EASY98000
+define Device/EASY98000NOR
   IMAGE_SIZE := 3904k
   DEVICE_TITLE := EASY98000 - Lantiq Falcon Eval Board NOR
-  DEVICE_DTS := EASY98000NOR
   DEVICE_PACKAGES := kmod-dm9000 kmod-i2c-lantiq kmod-eeprom-at24
 endef
-TARGET_DEVICES += EASY98000
+TARGET_DEVICES += EASY98000NOR
 
 define Device/EASY98000NAND
   IMAGE_SIZE := 3904k

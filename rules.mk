@@ -15,6 +15,11 @@ endif
 include $(TOPDIR)/include/debug.mk
 include $(TOPDIR)/include/verbose.mk
 
+ifneq ($(filter check,$(MAKECMDGOALS)),)
+CHECK:=1
+DUMP:=1
+endif
+
 export TMP_DIR:=$(TOPDIR)/tmp
 
 qstrip=$(strip $(subst ",,$(1)))
@@ -49,6 +54,8 @@ __tr_template = $(__tr_head)$$(1)$(__tr_tail)
 
 $(eval toupper = $(call __tr_template,$(chars_lower),$(chars_upper)))
 $(eval tolower = $(call __tr_template,$(chars_upper),$(chars_lower)))
+
+version_abbrev = $(if $(if $(CHECK),,$(DUMP)),$(1),$(shell printf '%.8s' $(1)))
 
 _SINGLE=export MAKEFLAGS=$(space);
 CFLAGS:=
@@ -385,6 +392,9 @@ ext=$(word $(words $(subst ., ,$(1))),$(subst ., ,$(1)))
 all:
 FORCE: ;
 .PHONY: FORCE
+
+check: FORCE
+	@true
 
 val.%:
 	@$(if $(filter undefined,$(origin $*)),\

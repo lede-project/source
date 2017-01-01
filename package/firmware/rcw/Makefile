@@ -13,12 +13,11 @@ PKG_VERSION:=v1.0
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_MIRROR_HASH:=8082979dbdef57e36a3096986aa426ef678c152403eb1dbd132da28f01490b6d
 PKG_SOURCE_URL:=https://github.com/fsl-jyt/rcw.git
-PKG_SOURCE_VERSION:=e101d1207f402c7b761990a3e6681fdae8f253e3
+PKG_SOURCE_VERSION:=17e09e19bd5cf94e5ebc84916b4607743c29723e
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_BUILD_DIR=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
 
 PKG_LICENSE:=GPL-2.0 GPL-2.0+
 PKG_LICENSE_FILES:=Licenses/README
@@ -35,6 +34,11 @@ define rcw/ls1043ardb
 	CONFIG=ls1043ardb-rcw.bin
 endef
 
+define rcw/ls1046ardb
+	TITLE=RCW binary $(PKG_NAME)-$(PKG_VERSION) for NXP ls1046ardb 64b/32b Dev Board
+	CONFIG=ls1046ardb-rcw.bin
+endef
+
 define rcw/ls1012ardb
 	TITLE=RCW binary $(PKG_NAME)-$(PKG_VERSION) for NXP ls1012ardb 64b/32b Dev Board
 	CONFIG=ls1012ardb-rcw.bin
@@ -42,6 +46,7 @@ endef
 
 RCWS := \
 	ls1043ardb \
+	ls1046ardb \
 	ls1012ardb
 
 define Package/rcw/template

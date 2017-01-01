@@ -24,6 +24,8 @@ get_status_led() {
 	dir-860l-b1|\
 	e1700|\
 	fonera20n|\
+	kn_rc|\
+	kn_rf|\
 	kng_rc|\
 	mzk-750dhp|\
 	mzk-dp150n|\
@@ -61,7 +63,6 @@ get_status_led() {
 	dir-300-b7|\
 	dir-320-b1|\
 	dir-600-b1|\
-	dir-600-b2|\
 	dir-610-a1|\
 	dir-615-d|\
 	dir-615-h1|\
@@ -161,6 +162,9 @@ get_status_led() {
 		;;
 	mr-102n)
 		status_led="$board:amber:status"
+		;;
+	mr200)
+		status_led="$board:white:power"
 		;;
 	nw718)
 		status_led="$board:amber:cpu"

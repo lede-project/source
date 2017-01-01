@@ -9,11 +9,11 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=wolfssl
 PKG_VERSION:=3.9.10
-PKG_RELEASE:=1
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).zip
 PKG_SOURCE_URL:=https://www.wolfssl.com/
-PKG_MD5SUM:=793921c0db96248be4a369cbfdf0cb7b37ee2be715b8b775b6cd32efe66f494e
+PKG_HASH:=793921c0db96248be4a369cbfdf0cb7b37ee2be715b8b775b6cd32efe66f494e
 
 PKG_FIXUP:=libtool
 PKG_INSTALL:=1
@@ -42,8 +42,8 @@ endef
 
 TARGET_CFLAGS += $(FPIC)
 
+# --enable-stunnel needed for OpenSSL API compatibility bits
 CONFIGURE_ARGS += \
-	--enable-singlethreaded \
 	--enable-opensslextra \
 	--enable-sni \
 	--enable-stunnel \

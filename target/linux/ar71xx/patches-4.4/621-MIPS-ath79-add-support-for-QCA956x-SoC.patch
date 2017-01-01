@@ -1,6 +1,6 @@
 --- a/arch/mips/ath79/Kconfig
 +++ b/arch/mips/ath79/Kconfig
-@@ -126,6 +126,12 @@ config SOC_QCA955X
+@@ -125,6 +125,12 @@ config SOC_QCA955X
  	select PCI_AR724X if PCI
  	def_bool n
  
@@ -13,7 +13,7 @@
  config ATH79_DEV_M25P80
  	select ATH79_DEV_SPI
  	def_bool n
-@@ -160,7 +166,7 @@ config ATH79_DEV_USB
+@@ -159,7 +165,7 @@ config ATH79_DEV_USB
  	def_bool n
  
  config ATH79_DEV_WMAC
@@ -136,7 +136,7 @@
  
 --- a/arch/mips/ath79/common.c
 +++ b/arch/mips/ath79/common.c
-@@ -108,6 +108,8 @@ void ath79_device_reset_set(u32 mask)
+@@ -107,6 +107,8 @@ void ath79_device_reset_set(u32 mask)
  		reg = QCA953X_RESET_REG_RESET_MODULE;
  	else if (soc_is_qca955x())
  		reg = QCA955X_RESET_REG_RESET_MODULE;
@@ -145,7 +145,7 @@
  	else
  		panic("Reset register not defined for this SOC");
  
-@@ -138,6 +140,8 @@ void ath79_device_reset_clear(u32 mask)
+@@ -137,6 +139,8 @@ void ath79_device_reset_clear(u32 mask)
  		reg = QCA953X_RESET_REG_RESET_MODULE;
  	else if (soc_is_qca955x())
  		reg = QCA955X_RESET_REG_RESET_MODULE;
@@ -154,7 +154,7 @@
  	else
  		panic("Reset register not defined for this SOC");
  
-@@ -164,6 +168,8 @@ u32 ath79_device_reset_get(u32 mask)
+@@ -163,6 +167,8 @@ u32 ath79_device_reset_get(u32 mask)
  		reg = AR933X_RESET_REG_RESET_MODULE;
  	else if (soc_is_ar934x())
  		reg = AR934X_RESET_REG_RESET_MODULE;

@@ -45,7 +45,6 @@ arduino-yun)
 	ucidef_set_led_wlan "wlan" "WLAN" "arduino:blue:wlan" "phy0tpt"
 	ucidef_set_led_usbdev "usb" "USB" "arduino:white:usb" "1-1.1"
 	;;
-ap113|\
 db120)
 	ucidef_set_led_usbdev "usb" "USB" "$board:green:usb" "1-1"
 	;;
@@ -429,6 +428,12 @@ omy-x1)
 qihoo-c301)
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "qihoo:red:status" "phy1tpt"
 	;;
+re450)
+	ucidef_set_led_netdev "lan_data" "LAN Data" "$board:green:lan_data" "eth0" "tx rx"
+	ucidef_set_led_netdev "lan_link" "LAN Link" "$board:green:lan_link" "eth0" "link"
+	ucidef_set_led_wlan "wlan2g" "WLAN 2.4 GHz" "$board:blue:wlan2g" "phy1tpt"
+	ucidef_set_led_wlan "wlan5g" "WLAN 5 GHz" "$board:blue:wlan5g" "phy0tpt"
+	;;
 smart-300)
 	ucidef_set_led_netdev "wan" "WAN" "nc-link:green:wan" "eth0"
 	ucidef_set_led_switch "lan1" "LAN1" "nc-link:green:lan1" "switch0" "0x04"
@@ -443,6 +448,9 @@ som9331)
 	ucidef_set_led_switch "lan2" "LAN2" "$board:orange:lan2" "switch0" "0x02"
 	ucidef_set_led_wlan "wlan" "WLAN" "$board:red:wlan" "phy0tpt"
 	ucidef_set_led_usbdev "usb" "USB" "$board:green:system" "1-1"
+	;;
+sr3200)
+	ucidef_set_led_wlan "wlan2g" "WLAN2G" "$board:green:wlan2g" "phy1tpt"
 	;;
 tellstick-znet-lite)
 	ucidef_set_led_netdev "lan_act" "LANACT" "tellstick:green:lan" "eth0" "tx rx"
@@ -596,6 +604,7 @@ tl-wpa8630)
 tl-wr802n-v1)
 	ucidef_set_led_wlan "wlan" "WLAN" "tp-link:blue:system" "phy0tpt"
 	;;
+tl-wr940n-v4|\
 tl-wr941nd-v6)
 	ucidef_set_led_netdev "wan" "WAN" "tp-link:blue:wan" "eth0"
 	ucidef_set_led_switch "lan1" "LAN1" "tp-link:blue:lan1" "switch0" "0x10"
@@ -624,6 +633,15 @@ tl-wr1043nd|\
 tl-wr1043nd-v2)
 	ucidef_set_led_usbdev "usb" "USB" "tp-link:green:usb" "1-1"
 	ucidef_set_led_wlan "wlan" "WLAN" "tp-link:green:wlan" "phy0tpt"
+	;;
+tl-wr1043nd-v4)
+	ucidef_set_led_usbdev "usb" "USB" "tp-link:green:usb" "1-1"
+	ucidef_set_led_wlan "wlan" "WLAN" "tp-link:green:wlan" "phy0tpt"
+	ucidef_set_led_switch "wan" "WAN" "tp-link:green:wan" "switch0" "0x20"
+	ucidef_set_led_switch "lan1" "LAN1" "tp-link:green:lan1" "switch0" "0x10"
+	ucidef_set_led_switch "lan2" "LAN2" "tp-link:green:lan2" "switch0" "0x08"
+	ucidef_set_led_switch "lan3" "LAN3" "tp-link:green:lan3" "switch0" "0x04"
+	ucidef_set_led_switch "lan4" "LAN4" "tp-link:green:lan4" "switch0" "0x02"
 	;;
 tl-wr2543n)
 	ucidef_set_led_usbdev "usb" "USB" "tp-link:green:usb" "1-1"
@@ -736,6 +754,9 @@ wzr-hp-g300nh)
 	ucidef_set_led_wlan "wlan" "Wireless" "buffalo:green:wireless" "phy0tpt"
 	ucidef_set_led_netdev "router" "Router" "buffalo:green:router" "eth1"
 	ucidef_set_led_usbdev "usb" "USB" "buffalo:blue:usb" "1-1"
+	;;
+xd3200)
+	ucidef_set_led_wlan "wlan2g" "WLAN2G" "$board:blue:wlan2g" "phy1tpt"
 	;;
 z1)
 	ucidef_set_led_netdev "wlan1" "WLAN1" "$board:blue:tricolor0" "wlan1"

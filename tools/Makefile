@@ -14,13 +14,7 @@ tools-y :=
 ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
   BUILD_TOOLCHAIN := y
   ifdef CONFIG_GCC_USE_GRAPHITE
-    ifneq ($(CONFIG_GCC_VERSION_4_8),)
-      ifeq ($(CONFIG_GCC_USE_SYSTEM_PPL_CLOOG),)
-        BUILD_PPL_CLOOG = y
-      endif
-    else
-      BUILD_ISL = y
-    endif
+    BUILD_ISL = y
   endif
 endif
 ifneq ($(CONFIG_SDK)$(CONFIG_PACKAGE_kmod-b43)$(CONFIG_PACKAGE_b43legacy-firmware)$(CONFIG_BRCMSMAC_USE_FW_FROM_WL),)
@@ -41,7 +35,6 @@ tools-$(CONFIG_TARGET_ar71xx) += lzma-old squashfs
 tools-$(CONFIG_USES_MINOR) += kernel2minor
 tools-y += lzma squashfs4
 tools-$(BUILD_B43_TOOLS) += b43-tools
-tools-$(BUILD_PPL_CLOOG) += ppl cloog
 tools-$(BUILD_ISL) += isl
 tools-$(CONFIG_USE_SPARSE) += sparse
 tools-$(CONFIG_TARGET_apm821xx) += genext2fs
@@ -59,8 +52,6 @@ $(curdir)/automake/compile := $(curdir)/m4/install $(curdir)/autoconf/install $(
 $(curdir)/gmp/compile := $(curdir)/libtool/install
 $(curdir)/mpc/compile := $(curdir)/mpfr/install $(curdir)/gmp/install
 $(curdir)/mpfr/compile := $(curdir)/gmp/install
-$(curdir)/ppl/compile := $(curdir)/gmp/install
-$(curdir)/cloog/compile := $(curdir)/ppl/install
 $(curdir)/mtd-utils/compile := $(curdir)/e2fsprogs/install $(curdir)/xz/install
 $(curdir)/mkimage/compile := $(curdir)/sed/install
 $(curdir)/mklibs/compile := $(curdir)/libtool/install
@@ -73,7 +64,6 @@ $(curdir)/libelf/compile := $(curdir)/libtool/install
 $(curdir)/sdcc/compile := $(curdir)/bison/install
 $(curdir)/b43-tools/compile := $(curdir)/bison/install
 $(curdir)/padjffs2/compile := $(curdir)/findutils/install
-$(curdir)/cloog/compile := $(curdir)/ppl/install
 $(curdir)/isl/compile := $(curdir)/gmp/install
 $(curdir)/bc/compile := $(curdir)/bison/install
 $(curdir)/findutils/compile := $(curdir)/bison/install
@@ -110,6 +100,11 @@ tools-y += flock
 $(curdir)/builddirs := $(tools-y) $(tools-dep) $(tools-)
 $(curdir)/builddirs-default := $(tools-y)
 
+ifdef CHECK_ALL
+$(curdir)/builddirs-check:=$($(curdir)/builddirs)
+$(curdir)/builddirs-download:=$($(curdir)/builddirs)
+endif
+
 ifndef DUMP_TARGET_DB
 define PrepareStaging
 	@for dir in $(1); do ( \
@@ -145,4 +140,5 @@ $(curdir)//install = $(1)/compile
 
 tools_enabled = $(foreach tool,$(sort $(tools-y) $(tools-)),$(if $(filter $(tool),$(tools-y)),y,n))
 $(eval $(call stampfile,$(curdir),tools,install,,_$(subst $(space),,$(tools_enabled))))
+$(eval $(call stampfile,$(curdir),tools,check,$(TMP_DIR)/.build))
 $(eval $(call subdir,$(curdir)))

@@ -32,6 +32,11 @@ ramips_setup_interfaces()
 	local board="$1"
 
 	case $board in
+	11acnas|\
+	w2914nsv2)
+		ucidef_add_switch "switch0" \
+			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "4:wan:5" "6@eth0"
+		;;
 	3g150b|\
 	3g300m|\
 	a5-v11|\
@@ -203,6 +208,11 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "5:lan" "0:wan" "6@eth0"
 		;;
+	kn_rc|\
+	kn_rf)
+		ucidef_add_switch "switch" \
+			"0:wan" "1:lan" "2:lan" "3:lan" "4:lan" "6@eth0"
+		;;
 	kng_rc)
 		ucidef_add_switch "switch1" \
 			"0:lan" "1:lan" "2:lan" "3:lan" "4:wan" "7t@eth0"
@@ -211,6 +221,11 @@ ramips_setup_interfaces()
 	wizard8800|\
 	wl-330n)
 		ucidef_set_interface_lan "eth0.1"
+		;;
+	mr200)
+		ucidef_add_switch "switch0" \
+			"0:lan" "1:lan" "2:lan" "3:lan" "6t@eth0"
+		ucidef_set_interface_wan "usb0"
 		;;
 	mzk-dp150n|\
 	vocore)
@@ -240,10 +255,6 @@ ramips_setup_interfaces()
 	wzr-agl300nh)
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "0:wan" "5@eth0"
-		;;
-	w2914nsv2)
-		ucidef_add_switch "switch0" \
-			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "4:wan:5" "6@eth0"
 		;;
 	wcr-150gn)
 		ucidef_add_switch "switch0" \

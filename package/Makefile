@@ -14,6 +14,10 @@ $(curdir)/builddirs:=$(sort $(package-) $(package-y) $(package-m))
 $(curdir)/builddirs-install:=.
 $(curdir)/builddirs-default:=. $(sort $(package-y) $(package-m))
 $(curdir)/builddirs-prereq:=. $(sort $(prereq-y) $(prereq-m))
+ifdef CHECK_ALL
+$(curdir)/builddirs-check:=$($(curdir)/builddirs)
+$(curdir)/builddirs-download:=$($(curdir)/builddirs)
+endif
 ifneq ($(IGNORE_ERRORS),)
   package-y-filter := $(package-y)
   package-m-filter := $(filter-out $(package-y),$(package-m))
@@ -84,7 +88,8 @@ $(curdir)/index: FORCE
 	@for d in $(PACKAGE_SUBDIRS); do ( \
 		mkdir -p $$d; \
 		cd $$d || continue; \
-		$(SCRIPT_DIR)/ipkg-make-index.sh . 2>&1 > Packages && \
+		$(SCRIPT_DIR)/ipkg-make-index.sh . 2>&1 > Packages.manifest; \
+		grep -vE '^(Maintainer|LicenseFiles|Source|Require)' Packages.manifest > Packages && \
 			gzip -9nc Packages > Packages.gz; \
 	); done
 ifdef CONFIG_SIGNED_PACKAGES
@@ -123,5 +128,6 @@ $(eval $(call stampfile,$(curdir),package,prereq,.config))
 $(eval $(call stampfile,$(curdir),package,cleanup,$(TMP_DIR)/.build))
 $(eval $(call stampfile,$(curdir),package,compile,$(TMP_DIR)/.build))
 $(eval $(call stampfile,$(curdir),package,install,$(TMP_DIR)/.build))
+$(eval $(call stampfile,$(curdir),package,check,$(TMP_DIR)/.build))
 
 $(eval $(call subdir,$(curdir)))

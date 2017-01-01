@@ -11,17 +11,14 @@ include $(INCLUDE_DIR)/version.mk
 include $(INCLUDE_DIR)/feeds.mk
 
 PKG_NAME:=opkg
-PKG_REV:=9c97d5ecd795709c8584e972bfdf3aee3a5b846d
-PKG_VERSION:=$(PKG_REV)
-PKG_RELEASE:=15
+PKG_RELEASE:=16
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=$(PKG_REV)
-PKG_SOURCE_SUBDIR:=opkg-$(PKG_VERSION)
 PKG_SOURCE_URL:=http://git.yoctoproject.org/git/opkg
-PKG_SOURCE:=$(PKG_SOURCE_SUBDIR).tar.xz
-PKG_MIRROR_MD5SUM:=abba824695a7dd4acf2a6371c4e22142656b3d1f0fa93c04410116d2170ce1a9
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_DATE:=2011-04-08
+PKG_SOURCE_VERSION:=9c97d5ecd795709c8584e972bfdf3aee3a5b846d
+PKG_MIRROR_HASH:=55e05270f3eb2f3aff5d3791463ce3d13b8197ca7b301cd58e731a249552c48f
+PKG_BUILD_DIR=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_FIXUP:=autoreconf
 PKG_REMOVE_FILES = autogen.sh aclocal.m4
 
@@ -44,7 +41,7 @@ define Package/opkg/Default
   SECTION:=base
   CATEGORY:=Base system
   TITLE:=opkg package manager
-  DEPENDS:=+uclient-fetch
+  DEPENDS:=+uclient-fetch +libpthread
   URL:=http://wiki.openmoko.org/wiki/Opkg
   MENU:=1
 endef

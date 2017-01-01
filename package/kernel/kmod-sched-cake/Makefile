@@ -9,15 +9,13 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=sched-cake
-PKG_SOURCE_VERSION:=4f62bd17fa34036cb3c8fd4800a709b2734c3de3
-PKG_VERSION:=2016-10-02-$(PKG_SOURCE_VERSION)
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/dtaht/sch_cake.git
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_MIRROR_MD5SUM:=d6fd82607862c16ba5f1007ecfb251eba9e2cc82c55bb3f4aee2fbebf9fa6d2a
+PKG_SOURCE_URL:=https://github.com/kdarbyshirebryant/sch_cake.git
+PKG_SOURCE_DATE:=2016-12-19
+PKG_SOURCE_VERSION:=70c8eb766d5afcf3cf187594b7cd776da92bee3c
+PKG_MIRROR_HASH:=16174db5dad0a5b5ba522d4cfc058cff9851ed013a3a05166b04eb127bb12a24
 PKG_MAINTAINER:=Kevin Darbyshire-Bryant <kevin@darbyshire-bryant.me.uk>
 
 include $(INCLUDE_DIR)/package.mk
@@ -28,7 +26,7 @@ define KernelPackage/sched-cake
   URL:=https://github.com/dtaht/sch_cake
   FILES:=$(PKG_BUILD_DIR)/sch_cake.ko
   AUTOLOAD:=$(call AutoLoad,75,sch_cake)
-  DEPENDS:=+kmod-ipt-conntrack
+  DEPENDS:=+kmod-ipt-conntrack @!LINUX_3_18
 endef
 
 include $(INCLUDE_DIR)/kernel-defaults.mk

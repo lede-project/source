@@ -18,11 +18,12 @@ get_status_led() {
 	antminer-s3|\
 	antminer-r1|\
 	minibox-v1|\
-	som9331)
+	som9331|\
+	sr3200|\
+	xd3200)
 		status_led="$board:green:system"
 		;;
 	ap132|\
-	ap81|\
 	db120|\
 	dr344|\
 	tew-632brp|\
@@ -40,7 +41,6 @@ get_status_led() {
 	ap135-020)
 		status_led="ap135:green:status"
 		;;
-	ap83|\
 	mr12|\
 	mr16|\
 	nbg6616|\
@@ -295,6 +295,9 @@ get_status_led() {
 	rb-sxt5n)
 		status_led="rb:green:power"
 		;;
+	re450)
+		status_led="$board:blue:power"
+		;;
 	routerstation|\
 	routerstation-pro)
 		status_led="ubnt:green:rf"
@@ -346,6 +349,7 @@ get_status_led() {
 	tl-wr1041n-v2|\
 	tl-wr1043nd|\
 	tl-wr1043nd-v2|\
+	tl-wr1043nd-v4|\
 	tl-wr740n-v5|\
 	tl-wr741nd|\
 	tl-wr741nd-v4|\
@@ -374,6 +378,7 @@ get_status_led() {
 	tl-wr720n-v3|\
 	tl-wr802n-v1|\
 	tl-wr810n|\
+	tl-wr940n-v4|\
 	tl-wr941nd-v6)
 		status_led="tp-link:blue:system"
 		;;

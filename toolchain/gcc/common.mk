@@ -29,18 +29,18 @@ PKG_SOURCE_URL:=@GNU/gcc/gcc-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 
 ifeq ($(PKG_VERSION),5.4.0)
-  PKG_MD5SUM:=4c626ac2a83ef30dfb9260e6f59c2b30
+  PKG_HASH:=608df76dec2d34de6558249d8af4cbee21eceddbcb580d666f7a5a583ca3303a
 endif
 
-ifeq ($(PKG_VERSION),6.2.0)
-  PKG_MD5SUM:=9768625159663b300ae4de2f4745fcc4
+ifeq ($(PKG_VERSION),6.3.0)
+  PKG_HASH:=f06ae7f3f790fbf0f018f6d40e844451e6bc3b7bc96e128e63b09825c1f8b29f
 endif
 
 ifneq ($(CONFIG_GCC_VERSION_4_8_ARC),)
     PKG_VERSION:=4.8.5
     PKG_SOURCE_URL:=https://github.com/foss-for-synopsys-dwc-arc-processors/gcc/archive/arc-2016.03
     PKG_SOURCE:=$(PKG_NAME)-$(GCC_VERSION).tar.gz
-    PKG_MD5SUM:=ca59c8140d6efd07b97a18869bddbb53
+    PKG_HASH:=6a5eb0c83dca16f228ac836677a1fbb42a53c30334487ac37c2c18db80a38f35
     PKG_REV:=2016.03
     GCC_DIR:=gcc-arc-$(PKG_REV)
     HOST_BUILD_DIR = $(BUILD_DIR_HOST)/$(PKG_NAME)-$(GCC_VERSION)
@@ -80,11 +80,7 @@ ifdef CONFIG_INSTALL_GCCGO
 endif
 
 ifdef CONFIG_GCC_USE_GRAPHITE
-  ifdef CONFIG_GCC_VERSION_4_8
-    GRAPHITE_CONFIGURE=--with-cloog=$(REAL_STAGING_DIR_HOST)
-  else
-    GRAPHITE_CONFIGURE=--with-isl=$(REAL_STAGING_DIR_HOST)
-  endif
+  GRAPHITE_CONFIGURE=--with-isl=$(REAL_STAGING_DIR_HOST)
 else
   GRAPHITE_CONFIGURE=--without-isl --without-cloog
 endif
