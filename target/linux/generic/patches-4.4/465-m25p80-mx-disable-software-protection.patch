@@ -9,6 +9,6 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	if (JEDEC_MFR(info) == SNOR_MFR_ATMEL ||
  	    JEDEC_MFR(info) == SNOR_MFR_INTEL ||
 +	    JEDEC_MFR(info) == SNOR_MFR_MACRONIX ||
- 	    JEDEC_MFR(info) == SNOR_MFR_SST) {
- 		write_enable(nor);
- 		write_sr(nor, 0);
+	    JEDEC_MFR(info) == SNOR_MFR_SST ||
+		info->flags & SPI_NOR_HAS_LOCK) {
+		write_enable(nor);
