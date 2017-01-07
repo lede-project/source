@@ -8,14 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
-PKG_VERSION:=1.25.1
-PKG_RELEASE:=2
+PKG_VERSION:=1.26.1
+PKG_RELEASE:=1
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=https://www.busybox.net/downloads \
 		http://sources.buildroot.net
-PKG_HASH:=27667e0f2328fdbd79cfd622e4453e5c57e58f781c5da97c9be337d93aa2a02e
+PKG_HASH:=0fbbe487fa35cc3258749cf79c259578c1a221013cc4fb60d6a3542590f781f2
 
 PKG_BUILD_DEPENDS:=BUSYBOX_USE_LIBRPC:librpc BUSYBOX_CONFIG_PAM:libpam
 PKG_BUILD_PARALLEL:=1
@@ -27,7 +27,7 @@ PKG_LICENSE_FILES:=LICENSE archival/libarchive/bz/LICENSE
 include $(INCLUDE_DIR)/package.mk
 
 ifeq ($(DUMP),)
-  STAMP_CONFIGURED:=$(strip $(STAMP_CONFIGURED))_$(shell $(SH_FUNC) grep '^CONFIG_BUSYBOX_' $(TOPDIR)/.config | md5s)
+  STAMP_CONFIGURED:=$(strip $(STAMP_CONFIGURED))_$(shell grep '^CONFIG_BUSYBOX_' $(TOPDIR)/.config | mkhash md5)
 endif
 
 ifneq ($(findstring c,$(OPENWRT_VERBOSE)),)
