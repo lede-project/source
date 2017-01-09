@@ -45,16 +45,15 @@ endef
 define Package/libustream-polarssl
   $(Package/libustream/default)
   TITLE += (polarssl)
-  DEPENDS += +libpolarssl
+  DEPENDS += +PACKAGE_libustream-polarssl:libpolarssl
   VARIANT:=polarssl
 endef
 
 define Package/libustream-mbedtls
   $(Package/libustream/default)
   TITLE += (mbedtls)
-  DEPENDS += +libmbedtls
+  DEPENDS += +PACKAGE_libustream-mbedtls:libmbedtls
   VARIANT:=mbedtls
-  DEFAULT_VARIANT:=1
 endef
 
 ifeq ($(BUILD_VARIANT),cyassl)
