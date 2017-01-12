@@ -45,7 +45,6 @@ ar71xx_setup_interfaces()
 	tl-wr741nd|\
 	tl-wr741nd-v4|\
 	tl-wr841n-v11|\
-	tl-wr841n-v7|\
 	tl-wr841n-v9|\
 	tl-wr842n-v3|\
 	whr-g301n|\
@@ -386,6 +385,11 @@ ar71xx_setup_interfaces()
 	tl-wr2543n)
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "0:wan" "9@eth0"
+		;;
+	tl-wr841n-v7)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0@eth0" "1:lan:1" "2:lan:2" "3:lan:3" "4:lan:4"
 		;;
 	tl-wr841n-v1|\
 	tl-wr941nd)
