@@ -11,6 +11,15 @@ start() {
 	echo "this file has been obsoleted. please call \"/sbin/block mount\" directly"
 }
 
+restart() {
+	start
+}
+
+# Block umount on LuCI apply does bad things
+reload() {
+	/sbin/block mount
+}
+
 stop() {
 	/sbin/block umount
 }
