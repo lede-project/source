@@ -99,6 +99,9 @@ proto_wwan_setup() {
 	comgt)		proto_3g_setup $@ ;;
 	*cdc_ncm)	proto_ncm_setup $@ ;;
 	esac
+
+	echo "Starting rssi_led_script"
+	nice -n10 set_3g_rssi_led.sh start &
 }
 
 proto_wwan_teardown() {
@@ -114,6 +117,12 @@ proto_wwan_teardown() {
 	comgt)		proto_3g_teardown $@ ;;
 	*cdc_ncm)	proto_ncm_teardown $@ ;;
 	esac
+
+	echo "Stopping rssi_led_script"
+	led_proc_id=$(ps | grep set_3g_rssi_led | awk '/start/ {print $1}')
+	echo "pid: $led_proc_id"
+	kill "$led_proc_id"
+	set_3g_rssi_led.sh stop
 }
 
 add_protocol wwan

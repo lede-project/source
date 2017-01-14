@@ -1,8 +1,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=wwan
-PKG_VERSION:=2014-07-17
-PKG_RELEASE=1
+PKG_VERSION:=2017-01-14
+PKG_RELEASE=1.1
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=
@@ -24,6 +24,8 @@ endef
 define Package/wwan/install
 	$(INSTALL_DIR) $(1)/lib/netifd/proto/
 	$(CP) ./files/wwan.sh $(1)/lib/netifd/proto/
+	$(INSTALL_DIR) $(1)/bin/
+	$(INSTALL_BIN) ./files/set_3g_rssi_led.sh $(1)/bin/
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/usb
 	$(INSTALL_BIN) ./files/wwan.usb $(1)/etc/hotplug.d/usb/00_wwan.sh
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/usbmisc
