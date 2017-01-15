@@ -102,6 +102,7 @@ platform_check_image() {
 	newifi-d1|\
 	nixcore|\
 	nw718|\
+	omega2p|\
 	oy-0001|\
 	pbr-d1|\
 	pbr-m1|\
