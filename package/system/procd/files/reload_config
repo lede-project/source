@@ -9,7 +9,9 @@ MD5FILE=/var/run/config.md5
 [ -f $MD5FILE ] && {
 	for c in `md5sum -c $MD5FILE 2>/dev/null| grep FAILED | cut -d: -f1`; do
 		ubus call service event "{ \"type\": \"config.change\", \"data\": { \"package\": \"$(basename $c)\" }}"
+		[ -x /sbin/reload_config.service ] && /sbin/reload_config.service $(basename $c)
 	done
+	[ -x /sbin/reload_config.custom ] && /sbin/reload_config.custom
 }
 md5sum /var/run/config.check/* > $MD5FILE
 rm -rf /var/run/config.check
