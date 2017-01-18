@@ -13,9 +13,9 @@ PKG_VERSION:=1.6.0
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=http://www.netfilter.org/projects/iptables/files \
-	http://www.lt.netfilter.org/projects/iptables/files/ \
-	http://www.hu.netfilter.org/projects/iptables/files/
+PKG_SOURCE_URL:= \ http://www.lt.netfilter.org/projects/iptables/files/ \
+	http://www.hu.netfilter.org/projects/iptables/files/ \
+	http://www.netfilter.org/projects/iptables/files
 PKG_HASH:=4bb72a0a0b18b5a9e79e87631ddc4084528e5df236bc7624472dcaa8480f1c60
 
 PKG_LICENSE:=GPL-2.0
