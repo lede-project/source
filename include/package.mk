@@ -57,7 +57,7 @@ ifneq ($(PREV_STAMP_PREPARED),)
   STAMP_PREPARED:=$(PREV_STAMP_PREPARED)
   CONFIG_AUTOREBUILD:=
 else
-  STAMP_PREPARED=$(PKG_BUILD_DIR)/.prepared$(if $(QUILT)$(DUMP),,_$(shell $(call find_md5,${CURDIR} $(PKG_FILE_DEPENDS),))$(call confvar,$(PKG_PREPARED_DEPENDS)))
+  STAMP_PREPARED=$(PKG_BUILD_DIR)/.prepared$(if $(QUILT)$(DUMP),,_$(shell $(call find_md5,${CURDIR} $(PKG_FILE_DEPENDS),))_$(call confvar,CONFIG_AUTOREMOVE $(PKG_PREPARED_DEPENDS)))
 endif
 STAMP_CONFIGURED=$(PKG_BUILD_DIR)/.configured$(if $(DUMP),,_$(call confvar,$(PKG_CONFIG_DEPENDS)))
 STAMP_CONFIGURED_WILDCARD=$(PKG_BUILD_DIR)/.configured_*
@@ -95,6 +95,8 @@ include $(INCLUDE_DIR)/package-dumpinfo.mk
 include $(INCLUDE_DIR)/package-ipkg.mk
 include $(INCLUDE_DIR)/package-bin.mk
 include $(INCLUDE_DIR)/autotools.mk
+
+_pkg_target:=$(if $(QUILT),,.)
 
 override MAKEFLAGS=
 CONFIG_SITE:=$(INCLUDE_DIR)/site/$(ARCH)
@@ -204,13 +206,13 @@ define Build/CoreTargets
 	touch $$@
 
   ifdef Build/InstallDev
-    .compile: $(STAMP_INSTALLED)
+    $(_pkg_target)compile: $(STAMP_INSTALLED)
   endif
 
-  .prepare: $(STAMP_PREPARED)
-  .configure: $(STAMP_CONFIGURED)
-  .dist: $(STAMP_CONFIGURED)
-  .distcheck: $(STAMP_CONFIGURED)
+  $(_pkg_target)prepare: $(STAMP_PREPARED)
+  $(_pkg_target)configure: $(STAMP_CONFIGURED)
+  $(_pkg_target)dist: $(STAMP_CONFIGURED)
+  $(_pkg_target)distcheck: $(STAMP_CONFIGURED)
 
   ifneq ($(CONFIG_AUTOREMOVE),)
     compile:
