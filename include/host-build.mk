@@ -122,7 +122,7 @@ ifneq ($(if $(HOST_QUILT),,$(CONFIG_AUTOREBUILD)),)
 endif
 
 define Host/Exports/Default
-  $(1) : export ACLOCAL_INCLUDE=$$(foreach p,$$(wildcard $$(STAGING_DIR_HOST)/share/aclocal $$(STAGING_DIR_HOST)/share/aclocal-* $(if $(IS_PACKAGE_BUILD),$$(STAGING_DIR)/host/share/aclocal $$(STAGING_DIR)/host/share/aclocal-*)),-I $$(p))
+  $(1) : export ACLOCAL_INCLUDE=$$(foreach p,$$(wildcard $$(STAGING_DIR_HOST)/share/aclocal $$(STAGING_DIR_HOST)/share/aclocal-* $(if $(IS_PACKAGE_BUILD),$$(STAGING_DIR)/host/share/aclocal $$(STAGING_DIR_HOSTPKG)/share/aclocal $$(STAGING_DIR)/host/share/aclocal-*)),-I $$(p))
   $(1) : export STAGING_PREFIX=$$(HOST_BUILD_PREFIX)
   $(1) : export PKG_CONFIG_PATH=$$(STAGING_DIR_HOST)/lib/pkgconfig:$$(HOST_BUILD_PREFIX)/lib/pkgconfig
   $(1) : export PKG_CONFIG_LIBDIR=$$(HOST_BUILD_PREFIX)/lib/pkgconfig
@@ -168,32 +168,28 @@ ifndef DUMP
 		touch $(HOST_STAMP_BUILT)
 		touch $$@
 
+  $(call DefaultTargets,$(patsubst %,host-%,$(DEFAULT_SUBDIR_TARGETS)))
   ifndef STAMP_BUILT
-    prepare: host-prepare
-    compile: host-compile
-    install: host-install
-    clean: host-clean
-    update: host-update
-    refresh: host-refresh
+    $(foreach t,$(DEFAULT_SUBDIR_TARGETS),
+      $(t): host-$(t)
+      .$(t): .host-$(t)
+    )
   endif
 
-  host-prepare: $(HOST_STAMP_PREPARED)
-  host-configure: $(HOST_STAMP_CONFIGURED)
-  host-compile: $(HOST_STAMP_BUILT) $(if $(STAMP_BUILT),$(HOST_STAMP_INSTALLED))
-  host-install: $(HOST_STAMP_INSTALLED)
+  .host-prepare: $(HOST_STAMP_PREPARED)
+  .host-configure: $(HOST_STAMP_CONFIGURED)
+  .host-compile: $(HOST_STAMP_BUILT) $(HOST_STAMP_INSTALLED)
   host-clean: FORCE
 	$(call Host/Clean)
 	$(call Host/Uninstall)
 	rm -rf $(HOST_BUILD_DIR) $(HOST_STAMP_INSTALLED) $(HOST_STAMP_BUILT)
 
+    ifneq ($(CONFIG_AUTOREMOVE),)
+      host-compile:
+		$(FIND) $(HOST_BUILD_DIR) -mindepth 1 -maxdepth 1 -not '(' -type f -and -name '.*' -and -size 0 ')' | \
+			$(XARGS) rm -rf
+    endif
   endef
-
-  download:
-  prepare:
-  compile:
-  install:
-  clean:
-
 endif
 
 define HostBuild
