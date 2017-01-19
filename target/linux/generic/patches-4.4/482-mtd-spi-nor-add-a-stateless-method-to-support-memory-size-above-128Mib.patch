@@ -19,10 +19,10 @@ Tested-by: Vignesh R <vigneshr@ti.com>
 
 --- a/drivers/mtd/spi-nor/spi-nor.c
 +++ b/drivers/mtd/spi-nor/spi-nor.c
-@@ -68,6 +68,10 @@ struct flash_info {
- #define	SPI_NOR_DUAL_READ	0x20    /* Flash supports Dual Read */
+@@ -69,6 +69,10 @@ struct flash_info {
  #define	SPI_NOR_QUAD_READ	0x40    /* Flash supports Quad Read */
  #define	USE_FSR			0x80	/* use flag status register */
+ #define	SPI_NOR_HAS_LOCK	0x100	/* Flash supports lock/unlock via SR */
 +#define SPI_NOR_4B_OPCODES	BIT(11)	/*
 +					 * Use dedicated 4byte address op codes
 +					 * to support memory size above 128Mib.
@@ -30,16 +30,16 @@ Tested-by: Vignesh R <vigneshr@ti.com>
  };
  
  #define JEDEC_MFR(info)	((info)->id[0])
-@@ -181,6 +185,78 @@ static inline struct spi_nor *mtd_to_spi
+@@ -182,6 +186,78 @@ static inline struct spi_nor *mtd_to_spi
  	return mtd->priv;
  }
  
 +
-+static u8 spi_nor_convert_opcode(u8 opcode, const u8 table[][2])
++static u8 spi_nor_convert_opcode(u8 opcode, const u8 table[][2], size_t size)
 +{
 +	size_t i;
 +
-+	for (i = 0; table[i][0]; ++i)
++	for (i = 0; i < size; i++)
 +		if (table[i][0] == opcode)
 +			return table[i][1];
 +
@@ -56,10 +56,10 @@ Tested-by: Vignesh R <vigneshr@ti.com>
 +		{ SPINOR_OP_READ_1_2_2,	SPINOR_OP_READ_1_2_2_4B },
 +		{ SPINOR_OP_READ_1_1_4,	SPINOR_OP_READ_1_1_4_4B },
 +		{ SPINOR_OP_READ_1_4_4,	SPINOR_OP_READ_1_4_4_4B },
-+		{0, 0}
 +	};
 +
-+	return spi_nor_convert_opcode(opcode, spi_nor_3to4_read);
++	return spi_nor_convert_opcode(opcode, spi_nor_3to4_read,
++				      ARRAY_SIZE(spi_nor_3to4_read));
 +}
 +
 +static inline u8 spi_nor_convert_3to4_program(u8 opcode)
@@ -68,10 +68,10 @@ Tested-by: Vignesh R <vigneshr@ti.com>
 +		{ SPINOR_OP_PP,		SPINOR_OP_PP_4B },
 +		{ SPINOR_OP_PP_1_1_4,	SPINOR_OP_PP_1_1_4_4B },
 +		{ SPINOR_OP_PP_1_4_4,	SPINOR_OP_PP_1_4_4_4B },
-+		{0, 0}
 +	};
 +
-+	return spi_nor_convert_opcode(opcode, spi_nor_3to4_program);
++	return spi_nor_convert_opcode(opcode, spi_nor_3to4_program,
++				      ARRAY_SIZE(spi_nor_3to4_program));
 +}
 +
 +static inline u8 spi_nor_convert_3to4_erase(u8 opcode)
@@ -80,10 +80,10 @@ Tested-by: Vignesh R <vigneshr@ti.com>
 +		{ SPINOR_OP_BE_4K,	SPINOR_OP_BE_4K_4B },
 +		{ SPINOR_OP_BE_32K,	SPINOR_OP_BE_32K_4B },
 +		{ SPINOR_OP_SE,		SPINOR_OP_SE_4B },
-+		{0, 0}
 +	};
 +
-+	return spi_nor_convert_opcode(opcode, spi_nor_3to4_erase);
++	return spi_nor_convert_opcode(opcode, spi_nor_3to4_erase,
++				      ARRAY_SIZE(spi_nor_3to4_erase));
 +}
 +
 +static void spi_nor_set_4byte_opcodes(struct spi_nor *nor,
@@ -109,7 +109,7 @@ Tested-by: Vignesh R <vigneshr@ti.com>
  /* Enable/disable 4-byte addressing mode. */
  static inline int set_4byte(struct spi_nor *nor, const struct flash_info *info,
  			    int enable)
-@@ -1274,27 +1350,10 @@ int spi_nor_scan(struct spi_nor *nor, co
+@@ -1277,27 +1353,10 @@ int spi_nor_scan(struct spi_nor *nor, co
  	else if (mtd->size > 0x1000000) {
  		/* enable 4-byte addressing if the device exceeds 16MiB */
  		nor->addr_width = 4;
