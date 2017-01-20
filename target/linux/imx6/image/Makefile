@@ -34,7 +34,7 @@ define Build/boot-overlay
 		$@.boot/6x_bootscript-$(DEVICE_NAME)
 
 	$(STAGING_DIR_HOST)/bin/mkfs.ubifs \
-		--space-fixup --force-compr=zlib --squash-uids \
+		--space-fixup --compr=zlib --squash-uids \
 		$(MKUBIFS_OPTS) -c 8124 \
 		-o $@.boot.ubifs -d $@.boot
 
@@ -86,11 +86,10 @@ define Device/ventana
 	imx6q-gw551x \
 	imx6q-gw552x \
 	imx6q-gw553x
-  DEVICE_PACKAGES := kmod-thermal-imx kmod-sky2 kmod-usb-chipidea-imx kmod-usb-mxs-phy \
-	kmod-sound-core kmod-sound-soc-imx kmod-sound-soc-imx-sgtl5000 \
+  DEVICE_PACKAGES := kmod-sky2 kmod-sound-core kmod-sound-soc-imx kmod-sound-soc-imx-sgtl5000 \
 	kmod-can kmod-can-flexcan kmod-can-raw \
 	kmod-hwmon-gsc \
-	kmod-leds-gpio kmod-pps-gpio kmod-gw16083 \
+	kmod-leds-gpio kmod-pps-gpio \
 	kobs-ng
   KERNEL += | boot-overlay
   IMAGES := nand.ubi bootfs.tar.gz
@@ -116,7 +115,6 @@ endef
 define Device/wandboard
   DEVICE_TITLE := Wandboard Dual
   DEVICE_DTS := imx6dl-wandboard
-  DEVICE_PACKAGES := kmod-thermal-imx kmod-usb-chipidea-imx kmod-usb-mxs-phy
 endef
 
 TARGET_DEVICES += \

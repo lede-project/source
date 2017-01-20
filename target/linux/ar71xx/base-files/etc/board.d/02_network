@@ -87,6 +87,7 @@ ar71xx_setup_interfaces()
 	mr900v2|\
 	mynet-rext|\
 	rb-411|\
+	rb-411u|\
 	rb-911g-2hpnd|\
 	rb-911g-5hpacd|\
 	rb-911g-5hpnd|\
@@ -215,7 +216,9 @@ ar71xx_setup_interfaces()
 		ucidef_set_interface_lan "eth0" "dhcp"
 		;;
 	cpe210|\
-	cpe510)
+	cpe510|\
+	wbs210|\
+	wbs510)
 		ucidef_add_switch "switch0" \
 			"0@eth0" "5:lan" "4:wan"
 		;;
@@ -240,6 +243,10 @@ ar71xx_setup_interfaces()
 	dap-2695-a1)
 		ucidef_add_switch "switch0" "0@eth0" "2:lan" "3:wan" "6@eth1"
 		;;
+	rb-941-2nd)
+		ucidef_add_switch "switch0" \
+			"0@eth0" "1:lan:4" "2:lan:3" "3:lan:2" "4:wan:1"
+	;;
 	db120|\
 	rb-2011l|\
 	rb-2011uas|\

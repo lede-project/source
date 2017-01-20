@@ -43,7 +43,7 @@ endef
 
 define Package/libiwinfo/description
   Wireless information library with consistent interface for proprietary Broadcom,
-  madwifi, nl80211 and wext driver interfaces.
+  nl80211 and wext driver interfaces.
 endef
 
 

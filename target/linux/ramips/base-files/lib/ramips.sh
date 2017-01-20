@@ -364,6 +364,12 @@ ramips_board_detect() {
 	*"NW718")
 		name="nw718"
 		;;
+	*"Onion Omega2")
+		name="omega2"
+		;;
+	*"Onion Omega2+")
+		name="omega2p"
+		;;
 	*"OY-0001")
 		name="oy-0001"
 		;;
@@ -475,6 +481,9 @@ ramips_board_detect() {
 	*"VoCore (16M)")
 		name="vocore-16M"
 		;;
+	*"VoCore2")
+		name="vocore2"
+		;;
 	*"VR500")
 		name="vr500"
 		;;
@@ -543,6 +552,9 @@ ramips_board_detect() {
 		;;
 	*"WMR-300")
 		name="wmr-300"
+		;;
+	*"WN3000RPv3")
+		name="wn3000rpv3"
 		;;
 	*"WNCE2001")
 		name="wnce2001"

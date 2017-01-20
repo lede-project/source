@@ -22,11 +22,9 @@ endef
 define Build/elecom-header
 	cp $@ $(KDIR)/v_0.0.0.bin
 	( \
-		$(STAGING_DIR_HOST)/bin/md5sum $(KDIR)/v_0.0.0.bin | \
-			sed 's/ .*//' && \
+		mkhash md5 $(KDIR)/v_0.0.0.bin && \
 		echo 458 \
-	) | $(STAGING_DIR_HOST)/bin/md5sum | \
-		sed 's/ .*//' > $(KDIR)/v_0.0.0.md5
+	) | mkhash md5 > $(KDIR)/v_0.0.0.md5
 	$(STAGING_DIR_HOST)/bin/tar -cf $@ -C $(KDIR) v_0.0.0.bin v_0.0.0.md5
 endef
 
@@ -76,6 +74,17 @@ define Device/ex2700
   DEVICE_TITLE := Netgear EX2700
 endef
 TARGET_DEVICES += ex2700
+
+define Device/wn3000rpv3
+  DTS := WN3000RPV3
+  BLOCKSIZE := 4k
+  IMAGES += factory.bin
+  KERNEL := $(KERNEL_DTB) | uImage lzma | pad-kernel-ex2700
+  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+	netgear-header -B WN3000RPv3 -H 29764836+8+0+32+2x2+0
+  DEVICE_TITLE := Netgear WN3000RPv3
+endef
+TARGET_DEVICES += wn3000rpv3
 
 define Device/wt3020-4M
   DTS := WT3020-4M

@@ -23,22 +23,22 @@ xappend() {
 }
 
 hex_to_hostid() {
-        local var="$1"
-        local hex="${2#0x}"     # strip optional "0x" prefix
+	local var="$1"
+	local hex="${2#0x}" # strip optional "0x" prefix
 
-        if [ -n "${hex//[0-9a-fA-F]/}" ]; then
-                # is invalid hex literal
-                return 1
-        fi
+	if [ -n "${hex//[0-9a-fA-F]/}" ]; then
+		# is invalid hex literal
+		return 1
+	fi
 
-        # convert into host id
-        export "$var=$(
-                printf "%0x:%0x"  \
-                        $(((0x$hex >> 16) % 65536)) \
-                        $(( 0x$hex        % 65536))
-        )"
+	# convert into host id
+	export "$var=$(
+		printf "%0x:%0x" \
+		$(((0x$hex >> 16) % 65536)) \
+		$(( 0x$hex        % 65536))
+		)"
 
-        return 0
+	return 0
 }
 
 dhcp_calc() {
@@ -278,6 +278,7 @@ dhcp_host_add() {
 	config_get tag "$cfg" tag
 
 	if [ "$DHCPv6CAPABLE" -eq 1 ]; then
+		config_get duid "$cfg" duid
 		config_get hostid "$cfg" hostid
 		if [ -n "$hostid" ]; then
 			hex_to_hostid hostid "$hostid"
@@ -289,7 +290,7 @@ dhcp_host_add() {
 
 	config_get leasetime "$cfg" leasetime
 
-	xappend "--dhcp-host=$macs${networkid:+,net:$networkid}${broadcast:+,set:needs-broadcast}${tag:+,set:$tag}${ip:+,$ip${hostid:+,[::$hostid]}}${name:+,$name}${leasetime:+,$leasetime}"
+	xappend "--dhcp-host=$macs${duid:+,id:$duid}${networkid:+,net:$networkid}${broadcast:+,set:needs-broadcast}${tag:+,set:$tag}${ip:+,$ip${hostid:+,[::$hostid]}}${name:+,$name}${leasetime:+,$leasetime}"
 }
 
 dhcp_tag_add() {

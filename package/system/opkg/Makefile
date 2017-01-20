@@ -18,7 +18,6 @@ PKG_SOURCE_URL:=http://git.yoctoproject.org/git/opkg
 PKG_SOURCE_DATE:=2011-04-08
 PKG_SOURCE_VERSION:=9c97d5ecd795709c8584e972bfdf3aee3a5b846d
 PKG_MIRROR_HASH:=55e05270f3eb2f3aff5d3791463ce3d13b8197ca7b301cd58e731a249552c48f
-PKG_BUILD_DIR=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_FIXUP:=autoreconf
 PKG_REMOVE_FILES = autogen.sh aclocal.m4
 
@@ -37,7 +36,7 @@ PKG_INSTALL:=1
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/host-build.mk
 
-define Package/opkg/Default
+define Package/opkg
   SECTION:=base
   CATEGORY:=Base system
   TITLE:=opkg package manager
@@ -46,7 +45,7 @@ define Package/opkg/Default
   MENU:=1
 endef
 
-define Package/opkg/Default/description
+define Package/opkg/description
   Lightweight package management system
   opkg is the opkg Package Management System, for handling
   installation and removal of packages on a system. It can
@@ -66,46 +65,11 @@ config OPKG_SUPPORT_MD5
 	Old opkg used md5s, new uses sha. This options enables understanding both while prefering sha.
 endef
 
-define Package/opkg
-  $(call Package/opkg/Default)
-  VARIANT:=unsigned
-endef
-
-define Package/opkg/description
-  $(call Package/opkg/Default/description)
-endef
-
 define Package/opkg/conffiles
 /etc/opkg.conf
 /etc/opkg/keys/
 /etc/opkg/customfeeds.conf
 endef
-
-
-define Package/opkg-smime
-  $(call Package/opkg/Default)
-  TITLE+= (with S/MIME signature support)
-  DEPENDS+=+PACKAGE_opkg-smime:libopenssl
-  VARIANT:=smime
-endef
-
-define Package/opkg-smime/description
-  $(call Package/opkg/Default/description)
-
-  This package allows the Package index to be verified with S/MIME.
-endef
-
-define Package/opkg-smime/config
-config OPKG_SMIME_SUPPORT_MD5
-  bool
-  default n
-  depends on PACKAGE_opkg-smime
-  prompt "Support reading old md5 hashes."
-  help
-	Old opkg used md5s, new uses sha. This options enables understanding both while prefering sha.
-endef
-
-Package/opkg-smime/conffiles = $(Package/opkg/conffiles)
 
 TARGET_CFLAGS += -ffunction-sections -fdata-sections
 EXTRA_CFLAGS += $(TARGET_CPPFLAGS)
@@ -117,22 +81,13 @@ CONFIGURE_ARGS += \
 	--with-opkgetcdir=/etc \
 	--with-opkglockfile=/var/lock/opkg.lock
 
-ifeq ($(BUILD_VARIANT),smime)
-  CONFIGURE_ARGS += --enable-openssl --disable-usign
-  ifeq ($(CONFIG_OPKG_SMIME_SUPPORT_MD5),y)
-    CONFIGURE_ARGS += --enable-md5
-  else
-    CONFIGURE_ARGS += --disable-md5
-  endif
+ifndef CONFIG_SIGNED_PACKAGES
+  CONFIGURE_ARGS += --disable-usign
+endif
+ifeq ($(CONFIG_OPKG_SUPPORT_MD5),y)
+  CONFIGURE_ARGS += --enable-md5
 else
-  ifndef CONFIG_SIGNED_PACKAGES
-    CONFIGURE_ARGS += --disable-usign
-  endif
-  ifeq ($(CONFIG_OPKG_SUPPORT_MD5),y)
-    CONFIGURE_ARGS += --enable-md5
-  else
-    CONFIGURE_ARGS += --disable-md5
-  endif
+  CONFIGURE_ARGS += --disable-md5
 endif
 
 MAKE_FLAGS = \
@@ -163,12 +118,6 @@ define Package/opkg/install
 	$(INSTALL_BIN) ./files/opkg-key $(1)/usr/sbin/
 endef
 
-define Package/opkg-smime/install
-	$(call Package/opkg/Default/install,$(1),-smime)
-	$(INSTALL_DIR) $(1)/etc/ssl/certs
-	$(if $(CONFIG_OPKGSMIME_CERT),$(INSTALL_DATA) $(call qstrip,$(CONFIG_OPKGSMIME_CERT)) $(1)/etc/ssl/certs/opkg.pem,)
-endef
-
 define Build/InstallDev
 	mkdir -p $(1)/usr/include
 	$(CP) $(PKG_INSTALL_DIR)/usr/include/libopkg $(1)/usr/include/
@@ -191,5 +140,4 @@ define Host/Install
 endef
 
 $(eval $(call BuildPackage,opkg))
-$(eval $(call BuildPackage,opkg-smime))
 $(eval $(call HostBuild))

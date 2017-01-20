@@ -92,4 +92,32 @@ endif
 endef
 TARGET_DEVICES += ls1012ardb
 
+define Device/ls1088ardb
+  DEVICE_TITLE := ls1088ardb-$(SUBTARGET)
+  DEVICE_PACKAGES += rcw-layerscape-ls1088ardb uboot-layerscape-$(SUBTARGET)-ls1088ardb mc-binary-ls1088ardb
+ifeq ($(SUBTARGET),64b)
+  DEVICE_DTS = freescale/fsl-ls1088a-rdb
+endif
+ifeq ($(SUBTARGET),32b)
+  DEVICE_DTS = ../../../arm64/boot/dts/freescale/fsl-ls1088a-rdb
+endif
+  IMAGE/firmware.bin = append-ls-dtb $$(DEVICE_DTS) | pad-to 1M | append-kernel | pad-to 6M | \
+  					append-ls-rootfs-ext4 $(1) 17M | check-size 24117249
+endef
+TARGET_DEVICES += ls1088ardb
+
+define Device/ls2088ardb
+  DEVICE_TITLE := ls2088ardb-$(SUBTARGET)
+  DEVICE_PACKAGES += rcw-layerscape-ls2088ardb uboot-layerscape-$(SUBTARGET)-ls2088ardb mc-binary-ls2088ardb
+ifeq ($(SUBTARGET),64b)
+  DEVICE_DTS = freescale/fsl-ls2088a-rdb
+endif
+ifeq ($(SUBTARGET),32b)
+  DEVICE_DTS = ../../../arm64/boot/dts/freescale/fsl-ls2088a-rdb
+endif
+  IMAGE/firmware.bin = append-ls-dtb $$(DEVICE_DTS) | pad-to 1M | append-kernel | pad-to 6M | \
+					append-rootfs | pad-rootfs | check-size 24117249
+endef
+TARGET_DEVICES += ls2088ardb
+
 $(eval $(call BuildImage))

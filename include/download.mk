@@ -61,7 +61,7 @@ else
   check_warn = $(if $(filter-out undefined,$(origin F_$(1))),$(filter ,$(shell $(call F_$(1),$(2),$(3),$(4)) >&2)),$(check_warn_nofix))
 endif
 
-gen_sha256sum = $(shell openssl dgst -sha256 $(DL_DIR)/$(1) | awk '{print $$2}')
+gen_sha256sum = $(shell mkhash sha256 $(DL_DIR)/$(1))
 
 ifdef FIXUP
 F_hash_deprecated = $(SCRIPT_DIR)/fixup-makefile.pl $(CURDIR)/Makefile fix-hash $(3) $(call gen_sha256sum,$(1)) $(2)
@@ -94,13 +94,10 @@ endif
 
 C_md5_deprecated = Use of $(2) is deprecated, switch to $(3)
 
-# Skip MD5SUM check in feeds until OpenWrt is updated
-ifneq ($(filter $(foreach dir,package tools toolchain, $(TOPDIR)/$(dir)/%),$(CURDIR)),)
 check_md5 = \
   $(if $(filter-out x,$(1)), \
     $(call check_warn,md5_deprecated,$(1),$(2),$(3)) \
   )
-endif
 
 hash_var = $(if $(filter-out x,$(1)),MD5SUM,HASH)
 endif

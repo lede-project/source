@@ -65,7 +65,7 @@ static struct mtd_partition rb4xx_nand_partitions[] = {
 		.size	= (4 * 1024 * 1024) - (256 * 1024),
 	},
 	{
-		.name	= "rootfs",
+		.name	= "ubi",
 		.offset	= MTDPART_OFS_NXTBLK,
 		.size	= MTDPART_SIZ_FULL,
 	},
@@ -107,7 +107,7 @@ static unsigned char rb4xx_nand_read_byte(struct mtd_info *mtd)
 	unsigned char data = 0;
 	int err;
 
-	err = rb4xx_cpld_read(&data, NULL, 1);
+	err = rb4xx_cpld_read(&data, 1);
 	if (err) {
 		pr_err("rb4xx_nand: read data failed, err=%d\n", err);
 		data = 0xff;
@@ -131,7 +131,7 @@ static void rb4xx_nand_read_buf(struct mtd_info *mtd, unsigned char *buf,
 {
 	int err;
 
-	err = rb4xx_cpld_read(buf, NULL, len);
+	err = rb4xx_cpld_read(buf, len);
 	if (err)
 		pr_err("rb4xx_nand: read buf failed, err=%d\n", err);
 }
@@ -218,6 +218,7 @@ static int rb4xx_nand_probe(struct platform_device *pdev)
 
 	info->chip.chip_delay	= 25;
 	info->chip.ecc.mode	= NAND_ECC_SOFT;
+	info->chip.options = NAND_NO_SUBPAGE_WRITE;
 
 	platform_set_drvdata(pdev, info);
 
