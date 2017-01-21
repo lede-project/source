@@ -781,6 +781,9 @@ ar71xx_board_detect() {
 	*"PB44 reference board")
 		name="pb44"
 		;;
+	*"PQI Air Pen")
+		name="pqi-air-pen"
+		;;
 	*"Qihoo 360 C301")
 		name="qihoo-c301"
 		;;
@@ -889,6 +892,15 @@ ar71xx_board_detect() {
 		;;
 	*RW2458N)
 		name="rw2458n"
+		;;
+	*SC1750)
+		name="sc1750"
+		;;
+	*SC300M)
+		name="sc300m"
+		;;
+	*SC450)
+		name="sc450"
 		;;
 	*"SMART-300")
 		name="smart-300"

@@ -44,6 +44,8 @@ get_status_led() {
 	mr12|\
 	mr16|\
 	nbg6616|\
+	sc1750|\
+	sc450|\
 	tl-wpa8630)
 		status_led="$board:green:power"
 		;;
@@ -295,7 +297,8 @@ get_status_led() {
 	rb-sxt5n)
 		status_led="rb:green:power"
 		;;
-	re450)
+	re450|\
+	sc300m)
 		status_led="$board:blue:power"
 		;;
 	routerstation|\

@@ -250,10 +250,14 @@ platform_check_image() {
 	nanostation-m-xw|\
 	nanostation-m|\
 	nbg460n_550n_550nh|\
+	pqi-air-pen|\
 	rocket-m-ti|\
 	rocket-m-xw|\
 	rocket-m|\
 	rw2458n|\
+	sc1750|\
+	sc300m|\
+	sc450|\
 	sr3200|\
 	tew-632brp|\
 	tew-712br|\

@@ -141,6 +141,7 @@ enum ath79_mach_type {
 	ATH79_MACH_ONION_OMEGA,			/* ONION OMEGA */
 	ATH79_MACH_PB42,			/* Atheros PB42 */
 	ATH79_MACH_PB44,			/* Atheros PB44 reference board */
+	ATH79_MACH_PQI_AIR_PEN,			/* PQI Air Pen */
 	ATH79_MACH_QIHOO_C301,			/* Qihoo 360 C301 */
 	ATH79_MACH_R6100,			/* NETGEAR R6100 */
 	ATH79_MACH_RB_2011G,			/* Mikrotik RouterBOARD 2011UAS-2HnD */
@@ -169,6 +170,9 @@ enum ath79_mach_type {
 	ATH79_MACH_RB_SXTLITE5ND,		/* Mikrotik RouterBOARD SXT Lite 5nD */
 	ATH79_MACH_RE450,			/* TP-LINK RE450 */
 	ATH79_MACH_RW2458N,			/* Redwave RW2458N */
+	ATH79_MACH_SC1750,			/* Abicom SC1750 */
+	ATH79_MACH_SC300M,			/* Abicom SC300M */
+	ATH79_MACH_SC450,			/* Abicom SC450 */
 	ATH79_MACH_SMART_300,			/* NC-LINK SMART-300 */
 	ATH79_MACH_SOM9331,			/* OpenEmbed SOM9331 */
 	ATH79_MACH_SR3200,			/* YunCore SR3200 */

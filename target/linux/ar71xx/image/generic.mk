@@ -323,6 +323,17 @@ endef
 
 TARGET_DEVICES += cr5000-nocloud
 
+define Device/pqi-air-pen
+  DEVICE_TITLE := PQI Air Pen
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage
+  BOARDNAME = PQI-AIR-PEN
+  IMAGE_SIZE = 7744k
+  CONSOLE = ttyATH0,115200
+  MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,64k(art)ro,64k(NVRAM)ro,7680k(firmware),64k(CONF)
+endef
+
+TARGET_DEVICES += pqi-air-pen
+
 define Device/antminer-s1
   $(Device/tplink-8mlzma)
   DEVICE_TITLE := Antminer-S1
@@ -463,6 +474,36 @@ define Device/onion-omega
   CONSOLE := ttyATH0,115200
 endef
 TARGET_DEVICES += onion-omega
+
+define Device/sc1750
+  DEVICE_TITLE := Abicom SC1750
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME = SC1750
+  IMAGE_SIZE = 15744k
+  CONSOLE = ttyS0,115200
+  MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env),15744k(firmware),128k(APConfig),128k(kplog),64k(ART)
+endef
+TARGET_DEVICES += sc1750
+
+define Device/sc300m
+  DEVICE_TITLE := Abicom SC300M
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME = SC300M
+  IMAGE_SIZE = 15744k
+  CONSOLE = ttyS0,115200
+  MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env),15744k(firmware),128k(APConfig),128k(kplog),64k(ART)
+endef
+TARGET_DEVICES += sc300m
+
+define Device/sc450
+  DEVICE_TITLE := Abicom SC450
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME = SC450
+  IMAGE_SIZE = 15744k
+  CONSOLE = ttyS0,115200
+  MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env),15744k(firmware),128k(APConfig),128k(kplog),64k(ART)
+endef
+TARGET_DEVICES += sc450
 
 define Device/smart-300
   $(Device/tplink-8mlzma)
