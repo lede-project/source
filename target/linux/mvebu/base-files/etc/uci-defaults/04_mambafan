@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+# Copyright (C) 2017 LEDE-Project.org
+#
+ 
+. /lib/mvebu.sh
+ 
+board=$(mvebu_board_name)
+ 
+case "$board" in
+armada-xp-linksys-mamba)
+
+	cat > /etc/init.d/fan_control << 'FC_EOF'
+#!/bin/sh /etc/rc.common
+
+# mambafan daemon control script (/etc/init.d/fan_control)
+# for start/stop of mamba fan monitor (/usr/sbin/fan_monitor)
+
+START=45
+STOP=99
+
+PIDFILE=/var/run/fan_monitor_pid
+
+start() {
+	start-stop-daemon -b -S -x /usr/sbin/fan_monitor -m -p $PIDFILE
+}
+
+stop() {
+	start-stop-daemon -K -p $PIDFILE
+}
+FC_EOF
+
+# Set permissions
+	chmod 0755 /etc/init.d/fan_control
+	chmod 0755 /usr/sbin/fan_monitor
+
+# Enable fan_control init script
+	/etc/init.d/fan_control enable
+# Start fan_control daemon
+	/etc/init.d/fan_control start
+    ;;
+*)
+esac
+
+exit 0

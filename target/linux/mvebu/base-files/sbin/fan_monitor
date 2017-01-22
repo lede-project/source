@@ -1,0 +1,72 @@
+#!/bin/sh
+ 
+# mambafan utility script (/usr/sbin/fan_monitor)
+# monitors temps and sets fan to HIGH/MEDIUM/OFF
+ 
+INTERVAL=30    	  # Poll every 30 seconds
+PWMH=255          # Fan HIGH pwm value
+PWMM=127          # Fan MEDIUM pwm value
+PWMO=0		  # Fan OFF pwm value
+ 
+# The fan will run at HIGH speed if ANY of these temperatures are reached
+CPU_HIGH=85000    # Belkin default is 85000
+DDR_HIGH=65000    # Belkin default is 65000
+WIFI_HIGH=95000   # Belkin default is 105000
+ 
+# The fan will run at MEDIUM speed if ANY of these temperatures are reached
+CPU_MID=80000     # Belkin sets no default
+DDR_MID=60000     # Belkin sets no default
+WIFI_MID=85000    # Belkin sets no default
+ 
+# The fan will turn OFF if ALL of the temperatures are below these values
+CPU_OFF=75000     # Belkin default is 80000
+DDR_OFF=55000     # Belkin default is 60000
+WIFI_OFF=75000    # Belkin default is 100000
+ 
+cur_pwm=0
+new_pwm="$PWMH"	  # Set fan to HIGH during boot
+
+fan_set() {
+    local ppwm
+    cur_pwm=$1
+
+    if [ "$1" -eq $PWMO ]; then
+    	ppwm="0%"
+    elif [ "$1" -eq $PWMM ]; then
+        ppwm="50%"
+    else
+	ppwm="100%"
+    fi
+
+    logger mambafan setting fan to $ppwm
+    echo "$1" > /sys/devices/platform/pwm_fan/hwmon/hwmon0/pwm1
+}
+ 
+# Turn fan to HIGH on exit
+trap "{ logger mambafan set HIGH value as exit precaution; fan_set $PWMH; exit; }" SIGINT SIGTERM
+ 
+# Main fan control loop
+while :
+do
+    if [ "$new_pwm" -ne "$cur_pwm" ]
+    then
+	fan_set "$new_pwm"
+    fi
+
+    cpu=`cat /sys/class/hwmon/hwmon2/temp1_input`
+    ddr=`cat /sys/class/hwmon/hwmon1/temp1_input`
+    wifi=`cat /sys/class/hwmon/hwmon1/temp2_input`
+
+    if [ "$cpu" -ge $CPU_HIGH -o "$ddr" -ge $DDR_HIGH -o "$wifi" -ge $WIFI_HIGH ]
+    then
+        new_pwm="$PWMH"
+    elif [ "$cpu" -ge $CPU_MID -o "$ddr" -ge $DDR_MID -o "$wifi" -ge $WIFI_MID ]
+    then
+        new_pwm="$PWMM"
+    elif [ "$cpu" -le $CPU_OFF -a "$ddr" -le $DDR_OFF -a "$wifi" -le $WIFI_OFF ]
+    then
+        new_pwm="$PWMO"
+    fi
+
+    sleep $INTERVAL
+done
