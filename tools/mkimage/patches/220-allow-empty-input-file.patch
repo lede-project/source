@@ -1,0 +1,15 @@
+Index: u-boot-2014.10/tools/mkimage.c
+===================================================================
+--- u-boot-2014.10.orig/tools/mkimage.c	2017-01-23 14:55:13.455568945 +0100
++++ u-boot-2014.10/tools/mkimage.c	2017-01-23 17:34:46.496671478 +0100
+@@ -566,6 +566,10 @@
+ 		exit (EXIT_FAILURE);
+ 	}
+ 
++	if (!sbuf.st_size) {
++		return;
++	}
++
+ 	ptr = mmap(0, sbuf.st_size, PROT_READ, MAP_SHARED, dfd, 0);
+ 	if (ptr == MAP_FAILED) {
+ 		fprintf (stderr, "%s: Can't read %s: %s\n",
