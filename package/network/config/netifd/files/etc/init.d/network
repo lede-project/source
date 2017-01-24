@@ -31,11 +31,6 @@ reload_service() {
 	/sbin/wifi reload_legacy
 }
 
-stop() {
-	/sbin/wifi down
-	procd_kill network ''
-}
-
 service_running() {
 	ubus -t 30 wait_for network.interface
 	/sbin/wifi reload_legacy
