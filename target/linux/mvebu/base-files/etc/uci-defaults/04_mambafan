@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# Copyright (C) 2017 LEDE-Project.org
+#
+
+. /lib/mvebu.sh
+
+board=$(mvebu_board_name)
+
+case "$board" in
+armada-xp-linksys-mamba)
+        # Set fan script execution in crontab
+        if grep -s -q fan_ctrl.sh /etc/crontabs/root
+                then
+                        exit 0
+                else
+                        echo "# mamba fan script runs every 5 minutes" >> /etc/crontabs/root
+                        echo "*/5 * * * * /sbin/fan_ctrl.sh" >> /etc/crontabs/root
+        fi
+        # Execute one time after initial flash (instead of waiting 5 min for cron)
+        /sbin/fan_ctrl.sh
+    ;;
+*)
+esac
+
+exit 0
