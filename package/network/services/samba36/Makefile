@@ -33,24 +33,62 @@ PKG_BUILD_BIN:=$(PKG_BUILD_DIR)/$(MAKE_PATH)/bin
 define Package/samba36-server
   SECTION:=net
   CATEGORY:=Network
+  SUBMENU:=Filesystem
   TITLE:=Samba 3.6 SMB/CIFS server
   URL:=http://www.samba.org/
-  DEPENDS:=+USE_GLIBC:librt $(ICONV_DEPENDS)
+  DEPENDS:=+USE_GLIBC:librt $(ICONV_DEPENDS) +PACKAGE_SAMBA_ACL_SUPPORT:libacl +PACKAGE_SAMBA_ATTR_SUPPORT:libattr +PACKAGE_SAMBA_LIBAVAHI_SUPPORT:libavahi-client
+endef
+
+define Package/samba36-server-avahi-service
+  SECTION:=net
+  CATEGORY:=Network
+  SUBMENU:=Filesystem
+  TITLE:=Samba 3.6 SMB/CIFS server avahi service files
+  DEPENDS:=samba36-server +avahi-daemon
 endef
 
 define Package/samba36-client
   SECTION:=net
   CATEGORY:=Network
+  SUBMENU:=Filesystem
   TITLE:=Samba 3.6 SMB/CIFS client
   URL:=http://www.samba.org/
   DEPENDS:=+libreadline +libncurses
 endef
 
+define Package/samba36-server-avahi-service/conffiles
+/etc/avahi/services/samba.service
+endef
+
 define Package/samba36-server/config
 	config PACKAGE_SAMBA_MAX_DEBUG_LEVEL
-		int "Maximum level of compiled-in debug messages"
+		int "SAMBA: Maximum level of compiled-in debug messages"
 		depends on PACKAGE_samba36-server || PACKAGE_samba36-client
 		default -1
+
+	config PACKAGE_SAMBA_ACL_SUPPORT
+		bool "SAMBA: Enable POSIX ACL support"
+		depends on PACKAGE_samba36-server || PACKAGE_samba36-client
+		select PACKAGE_libacl
+		default n
+
+	config PACKAGE_SAMBA_ATTR_SUPPORT
+		bool "SAMBA: Enable Linux extended attribute support"
+		depends on PACKAGE_samba36-server || PACKAGE_samba36-client
+		select PACKAGE_libattr
+		default n
+		select PACKAGE_SAMBA_ACL_SUPPORT
+
+	config PACKAGE_SAMBA_NETATALK_SUPPORT
+		bool "SAMBA: Enable netatalk interoperability"
+		depends on PACKAGE_samba36-server
+		default y if PACKAGE_netatalk
+		default n
+
+	config PACKAGE_SAMBA_LIBAVAHI_SUPPORT
+		bool "SAMBA: Enable mDNS support"
+		depends on PACKAGE_samba36-server
+		select PACKAGE_libavahi-client
 
 endef
 
@@ -65,8 +103,6 @@ TARGET_CFLAGS += -DMAX_DEBUG_LEVEL=$(CONFIG_PACKAGE_SAMBA_MAX_DEBUG_LEVEL) -D__l
 TARGET_LDFLAGS += -Wl,--gc-sections
 
 CONFIGURE_VARS += \
-	ac_cv_lib_attr_getxattr=no \
-	ac_cv_search_getxattr=no \
 	ac_cv_file__proc_sys_kernel_core_pattern=yes \
 	libreplace_cv_HAVE_C99_VSNPRINTF=yes \
 	libreplace_cv_HAVE_GETADDRINFO=yes \
@@ -88,10 +124,15 @@ CONFIGURE_VARS += \
 	ac_cv_path_PYTHON="" \
 	ac_cv_path_PYTHON_CONFIG=""
 
+ifeq ($(CONFIG_SAMBA_PACKAGE_ATTR_SUPPORT),)
+CONFIGURE_VARS += \
+	ac_cv_lib_attr_getxattr=no \
+	ac_cv_search_getxattr=no
+endif
+
 CONFIGURE_ARGS += \
 	--exec-prefix=/usr \
 	--prefix=/ \
-	--disable-avahi \
 	--disable-cups \
 	--disable-pie \
 	--disable-relro \
@@ -109,7 +150,6 @@ CONFIGURE_ARGS += \
 	--with-piddir=/var/run \
 	--with-privatedir=/etc/samba \
 	--with-sendfile-support \
-	--without-acl-support \
 	--without-cluster-support \
 	--without-ads \
 	--without-krb5 \
@@ -123,7 +163,38 @@ CONFIGURE_ARGS += \
 	--without-libsmbsharemodes \
 	--without-libtevent \
 	--without-libaddns \
+
+ifneq ($(CONFIG_PACKAGE_SAMBA_ATTR_SUPPORT),)
+SAMBA_STATIC_VFS += vfs_acl_xattr
+MAKEFLAGS += SAMBA_XATTR=1
+endif
+ifneq ($(CONFIG_PACKAGE_SAMBA_ACL_SUPPORT),)
+SAMBA_STATIC_VFS += vfs_posixacl
+CONFIGURE_ARGS += \
+	--with-acl-support
+MAKEFLAGS += SAMBA_ACL=1
+else
+CONFIGURE_ARGS += \
+	--without-acl-support
+endif
+ifneq ($(CONFIG_PACKAGE_SAMBA_NETATALK_SUPPORT),)
+SAMBA_STATIC_VFS += vfs_netatalk
+MAKEFLAGS += SAMBA_NETATALK
+endif
+ifneq ($(CONFIG_PACKAGE_SAMBA_LIBAVAHI_SUPPORT),)
+CONFIGURE_ARGS += \
+	--enable-avahi
+else
+CONFIGURE_ARGS += \
+	--disable-avahi
+endif
+
+ifneq ($(SAMBA_STATIC_VFS),)
+CONFIGURE_ARGS += \
+	--with-static-modules=$(shell echo $(SAMBA_STATIC_VFS)|tr -s ' '|tr ' ' ',')
+else
 	--with-shared-modules=pdb_tdbsam,pdb_wbc_sam,idmap_nss,nss_info_template,auth_winbind,auth_wbc,auth_domain
+endif
 
 MAKE_FLAGS += DYNEXP= PICFLAG= MODULES=
 
@@ -150,6 +221,11 @@ define Package/samba36-server/install
 	$(LN) samba_multicall $(1)/usr/sbin/smbpasswd
 endef
 
+define Package/samba36-server-avahi-service/install
+	$(INSTALL_DIR) $(1)/etc/avahi/services
+	$(INSTALL_DATA) ./files/samba.service $(1)/etc/avahi/services/
+endef
+
 define Package/samba36-client/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_BUILD_BIN)/smbclient $(1)/usr/sbin
@@ -158,4 +234,4 @@ endef
 
 $(eval $(call BuildPackage,samba36-client))
 $(eval $(call BuildPackage,samba36-server))
-
+$(eval $(call BuildPackage,samba36-server-avahi-service))
