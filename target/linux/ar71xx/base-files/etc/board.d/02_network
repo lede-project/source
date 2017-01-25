@@ -45,7 +45,6 @@ ar71xx_setup_interfaces()
 	tl-wr741nd|\
 	tl-wr741nd-v4|\
 	tl-wr841n-v11|\
-	tl-wr841n-v7|\
 	tl-wr841n-v9|\
 	tl-wr842n-v3|\
 	whr-g301n|\
@@ -279,7 +278,6 @@ ar71xx_setup_interfaces()
 	tl-wr941nd-v5|\
 	tl-wr941nd-v6|\
 	wnr1000-v2|\
-	wnr2000-v3|\
 	wnr2000-v4|\
 	wnr2200|\
 	wnr612-v2|\
@@ -328,11 +326,6 @@ ar71xx_setup_interfaces()
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
 		ucidef_add_switch "switch0" \
 			"2:lan" "3:lan" "4:lan" "5:lan" "6@eth1" "0@eth0" "1:wan"
-		;;
-	gl-ar300)
-		ucidef_set_interfaces_lan_wan "eth1" "eth0"
-		ucidef_add_switch "switch0" \
-			"0@eth1" "1:lan" "2:lan" "3:lan" "4:lan"
 		;;
 	jwap230)
 		ucidef_set_interfaces_lan_wan "eth0" "eth1"
@@ -394,6 +387,11 @@ ar71xx_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "0:wan" "9@eth0"
 		;;
+	tl-wr841n-v7)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0@eth0" "1:lan:1" "2:lan:2" "3:lan:3" "4:lan:4"
+		;;
 	tl-wr841n-v1|\
 	tl-wr941nd)
 		ucidef_set_interface_raw "eth" "eth0"
@@ -414,15 +412,24 @@ ar71xx_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0@eth0" "2:lan" "3:wan"
 		;;
-	wndr3700)
+	wndr3700|\
+	wndr3700v2|\
+	wndr3800|\
+	wndr3800ch)
 		ucidef_set_interfaces_lan_wan "eth0" "eth1"
 		ucidef_add_switch "switch0" \
-			"0:lan" "1:lan" "2:lan" "3:lan" "5@eth0"
+			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "5@eth0"
 
 		ucidef_add_switch_attr "switch0" "blinkrate" 2
 		ucidef_add_switch_port_attr "switch0" 1 led 6
 		ucidef_add_switch_port_attr "switch0" 2 led 9
 		ucidef_add_switch_port_attr "switch0" 5 led 2
+		;;
+	gl-ar300|\
+	wnr2000-v3)
+		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		ucidef_add_switch "switch0" \
+			"0@eth1" "1:lan" "2:lan" "3:lan" "4:lan"
 		;;
 	wpj344)
 		ucidef_add_switch "switch0" \
