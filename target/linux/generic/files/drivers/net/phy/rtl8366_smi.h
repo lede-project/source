@@ -15,6 +15,26 @@
 #include <linux/switch.h>
 #include <linux/platform_device.h>
 
+#define RTL_MDIO_PHYID	0
+#define MDC_MDIO_CTRL0_REG	31
+#define MDC_MDIO_START_REG	29
+#define MDC_MDIO_CTRL1_REG	21
+#define MDC_MDIO_ADDRESS_REG	23
+#define MDC_MDIO_DATA_WRITE_REG	24
+#define MDC_MDIO_DATA_READ_REG	25
+
+#define MDC_MDIO_START_OP	0xFFFF
+#define MDC_MDIO_ADDR_OP	0x000E
+#define MDC_MDIO_READ_OP	0x0001
+#define MDC_MDIO_WRITE_OP	0x0003
+
+#define RTL8366_SMI_ACK_RETRY_COUNT	5
+
+#define RTL8366_SMI_HW_STOP_DELAY	25	/* msecs */
+#define RTL8366_SMI_HW_START_DELAY	100	/* msecs */
+
+#define rtl8366_smi_clk_delay(smi) ndelay(smi->clk_delay);
+
 struct rtl8366_smi_ops;
 struct rtl8366_vlan_ops;
 struct mii_bus;
@@ -33,6 +53,7 @@ struct rtl8366_smi {
 	struct device		*parent;
 	unsigned int		gpio_sda;
 	unsigned int		gpio_sck;
+	bool				mdio_enabled;
 	void			(*hw_reset)(bool active);
 	unsigned int		clk_delay;	/* ns */
 	u8			cmd_read;
