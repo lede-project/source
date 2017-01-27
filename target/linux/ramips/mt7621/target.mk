@@ -7,7 +7,7 @@ BOARDNAME:=MT7621 based boards
 FEATURES+=usb rtc nand
 CPU_TYPE:=24kc
 
-DEFAULT_PACKAGES += kmod-mt76
+DEFAULT_PACKAGES += kmod-mt76 mt76-firmware
 
 KERNEL_PATCHVER:=4.4
 

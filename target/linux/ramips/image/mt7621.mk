@@ -99,7 +99,7 @@ define Device/rb750gr3
   DTS := RB750Gr3
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := MikroTik RB750Gr3
-  DEVICE_PACKAGES := kmod-usb3 uboot-envtools -kmod-mt76 -kmod-rt2x00-lib -kmod-mac80211 -kmod-cfg80211 -wpad-mini -iwinfo
+  DEVICE_PACKAGES := kmod-usb3 uboot-envtools -kmod-mt76 -firmware-mt76 -kmod-rt2x00-lib -kmod-mac80211 -kmod-cfg80211 -wpad-mini -iwinfo
 endef
 TARGET_DEVICES += rb750gr3
 
@@ -140,7 +140,7 @@ define Device/ubnt-erx
   KERNEL_INITRAMFS := $$(KERNEL) | ubnt-erx-factory-image $(KDIR)/tmp/$$(KERNEL_INITRAMFS_PREFIX)-factory.tar
   IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
   DEVICE_TITLE := Ubiquiti EdgeRouter X
-  DEVICE_PACKAGES := -kmod-mt76 -kmod-rt2x00-lib -kmod-mac80211 -kmod-cfg80211 -wpad-mini -iwinfo
+  DEVICE_PACKAGES := -kmod-mt76 -firmware-mt76 -kmod-rt2x00-lib -kmod-mac80211 -kmod-cfg80211 -wpad-mini -iwinfo
 endef
 TARGET_DEVICES += ubnt-erx
 
