@@ -1,0 +1,13 @@
+diff --git a/arch/mips/pci/pci.c b/arch/mips/pci/pci.c
+index b8a0bf5..81b9ad7 100644
+--- a/arch/mips/pci/pci.c
++++ b/arch/mips/pci/pci.c
+@@ -254,7 +254,7 @@ static int __init pcibios_init(void)
+ 	return 0;
+ }
+ 
+-subsys_initcall(pcibios_init);
++late_initcall(pcibios_init);
+ 
+ static int pcibios_enable_resources(struct pci_dev *dev, int mask)
+ {
