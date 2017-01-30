@@ -418,34 +418,34 @@ ar71xx_board_detect() {
 	*Antminer-S3)
 		name="antminer-s3"
 		;;
-	*"Arduino Yun")
+	*Yun)
 		name="arduino-yun"
 		;;
-	*"AP121 reference board")
+	*"AP121 reference"*)
 		name="ap121"
 		;;
 	*AP121-MINI)
 		name="ap121-mini"
 		;;
-	*"AP132 reference board")
+	*AP132*)
 		name="ap132"
 		;;
-	*"AP136-010 reference board")
+	*AP136-010*)
 		name="ap136-010"
 		;;
-	*"AP136-020 reference board")
+	*AP136-020*)
 		name="ap136-020"
 		;;
-	*"AP135-020 reference board")
+	*AP135-020*)
 		name="ap135-020"
 		;;
-	*"AP143 reference board")
+	*AP143*)
 		name="ap143"
 		;;
-	*"AP147-010 reference board")
+	*AP147-010*)
 		name="ap147-010"
 		;;
-	*"AP152 reference board")
+	*AP152*)
 		name="ap152"
 		;;
 	*AP90Q)
@@ -533,7 +533,7 @@ ar71xx_board_detect() {
 	*"DAP-2695 rev. A1")
 		name="dap-2695-a1"
 		;;
-	*"DB120 reference board")
+	*DB120*)
 		name="db120"
 		;;
 	*"DGL-5500 rev. A1")
@@ -629,13 +629,13 @@ ar71xx_board_detect() {
 	*GL-MIFI)
 		name="gl-mifi"
 		;;
-	*"EnGenius EPG5000")
+	*EPG5000)
 		name="epg5000"
 		;;
-	*"EnGenius ESR1750")
+	*ESR1750)
 		name="esr1750"
 		;;
-	*"EnGenius ESR900")
+	*ESR900)
 		name="esr900"
 		;;
 	*JA76PF)
@@ -718,7 +718,7 @@ ar71xx_board_detect() {
 	*"My Net N750")
 		name="mynet-n750"
 		;;
-	*"WD My Net Wi-Fi Range Extender")
+	*"My Net Wi-Fi Range"*)
 		name="mynet-rext"
 		;;
 	*MZK-W04NU)
@@ -730,10 +730,10 @@ ar71xx_board_detect() {
 	*NBG460N/550N/550NH)
 		name="nbg460n_550n_550nh"
 		;;
-	*"Zyxel NBG6616")
+	*NBG6616)
 		name="nbg6616"
 		;;
-	*"Zyxel NBG6716")
+	*NBG6716)
 		name="nbg6716"
 		;;
 	*OM2P)
@@ -778,7 +778,7 @@ ar71xx_board_detect() {
 	*PB42)
 		name="pb42"
 		;;
-	*"PB44 reference board")
+	*PB44*)
 		name="pb44"
 		;;
 	*"PQI Air Pen")
@@ -905,10 +905,10 @@ ar71xx_board_detect() {
 	*SMART-300)
 		name="smart-300"
 		;;
-	"Smart Electronics Black Swift board"*)
+	*"Black Swift board"*)
 		name="bsb"
 		;;
-	*"Telldus TellStick ZNet Lite")
+	*"TellStick ZNet Lite")
 		name="tellstick-znet-lite"
 		;;
 	*SOM9331)
@@ -1187,7 +1187,7 @@ ar71xx_board_detect() {
 	*WRT400N)
 		name="wrt400n"
 		;;
-	*"WRTnode2Q board")
+	*WRTnode2Q*)
 		name="wrtnode2q"
 		;;
 	*WZR-450HP2)
@@ -1229,16 +1229,16 @@ ar71xx_board_detect() {
 	*EmbWir-Dorin-Router)
 		name="ew-dorin-router"
 		;;
-	"8devices Carambola2"*)
+	*Carambola2*)
 		name="carambola2"
 		;;
-	*"Sitecom WLR-8100")
+	*WLR-8100)
 		name="wlr8100"
 		;;
-	*"BHU BXU2000n-2 rev. A1")
+	*"BXU2000n-2 rev. A1")
 		name="bxu2000n-2-a1"
 		;;
-	*"HiWiFi HC6361")
+	*HC6361)
 		name="hiwifi-hc6361"
 		;;
 	esac
