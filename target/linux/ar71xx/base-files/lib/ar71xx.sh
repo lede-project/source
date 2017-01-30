@@ -33,10 +33,10 @@ wndr3700_board_detect() {
 
 	magic="$(ar71xx_get_mtd_part_magic firmware)"
 	case $magic in
-	"33373030")
+	33373030)
 		machine="NETGEAR WNDR3700"
 		;;
-	"33373031")
+	33373031)
 		model="$(ar71xx_get_mtd_offset_size_format art 41 32 %c)"
 		# Use awk to remove everything unprintable
 		model_stripped="$(ar71xx_get_mtd_offset_size_format art 41 32 %c | LC_CTYPE=C awk -v 'FS=[^[:print:]]' '{print $1; exit}')"
@@ -74,23 +74,23 @@ ubnt_xm_board_detect() {
 
 	magic="$(ubnt_get_mtd_part_magic)"
 	case ${magic:0:3} in
-	"e00"|\
-	"e01"|\
-	"e80")
+	e00|\
+	e01|\
+	e80)
 		model="Ubiquiti NanoStation M"
 		;;
-	"e0a")
+	e0a)
 		model="Ubiquiti NanoStation loco M"
 		;;
-	"e1b"|\
-	"e1d")
+	e1b|\
+	e1d)
 		model="Ubiquiti Rocket M"
 		;;
-	"e20"|\
-	"e2d")
+	e20|\
+	e2d)
 		model="Ubiquiti Bullet M"
 		;;
-	"e30")
+	e30)
 		model="Ubiquiti PicoStation M"
 		;;
 	esac
@@ -145,115 +145,115 @@ tplink_board_detect() {
 	hwver=" v${hwver#0}"
 
 	case "$hwid" in
-	"015000"*)
+	015000*)
 		model="EasyLink EL-M150"
 		;;
-	"015300"*)
+	015300*)
 		model="EasyLink EL-MINI"
 		;;
-	"044401"*)
+	044401*)
 		model="ANTMINER-S1"
 		;;
-	"044403"*)
+	044403*)
 		model="ANTMINER-S3"
 		;;
-	"44440101"*)
+	44440101*)
 		model="ANTROUTER-R1"
 		;;
-	"120000"*)
+	120000*)
 		model="MERCURY MAC1200R"
 		;;
-	"007260"*)
+	007260*)
 		model="TellStick ZNet Lite"
 		;;
-	"066601"*)
+	066601*)
 		model="OMYlink OMY-G1"
 		;;
-	"066602"*)
+	066602*)
 		model="OMYlink OMY-X1"
 		;;
-	"3C0001"*)
+	3C0001*)
 		model="OOLITE"
 		;;
-	"3C0002"*)
+	3C0002*)
 		model="MINIBOX_V1"
 		;;
-	"070301"*)
+	070301*)
 		model="TP-Link TL-WR703N"
 		;;
-	"071000"*)
+	071000*)
 		model="TP-Link TL-WR710N"
 
 		if [ "$hwid" = '07100002' -a "$mid" = '00000002' ]; then
 			hwver=' v2.1'
 		fi
 		;;
-	"072001"*)
+	072001*)
 		model="TP-Link TL-WR720N"
 		;;
-	"070100"*)
+	070100*)
 		model="TP-Link TL-WA701N/ND"
 		;;
-	"073000"*)
+	073000*)
 		model="TP-Link TL-WA730RE"
 		;;
-	"074000"*)
+	074000*)
 		model="TP-Link TL-WR740N/ND"
 		;;
-	"074100"*)
+	074100*)
 		model="TP-Link TL-WR741N/ND"
 		;;
-	"074300"*)
+	074300*)
 		model="TP-Link TL-WR743N/ND"
 		;;
-	"075000"*)
+	075000*)
 		model="TP-Link TL-WA750RE"
 		;;
-	"721000"*)
+	721000*)
 		model="TP-Link TL-WA7210N"
 		;;
-	"751000"*)
+	751000*)
 		model="TP-Link TL-WA7510N"
 		;;
-	"080100"*)
+	080100*)
 		model="TP-Link TL-WA801N/ND"
 		;;
-	"080200"*)
+	080200*)
 		model="TP-Link TL-WR802N"
 		;;
-	"083000"*)
+	083000*)
 		model="TP-Link TL-WA830RE"
 
 		if [ "$hwver" = ' v10' ]; then
 			hwver=' v1'
 		fi
 		;;
-	"084100"*)
+	084100*)
 		model="TP-Link TL-WR841N/ND"
 
 		if [ "$hwid" = '08410002' -a "$mid" = '00000002' ]; then
 			hwver=' v1.5'
 		fi
 		;;
-	"084200"*)
+	084200*)
 		model="TP-Link TL-WR842N/ND"
 		;;
-	"084300"*)
+	084300*)
 		model="TP-Link TL-WR843N/ND"
 		;;
-	"085000"*)
+	085000*)
 		model="TP-Link TL-WA850RE"
 		;;
-	"086000"*)
+	086000*)
 		model="TP-Link TL-WA860RE"
 		;;
-	"090100"*)
+	090100*)
 		model="TP-Link TL-WA901N/ND"
 		;;
-	"094000"*)
+	094000*)
 		model="TP-Link TL-WR940N"
 		;;
-	"094100"*)
+	094100*)
 		if [ "$hwid" = "09410002" -a "$mid" = "00420001" ]; then
 			model="Rosewill RNX-N360RT"
 			hwver=""
@@ -261,75 +261,75 @@ tplink_board_detect() {
 			model="TP-Link TL-WR941N/ND"
 		fi
 		;;
-	"104100"*)
+	104100*)
 		model="TP-Link TL-WR1041N/ND"
 		;;
-	"104300"*)
+	104300*)
 		model="TP-Link TL-WR1043N/ND"
 		;;
-	"254300"*)
+	254300*)
 		model="TP-Link TL-WR2543N/ND"
 		;;
-	"001001"*)
+	001001*)
 		model="TP-Link TL-MR10U"
 		;;
-	"001101"*)
+	001101*)
 		model="TP-Link TL-MR11U"
 		;;
-	"001201"*)
+	001201*)
 		model="TP-Link TL-MR12U"
 		;;
-	"001301"*)
+	001301*)
 		model="TP-Link TL-MR13U"
 		;;
-	"302000"*)
+	302000*)
 		model="TP-Link TL-MR3020"
 		;;
-	"304000"*)
+	304000*)
 		model="TP-Link TL-MR3040"
 		;;
-	"322000"*)
+	322000*)
 		model="TP-Link TL-MR3220"
 		;;
-	"342000"*)
+	342000*)
 		model="TP-Link TL-MR3420"
 		;;
-	"332000"*)
+	332000*)
 		model="TP-Link TL-WDR3320"
 		;;
-	"350000"*)
+	350000*)
 		model="TP-Link TL-WDR3500"
 		;;
-	"360000"*)
+	360000*)
 		model="TP-Link TL-WDR3600"
 		;;
-	"430000"*)
+	430000*)
 		model="TP-Link TL-WDR4300"
 		;;
-	"430080"*)
+	430080*)
 		iw reg set IL
 		model="TP-Link TL-WDR4300 (IL)"
 		;;
-	"431000"*)
+	431000*)
 		model="TP-Link TL-WDR4310"
 		;;
-	"49000002")
+	49000002)
 		model="TP-Link TL-WDR4900"
 		;;
-	"65000002")
+	65000002)
 		model="TP-Link TL-WDR6500"
 		;;
-	"453000"*)
+	453000*)
 		model="Mercury MW4530R"
 		;;
-	"934100"*)
+	934100*)
 		model="NC-LINK SMART-300"
 		;;
-	"c50000"*)
+	c50000*)
 		model="TP-Link Archer C5"
 		;;
-	"750000"*|\
-	"c70000"*)
+	750000*|\
+	c70000*)
 		model="TP-Link Archer C7"
 		;;
 	*)
@@ -382,16 +382,16 @@ ar71xx_board_detect() {
 	*"Oolite V1.0")
 		name="oolite"
 		;;
-	*"AC1750DB")
+	*AC1750DB)
 		name="f9k1115v2"
 		;;
-	*"AirGateway")
+	*AirGateway)
 		name="airgateway"
 		;;
 	*"AirGateway Pro")
 		name="airgatewaypro"
 		;;
-	*"AirRouter")
+	*AirRouter)
 		name="airrouter"
 		;;
 	*"ALFA Network AP120C")
@@ -502,11 +502,11 @@ ar71xx_board_detect() {
 	*CF-E530N)
 		name="cf-e530n"
 		;;
-	*"CPE210/220")
+	*CPE210/220)
 		name="cpe210"
 		tplink_pharos_board_detect
 		;;
-	*"CPE510/520")
+	*CPE510/520)
 		name="cpe510"
 		tplink_pharos_board_detect
 		;;
@@ -591,13 +591,13 @@ ar71xx_board_detect() {
 	*"Domino Pi")
 		name="gl-domino"
 		;;
-	*"DW33D")
+	*DW33D)
 		name="dw33d"
 		;;
 	*E2100L)
 		name="e2100l"
 		;;
-	*"EAP120")
+	*EAP120)
 		name="eap120"
 		tplink_pharos_board_detect
 		;;
@@ -623,10 +623,10 @@ ar71xx_board_detect() {
 	*"GL AR300")
 		name="gl-ar300"
 		;;
-	*"GL-AR300M")
+	*GL-AR300M)
 		name="gl-ar300m"
 		;;
-	*"GL-MIFI")
+	*GL-MIFI)
 		name="gl-mifi"
 		;;
 	*"EnGenius EPG5000")
@@ -664,7 +664,7 @@ ar71xx_board_detect() {
 	*JWAP230)
 		name="jwap230"
 		;;
-	*"Hornet-UB")
+	*Hornet-UB)
 		local size
 		size=$(awk '/firmware/ { print $2 }' /proc/mtd)
 
@@ -679,7 +679,7 @@ ar71xx_board_detect() {
 	*LS-SR71)
 		name="ls-sr71"
 		;;
-	*"MAC1200R")
+	*MAC1200R)
 		name="mc-mac1200r"
 		;;
 	*"MiniBox V1.0")
@@ -727,7 +727,7 @@ ar71xx_board_detect() {
 	*MZK-W300NH)
 		name="mzk-w300nh"
 		;;
-	*"NBG460N/550N/550NH")
+	*NBG460N/550N/550NH)
 		name="nbg460n_550n_550nh"
 		;;
 	*"Zyxel NBG6616")
@@ -766,10 +766,10 @@ ar71xx_board_detect() {
 	*"OM5P ACv2")
 		name="om5p-acv2"
 		;;
-	*"OMY-X1")
+	*OMY-X1)
 		name="omy-x1"
 		;;
-	*"OMY-G1")
+	*OMY-G1)
 		name="omy-g1"
 		;;
 	*"Onion Omega")
@@ -787,7 +787,7 @@ ar71xx_board_detect() {
 	*"Qihoo 360 C301")
 		name="qihoo-c301"
 		;;
-	*"RE450")
+	*RE450)
 		name="re450"
 		;;
 	*"RouterBOARD 411/A/AH")
@@ -902,7 +902,7 @@ ar71xx_board_detect() {
 	*SC450)
 		name="sc450"
 		;;
-	*"SMART-300")
+	*SMART-300)
 		name="smart-300"
 		;;
 	"Smart Electronics Black Swift board"*)
@@ -1016,10 +1016,10 @@ ar71xx_board_detect() {
 	*"TL-WDR3320 v2")
 		name="tl-wdr3320-v2"
 		;;
-	*"TL-WDR3500")
+	*TL-WDR3500)
 		name="tl-wdr3500"
 		;;
-	*"TL-WDR3600/4300/4310")
+	*TL-WDR3600/4300/4310)
 		name="tl-wdr4300"
 		;;
 	*"TL-WDR4900 v2")
@@ -1076,40 +1076,40 @@ ar71xx_board_detect() {
 	*"TL-WR710N v1")
 		name="tl-wr710n"
 		;;
-	*"TL-WR720N"*)
+	*TL-WR720N*)
 		name="tl-wr720n-v3"
 		;;
-	*"TL-WR810N")
+	*TL-WR810N)
 		name="tl-wr810n"
 		;;
-	*"TL-MR10U")
+	*TL-MR10U)
 		name="tl-mr10u"
 		;;
-	*"TL-MR11U")
+	*TL-MR11U)
 		name="tl-mr11u"
 		;;
-	*"TL-MR12U")
+	*TL-MR12U)
 		name="tl-mr12u"
 		;;
 	*"TL-MR13U v1")
 		name="tl-mr13u"
 		;;
-	*"Tube2H")
+	*Tube2H)
 		name="tube2h"
 		;;
 	*UniFi)
 		name="unifi"
 		;;
-	*"UniFi-AC-LITE")
+	*UniFi-AC-LITE)
 		name="unifiac-lite"
 		;;
-	*"UniFi-AC-PRO")
+	*UniFi-AC-PRO)
 		name="unifiac-pro"
 		;;
 	*"UniFi AP Pro")
 		name="uap-pro"
 		;;
-	"WeIO"*)
+	WeIO*)
 		name="weio"
 		;;
 	*WHR-G301N)
@@ -1148,16 +1148,16 @@ ar71xx_board_detect() {
 	*WNDAP360)
 		name="wndap360"
 		;;
-	*"WNDR3700/WNDR3800/WNDRMAC")
+	*WNDR3700/WNDR3800/WNDRMAC)
 		wndr3700_board_detect "$machine"
 		;;
-	*"R6100")
+	*R6100)
 		name="r6100"
 		;;
-	*"WNDR3700v4")
+	*WNDR3700v4)
 		name="wndr3700v4"
 		;;
-	*"WNDR4300")
+	*WNDR4300)
 		name="wndr4300"
 		;;
 	*"WNR2000 V4")
@@ -1190,10 +1190,10 @@ ar71xx_board_detect() {
 	*"WRTnode2Q board")
 		name="wrtnode2q"
 		;;
-	*"WZR-450HP2")
+	*WZR-450HP2)
 		name="wzr-450hp2"
 		;;
-	*"WZR-HP-AG300H/WZR-600DHP")
+	*WZR-HP-AG300H/WZR-600DHP)
 		name="wzr-hp-ag300h"
 		;;
 	*WZR-HP-G300NH)
