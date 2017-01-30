@@ -1,0 +1,14 @@
+--- a/drivers/mtd/mtdsplit/mtdsplit_seama.c
++++ b/drivers/mtd/mtdsplit/mtdsplit_seama.c
+@@ -38,6 +38,11 @@
+ 	struct mtd_partition *parts;
+ 	int err;
+ 
++	if (!strcmp(master->name, "firmware_backup") 
++		) {
++		return -EINVAL;
++	}
++
+ 	hdr_len = sizeof(hdr);
+ 	err = mtd_read(master, 0, hdr_len, &retlen, (void *) &hdr);
+ 	if (err)
