@@ -247,6 +247,12 @@ tplink_board_detect() {
 	"086000"*)
 		model="TP-Link TL-WA860RE"
 		;;
+	"088200"*)
+		model="TP-Link TL-WR882N"
+		;;
+	"088600"*)
+		model="TP-Link TL-WR886N/ND"
+		;;
 	"090100"*)
 		model="TP-Link TL-WA901N/ND"
 		;;
@@ -315,6 +321,9 @@ tplink_board_detect() {
 		;;
 	"49000002")
 		model="TP-Link TL-WDR4900"
+		;;
+	"630000"*)
+		model="TP-Link TL-WDR6300"
 		;;
 	"65000002")
 		model="TP-Link TL-WDR6500"
@@ -1025,6 +1034,9 @@ ar71xx_board_detect() {
 	*"TL-WDR4900 v2")
 		name="tl-wdr4900-v2"
 		;;
+	*"TL-WDR6300 v2")
+		name="tl-wdr6300-v2"
+		;;
 	*"TL-WDR6500 v2")
 		name="tl-wdr6500-v2"
 		;;
@@ -1058,6 +1070,12 @@ ar71xx_board_detect() {
 	*"TL-WR842N/ND v3")
 		name="tl-wr842n-v3"
 		;;
+	*"TL-WR882N v1")
+		name="tl-wr882n-v1"
+		;;
+	*"TL-WR886N/ND v5")
+		name="tl-wr886n-v5"
+		;;
 	*TL-WR941ND)
 		name="tl-wr941nd"
 		;;
@@ -1066,6 +1084,9 @@ ar71xx_board_detect() {
 		;;
 	*"TL-WR941N/ND v6")
 		name="tl-wr941nd-v6"
+		;;
+	*"TL-WR941N/ND v7")
+		name="tl-wr941nd-v7"
 		;;
 	*"TL-WR940N v4")
 		name="tl-wr940n-v4"
