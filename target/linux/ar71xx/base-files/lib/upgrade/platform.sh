@@ -410,6 +410,7 @@ platform_check_image() {
 	tl-wdr3500|\
 	tl-wdr4300|\
 	tl-wdr4900-v2|\
+	tl-wdr6300-v2|\
 	tl-wdr6500-v2|\
 	tl-wpa8630|\
 	tl-wr1041n-v2|\
@@ -431,8 +432,11 @@ platform_check_image() {
 	tl-wr841n-v9|\
 	tl-wr842n-v2|\
 	tl-wr842n-v3|\
+	tl-wr882n-v1|\
+	tl-wr886n-v5|\
 	tl-wr941nd-v5|\
 	tl-wr941nd-v6|\
+	tl-wr941nd-v7|\
 	tl-wr940n-v4|\
 	tl-wr941nd)
 		local magic_ver="0100"
