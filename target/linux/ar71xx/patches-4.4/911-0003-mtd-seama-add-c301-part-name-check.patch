@@ -12,3 +12,4 @@
  	hdr_len = sizeof(hdr);
  	err = mtd_read(master, 0, hdr_len, &retlen, (void *) &hdr);
  	if (err)
+
