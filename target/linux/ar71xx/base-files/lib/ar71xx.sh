@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2009-2011 OpenWrt.org
+# Copyright (C) 2009-2017 OpenWrt.org
 #
 
 AR71XX_BOARD_NAME=
