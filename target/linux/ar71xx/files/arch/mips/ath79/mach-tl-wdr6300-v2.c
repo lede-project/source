@@ -2,7 +2,7 @@
  *  TP-LINK TL-WDR6300 board support
  *  Based on TP-LINK TL-WDR3500 board support
  *
- *  Copyright (C) 2017 am2dk <347006777@qq.com>
+ *  Copyright (C) 2017 Xiang Wang <347006777l@qq.com>
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License version 2 as published
