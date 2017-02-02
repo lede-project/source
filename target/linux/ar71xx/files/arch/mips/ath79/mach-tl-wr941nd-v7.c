@@ -1,8 +1,7 @@
 /*
  *  TP-LINK TL-WR941ND v7 board support
  *
- *  Copyright (C) 2012 Gabor Juhos <juhosg@openwrt.org>
- *  Copyright (C) 2014 hackpascal <hackpacsal@gmail.com>
+ *  Copyright (C) 2017 Xiang Wang <347006777l@qq.com>
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License version 2 as published
