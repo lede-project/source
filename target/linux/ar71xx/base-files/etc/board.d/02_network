@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2011-2015 OpenWrt.org
+# Copyright (C) 2011-2017 OpenWrt.org
 #
 
 . /lib/functions/system.sh
