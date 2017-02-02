@@ -1,7 +1,7 @@
 /*
  *  TP-LINK TL-WR882N v1
  *
- *  Copyright (C) am2dk <347006777l@qq.com>
+ *  Copyright (C) 2017 am2dk <347006777l@qq.com>
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License version 2 as published
