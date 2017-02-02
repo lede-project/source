@@ -206,6 +206,10 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch1" \
 			"0:lan" "1:lan" "2:lan" "3:lan" "4:wan" "6@eth0"
 		;;
+	e220)
+		ucidef_add_switch "switch0" \
+			"1:lan" "4:wan" "6@eth0"
+		;;
 	hc5*61|\
 	y1s)
 		ucidef_add_switch "switch0" \
@@ -345,6 +349,11 @@ ramips_setup_macs()
 	e1700)
 		wan_mac=$(mtd_get_mac_ascii config WAN_MAC_ADDR)
 		;;
+	e220|\
+	oy-0001)
+		lan_mac=$(mtd_get_mac_binary factory 40)
+		wan_mac=$(mtd_get_mac_binary factory 46)
+		;;
 	hc5*61)
 		lan_mac=`mtd_get_mac_ascii bdinfo "Vfac_mac "`
 		[ -n "$lan_mac" ] || lan_mac=$(cat /sys/class/net/eth0/address)
@@ -383,10 +392,6 @@ ramips_setup_macs()
 	omega2p)
 		wan_mac=$(mtd_get_mac_binary factory 4)
 		lan_mac=$(mtd_get_mac_binary factory 46)
-		;;
-	oy-0001)
-		lan_mac=$(mtd_get_mac_binary factory 40)
-		wan_mac=$(mtd_get_mac_binary factory 46)
 		;;
 	rt-n56u)
 		lan_mac=$(cat /sys/class/net/eth0/address)

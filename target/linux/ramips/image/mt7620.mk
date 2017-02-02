@@ -465,3 +465,10 @@ define Device/kng_rc
 	zyimage -d 8997 -v "ZyXEL Keenetic Viva"
 endef
 TARGET_DEVICES += kng_rc
+
+define Device/e220
+  DTS := E220
+  DEVICE_TITLE := Maestro Wireless Solutions E220
+  DEVICE_PACKAGES := kmod-usb-acm kmod-usb-net kmod-usb-net-cdc-ncm kmod-usb-net-cdc-ether kmod-usb-net-sierrawireless kmod-mt76 kmod-i2c-core kmod-i2c-ralink
+endef
+TARGET_DEVICES += e220

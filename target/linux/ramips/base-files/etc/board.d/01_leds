@@ -64,7 +64,8 @@ all0256n)
 	;;
 ar670w|\
 ar725w|\
-awapn2403)
+awapn2403|\
+e220)
 	set_wifi_led "rt2800soc-phy0::radio"
 	;;
 asl26555)

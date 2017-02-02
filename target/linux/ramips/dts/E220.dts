@@ -1,0 +1,195 @@
+/dts-v1/;
+
+#include "mt7620a.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	compatible = "e220", "mediatek,mt7620a-soc";
+	model = "Maestro Wireless Solutions E220";
+
+	chosen {
+		bootargs = "console=ttyS0,57600";
+	};
+
+	gpio-leds {
+		compatible = "gpio-leds";
+
+		activity {
+			label = "e220:orange:activity";
+			gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
+		};
+
+		alert {
+			label = "e220:red:alert";
+			gpios = <&gpio1 5 GPIO_ACTIVE_LOW>;
+		};
+
+		network {
+			label = "e220:orange:network";
+			gpios = <&gpio1 2 GPIO_ACTIVE_LOW>;
+		};
+
+		power {
+			label = "e220:green:power";
+			gpios = <&gpio2 20 GPIO_ACTIVE_HIGH>;
+		};
+
+		signal {
+			label = "e220:orange:signal";
+			gpios = <&gpio1 4 GPIO_ACTIVE_LOW>;
+		};
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys-polled";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		poll-interval = <20>;
+
+		reset {
+			label = "reset";
+			gpios = <&gpio0 22 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
+		};
+	};
+
+	gpio_export {
+		compatible = "gpio-export";
+		#size-cells = <0>;
+
+		gps-on {
+			gpio-export,name = "gps-on";
+			gpio-export,output = <0>;
+			gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>;
+		};
+
+		gps-reset {
+			gpio-export,name = "gps-reset";
+			gpio-export,output = <0>;
+			gpios = <&gpio2 29 GPIO_ACTIVE_HIGH>;
+		};
+
+		input1 {
+			gpio-export,name = "input1";
+			gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+		};
+
+		input2 {
+			gpio-export,name = "input2";
+			gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+		};
+
+		on-battery {
+			gpio-export,name = "on-battery";
+			gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
+		};
+
+		on-poe {
+			gpio-export,name = "on-poe";
+			gpios = <&gpio2 21 GPIO_ACTIVE_HIGH>;
+		};
+
+		output1 {
+			gpio-export,name = "output1";
+			gpio-export,output = <0>;
+			gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+		};
+
+		output2 {
+			gpio-export,name = "output2";
+			gpio-export,output = <0>;
+			gpios = <&gpio2 22 GPIO_ACTIVE_HIGH>;
+		};
+
+		reset-modem {
+			gpio-export,name = "reset-modem";
+			gpio-export,output = <0>;
+			gpios = <&gpio1 11 GPIO_ACTIVE_HIGH>;
+		};
+
+		uart-switch-in1 {
+			gpio-export,name = "uart-switch-in1";
+			gpio-export,output = <1>;
+			gpios = <&gpio0 23 GPIO_ACTIVE_HIGH>;
+		};
+
+		uart-switch-in2 {
+			gpio-export,name = "uart-switch-in2";
+			gpio-export,output = <0>;
+			gpios = <&gpio2 27 GPIO_ACTIVE_HIGH>;
+		};
+	};
+};
+
+&gpio1 {
+	status = "okay";
+};
+
+&gpio2 {
+	status = "okay";
+};
+
+&spi0 {
+	status = "okay";
+
+	w25q256@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "jedec,spi-nor";
+		reg = <0 0>;
+		spi-max-frequency = <10000000>;
+
+		partition@0 {
+			label = "u-boot";
+			reg = <0x0 0x30000>;
+			read-only;
+		};
+
+		partition@30000 {
+			label = "u-boot-env";
+			reg = <0x30000 0x10000>;
+			read-only;
+		};
+
+		factory: partition@40000 {
+			label = "factory";
+			reg = <0x40000 0x10000>;
+			read-only;
+		};
+
+		partition@50000 {
+			label = "firmware";
+			reg = <0x50000 0xFB0000>;
+		};
+	};
+};
+
+&ehci {
+	status = "okay";
+};
+
+&ohci {
+	status = "okay";
+};
+
+&ethernet {
+	pinctrl-names = "default";
+	pinctrl-0 = <&ephy_pins>;
+	mtd-mac-address = <&factory 0x4>;
+	mediatek,portmap = "llllw";
+};
+
+&wmac {
+	ralink,mtd-eeprom = <&factory 0>;
+};
+
+&pinctrl {
+	state_default: pinctrl0 {
+		gpio {
+			ralink,group = "jtag", "rgmii1", "rgmii2", "mdio";
+			ralink,function = "gpio";
+		};
+	};
+};
