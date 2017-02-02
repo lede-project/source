@@ -3,6 +3,7 @@
 #
 # Copyright (C) 2008-2011 Gabor Juhos <juhosg@openwrt.org>
 # Copyright (C) 2008 Imre Kaloz <kaloz@openwrt.org>
+# Copyright (C) 2017 Xiang Wang <347006777@qq.com>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published
