@@ -1,7 +1,7 @@
 /*
  *  TP-LINK TL-WR886N v5
  *
- *  Copyright (C) am2dk <347006777@qq.com>
+ *  Copyright (C) 2017 Xiang Wang <347006777l@qq.com>
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License version 2 as published
