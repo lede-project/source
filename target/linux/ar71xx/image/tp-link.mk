@@ -1,5 +1,6 @@
 DEVICE_VARS += TPLINK_HWID TPLINK_HWREV TPLINK_FLASHLAYOUT TPLINK_HEADER_VERSION TPLINK_BOARD_NAME
 
+
 # combine kernel and rootfs into one image
 # mktplinkfw <type> <optional extra arguments to mktplinkfw binary>
 # <type> is "sysupgrade" or "factory"
