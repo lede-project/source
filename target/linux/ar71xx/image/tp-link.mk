@@ -751,6 +751,16 @@ define Device/tl-wr847n-v8
 endef
 TARGET_DEVICES += tl-wr841-v1.5 tl-wr841-v3 tl-wr841-v5 tl-wr841-v7 tl-wr841-v8 tl-wr841-v9 tl-wr841-v10 tl-wr841-v11 tl-wr842n-v1 tl-wr842n-v2 tl-wr842n-v3 tl-wr843nd-v1 tl-wr847n-v8
 
+define Device/tl-wr886n-v5
+    $(Device/tplink-8mlzma)
+    DEVICE_TITLE := TP-LINK TL-WR886N/ND v5
+    DEVICE_PACKAGES := kmod-usb-ledtrig-usbport
+    BOARDNAME := TL-WR886N-v5
+    DEVICE_PROFILE := TLWR886
+    TPLINK_HWID := 0x08860005
+endef
+TARGET_DEVICES += tl-wr886n-v5
+
 define Device/tl-wr941nd-v2
     $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR941N/ND v2
