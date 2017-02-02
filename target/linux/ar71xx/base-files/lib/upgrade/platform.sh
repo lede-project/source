@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011 OpenWrt.org
+# Copyright (C) 2017 OpenWrt.org
 #
 
 . /lib/functions/system.sh
