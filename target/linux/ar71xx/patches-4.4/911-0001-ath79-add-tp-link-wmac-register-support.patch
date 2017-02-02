@@ -11,3 +11,4 @@ index 72d3372..09bf7f6 100644
  
  obj-$(CONFIG_EARLY_PRINTK)		+= early_printk.o
  obj-$(CONFIG_PCI)			+= pci.o
+
