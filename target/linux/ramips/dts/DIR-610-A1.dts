@@ -50,7 +50,7 @@
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		linux,modalias = "m25p80";
+		linux,modalias = "m25p80", "f25l32pa";
 		spi-max-frequency = <10000000>;
 
 		partition@0 {
