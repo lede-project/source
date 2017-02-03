@@ -42,4 +42,11 @@ $(Device/rb-nor-flash-16M)
   BOARDNAME:= rb-941-2nd
 endef
 
-TARGET_DEVICES += rb-nor-flash-16M rb-941-2nd
+define Device/rb-951ui-2nd
+$(Device/rb-nor-flash-16M)
+  DEVICE_TITLE := hAP
+  DEVICE_PACKAGES:= rbcfg
+  BOARDNAME:= rb-951ui-2nd
+endef
+
+TARGET_DEVICES += rb-nor-flash-16M rb-941-2nd rb-951ui-2nd
