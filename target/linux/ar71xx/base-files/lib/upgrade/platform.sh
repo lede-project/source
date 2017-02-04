@@ -344,6 +344,7 @@ platform_check_image() {
 	pb44|\
 	rb-941-2nd|\
 	rb-951ui-2nd|\
+	rb-750-r2|\
 	routerstation-pro|\
 	routerstation|\
 	wp543|\

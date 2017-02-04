@@ -188,6 +188,34 @@ static struct gpio_led rb952_leds[] __initdata = {
     },
 };
 
+static struct gpio_led rb750r2_leds[] __initdata = {
+    {
+        .name = "rb:green:act",
+        .gpio = RB952_GPIO_LED_ACT,
+        .active_low = 1,
+    }, {
+        .name = "rb:green:port1",
+        .gpio = RB952_GPIO_LED_LAN1,
+        .active_low = 1,
+    }, {
+        .name = "rb:green:port2",
+        .gpio = RB952_GPIO_LED_LAN2,
+        .active_low = 1,
+    }, {
+        .name = "rb:green:port3",
+        .gpio = RB952_GPIO_LED_LAN3,
+        .active_low = 1,
+    }, {
+        .name = "rb:green:port4",
+        .gpio = RB952_GPIO_LED_LAN4,
+        .active_low = 1,
+    }, {
+        .name = "rb:green:port5",
+        .gpio = RB952_GPIO_LED_LAN5,
+        .active_low = 1,
+    },
+};
+
 static int rb952_spi_cs_gpios[2] = {
     -ENOENT,
     RB952_SSR_STROBE,
@@ -297,5 +325,33 @@ static void __init rb952_setup(void)
                                     rb941_gpio_keys);
 }
 
+static void __init rb750r2_setup(void)
+{
+    ath79_register_spi(&rb952_spi_data, rb952_spi_info,
+                       ARRAY_SIZE(rb952_spi_info));
+
+    ath79_setup_ar934x_eth_cfg(AR934X_ETH_CFG_SW_ONLY_MODE);
+    ath79_register_mdio(0, 0x0);
+
+    /* WAN */
+    ath79_switch_data.phy4_mii_en = 1;
+    ath79_switch_data.phy_poll_mask = BIT(4);
+    ath79_eth0_data.phy_if_mode = PHY_INTERFACE_MODE_MII;
+    ath79_eth0_data.phy_mask = BIT(4);
+    ath79_init_mac(ath79_eth0_data.mac_addr, ath79_mac_base, 0);
+    ath79_register_eth(0);
+
+    /* LAN */
+    ath79_init_mac(ath79_eth1_data.mac_addr, ath79_mac_base, 1);
+    ath79_eth1_data.phy_if_mode = PHY_INTERFACE_MODE_GMII;
+    ath79_register_eth(1);
+
+    ath79_register_leds_gpio(-1, ARRAY_SIZE(rb750r2_leds), rb750r2_leds);
+    ath79_register_gpio_keys_polled(-1, RB941_KEYS_POLL_INTERVAL,
+                                    ARRAY_SIZE(rb941_gpio_keys),
+                                    rb941_gpio_keys);
+}
+
 MIPS_MACHINE(ATH79_MACH_RB_941, "H951L", "MikroTik RouterBOARD 941-2nD", rb941_setup);
 MIPS_MACHINE(ATH79_MACH_RB_952, "952-hb", "MikroTik RouterBOARD 951Ui-2nD", rb952_setup);
+MIPS_MACHINE(ATH79_MACH_RB_750R2, "750-hb", "MikroTik RouterBOARD 750-r2", rb750r2_setup);

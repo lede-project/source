@@ -167,6 +167,7 @@ enum ath79_mach_type {
 	ATH79_MACH_RB_922GS,			/* Mikrotik RouterBOARD 911/922GS boards */
 	ATH79_MACH_RB_941,			/* MikroTik RouterBOARD 941-2nD */
 	ATH79_MACH_RB_952,			/* MikroTik RouterBOARD 951Ui-2nD */
+	ATH79_MACH_RB_750R2,			/* MikroTik RouterBOARD hEX lite */
 	ATH79_MACH_RB_951G,			/* Mikrotik RouterBOARD 951G */
 	ATH79_MACH_RB_951U,			/* Mikrotik RouterBOARD 951Ui-2HnD */
 	ATH79_MACH_RB_SXTLITE2ND,		/* Mikrotik RouterBOARD SXT Lite 2nD */
