@@ -62,6 +62,18 @@ define Build/netgear-dni
 	mv $@.new $@
 endef
 
+define Build/netgear-append-fakeroot
+	rm -f $@.zero $@.fakeroot
+	$(if $(1),dd if=/dev/zero of=$@.zero bs=$(1) count=1,)
+	$(STAGING_DIR_HOST)/bin/mkimage \
+		-A $(LINUX_KARCH) -O linux -T filesystem -C none \
+		-n '$(call toupper,$(LINUX_KARCH)) LEDE fakeroot' \
+		$(if $(NETGEAR_KERNEL_MAGIC),-M $(NETGEAR_KERNEL_MAGIC),) \
+		$(if $(1),-d $@.zero,-s) \
+		$@.fakeroot
+	cat $@.fakeroot >> $@
+endef
+
 define Build/tplink-safeloader
        -$(STAGING_DIR_HOST)/bin/tplink-safeloader \
 		-B $(TPLINK_BOARD_NAME) \
@@ -143,8 +155,8 @@ define Build/append-rootfs
 	dd if=$(IMAGE_ROOTFS) >> $@
 endef
 
-define Build/append-file
-	cat "$(1)" >> "$@"
+define Build/append-string
+	echo -ne $(1) >> $@
 endef
 
 define Build/append-ubi
