@@ -1,0 +1,665 @@
+diff -urN linux-4.4/arch/arm/boot/dts/armada-370-rtnasv3.dts linux-4.4-rtnas/arch/arm/boot/dts/armada-370-rtnasv3.dts
+--- linux-4.4/arch/arm/boot/dts/armada-370-rtnasv3.dts	1970-01-01 08:00:00.000000000 +0800
++++ linux-4.4-rtnas/arch/arm/boot/dts/armada-370-rtnasv3.dts	2016-03-17 19:55:49.204299859 +0800
+@@ -0,0 +1,650 @@
++/dts-v1/;
++
++/ {
++	#address-cells = <0x1>;
++	#size-cells = <0x1>;
++	model = "RTNAS V3";
++	compatible = "marvell,armada-370-rtnasv3","marvell,a370-rd", "marvell,armada370", "marvell,armada-370-xp";
++
++	chosen {
++		bootargs = "console=ttyS0,115200 earlyprintk";
++	};
++
++	aliases {
++		eth0 = "/soc/internal-regs/ethernet@70000";
++		eth1 = "/soc/internal-regs/ethernet@74000";
++		gpio0 = "/soc/internal-regs/gpio@18100";
++		gpio1 = "/soc/internal-regs/gpio@18140";
++		gpio2 = "/soc/internal-regs/gpio@18180";
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x0 0x20000000>;
++	};
++
++	cpus {
++		#address-cells = <0x1>;
++		#size-cells = <0x0>;
++
++		cpu@0 {
++			compatible = "marvell,sheeva-v7";
++			device_type = "cpu";
++			reg = <0x0>;
++		};
++	};
++
++	soc {
++		#address-cells = <0x2>;
++		#size-cells = <0x1>;
++		controller = <0x1>;
++		interrupt-parent = <0x2>;
++		pcie-mem-aperture = <0xf8000000 0x7e00000>;
++		pcie-io-aperture = <0xffe00000 0x100000>;
++		compatible = "marvell,armada370-mbus", "simple-bus";
++		ranges = <0xf0010000 0x0 0xf1000000 0x100000 0x1e00000 0x0 0xfff00000 0x100000>;
++
++		devbus-bootcs {
++			compatible = "marvell,mvebu-devbus";
++			reg = <0xf0010000 0x10400 0x8>;
++			ranges = <0x0 0x12f0000 0x0 0xffffffff>;
++			#address-cells = <0x1>;
++			#size-cells = <0x1>;
++			clocks = <0x3 0x0>;
++			status = "disabled";
++		};
++
++		devbus-cs0 {
++			compatible = "marvell,mvebu-devbus";
++			reg = <0xf0010000 0x10408 0x8>;
++			ranges = <0x0 0x13e0000 0x0 0xffffffff>;
++			#address-cells = <0x1>;
++			#size-cells = <0x1>;
++			clocks = <0x3 0x0>;
++			status = "disabled";
++		};
++
++		devbus-cs1 {
++			compatible = "marvell,mvebu-devbus";
++			reg = <0xf0010000 0x10410 0x8>;
++			ranges = <0x0 0x13d0000 0x0 0xffffffff>;
++			#address-cells = <0x1>;
++			#size-cells = <0x1>;
++			clocks = <0x3 0x0>;
++			status = "disabled";
++		};
++
++		devbus-cs2 {
++			compatible = "marvell,mvebu-devbus";
++			reg = <0xf0010000 0x10418 0x8>;
++			ranges = <0x0 0x13b0000 0x0 0xffffffff>;
++			#address-cells = <0x1>;
++			#size-cells = <0x1>;
++			clocks = <0x3 0x0>;
++			status = "disabled";
++		};
++
++		devbus-cs3 {
++			compatible = "marvell,mvebu-devbus";
++			reg = <0xf0010000 0x10420 0x8>;
++			ranges = <0x0 0x1370000 0x0 0xffffffff>;
++			#address-cells = <0x1>;
++			#size-cells = <0x1>;
++			clocks = <0x3 0x0>;
++			status = "disabled";
++		};
++
++		internal-regs {
++			compatible = "simple-bus";
++			#address-cells = <0x1>;
++			#size-cells = <0x1>;
++			ranges = <0x0 0xf0010000 0x0 0x100000>;
++
++			rtc@10300 {
++				compatible = "marvell,orion-rtc";
++				reg = <0x10300 0x20>;
++				interrupts = <0x32>;
++				status = "okay";
++			};
++
++			spi@10600 {
++				compatible = "marvell,armada-370-spi", "marvell,orion-spi";
++				reg = <0x10600 0x28>;
++				#address-cells = <0x1>;
++				#size-cells = <0x0>;
++				cell-index = <0x0>;
++				interrupts = <0x1e>;
++				clocks = <0x3 0x0>;
++				status = "disabled";
++			};
++
++			spi@10680 {
++				compatible = "marvell,armada-370-spi", "marvell,orion-spi";
++				reg = <0x10680 0x28>;
++				#address-cells = <0x1>;
++				#size-cells = <0x0>;
++				cell-index = <0x1>;
++				interrupts = <0x5c>;
++				clocks = <0x3 0x0>;
++				status = "disabled";
++			};
++
++			i2c@11000 {
++				compatible = "marvell,mv64xxx-i2c";
++				#address-cells = <0x1>;
++				#size-cells = <0x0>;
++				interrupts = <0x1f>;
++				timeout-ms = <0x3e8>;
++				clocks = <0x3 0x0>;
++				status = "disabled";
++				reg = <0x11000 0x20>;
++			};
++
++			i2c@11100 {
++				compatible = "marvell,mv64xxx-i2c";
++				#address-cells = <0x1>;
++				#size-cells = <0x0>;
++				interrupts = <0x20>;
++				timeout-ms = <0x3e8>;
++				clocks = <0x3 0x0>;
++				status = "disabled";
++				reg = <0x11100 0x20>;
++			};
++
++			serial@12000 {
++				compatible = "snps,dw-apb-uart";
++				reg = <0x12000 0x100>;
++				reg-shift = <0x2>;
++				interrupts = <0x29>;
++				reg-io-width = <0x1>;
++				clocks = <0x3 0x0>;
++				status = "okay";
++			};
++
++			serial@12100 {
++				compatible = "snps,dw-apb-uart";
++				reg = <0x12100 0x100>;
++				reg-shift = <0x2>;
++				interrupts = <0x2a>;
++				reg-io-width = <0x1>;
++				clocks = <0x3 0x0>;
++				status = "disabled";
++			};
++
++			pin-ctrl@18000 {
++				reg = <0x18000 0x38>;
++				compatible = "marvell,mv88f6710-pinctrl";
++
++				sdio-pins1 {
++					marvell,pins = "mpp9", "mpp11", "mpp12", "mpp13", "mpp14", "mpp15";
++					marvell,function = "sd0";
++				};
++
++				sdio-pins2 {
++					marvell,pins = "mpp47", "mpp48", "mpp49", "mpp50", "mpp51", "mpp52";
++					marvell,function = "sd0";
++				};
++
++				sdio-pins3 {
++					marvell,pins = "mpp48", "mpp49", "mpp50", "mpp51", "mpp52", "mpp53";
++					marvell,function = "sd0";
++				};
++
++				i2c0-pins {
++					marvell,pins = "mpp2", "mpp3";
++					marvell,function = "i2c0";
++				};
++
++				i2s-pins1 {
++					marvell,pins = "mpp5", "mpp6", "mpp7", "mpp8", "mpp9", "mpp10", "mpp12", "mpp13";
++					marvell,function = "audio";
++				};
++
++				i2s-pins2 {
++					marvell,pins = "mpp49", "mpp47", "mpp50", "mpp59", "mpp57", "mpp61", "mpp62", "mpp60", "mpp58";
++					marvell,function = "audio";
++				};
++
++				mdio-pins {
++					marvell,pins = "mpp17", "mpp18";
++					marvell,function = "ge";
++				};
++
++				ge0-rgmii-pins {
++					marvell,pins = "mpp5", "mpp6", "mpp7", "mpp8", "mpp9", "mpp10", "mpp11", "mpp12", "mpp13", "mpp14", "mpp15", "mpp16";
++					marvell,function = "ge0";
++				};
++
++				ge1-rgmii-pins {
++					marvell,pins = "mpp19", "mpp20", "mpp21", "mpp22", "mpp23", "mpp24", "mpp25", "mpp26", "mpp27", "mpp28", "mpp29", "mpp30";
++					marvell,function = "ge1";
++					linux,phandle = <0x6>;
++					phandle = <0x6>;
++				};
++
++				fan-pins {
++					marvell,pins = "mpp10";
++					marvell,function = "gpio";
++					linux,phandle = <0x9>;
++					phandle = <0x9>;
++				};
++
++				led-pins {
++					marvell,pins = "mpp62";
++					marvell,function = "gpio";
++					linux,phandle = <0xa>;
++					phandle = <0xa>;
++				};
++			};
++
++			corediv-clock@18740 {
++				compatible = "marvell,armada-370-corediv-clock";
++				reg = <0x18740 0xc>;
++				#clock-cells = <0x1>;
++				clocks = <0x4>;
++				clock-output-names = "nand";
++				linux,phandle = <0x7>;
++				phandle = <0x7>;
++			};
++
++			mbus-controller@20000 {
++				compatible = "marvell,mbus-controller";
++				reg = <0x20000 0x100 0x20180 0x20>;
++				linux,phandle = <0x1>;
++				phandle = <0x1>;
++			};
++
++			interrupt-controller@20000 {
++				compatible = "marvell,mpic";
++				#interrupt-cells = <0x1>;
++				#size-cells = <0x1>;
++				interrupt-controller;
++				msi-controller;
++				reg = <0x20a00 0x1d0 0x21870 0x58>;
++				linux,phandle = <0x2>;
++				phandle = <0x2>;
++			};
++
++			coherency-fabric@20200 {
++				compatible = "marvell,coherency-fabric";
++				reg = <0x20200 0xb0 0x21010 0x1c>;
++			};
++
++			timer@20300 {
++				reg = <0x20300 0x30 0x21040 0x30>;
++				interrupts = <0x25 0x26 0x27 0x28 0x5 0x6>;
++				compatible = "marvell,armada-370-timer";
++				clocks = <0x3 0x2>;
++			};
++
++			watchdog@20300 {
++				reg = <0x20300 0x34 0x20704 0x4>;
++				compatible = "marvell,armada-370-wdt";
++				clocks = <0x3 0x2>;
++			};
++
++			pmsu@22000 {
++				compatible = "marvell,armada-370-pmsu";
++				reg = <0x22000 0x1000>;
++			};
++
++			usb@50000 {
++				compatible = "marvell,orion-ehci";
++				reg = <0x50000 0x500>;
++				interrupts = <0x2d>;
++				status = "okay";
++				clocks = <0x3 0x0>;
++			};
++
++			usb@51000 {
++				compatible = "marvell,orion-ehci";
++				reg = <0x51000 0x500>;
++				interrupts = <0x2e>;
++				status = "okay";
++				clocks = <0x3 0x0>;
++			};
++
++			ethernet@70000 {
++				reg = <0x70000 0x4000>;
++				interrupts = <0x8>;
++				clocks = <0x5 0x4>;
++				status = "disabled";
++				compatible = "marvell,armada-370-neta";
++			};
++
++			mdio {
++				#address-cells = <0x1>;
++				#size-cells = <0x0>;
++				compatible = "marvell,orion-mdio";
++				reg = <0x72004 0x4>;
++				clocks = <0x5 0x4>;
++				linux,phandle = <0xc>;
++				phandle = <0xc>;
++			};
++
++			ethernet@74000 {
++				reg = <0x74000 0x4000>;
++				interrupts = <0xa>;
++				clocks = <0x5 0x3>;
++				status = "okay";
++				compatible = "marvell,armada-370-neta";
++				pinctrl-0 = <0x6>;
++				pinctrl-names = "default";
++				phy-mode = "rgmii-id";
++
++				fixed-link {
++					speed = <0x3e8>;
++					full-duplex;
++				};
++			};
++
++			sata@a0000 {
++				compatible = "marvell,armada-370-sata";
++				reg = <0xa0000 0x5000>;
++				interrupts = <0x37>;
++				clocks = <0x5 0xf 0x5 0x1e>;
++				clock-names = <0x30003100>;
++				status = "okay";
++				nr-ports = <0x2>;
++			};
++
++			nand@d0000 {
++				compatible = "marvell,armada370-nand";
++				reg = <0xd0000 0x54>;
++				#address-cells = <0x1>;
++				#size-cells = <0x1>;
++				interrupts = <0x71>;
++				clocks = <0x7 0x0>;
++				status = "okay";
++				num-cs = <0x2>;
++				marvell,nand-keep-config;
++				marvell,nand-enable-arbiter;
++				nand-on-flash-bbt;
++				nand-ecc-strength = <0x4>;
++				nand-ecc-step-size = <0x200>;
++
++				partition@0 {
++					label = "U-Boot";
++					reg = <0x0 0x400000>;
++				};
++
++				partition@400000 {
++					label = "UBoot_env";
++					reg = <0x400000 0x400000>;
++				};
++
++				partition@800000 {
++					label = "Vendor";
++					reg = <0x800000 0x400000>;
++				};
++
++				partition@c00000 {
++					label = "Unused";
++					reg = <0xc00000 0xc00000>;
++				};
++
++				partition@1800000 {
++					label = "kernel";
++					reg = <0x1800000 0x400000>;
++				};
++
++				partition@1c00000 {
++					label = "rootfs";
++					reg = <0x1c00000 0x3e400000>;
++				};
++
++				partition@40000000 {
++					label = "syscfg";
++					reg = <0x40000000 0xbbc00000>;
++				};
++
++			};
++
++			mvsdio@d4000 {
++				compatible = "marvell,orion-sdio";
++				reg = <0xd4000 0x200>;
++				interrupts = <0x36>;
++				clocks = <0x5 0x11>;
++				bus-width = <0x4>;
++				cap-sdio-irq;
++				cap-sd-highspeed;
++				cap-mmc-highspeed;
++				status = "disabled";
++			};
++
++			l2-cache {
++				compatible = "marvell,aurora-outer-cache";
++				reg = <0x8000 0x1000>;
++				cache-id-part = <0x100>;
++				cache-unified;
++				wt-override;
++			};
++
++			gpio@18100 {
++				compatible = "marvell,orion-gpio";
++				reg = <0x18100 0x40 0x181c0 0x8>;
++				reg-names = "gpio", "pwm";
++				ngpios = <0x20>;
++				gpio-controller;
++				#gpio-cells = <0x2>;
++				#pwm-cells = <0x2>;
++				interrupt-controller;
++				#interrupt-cells = <0x2>;
++				interrupts = <0x52 0x53 0x54 0x55>;
++				clocks = <0x3 0x0>;
++				linux,phandle = <0x8>;
++				phandle = <0x8>;
++			};
++
++			gpio@18140 {
++				compatible = "marvell,orion-gpio";
++				reg = <0x18140 0x40 0x181c8 0x8>;
++				reg-names = "gpio", "pwm";
++				ngpios = <0x20>;
++				gpio-controller;
++				#gpio-cells = <0x2>;
++				#pwm-cells = <0x2>;
++				interrupt-controller;
++				#interrupt-cells = <0x2>;
++				interrupts = <0x57 0x58 0x59 0x5a>;
++				clocks = <0x3 0x0>;
++				linux,phandle = <0xb>;
++				phandle = <0xb>;
++			};
++
++			gpio@18180 {
++				compatible = "marvell,orion-gpio";
++				reg = <0x18180 0x40>;
++				ngpios = <0x2>;
++				gpio-controller;
++				#gpio-cells = <0x2>;
++				interrupt-controller;
++				#interrupt-cells = <0x2>;
++				interrupts = <0x5b>;
++			};
++
++			system-controller@18200 {
++				compatible = "marvell,armada-370-xp-system-controller";
++				reg = <0x18200 0x100>;
++			};
++
++			clock-gating-control@18220 {
++				compatible = "marvell,armada-370-gating-clock";
++				reg = <0x18220 0x4>;
++				clocks = <0x3 0x0>;
++				#clock-cells = <0x1>;
++				linux,phandle = <0x5>;
++				phandle = <0x5>;
++			};
++
++			mvebu-sar@18230 {
++				compatible = "marvell,armada-370-core-clock";
++				reg = <0x18230 0x8>;
++				#clock-cells = <0x1>;
++				linux,phandle = <0x3>;
++				phandle = <0x3>;
++			};
++
++			thermal@18300 {
++				compatible = "marvell,armada370-thermal";
++				reg = <0x18300 0x4 0x18304 0x4>;
++				status = "okay";
++			};
++
++			sscg@18330 {
++				reg = <0x18330 0x4>;
++			};
++
++			cpurst@20800 {
++				compatible = "marvell,armada-370-cpu-reset";
++				reg = <0x20800 0x8>;
++			};
++
++			audio-controller@30000 {
++				compatible = "marvell,armada370-audio";
++				reg = <0x30000 0x4000>;
++				interrupts = <0x5d>;
++				clocks = <0x5 0x0>;
++				clock-names = "internal";
++				status = "disabled";
++			};
++
++			xor@60800 {
++				compatible = "marvell,orion-xor";
++				reg = <0x60800 0x100 0x60a00 0x100>;
++				status = "okay";
++
++				xor00 {
++					interrupts = <0x33>;
++					dmacap,memcpy;
++					dmacap,xor;
++				};
++
++				xor01 {
++					interrupts = <0x34>;
++					dmacap,memcpy;
++					dmacap,xor;
++					dmacap,memset;
++				};
++			};
++
++			xor@60900 {
++				compatible = "marvell,orion-xor";
++				reg = <0x60900 0x100 0x60b00 0x100>;
++				status = "okay";
++
++				xor10 {
++					interrupts = <0x5e>;
++					dmacap,memcpy;
++					dmacap,xor;
++				};
++
++				xor11 {
++					interrupts = <0x5f>;
++					dmacap,memcpy;
++					dmacap,xor;
++					dmacap,memset;
++				};
++			};
++
++			gpio-keys {
++				compatible = "gpio-keys";
++				#address-cells = <0x1>;
++				#size-cells = <0x0>;
++
++				button@1 {
++					label = "Software Button";
++					linux,code = <0x74>;
++					gpios = <0x8 0x6 0x1>;
++				};
++			};
++
++			gpio-fan {
++				compatible = "gpio-fan";
++				gpios = <0x8 0x8 0x0>;
++				gpio-fan,speed-map = <0x0 0x0 0xbb8 0x1>;
++				pinctrl-0 = <0x9>;
++				pinctrl-names = "default";
++			};
++
++			gpio_leds {
++				compatible = "gpio-leds";
++				pinctrl-names = "default";
++				pinctrl-0 = <0xa>;
++
++				sw_led {
++					label = "370rd:green:sw";
++					gpios = <0xb 0x0 0x1>;
++					default-state = "keep";
++				};
++			};
++		};
++
++		bootrom {
++			compatible = "marvell,bootrom";
++			reg = <0x1e00000 0x0 0x100000>;
++		};
++
++		pcie-controller {
++			compatible = "marvell,armada-370-pcie";
++			status = "okay";
++			device_type = "pci";
++			#address-cells = <0x3>;
++			#size-cells = <0x2>;
++			msi-parent = <0x2>;
++			bus-range = <0x0 0xff>;
++			ranges = <0x82000000 0x0 0x40000 0xf0010000 0x40000 0x0 0x2000 0x82000000 0x0 0x80000 0xf0010000 0x80000 0x0 0x2000 0x82000000 0x1 0x0 0x4e80000 0x0 0x1 0x0 0x81000000 0x1 0x0 0x4e00000 0x0 0x1 0x0 0x82000000 0x2 0x0 0x8e80000 0x0 0x1 0x0 0x81000000 0x2 0x0 0x8e00000 0x0 0x1 0x0>;
++
++			pcie@1,0 {
++				device_type = "pci";
++				assigned-addresses = <0x82000800 0x0 0x40000 0x0 0x2000>;
++				reg = <0x800 0x0 0x0 0x0 0x0>;
++				#address-cells = <0x3>;
++				#size-cells = <0x2>;
++				#interrupt-cells = <0x1>;
++				ranges = <0x82000000 0x0 0x0 0x82000000 0x1 0x0 0x1 0x0 0x81000000 0x0 0x0 0x81000000 0x1 0x0 0x1 0x0>;
++				interrupt-map-mask = <0x0 0x0 0x0 0x0>;
++				interrupt-map = <0x0 0x0 0x0 0x0 0x2 0x3a>;
++				marvell,pcie-port = <0x0>;
++				marvell,pcie-lane = <0x0>;
++				clocks = <0x5 0x5>;
++				status = "okay";
++			};
++
++			pcie@2,0 {
++				device_type = "pci";
++				assigned-addresses = <0x82002800 0x0 0x80000 0x0 0x2000>;
++				reg = <0x1000 0x0 0x0 0x0 0x0>;
++				#address-cells = <0x3>;
++				#size-cells = <0x2>;
++				#interrupt-cells = <0x1>;
++				ranges = <0x82000000 0x0 0x0 0x82000000 0x2 0x0 0x1 0x0 0x81000000 0x0 0x0 0x81000000 0x2 0x0 0x1 0x0>;
++				interrupt-map-mask = <0x0 0x0 0x0 0x0>;
++				interrupt-map = <0x0 0x0 0x0 0x0 0x2 0x3e>;
++				marvell,pcie-port = <0x1>;
++				marvell,pcie-lane = <0x0>;
++				clocks = <0x5 0x9>;
++				status = "okay";
++			};
++		};
++	};
++
++	clocks {
++
++		mainpll {
++			compatible = "fixed-clock";
++			#clock-cells = <0x0>;
++			clock-frequency = <0x77359400>;
++			linux,phandle = <0x4>;
++			phandle = <0x4>;
++		};
++	};
++
++	mvsw61xx {
++		compatible = "marvell,88e6172";
++		status = "okay";
++		reg = <0x10>;
++		mii-bus = <0xc>;
++		cpu-port-0 = <0x5>;
++	};
++};
+diff -urN linux-4.4/arch/arm/boot/dts/Makefile linux-4.4-rtnas/arch/arm/boot/dts/Makefile
+--- linux-4.4/arch/arm/boot/dts/Makefile	2016-01-11 07:01:32.000000000 +0800
++++ linux-4.4-rtnas/arch/arm/boot/dts/Makefile	2016-02-21 22:46:01.000000000 +0800
+@@ -737,6 +737,7 @@
+ 	armada-370-netgear-rn102.dtb \
+ 	armada-370-netgear-rn104.dtb \
+ 	armada-370-rd.dtb \
++	armada-370-rtnasv3.dtb \
+ 	armada-370-seagate-nas-2bay.dtb \
+ 	armada-370-seagate-nas-4bay.dtb \
+ 	armada-370-seagate-personal-cloud.dtb \
