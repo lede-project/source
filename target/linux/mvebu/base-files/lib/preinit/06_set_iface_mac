@@ -15,6 +15,11 @@ preinit_set_mac_address() {
 		ifconfig eth0 hw ether $mac 2>/dev/null
 		ifconfig eth1 hw ether $mac 2>/dev/null
 		;;
+    armada-370-rtnasv3)
+		mac=$(mtd_get_mac_ascii U-Boot ethaddr)
+		ifconfig eth0 hw ether $mac 2>/dev/null
+		ifconfig eth1 hw ether $mac 2>/dev/null
+		;;
 	armada-385-linksys-caiman|armada-385-linksys-cobra|armada-385-linksys-rango|armada-385-linksys-shelby)
 		mac=$(mtd_get_mac_ascii devinfo hw_mac_addr)
 		mac_wan=$(macaddr_setbit_la "$mac")

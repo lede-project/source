@@ -24,6 +24,11 @@ armada-xp-linksys-mamba)
 armada-385-db-ap)
 	ucidef_set_interfaces_lan_wan "eth0 eth1" "eth2"
 	;;
+armada-370-rtnasv3)
+	ucidef_set_interface_lan "eth0.1"
+	ucidef_add_switch "switch0" \
+                "0:lan:0" "1:lan:1" "2:lan:2" "3:lan:3" "5@eth0" "4:wan"
+	;;
 armada-xp-gp)
 	ucidef_set_interface_lan "eth0 eth1 eth2 eth3"
 	;;
