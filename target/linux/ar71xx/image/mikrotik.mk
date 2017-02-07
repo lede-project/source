@@ -24,7 +24,8 @@ endef
 TARGET_DEVICES += nand-64m nand-large
 
 define Device/rb-nor-flash-16M
-  DEVICE_TITLE := MikroTik RouterBoard with 16 MB NOR flash
+  DEVICE_TITLE := MikroTik RouterBoard with 16 MB SPI NOR flash
+  DEVICE_PACKAGES := rbcfg
   BLOCKSIZE := 64k
   IMAGE_SIZE := 16000k
   LOADER_TYPE := elf
