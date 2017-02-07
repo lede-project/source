@@ -337,7 +337,8 @@ static void __init rb952_setup(void)
     ath79_register_spi(&rb952_spi_data, rb952_spi_info,
                        ARRAY_SIZE(rb952_spi_info));
 
-    ath79_setup_ar934x_eth_cfg(AR934X_ETH_CFG_SW_ONLY_MODE);
+    /* disable PHY_SWAP and PHY_ADDR_SWAP bits */
+    ath79_setup_ar933x_phy4_switch(false, false);
     ath79_register_mdio(0, 0x0);
 
     /* WAN */
@@ -372,7 +373,8 @@ static void __init rb750r2_setup(void)
     ath79_register_spi(&rb952_spi_data, rb952_spi_info,
                        ARRAY_SIZE(rb952_spi_info));
 
-    ath79_setup_ar934x_eth_cfg(AR934X_ETH_CFG_SW_ONLY_MODE);
+    /* disable PHY_SWAP and PHY_ADDR_SWAP bits */
+    ath79_setup_ar933x_phy4_switch(false, false);
     ath79_register_mdio(0, 0x0);
 
     /* WAN */
