@@ -847,10 +847,10 @@ ar71xx_board_detect() {
 	*"RouterBOARD 941-2nD")
 		name="rb-941-2nd"
 		;;
-	*"RouterBOARD 951Ui-2nD")
+	*"951Ui-2nD")
 		name="rb-951ui-2nd"
 		;;
-	*"MikroTik RouterBOARD 750-r2")
+	*"RouterBOARD 750 r2")
 		name="rb-750-r2"
 		;;
 	*"RouterBOARD mAP L-2nD")
