@@ -894,6 +894,9 @@ config ATH79_MACH_RBHAPX
 	select ATH79_DEV_M25P80
 	select ATH79_DEV_WMAC
 	select ATH79_ROUTERBOOT
+	help
+	  Say 'Y' here if you want your kernel to support the
+	  MikroTik RouterBOARD hAP/hEX(lite) series
 
 config ATH79_MACH_RB95X
 	bool "MikroTik RouterBOARD 95X support"

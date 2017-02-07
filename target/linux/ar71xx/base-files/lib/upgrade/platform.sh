@@ -345,6 +345,7 @@ platform_check_image() {
 	rb-941-2nd|\
 	rb-951ui-2nd|\
 	rb-750-r2|\
+	rb-mapl-2nd|\
 	routerstation-pro|\
 	routerstation|\
 	wp543|\
@@ -613,7 +614,8 @@ platform_pre_upgrade() {
 	case "$board" in
 	rb-941-2nd|\
 	rb-951ui-2nd|\
-	rb-750-r2)
+	rb-750-r2|\
+	rb-mapl-2nd)
 		;;
 	rb*|\
 	c-60|\
@@ -651,7 +653,8 @@ platform_do_upgrade() {
 	case "$board" in
 	rb-941-2nd|\
 	rb-951ui-2nd|\
-	rb-750-r2)
+	rb-750-r2|\
+	rb-mapl-2nd)
 		PLATFORM_DO_UPGRADE_COMBINED_SEPARATE_MTD=1
 		platform_do_upgrade_combined "$ARGV"
 		;;

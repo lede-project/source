@@ -54,4 +54,10 @@ $(Device/rb-nor-flash-16M)
   BOARDNAME:= rb-750-r2
 endef
 
-TARGET_DEVICES += rb-nor-flash-16M rb-941-2nd rb-951ui-2nd rb-750-r2
+define Device/rb-mapl
+$(Device/rb-nor-flash-16M)
+  DEVICE_TITLE := mAP lite
+  BOARDNAME:= rb-mapl
+endef
+
+TARGET_DEVICES += rb-nor-flash-16M rb-941-2nd rb-951ui-2nd rb-750-r2 rb-mapl
