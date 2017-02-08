@@ -1,6 +1,6 @@
 --- a/arch/mips/ath79/Makefile	2016-11-07 12:55:11.838599263 +0100
 +++ b/arch/mips/ath79/Makefile	2016-11-07 13:59:05.042058549 +0100
-@@ -217,3 +217,10 @@
+@@ -234,3 +234,10 @@
  obj-$(CONFIG_ATH79_MACH_Z1)			+= mach-z1.o
  obj-$(CONFIG_ATH79_MACH_ZBT_WE1526)		+= mach-zbt-we1526.o
  obj-$(CONFIG_ATH79_MACH_ZCN_1523H)		+= mach-zcn-1523h.o
@@ -14,7 +14,7 @@
 
 --- a/arch/mips/ath79/machtypes.h	2016-11-07 12:55:11.838599263 +0100
 +++ b/arch/mips/ath79/machtypes.h	2016-11-07 14:00:22.231518655 +0100
-@@ -277,6 +277,13 @@
+@@ -296,6 +296,13 @@
  	ATH79_MACH_ZBT_WE1526,			/* Zbtlink ZBT-WE1526 */
  	ATH79_MACH_ZCN_1523H_2,			/* Zcomax ZCN-1523H-2-xx */
  	ATH79_MACH_ZCN_1523H_5,			/* Zcomax ZCN-1523H-5-xx */

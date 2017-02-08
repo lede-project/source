@@ -12,7 +12,7 @@ Signed-off-by: Aurelio Colosimo <aurelio@aureliocolosimo.it>
 
 --- a/arch/mips/ath79/Kconfig	2015-12-18 23:21:30.000000000 +0100
 +++ b/arch/mips/ath79/Kconfig	2015-12-18 23:53:33.841205846 +0100
-@@ -148,6 +148,16 @@
+@@ -147,6 +147,16 @@
  config ATH79_DEV_ETH
  	def_bool n
 
