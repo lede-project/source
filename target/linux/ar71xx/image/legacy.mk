@@ -84,9 +84,6 @@ endef
 define PatchKernelLzma
 	cp $(KDIR)/vmlinux$(4) $(KDIR_TMP)/vmlinux$(4)-$(1)
 	echo "2"
-ifneq ($(CONFIG_IMAGE_CMDLINE_HACK),)
-	$(STAGING_DIR_HOST)/bin/patch-cmdline $(KDIR_TMP)/vmlinux$(4)-$(1) "$(strip $(2))"
-endif
 	$(call CompressLzma,$(KDIR_TMP)/vmlinux$(4)-$(1),$(KDIR_TMP)/vmlinux$(4)-$(1).bin.lzma,$(3))
 endef
 
