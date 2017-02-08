@@ -1,0 +1,22 @@
+--- a/io/readdir.c
++++ b/io/readdir.c
+@@ -24,6 +24,10 @@
+ #include <sys/types.h>
+ #include <dirent.h>
+ 
++#ifndef _DIRENT_HAVE_D_RECLEN
++#include <string.h>
++#endif
++
+ static struct cmdinfo readdir_cmd;
+ 
+ const char *d_type_str(unsigned int type)
+@@ -106,7 +110,7 @@ read_directory(
+ #ifdef _DIRENT_HAVE_D_RECLEN
+ 		*total += dirent->d_reclen;
+ #else
+-		*total += dirent->d_namlen + sizeof(*dirent);
++		*total += strlen(dirent->d_name) + sizeof(*dirent);
+ #endif
+ 		count++;
+ 

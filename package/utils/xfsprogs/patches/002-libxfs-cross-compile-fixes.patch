@@ -1,0 +1,59 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -10,11 +10,14 @@ AC_PROG_LIBTOOL
+ 
+ AC_PROG_CC
+ if test $cross_compiling = no; then
++  CROSS_COMPILING=no
+   BUILD_CC="$CC"
+   AC_SUBST(BUILD_CC)
+ else
++  CROSS_COMPILING=yes
+   AC_CHECK_PROGS(BUILD_CC, gcc cc)
+ fi
++AC_SUBST(CROSS_COMPILING)
+ 
+ AC_ARG_ENABLE(shared,
+ [ --enable-shared=[yes/no] Enable use of shared libraries [default=yes]],,
+--- a/include/builddefs.in
++++ b/include/builddefs.in
+@@ -26,6 +26,7 @@ MALLOCLIB = @malloc_lib@
+ LOADERFLAGS = @LDFLAGS@
+ LTLDFLAGS = @LDFLAGS@
+ CFLAGS = @CFLAGS@ -D_FILE_OFFSET_BITS=64
++CROSS_COMPILING = @CROSS_COMPILING@
+ 
+ LIBRT = @librt@
+ LIBUUID = @libuuid@
+--- a/libxfs/Makefile
++++ b/libxfs/Makefile
+@@ -120,11 +120,15 @@ DEBUG = -DNDEBUG
+ 
+ LDIRT = gen_crc32table crc32table.h crc32selftest
+ 
++ifeq ($(CROSS_COMPILING),no)
++BUILD_CFLAGS:=$(CFLAGS)
++endif
++
+ default: crc32selftest ltdepend $(LTLIBRARY)
+ 
+ crc32table.h: gen_crc32table.c
+ 	@echo "    [CC]     gen_crc32table"
+-	$(Q) $(BUILD_CC) $(CFLAGS) -o gen_crc32table $<
++	$(Q) $(BUILD_CC) $(BUILD_CFLAGS) -o gen_crc32table $<
+ 	@echo "    [GENERATE] $@"
+ 	$(Q) ./gen_crc32table > crc32table.h
+ 
+@@ -134,9 +138,11 @@ crc32table.h: gen_crc32table.c
+ # busted CRC calculation at build time and hence avoid putting bad CRCs down on
+ # disk.
+ crc32selftest: gen_crc32table.c crc32table.h crc32.c
++ifeq ($(CROSS_COMPILING),no)
+ 	@echo "    [TEST]    CRC32"
+-	$(Q) $(BUILD_CC) $(CFLAGS) -D CRC32_SELFTEST=1 crc32.c -o $@
++	$(Q) $(CC) $(CFLAGS) -D CRC32_SELFTEST=1 crc32.c -o $@
+ 	$(Q) ./$@
++endif
+ 
+ # set up include/xfs header directory
+ include $(BUILDRULES)

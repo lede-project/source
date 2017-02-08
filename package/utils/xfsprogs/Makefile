@@ -9,12 +9,14 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=xfsprogs
 PKG_RELEASE:=1
-PKG_VERSION:=3.1.7
-PKG_SOURCE_URL:=ftp://oss.sgi.com/projects/xfs/previous/
-PKG_HASH:=e150914210ac5fd29c098ef0fd94bdec51d2fb231cf9faa765c16ec6d75c8eaa
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_VERSION:=4.9.0
+PKG_SOURCE_URL:=https://www.kernel.org/pub/linux/utils/fs/xfs/xfsprogs/
+PKG_HASH:=cb97fa49b4eb0fb9622c064510904aeac556c51befb647c08e73643b47a49eb3
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+
 PKG_INSTALL:=1
+
 PKG_FIXUP:=autoreconf
 
 include $(INCLUDE_DIR)/package.mk
@@ -43,19 +45,26 @@ $(call Package/xfsprogs/default)
   TITLE:=Utility for increasing the size of XFS filesystems
 endef
 
-CONFIGURE_ARGS += \
-	--enable-gettext=no \
-	--enable-lib64=no \
-	--enable-blkid=no
+define Package/xfs-io
+$(call Package/xfsprogs/default)
+  TITLE:=Utility for debugging the I/O path of an XFS filesystem
+endef
 
-TARGET_CFLAGS += \
-	-I$(STAGING_DIR)/usr/include \
-	-D_LARGEFILE64_SOURCE \
-	-D_FILE_OFFSET_BITS=64 \
-	-D_GNU_SOURCE
+define Build/Configure
+	$(MAKE) -C $(PKG_BUILD_DIR) configure
+endef
+
+CONFIGURE_ARGS += \
+	--disable-blkid \
+	--disable-editline \
+	--disable-gettext \
+	--disable-lib64 \
+	--disable-readline \
+	--disable-termcap \
+	--enable-librt
 
 MAKE_FLAGS += \
-	DEBUG= Q= \
+	DEBUG=-DNDEBUG Q= \
 	PCFLAGS="-Wall" \
 	PKG_PLATFORM=linux \
 	ENABLE_GETTEXT=no \
@@ -69,21 +78,27 @@ MAKE_FLAGS += \
 	PKG_DOC_DIR=$(PKG_INSTALL_DIR)/usr/share/doc/xfsprogs
 
 define Package/xfs-mkfs/install
-	mkdir -p $(1)/usr/sbin
+	$(INSTALL_DIR) $(1)/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/sbin/mkfs.xfs $(1)/usr/sbin
 endef
 
 define Package/xfs-fsck/install
-	mkdir -p $(1)/usr/sbin
+	$(INSTALL_DIR) $(1)/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/sbin/xfs_repair $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/xfs_db $(1)/usr/sbin
 endef
 
 define Package/xfs-growfs/install
-	mkdir -p $(1)/usr/sbin
+	$(INSTALL_DIR) $(1)/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/xfs_growfs $(1)/usr/sbin
+endef
+
+define Package/xfs-io/install
+	$(INSTALL_DIR) $(1)/sbin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/xfs_io $(1)/sbin
 endef
 
 $(eval $(call BuildPackage,xfs-mkfs))
 $(eval $(call BuildPackage,xfs-fsck))
 $(eval $(call BuildPackage,xfs-growfs))
+$(eval $(call BuildPackage,xfs-io))
