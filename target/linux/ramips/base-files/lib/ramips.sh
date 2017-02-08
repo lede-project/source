@@ -112,6 +112,9 @@ ramips_board_detect() {
 	*"D105")
 		name="d105"
 		;;
+	*"D240")
+		name="d240"
+		;;
 	*"DAP-1350")
 		name="dap-1350"
 		;;
@@ -498,6 +501,9 @@ ramips_board_detect() {
 		;;
 	*"W502U")
 		name="w502u"
+		;;
+	*"WCR-1166DS")
+		name="wcr-1166ds"
 		;;
 	*"WCR-150GN")
 		name="wcr-150gn"

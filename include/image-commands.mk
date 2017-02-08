@@ -11,6 +11,39 @@ define Build/uImage
 	@mv $@.new $@
 endef
 
+define Build/buffalo-enc
+	$(eval product=$(word 1,$(1)))
+	$(eval version=$(word 2,$(1)))
+	$(eval args=$(wordlist 3,$(words $(1)),$(1)))
+	$(STAGING_DIR_HOST)/bin/buffalo-enc \
+		-p $(product) -v $(version) $(args) \
+		-i $@ -o $@.new
+	mv $@.new $@
+endef
+
+define Build/buffalo-enc-tag
+	$(call Build/buffalo-enc,'' '' -S 152 $(1))
+endef
+
+define Build/buffalo-tag-dhp
+	$(eval product=$(word 1,$(1)))
+	$(eval region=$(word 2,$(1)))
+	$(eval language=$(word 3,$(1)))
+	$(STAGING_DIR_HOST)/bin/buffalo-tag \
+		-d 0x01000000 -w 1 \
+		-a $(BUFFALO_TAG_PLATFORM) \
+		-v $(BUFFALO_TAG_VERSION) -m $(BUFFALO_TAG_MINOR) \
+		-b $(product) -p $(product) \
+		-r $(region) -r $(region) -l $(language) \
+		-I $@ -o $@.new
+	mv $@.new $@
+endef
+
+define Build/buffalo-dhp-image
+	$(STAGING_DIR_HOST)/bin/mkdhpimg $@ $@.new
+	mv $@.new $@
+endef
+
 define Build/netgear-chk
 	$(STAGING_DIR_HOST)/bin/mkchkimg \
 		-o $@.new \
@@ -27,6 +60,18 @@ define Build/netgear-dni
 		-r "$(1)" \
 		-i $@ -o $@.new
 	mv $@.new $@
+endef
+
+# append a fake/empty rootfs uImage header, to fool the bootloaders
+# rootfs integrity check
+define Build/append-uImage-fakeroot-hdr
+	rm -f $@.fakeroot
+	$(STAGING_DIR_HOST)/bin/mkimage \
+		-A $(LINUX_KARCH) -O linux -T filesystem -C none \
+		-n '$(call toupper,$(LINUX_KARCH)) LEDE fakeroot' \
+		-s \
+		$@.fakeroot
+	cat $@.fakeroot >> $@
 endef
 
 define Build/tplink-safeloader
@@ -108,10 +153,6 @@ endef
 
 define Build/append-rootfs
 	dd if=$(IMAGE_ROOTFS) >> $@
-endef
-
-define Build/append-file
-	cat "$(1)" >> "$@"
 endef
 
 define Build/append-ubi

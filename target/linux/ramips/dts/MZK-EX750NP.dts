@@ -83,7 +83,6 @@
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		linux,modalias = "m25p80", "w25q64";
 		spi-max-frequency = <10000000>;
 
 		partition@0 {
@@ -144,7 +143,6 @@
 			reg = <0x0000 0 0 0 0>;
 			device_type = "pci";
 			mediatek,mtd-eeprom = <&factory 0x8000>;
-			mediatek,2ghz = <0>;
 		};
 	};
 };

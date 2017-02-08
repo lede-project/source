@@ -3,7 +3,10 @@
 #
 
 define Build/gemtek-header
-	mkheader_gemtek $@ $@.new $(1) && mv $@.new $@
+	if [ -f $@ ]; then \
+		mkheader_gemtek $@ $@.new $(1) && \
+		mv $@.new $@; \
+	fi
 endef
 
 define Device/ar670w
@@ -20,19 +23,21 @@ TARGET_DEVICES += ar670w
 
 define Device/ar725w
   DTS := AR725W
-  DEVICE_TITLE := Gemtek AR725W
+  DEVICE_TITLE := Airlink AR725W
   IMAGES += factory.bin
-  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size 3328k | \
 	gemtek-header ar725w
 endef
 TARGET_DEVICES += ar725w
 
 define Device/f5d8235-v1
-  DTS := F5D8235_V1
   IMAGE_SIZE := 7744k
   DEVICE_TITLE := Belkin F5D8235 V1
   DEVICE_PACKAGES := kmod-switch-rtl8366s kmod-usb-core kmod-usb-ohci \
     kmod-usb-ohci-pci kmod-usb2 kmod-usb2-pci kmod-usb-ledtrig-usbport
+  DEVICE_DTS := F5D8235_V1
+  KERNEL := kernel-bin | append-dtb | lzma | uImage lzma
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | lzma | uImage lzma
 endef
 TARGET_DEVICES += f5d8235-v1
 

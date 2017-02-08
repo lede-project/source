@@ -38,6 +38,17 @@ define Build/bcm53xx-tplink-safeloader
 	rm $@.trx
 endef
 
+define Build/buffalo-wzr-header
+	$(eval product=$(word 1,$(1)))
+	$(eval region=$(word 2,$(1)))
+	( \
+		echo $(product)_$(BUFFALO_TAG_VERSION)_$(BUFFALO_TAG_MINOR)_$(region)_$(BUFFALO_TAG_PLATFORM); \
+		echo filelen=$$(stat -c%s $@); \
+		cat $@ \
+	) > $@.new
+	mv $@.new $@
+endef
+
 define Build/trx-serial
 	$(STAGING_DIR_HOST)/bin/trx \
 		-o $@.new \
@@ -85,6 +96,7 @@ define Build/seama-nand
 endef
 
 DEVICE_VARS += PRODUCTID SIGNATURE NETGEAR_BOARD_ID NETGEAR_REGION TPLINK_BOARD
+DEVICE_VARS += BUFFALO_TAG_PLATFORM BUFFALO_TAG_VERSION BUFFALO_TAG_MINOR
 
 BRCMFMAC_43602A1 := kmod-brcmfmac brcmfmac-firmware-43602a1-pcie
 BRCMFMAC_4366B1 := kmod-brcmfmac brcmfmac-firmware-4366b1-pcie
@@ -151,6 +163,20 @@ TARGET_DEVICES += buffalo-wzr-600dhp2
 define Device/buffalo-wzr-900dhp
   DEVICE_TITLE := Buffalo WZR-900DHP
   DEVICE_PACKAGES := kmod-b43 $(USB3_PACKAGES)
+  BUFFALO_TAG_PLATFORM := bcm
+  BUFFALO_TAG_VERSION := 9.99
+  BUFFALO_TAG_MINOR := 9.99
+  IMAGES += factory-DHP-EU.bin factory-DHP2-JP.bin
+  IMAGE/factory-DHP-EU.bin := \
+	append-ubi | trx-nand | buffalo-wzr-header WZR-900DHP EU | \
+	buffalo-enc WZR-900DHP $$(BUFFALO_TAG_VERSION) | \
+	buffalo-tag-dhp WZR-900DHP EU mlang20 | buffalo-enc-tag | \
+	buffalo-dhp-image
+  IMAGE/factory-DHP2-JP.bin := \
+	append-ubi | trx-nand | buffalo-wzr-header WZR-900DHP2 JP | \
+	buffalo-enc WZR-900DHP2 $$(BUFFALO_TAG_VERSION) | \
+	buffalo-tag-dhp WZR-900DHP2 JP jp | buffalo-enc-tag | \
+	buffalo-dhp-image
 endef
 TARGET_DEVICES += buffalo-wzr-900dhp
 
@@ -192,6 +218,7 @@ define Device/netgear-r6250
   $(Device/netgear)
   NETGEAR_BOARD_ID := U12H245T00_NETGEAR
 endef
+TARGET_DEVICES += netgear-r6250
 
 define Device/netgear-r6300-v2
   DEVICE_TITLE := Netgear R6300 V2
@@ -199,6 +226,7 @@ define Device/netgear-r6300-v2
   $(Device/netgear)
   NETGEAR_BOARD_ID := U12H240T00_NETGEAR
 endef
+TARGET_DEVICES += netgear-r6300-v2
 
 define Device/netgear-r7000
   DEVICE_TITLE := Netgear R7000
@@ -222,6 +250,7 @@ define Device/netgear-r8000
   $(Device/netgear)
   NETGEAR_BOARD_ID := U12H315T00_NETGEAR
 endef
+TARGET_DEVICES += netgear-r8000
 
 define Device/netgear-r8500
   DEVICE_TITLE := Netgear R8500
@@ -237,6 +266,7 @@ define Device/smartrg-sr400ac
   IMAGES := trx
   IMAGE/trx := append-rootfs | trx-serial
 endef
+TARGET_DEVICES += smartrg-sr400ac
 
 define Device/tenda-ac9
   DEVICE_TITLE := Tenda AC9
@@ -254,9 +284,5 @@ define Device/tplink-archer-c9-v1
   TPLINK_BOARD := ARCHERC9
 endef
 TARGET_DEVICES += tplink-archer-c9-v1
-
-TARGET_DEVICES += \
-	netgear-r6250 netgear-r6300-v2 netgear-r8000 \
-	smartrg-sr400ac
 
 $(eval $(call BuildImage))

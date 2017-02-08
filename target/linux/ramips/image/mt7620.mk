@@ -58,7 +58,7 @@ define Device/ex2700
   BLOCKSIZE := 4k
   IMAGE_SIZE := $(ralink_default_fw_size_4M)
   IMAGES += factory.bin
-  KERNEL := $(KERNEL_DTB) | uImage lzma | pad-offset 64k 64 | append-file netgear-fake-uImage-hdr.bin
+  KERNEL := $(KERNEL_DTB) | uImage lzma | pad-offset 64k 64 | append-uImage-fakeroot-hdr
   IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
 	netgear-dni
   DEVICE_TITLE := Netgear EX2700
@@ -71,7 +71,7 @@ define Device/wn3000rpv3
   DTS := WN3000RPV3
   BLOCKSIZE := 4k
   IMAGES += factory.bin
-  KERNEL := $(KERNEL_DTB) | uImage lzma | pad-offset 64k 64 | append-file netgear-fake-uImage-hdr.bin
+  KERNEL := $(KERNEL_DTB) | uImage lzma | pad-offset 64k 64 | append-uImage-fakeroot-hdr
   IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
 	netgear-dni
   DEVICE_TITLE := Netgear WN3000RPv3
@@ -465,3 +465,11 @@ define Device/kng_rc
 	zyimage -d 8997 -v "ZyXEL Keenetic Viva"
 endef
 TARGET_DEVICES += kng_rc
+
+define Device/d240
+  DTS := D240
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := Sanlinking Technologies D240
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-mt76 kmod-sdhci-mt7620
+endef
+TARGET_DEVICES += d240
