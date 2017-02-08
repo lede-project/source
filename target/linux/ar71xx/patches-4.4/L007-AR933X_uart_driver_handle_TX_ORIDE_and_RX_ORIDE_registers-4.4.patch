@@ -1,0 +1,43 @@
+From aa7678a78ab72fe34ed46e7ffe4c03f061c92aaf Mon Sep 17 00:00:00 2001
+From: Aurelio Colosimo <aurelio@aureliocolosimo.it>
+Date: Tue, 10 Mar 2015 16:32:32 +0100
+Subject: [PATCH] AR933X uart driver: handle TX_ORIDE and RX_ORIDE registers
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This patch is mostly needed for AR934X chip, but is anyway correct
+for AR933X too: when hw flow control is disabled, UART_TX_READY_ORIDE
+and UART_RX_READY_ORIDE bits of UART_CS register must be set
+to 1 (see §7.2.2 of AR9331 datasheet).
+
+Signed-off-by: Aurelio Colosimo <aurelio@aureliocolosimo.it>
+
+--- a/drivers/tty/serial/ar933x_uart.c	2015-12-18 16:11:24.562181270 +0100
++++ b/drivers/tty/serial/ar933x_uart.c	2015-12-18 16:17:38.625381999 +0100
+@@ -295,6 +295,14 @@
+ 	ar933x_uart_rmw_set(up, AR933X_UART_CS_REG,
+ 			    AR933X_UART_CS_HOST_INT_EN);
+
++	/* enable TX ready override */
++	ar933x_uart_rmw_set(up, AR933X_UART_CS_REG,
++				AR933X_UART_CS_TX_READY_ORIDE);
++
++	/* enable RX ready override */
++	ar933x_uart_rmw_set(up, AR933X_UART_CS_REG,
++				AR933X_UART_CS_RX_READY_ORIDE);
++
+ 	/* reenable the UART */
+ 	ar933x_uart_rmw(up, AR933X_UART_CS_REG,
+ 			AR933X_UART_CS_IF_MODE_M << AR933X_UART_CS_IF_MODE_S,
+@@ -427,6 +435,10 @@
+ 	ar933x_uart_rmw_set(up, AR933X_UART_CS_REG,
+ 			    AR933X_UART_CS_HOST_INT_EN);
+
++	/* enable TX ready override */
++	ar933x_uart_rmw_set(up, AR933X_UART_CS_REG,
++				AR933X_UART_CS_TX_READY_ORIDE);
++
+ 	/* Enable RX interrupts */
+ 	up->ier = AR933X_UART_INT_RX_VALID;
+ 	ar933x_uart_write(up, AR933X_UART_INT_EN_REG, up->ier);

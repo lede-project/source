@@ -1,0 +1,128 @@
+--- a/arch/mips/ath79/Kconfig.openwrt	2015-12-18 19:59:10.000000000 +0100
++++ b/arch/mips/ath79/Kconfig.openwrt	2015-12-18 23:34:12.465221405 +0100
+@@ -1621,3 +1621,94 @@
+ 	select ATH79_DEV_WMAC
+ 	select ATH79_DEV_USB
+ 	select ATH79_NVRAM
++
++config ATH79_MACH_LININO_YUN
++	bool "Linino Yun support"
++	select SOC_AR933X
++	select ATH79_DEV_ETH
++	select ATH79_DEV_GPIO_BUTTONS
++	select ATH79_DEV_LEDS_GPIO
++	select ATH79_DEV_M25P80
++	select ATH79_DEV_USB
++	select ATH79_DEV_WMAC
++	help
++		Say 'Y' here if you want your kernel to support
++		Linino Yun.
++
++config ATH79_MACH_LININO_ONE
++	bool "Linino One support"
++	select SOC_AR933X
++	select ATH79_DEV_ETH
++	select ATH79_DEV_GPIO_BUTTONS
++	select ATH79_DEV_LEDS_GPIO
++	select ATH79_DEV_M25P80
++	select ATH79_DEV_USB
++	select ATH79_DEV_WMAC
++	help
++		Say 'Y' here if you want your kernel to support
++		Linino One.
++
++config ATH79_MACH_LININO_FREEDOG
++	bool "Linino Freedog support"
++	select SOC_AR933X
++	select ATH79_DEV_ETH
++	select ATH79_DEV_GPIO_BUTTONS
++	select ATH79_DEV_LEDS_GPIO
++	select ATH79_DEV_M25P80
++	select ATH79_DEV_USB
++	select ATH79_DEV_WMAC
++	help
++		Say 'Y' here if you want your kernel to support
++	 	Linino Freedog.
++
++config ATH79_MACH_LININO_LEI
++	bool "Linino Lei support"
++	select SOC_AR934X
++	select ATH79_DEV_ETH
++	select ATH79_DEV_GPIO_BUTTONS
++	select ATH79_DEV_LEDS_GPIO
++	select ATH79_DEV_M25P80
++	select ATH79_DEV_USB
++	select ATH79_DEV_WMAC
++	help
++		Say 'Y' here if you want your kernel to support
++		Linino Lei.
++
++config ATH79_MACH_LININO_TIAN
++	bool "Linino Tian support"
++	select SOC_AR934X
++	select ATH79_DEV_ETH
++	select ATH79_DEV_GPIO_BUTTONS
++	select ATH79_DEV_LEDS_GPIO
++	select ATH79_DEV_M25P80
++	select ATH79_DEV_USB
++	select ATH79_DEV_WMAC
++	help
++		Say 'Y' here if you want your kernel to support
++		Linino Tian.
++
++config ATH79_MACH_LININO_CHIWAWA
++    bool "Linino Chiwawa support"
++    select SOC_AR933X
++    select ATH79_DEV_ETH
++    select ATH79_DEV_GPIO_BUTTONS
++    select ATH79_DEV_LEDS_GPIO
++    select ATH79_DEV_M25P80
++    select ATH79_DEV_USB
++    select ATH79_DEV_WMAC
++    help
++		Say 'Y' here if you want your kernel to support
++		Linino Chiwawa.
++
++config ATH79_MACH_LININO_YUN_MINI
++    bool "Linino Yun Mini support"
++    select SOC_AR933X
++    select ATH79_DEV_ETH
++    select ATH79_DEV_GPIO_BUTTONS
++    select ATH79_DEV_LEDS_GPIO
++    select ATH79_DEV_M25P80
++    select ATH79_DEV_USB
++    select ATH79_DEV_WMAC
++    help
++		Say 'Y' here if you want your kernel to support
++		Linino Yun mini.
+
+--- a/arch/mips/ath79/Makefile	2015-12-18 23:37:58.145218382 +0100
++++ b/arch/mips/ath79/Makefile	2015-12-18 23:38:26.829217997 +0100
+@@ -208,3 +208,10 @@
+ obj-$(CONFIG_ATH79_MACH_ZCN_1523H)	+= mach-zcn-1523h.o
+ obj-$(CONFIG_ATH79_MACH_CARAMBOLA2)	+= mach-carambola2.o
+ obj-$(CONFIG_ATH79_MACH_NBG6716)	+= mach-nbg6716.o
++obj-$(CONFIG_ATH79_MACH_LININO_YUN) += mach-linino-yun.o
++obj-$(CONFIG_ATH79_MACH_LININO_ONE) += mach-linino-yun.o
++obj-$(CONFIG_ATH79_MACH_LININO_FREEDOG) += mach-linino-freedog.o
++obj-$(CONFIG_ATH79_MACH_LININO_LEI) += mach-linino-lei.o
++obj-$(CONFIG_ATH79_MACH_LININO_TIAN) += mach-linino-tian.o
++obj-$(CONFIG_ATH79_MACH_LININO_CHIWAWA) += mach-linino-chiwawa.o
++obj-$(CONFIG_ATH79_MACH_LININO_YUN_MINI) += mach-linino-yun.o
+
+--- a/arch/mips/ath79/machtypes.h	2015-12-18 19:59:10.000000000 +0100
++++ b/arch/mips/ath79/machtypes.h	2015-12-18 23:39:34.853217086 +0100
+@@ -268,6 +268,13 @@
+ 	ATH79_MACH_WZR_450HP2,		/* Buffalo WZR-450HP2 */
+ 	ATH79_MACH_ZCN_1523H_2,		/* Zcomax ZCN-1523H-2-xx */
+ 	ATH79_MACH_ZCN_1523H_5,		/* Zcomax ZCN-1523H-5-xx */
++	ATH79_MACH_LININO_YUN,		/* Linino Yun */
++	ATH79_MACH_LININO_ONE,		/* Linino One */
++	ATH79_MACH_LININO_FREEDOG,	/* Linino Freedog */
++	ATH79_MACH_LININO_LEI,		/* Linino Lei */
++	ATH79_MACH_LININO_TIAN,		/* Linino Tian */
++	ATH79_MACH_LININO_CHIWAWA,	/* Linino Chiwawa */
++	ATH79_MACH_LININO_YUN_MINI,	/* Linino Yun mini */
+ };
+
+ #endif /* _ATH79_MACHTYPE_H */
