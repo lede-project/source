@@ -1,6 +1,6 @@
 --- a/lib/module.js
 +++ b/lib/module.js
-@@ -616,7 +616,8 @@
+@@ -617,7 +617,8 @@
      homeDir = process.env.HOME;
    }
  

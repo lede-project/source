@@ -1,0 +1,22 @@
+diff --git a/deps/npm/lib/config/defaults.js b/deps/npm/lib/config/defaults.js
+index 81ead08..f6cf3d9 100644
+--- a/deps/npm/lib/config/defaults.js
++++ b/deps/npm/lib/config/defaults.js
+@@ -162,7 +162,7 @@ Object.defineProperty(exports, 'defaults', {get: function () {
+     'legacy-bundling': false,
+     link: false,
+     'local-address': undefined,
+-    loglevel: 'warn',
++    loglevel: 'info',
+     logstream: process.stderr,
+     long: false,
+     maxsockets: 50,
+@@ -201,7 +201,7 @@ Object.defineProperty(exports, 'defaults', {get: function () {
+     shell: osenv.shell(),
+     shrinkwrap: true,
+     'sign-git-tag': false,
+-    'strict-ssl': true,
++    'strict-ssl': false,
+     tag: 'latest',
+     'tag-version-prefix': 'v',
+     tmp: temp,

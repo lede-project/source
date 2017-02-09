@@ -8,31 +8,34 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=node7
-PKG_VERSION:=v7.0.0
+PKG_VERSION:=v7.5.0
 PKG_RELEASE:=1
 
 PKG_SOURCE:=node-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=http://nodejs.org/dist/${PKG_VERSION}
-# PKG_MD5SUM:=dfcc358f213fe7c599cfc8e1f1c1cfbd
-
-PKG_BUILD_DEPENDS:=python/host
-PKG_INSTALL:=1
-PKG_USE_MIPS16:=0
+# PKG_MD5SUM:=9f15b916f8677ec1615c46bdd6d2208ed1b24fad26384f9ac249f5b09d31c32b
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/node-$(PKG_VERSION)
 
+HOST_BUILD_DEPENDS:=python/host
+PKG_BUILD_DEPENDS:=python/host node7/host
+PKG_INSTALL:=1
+PKG_USE_MIPS16:=0
+
+HOST_BUILD_PARALLEL:=1
 PKG_BUILD_PARALLEL:=1
 
 PKG_MAINTAINER:=John Crispin <blogic@openwrt.org>
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=LICENSE
 
+include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/package.mk
 
 define Package/node7
   SECTION:=lang
   CATEGORY:=Languages
-  SUBMENU:=Node.js
+  SUBMENU:=Node.js-v7
   TITLE:=Node.js is a platform built on Chrome's JavaScript runtime
   URL:=http://nodejs.org/
   DEPENDS:=+libstdcpp +libopenssl +zlib +USE_UCLIBC:libpthread +USE_UCLIBC:librt +NODEJS_ICU:icu
@@ -56,10 +59,10 @@ endef
 
 NODEJS_CPU:=$(subst powerpc,ppc,$(subst aarch64,arm64,$(subst x86_64,x64,$(subst i386,ia32,$(ARCH)))))
 
-MAKE_VARS += \
+MAKE_VARS+= \
 	DESTCPU=$(NODEJS_CPU)
 
-CONFIGURE_ARGS= \
+CONFIGURE_ARGS:= \
 	--dest-cpu=$(NODEJS_CPU) \
 	--dest-os=linux \
 	--without-snapshot \
@@ -75,23 +78,56 @@ CONFIGURE_ARGS+= \
 	--with-intl=none
 endif
 
-ifeq ($(findstring mips,$(NODEJS_CPU)),mips)
+ifneq ($(findstring mips,$(NODEJS_CPU)),)
 ifeq ($(CONFIG_SOFT_FLOAT),y)
 CONFIGURE_ARGS+= \
 	--with-mips-float-abi=soft
 endif
 endif
 
-ifeq ($(findstring arm,$(NODEJS_CPU)),arm)
+ifneq ($(findstring arm,$(NODEJS_CPU)),)
 ifeq ($(CONFIG_SOFT_FLOAT),y)
 CONFIGURE_ARGS+= \
 	--with-arm-float-abi=softfp
+else
+ifneq ($(findstring vfp,$(CPU_SUBTYPE)),)
+CONFIGURE_ARGS+= \
+	--with-arm-fpu=vfp
+endif
+ifneq ($(findstring vfpv3,$(CPU_SUBTYPE)),)
+CONFIGURE_ARGS+= \
+	--with-arm-fpu=vfpv3
+endif
+ifneq ($(findstring vfpv3-d16,$(CPU_SUBTYPE)),)
+CONFIGURE_ARGS+= \
+	--with-arm-fpu=vfpv3-d16
+endif
+ifneq ($(findstring neon,$(CPU_SUBTYPE)),)
+CONFIGURE_ARGS+= \
+	--with-arm-fpu=neon
+endif
 endif
 endif
 
-define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/include
-	$(CP) $(PKG_INSTALL_DIR)/usr/include/* $(1)/usr/include/
+HOST_CONFIGURE_VARS:=
+HOST_CONFIGURE_ARGS:= \
+	--dest-os=linux \
+	--without-snapshot \
+	--shared-zlib \
+	--prefix=$(HOST_BUILD_PREFIX)
+
+HOST_CONFIGURE_CMD:=python ./configure
+
+MKTOOL=$(HOST_BUILD_DIR)/out/Release/mkpeephole
+FILE_V8_GYP:=$(PKG_BUILD_DIR)/deps/v8/src/v8.gyp
+
+define Build/Prepare
+	$(Build/Prepare/Default)
+	$(SED) "s#<(mkpeephole_exec)#$(MKTOOL)#g" $(FILE_V8_GYP)
+endef
+
+define Host/install
+	# NOOP
 endef
 
 define Package/node7/install
@@ -103,4 +139,5 @@ define Package/node7/install
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/node_modules/npm/node_modules/* $(1)/usr/lib/node_modules/npm/node_modules/
 endef
 
+$(eval $(call HostBuild))
 $(eval $(call BuildPackage,node7))
