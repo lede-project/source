@@ -23,11 +23,9 @@ Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
  arch/arc/kernel/unaligned.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arc/kernel/unaligned.c b/arch/arc/kernel/unaligned.c
-index 91ebe382147f..5f69c3bd59bb 100644
 --- a/arch/arc/kernel/unaligned.c
 +++ b/arch/arc/kernel/unaligned.c
-@@ -243,7 +243,7 @@ int misaligned_fixup(unsigned long address, struct pt_regs *regs,
+@@ -243,7 +243,7 @@ int misaligned_fixup(unsigned long addre
  
  	/* clear any remanants of delay slot */
  	if (delay_mode(regs)) {
