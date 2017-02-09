@@ -131,6 +131,7 @@ ar71xx_setup_interfaces()
 	jwap003|\
 	pb42|\
 	pb44|\
+	rb-750-r2|\
 	rb-750up-r2|\
 	rb-951ui-2hnd|\
 	rb-951ui-2nd|\
