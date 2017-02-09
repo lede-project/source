@@ -33,7 +33,7 @@
 
 		sms {
 			label = "dwr-512-b:green:sms";
-			gpios = <&gpio0 8 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio0 8 GPIO_ACTIVE_HIGH>;
 		};
 		status {
 			label = "dwr-512-b:green:status";
@@ -111,6 +111,10 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 		compatible = "siliconlabs,si3210";
+
+		interrupt-parent = <&gpio0>;
+		interrupts = <1 8>;
+		irq-gpio = <&gpio0 1 8>;
 
 		reg = <0>;
 		spi-max-frequency = <1000000>;
