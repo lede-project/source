@@ -7,6 +7,7 @@
 
 define Profile/Xeon
   NAME:=Xeon
+  PACKAGES:=
 endef
 
 define Profile/Xeon/Description
