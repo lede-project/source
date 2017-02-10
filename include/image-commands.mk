@@ -210,6 +210,19 @@ define Build/combined-image
 	@mv $@.new $@
 endef
 
+define Build/combined-ext-image
+	-sh $(TOPDIR)/scripts/om-fwupgradecfg-gen.sh \
+		"$(if $(BOARD_NAME),$(BOARD_NAME),$(DEVICE_NAME))" \
+		"$@-fwupgrade.cfg" \
+		"$(call param_get_default,kernel,$(1),$(IMAGE_KERNEL))" \
+		"$(call param_get_default,rootfs,$(1),$@)"
+	-sh $(TOPDIR)/scripts/combined-ext-image.sh \
+		"$(if $(BOARD_NAME),$(BOARD_NAME),$(DEVICE_NAME))" "$@" \
+		"$@-fwupgrade.cfg" "fwupgrade.cfg" \
+		"$(call param_get_default,kernel,$(1),$(IMAGE_KERNEL))" "kernel" \
+		"$(call param_get_default,rootfs,$(1),$@)" "rootfs"
+endef
+
 define Build/sysupgrade-tar
 	sh $(TOPDIR)/scripts/sysupgrade-tar.sh \
 		--board $(if $(BOARD_NAME),$(BOARD_NAME),$(DEVICE_NAME)) \
