@@ -86,9 +86,9 @@ static struct gpio_led wdr3500_leds_gpio[] __initdata = {
 
 static struct gpio_keys_button wdr3500_gpio_keys[] __initdata = {
 	{
-		.desc		= "QSS button",
+		.desc		= "Reset/WPS button",
 		.type		= EV_KEY,
-		.code		= KEY_WPS_BUTTON,
+		.code		= KEY_RESTART,
 		.debounce_interval = WDR3500_KEYS_DEBOUNCE_INTERVAL,
 		.gpio		= WDR3500_GPIO_BTN_WPS,
 		.active_low	= 1,
