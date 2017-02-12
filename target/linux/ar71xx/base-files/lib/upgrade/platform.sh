@@ -246,6 +246,7 @@ platform_check_image() {
 	hiwifi-hc6361|\
 	hornet-ub-x2|\
 	jwap230|\
+	lima|\
 	loco-m-xw|\
 	mzk-w04nu|\
 	mzk-w300nh|\
