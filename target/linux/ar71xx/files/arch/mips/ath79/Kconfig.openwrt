@@ -885,8 +885,8 @@ config ATH79_MACH_RB922
 	select ATH79_ROUTERBOOT
 	select RLE_DECOMPRESS
 
-config ATH79_MACH_RB941
-	bool "MikroTik RouterBOARD 941-2nd support"
+config ATH79_MACH_RBHAPX
+	bool "MikroTik hAP-x based boards support"
 	select SOC_QCA953X
 	select ATH79_DEV_ETH
 	select ATH79_DEV_GPIO_BUTTONS
