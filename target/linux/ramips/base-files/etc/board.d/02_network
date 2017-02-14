@@ -89,6 +89,7 @@ ramips_setup_interfaces()
 	nixcore|\
 	oy-0001|\
 	pbr-m1|\
+	r6220-spi|\
 	psg1208|\
 	psg1218|\
 	sap-g3200u3|\
