@@ -90,6 +90,7 @@ ar71xx_setup_interfaces()
 	rb-911g-5hpnd|\
 	rb-912uag-2hpnd|\
 	rb-912uag-5hpnd|\
+	rb-mapl-2nd|\
 	rb-sxt2n|\
 	rb-sxt5n|\
 	re450|\
@@ -135,7 +136,10 @@ ar71xx_setup_interfaces()
 	om2p-hsv4|\
 	pb42|\
 	pb44|\
+	rb-750-r2|\
+	rb-750up-r2|\
 	rb-951ui-2hnd|\
+	rb-951ui-2nd|\
 	routerstation|\
 	tl-wr710n|\
 	tl-wr720n-v3|\

@@ -81,6 +81,26 @@ platform_do_upgrade_combined() {
 	PLATFORM_DO_UPGRADE_COMBINED_SEPARATE_MTD=0
 }
 
+platform_do_upgrade_minor() {
+	local fw_file=$1
+	local fw_part=$PART_NAME
+	local fw_mtd=$(find_mtd_part $fw_part)
+	local kern_blocks=$((0x$(dd if="$1" bs=2 skip=1 count=4 2>/dev/null) / $CI_BLKSZ))
+	local root_blocks=$((0x$(dd if="$1" bs=2 skip=5 count=4 2>/dev/null) / $CI_BLKSZ))
+
+	if [ -n "$fw_mtd" ] && \
+	   [ ${kern_blocks:-0} -gt 0 ] && \
+	   [ ${root_blocks:-0} -gt 0 ];
+	then
+		local append=""
+		[ -f "$CONF_TAR" -a "$SAVE_CONFIG" -eq 1 ] && append="-j $CONF_TAR"
+
+		sync
+		dd if="$fw_file" bs=$CI_BLKSZ skip=1 count=$((kern_blocks+root_blocks)) 2>/dev/null | \
+			mtd $append write - "$fw_part"
+	fi
+}
+
 tplink_get_image_hwid() {
 	get_image "$@" | dd bs=4 count=1 skip=16 2>/dev/null | hexdump -v -n 4 -e '1/1 "%02x"'
 }
@@ -343,7 +363,11 @@ platform_check_image() {
 	ls-sr71|\
 	pb42|\
 	pb44|\
+	rb-750-r2|\
+	rb-750up-r2|\
 	rb-941-2nd|\
+	rb-951ui-2nd|\
+	rb-mapl-2nd|\
 	routerstation-pro|\
 	routerstation|\
 	wp543|\
@@ -615,7 +639,11 @@ platform_pre_upgrade() {
 	local board=$(ar71xx_board_name)
 
 	case "$board" in
-	rb-941-2nd)
+	rb-750-r2|\
+	rb-750up-r2|\
+	rb-941-2nd|\
+	rb-951ui-2nd|\
+	rb-mapl-2nd)
 		;;
 	rb*|\
 	c-60|\
@@ -651,10 +679,6 @@ platform_do_upgrade() {
 	local board=$(ar71xx_board_name)
 
 	case "$board" in
-	rb-941-2nd)
-		PLATFORM_DO_UPGRADE_COMBINED_SEPARATE_MTD=1
-		platform_do_upgrade_combined "$ARGV"
-		;;
 	all0258n)
 		platform_do_upgrade_allnet "0x9f050000" "$ARGV"
 		;;
@@ -711,6 +735,13 @@ platform_do_upgrade() {
 	wp543|\
 	wpe72)
 		platform_do_upgrade_compex "$ARGV"
+		;;
+	rb-750-r2|\
+	rb-750up-r2|\
+	rb-941-2nd|\
+	rb-951ui-2nd|\
+	rb-mapl-2nd)
+		platform_do_upgrade_minor "$ARGV"
 		;;
 	*)
 		default_do_upgrade "$ARGV"

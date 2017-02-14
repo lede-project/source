@@ -838,6 +838,12 @@ ar71xx_board_detect() {
 	*"RouterBOARD 750GL")
 		name="rb-750gl"
 		;;
+	*"RouterBOARD 750 r2")
+		name="rb-750-r2"
+		;;
+	*"RouterBOARD 750UP r2")
+		name="rb-750up-r2"
+		;;
 	*"RouterBOARD 751")
 		name="rb-751"
 		;;
@@ -868,6 +874,9 @@ ar71xx_board_detect() {
 	*"RouterBOARD 951Ui-2HnD")
 		name="rb-951ui-2hnd"
 		;;
+	*"951Ui-2nD")
+		name="rb-951ui-2nd"
+		;;
 	*"RouterBOARD 2011L")
 		name="rb-2011l"
 		;;
@@ -882,6 +891,9 @@ ar71xx_board_detect() {
 		;;
 	*"RouterBOARD 2011UiAS-2HnD")
 		name="rb-2011uias-2hnd"
+		;;
+	*"RouterBOARD mAP L-2nD")
+		name="rb-mapl-2nd"
 		;;
 	*"RouterBOARD SXT Lite2")
 		name="rb-sxt2n"

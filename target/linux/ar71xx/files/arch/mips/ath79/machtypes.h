@@ -167,12 +167,18 @@ enum ath79_mach_type {
 	ATH79_MACH_RB_711GR100,			/* Mikrotik RouterBOARD 911/912 boards */
 	ATH79_MACH_RB_750,			/* MikroTik RouterBOARD 750 */
 	ATH79_MACH_RB_750G_R3,			/* MikroTik RouterBOARD 750GL */
+	ATH79_MACH_RB_750UPR2,			/* MikroTik RouterBOARD 750UP r2 */
 	ATH79_MACH_RB_751,			/* MikroTik RouterBOARD 751 */
 	ATH79_MACH_RB_751G,			/* Mikrotik RouterBOARD 751G */
 	ATH79_MACH_RB_922GS,			/* Mikrotik RouterBOARD 911/922GS boards */
 	ATH79_MACH_RB_941,			/* MikroTik RouterBOARD 941-2nD */
 	ATH79_MACH_RB_951G,			/* Mikrotik RouterBOARD 951G */
 	ATH79_MACH_RB_951U,			/* Mikrotik RouterBOARD 951Ui-2HnD */
+	ATH79_MACH_RB_952,			/* MikroTik RouterBOARD 951Ui-2nD */
+	ATH79_MACH_RB_CAP,			/* Mikrotik RouterBOARD cAP2nD */
+	ATH79_MACH_RB_MAP,			/* Mikrotik RouterBOARD mAP2nD */
+	ATH79_MACH_RB_MAPL,			/* Mikrotik RouterBOARD mAP L-2nD */
+	ATH79_MACH_RB_WAP,			/* Mikrotik RouterBOARD wAP2nD */
 	ATH79_MACH_RB_SXTLITE2ND,		/* Mikrotik RouterBOARD SXT Lite 2nD */
 	ATH79_MACH_RB_SXTLITE5ND,		/* Mikrotik RouterBOARD SXT Lite 5nD */
 	ATH79_MACH_RE450,			/* TP-LINK RE450 */
