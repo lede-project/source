@@ -300,7 +300,9 @@ get_status_led() {
 	rb-912uag-5hpnd)
 		status_led="rb:green:user"
 		;;
-	rb-951ui-2hnd | rb-941-2nd)
+	rb-951ui-2hnd | rb-941-2nd|\
+	rb-951ui-2nd | rb-750-r2|\
+	rb-mapl-2nd)
 		status_led="rb:green:act"
 		;;
 	rb-sxt2n|\

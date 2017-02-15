@@ -895,8 +895,8 @@ config ATH79_MACH_RB922
 	select ATH79_ROUTERBOOT
 	select RLE_DECOMPRESS
 
-config ATH79_MACH_RB941
-	bool "MikroTik RouterBOARD 941-2nd support"
+config ATH79_MACH_RBHAPX
+	bool "MikroTik hAP-x based boards support"
 	select SOC_QCA953X
 	select ATH79_DEV_ETH
 	select ATH79_DEV_GPIO_BUTTONS
@@ -904,6 +904,9 @@ config ATH79_MACH_RB941
 	select ATH79_DEV_M25P80
 	select ATH79_DEV_WMAC
 	select ATH79_ROUTERBOOT
+	help
+	  Say 'Y' here if you want your kernel to support the
+	  MikroTik RouterBOARD hAP/hEX(lite) series
 
 config ATH79_MACH_RB95X
 	bool "MikroTik RouterBOARD 95X support"

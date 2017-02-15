@@ -35,6 +35,7 @@ define Device/rb-nor-flash-16M
   KERNEL_INITRAMFS := kernel-bin | lzma | loader-kernel
   IMAGES := sysupgrade.bin
   IMAGE/sysupgrade.bin = append-rootfs | pad-rootfs | combined-image | check-size $$$$(IMAGE_SIZE)
+  DEVICE_PACKAGES:= rbcfg kmod-gpio-nxp-74hc164 kmod-ledtrig-netdev kmod-ledtrig-timer
 endef
 
 define Device/rb-941-2nd
@@ -43,4 +44,22 @@ $(Device/rb-nor-flash-16M)
   BOARDNAME:= rb-941-2nd
 endef
 
-TARGET_DEVICES += rb-nor-flash-16M rb-941-2nd
+define Device/rb-951ui-2nd
+$(Device/rb-nor-flash-16M)
+  DEVICE_TITLE := hAP
+  BOARDNAME:= rb-951ui-2nd
+endef
+
+define Device/rb-750-r2
+$(Device/rb-nor-flash-16M)
+  DEVICE_TITLE := hEX lite
+  BOARDNAME:= rb-750-r2
+endef
+
+define Device/rb-mapl
+$(Device/rb-nor-flash-16M)
+  DEVICE_TITLE := mAP lite
+  BOARDNAME:= rb-mapl
+endef
+
+TARGET_DEVICES += rb-nor-flash-16M rb-941-2nd rb-951ui-2nd rb-750-r2 rb-mapl

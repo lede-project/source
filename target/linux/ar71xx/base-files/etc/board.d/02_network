@@ -90,6 +90,7 @@ ar71xx_setup_interfaces()
 	rb-911g-5hpnd|\
 	rb-912uag-2hpnd|\
 	rb-912uag-5hpnd|\
+	rb-mapl-2nd|\
 	rb-sxt2n|\
 	rb-sxt5n|\
 	re450|\
@@ -136,6 +137,8 @@ ar71xx_setup_interfaces()
 	pb42|\
 	pb44|\
 	rb-951ui-2hnd|\
+	rb-951ui-2nd|\
+	rb-750-r2|\
 	routerstation|\
 	tl-wr710n|\
 	tl-wr720n-v3|\
@@ -254,7 +257,7 @@ ar71xx_setup_interfaces()
 	rb-941-2nd)
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:lan:4" "2:lan:3" "3:lan:2" "4:wan:1"
-	;;
+		;;
 	db120|\
 	rb-2011l|\
 	rb-2011uas|\
