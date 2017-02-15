@@ -18,6 +18,9 @@ brcm63xx_dt_detect() {
 	"ADB P.DG A4001N1")
 		board_name="a4001n1"
 		;;
+	"ADB P.DG AV4202N")
+		board_name="av4202n"
+		;;
 	"Alcatel RG100A")
 		board_name="rg100a"
 		;;
@@ -188,6 +191,9 @@ brcm63xx_dt_detect() {
 		;;
 	"NuCom R5010UN v2")
 		board_name="r5010un_v2"
+		;;
+	"Observa VH4032N")
+		board_name="vh4032n"
 		;;
 	"Pirelli A226G")
 		board_name="a226g"

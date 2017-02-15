@@ -18,6 +18,9 @@ set_state() {
 	ar-5387un)
 		status_led="AR-5387un:green:power"
 		;;
+	av4202n)
+		status_led="AV4202N:white:power"
+		;;
 	bcm96348gw)
 		status_led="96348GW:green:power"
 		;;
@@ -32,6 +35,9 @@ set_state() {
 		;;
 	spw303v)
 		status_led="spw303v:green:power+adsl"
+		;;
+	vh4032n)
+		status_led="VH4032N:red:power"
 		;;
 	vr-3025un)
 		status_led="VR-3025un:green:power"

@@ -382,6 +382,12 @@ ar71xx_board_detect() {
 	*"Oolite V1.0")
 		name="oolite"
 		;;
+	*"A40")
+		name="a40"
+		;;
+	*"A60")
+		name="a60"
+		;;
 	*"AC1750DB")
 		name="f9k1115v2"
 		;;
@@ -607,6 +613,9 @@ ar71xx_board_detect() {
 	*EAP7660D)
 		name="eap7660d"
 		;;
+	*"EBR-2310 rev. C1")
+		name="ebr-2310-c1"
+		;;
 	*EL-M150)
 		name="el-m150"
 		;;
@@ -742,6 +751,9 @@ ar71xx_board_detect() {
 	*OM2Pv2)
 		name="om2pv2"
 		;;
+	*OM2Pv4)
+		name="om2pv4"
+		;;
 	*"OM2P HS")
 		name="om2p-hs"
 		;;
@@ -750,6 +762,9 @@ ar71xx_board_detect() {
 		;;
 	*"OM2P HSv3")
 		name="om2p-hsv3"
+		;;
+	*"OM2P HSv4")
+		name="om2p-hsv4"
 		;;
 	*"OM2P LC")
 		name="om2p-lc"
@@ -823,6 +838,12 @@ ar71xx_board_detect() {
 	*"RouterBOARD 750GL")
 		name="rb-750gl"
 		;;
+	*"RouterBOARD 750 r2")
+		name="rb-750-r2"
+		;;
+	*"RouterBOARD 750UP r2")
+		name="rb-750up-r2"
+		;;
 	*"RouterBOARD 751")
 		name="rb-751"
 		;;
@@ -853,6 +874,9 @@ ar71xx_board_detect() {
 	*"RouterBOARD 951Ui-2HnD")
 		name="rb-951ui-2hnd"
 		;;
+	*"951Ui-2nD")
+		name="rb-951ui-2nd"
+		;;
 	*"RouterBOARD 2011L")
 		name="rb-2011l"
 		;;
@@ -867,6 +891,9 @@ ar71xx_board_detect() {
 		;;
 	*"RouterBOARD 2011UiAS-2HnD")
 		name="rb-2011uias-2hnd"
+		;;
+	*"RouterBOARD mAP L-2nD")
+		name="rb-mapl-2nd"
 		;;
 	*"RouterBOARD SXT Lite2")
 		name="rb-sxt2n"
@@ -985,6 +1012,9 @@ ar71xx_board_detect() {
 		;;
 	*TL-WA850RE)
 		name="tl-wa850re"
+		;;
+	*"TL-WA850RE v2")
+		name="tl-wa850re-v2"
 		;;
 	*TL-WA860RE)
 		name="tl-wa860re"
