@@ -108,7 +108,7 @@ define Host/Compile
 endef
 
 define Host/Install/Default
-	$(_SINGLE)$(MAKE) -C $(HOST_BUILD_DIR) install
+	$(call Host/Compile/Default,install)
 endef
 
 define Host/Install
@@ -182,6 +182,7 @@ ifndef DUMP
   $(_host_target)host-prepare: $(HOST_STAMP_PREPARED)
   $(_host_target)host-configure: $(HOST_STAMP_CONFIGURED)
   $(_host_target)host-compile: $(HOST_STAMP_BUILT) $(HOST_STAMP_INSTALLED)
+  host-install: host-compile
 
   host-clean-build: FORCE
 	rm -rf $(HOST_BUILD_DIR) $(HOST_STAMP_BUILT)

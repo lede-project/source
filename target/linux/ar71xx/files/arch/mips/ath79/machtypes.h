@@ -17,6 +17,8 @@
 enum ath79_mach_type {
 	ATH79_MACH_GENERIC_OF = -1,	/* Device tree board */
 	ATH79_MACH_GENERIC = 0,
+	ATH79_MACH_A40,				/* OpenMesh A40 */
+	ATH79_MACH_A60,				/* OpenMesh A60 */
 	ATH79_MACH_ALFA_AP120C,			/* ALFA Network AP120C board */
 	ATH79_MACH_ALFA_AP96,			/* ALFA Network AP96 board */
 	ATH79_MACH_ALFA_NX,			/* ALFA Network N2/N5 board */
@@ -88,6 +90,7 @@ enum ath79_mach_type {
 	ATH79_MACH_EAP120,			/* TP-LINK EAP120 */
 	ATH79_MACH_EAP300V2,			/* EnGenius EAP300 v2 */
 	ATH79_MACH_EAP7660D,			/* Senao EAP7660D */
+	ATH79_MACH_EBR_2310_C1,			/* D-link EBR-2310 rev. C1 */
 	ATH79_MACH_EL_M150,			/* EasyLink EL-M150 */
 	ATH79_MACH_EL_MINI,			/* EasyLink EL-MINI */
 	ATH79_MACH_EPG5000,			/* EnGenius EPG5000 */
@@ -130,9 +133,11 @@ enum ath79_mach_type {
 	ATH79_MACH_NBG6716,			/* Zyxel NBG6716 */
 	ATH79_MACH_OM2P,			/* OpenMesh OM2P */
 	ATH79_MACH_OM2Pv2,			/* OpenMesh OM2Pv2 */
+	ATH79_MACH_OM2Pv4,			/* OpenMesh OM2Pv4 */
 	ATH79_MACH_OM2P_HS,			/* OpenMesh OM2P-HS */
 	ATH79_MACH_OM2P_HSv2,			/* OpenMesh OM2P-HSv2 */
 	ATH79_MACH_OM2P_HSv3,			/* OpenMesh OM2P-HSv3 */
+	ATH79_MACH_OM2P_HSv4,			/* OpenMesh OM2P-HSv4 */
 	ATH79_MACH_OM2P_LC,			/* OpenMesh OM2P-LC */
 	ATH79_MACH_OM5P,			/* OpenMesh OM5P */
 	ATH79_MACH_OM5P_AC,			/* OpenMesh OM5P-AC */
@@ -162,12 +167,18 @@ enum ath79_mach_type {
 	ATH79_MACH_RB_711GR100,			/* Mikrotik RouterBOARD 911/912 boards */
 	ATH79_MACH_RB_750,			/* MikroTik RouterBOARD 750 */
 	ATH79_MACH_RB_750G_R3,			/* MikroTik RouterBOARD 750GL */
+	ATH79_MACH_RB_750UPR2,			/* MikroTik RouterBOARD 750UP r2 */
 	ATH79_MACH_RB_751,			/* MikroTik RouterBOARD 751 */
 	ATH79_MACH_RB_751G,			/* Mikrotik RouterBOARD 751G */
 	ATH79_MACH_RB_922GS,			/* Mikrotik RouterBOARD 911/922GS boards */
 	ATH79_MACH_RB_941,			/* MikroTik RouterBOARD 941-2nD */
 	ATH79_MACH_RB_951G,			/* Mikrotik RouterBOARD 951G */
 	ATH79_MACH_RB_951U,			/* Mikrotik RouterBOARD 951Ui-2HnD */
+	ATH79_MACH_RB_952,			/* MikroTik RouterBOARD 951Ui-2nD */
+	ATH79_MACH_RB_CAP,			/* Mikrotik RouterBOARD cAP2nD */
+	ATH79_MACH_RB_MAP,			/* Mikrotik RouterBOARD mAP2nD */
+	ATH79_MACH_RB_MAPL,			/* Mikrotik RouterBOARD mAP L-2nD */
+	ATH79_MACH_RB_WAP,			/* Mikrotik RouterBOARD wAP2nD */
 	ATH79_MACH_RB_SXTLITE2ND,		/* Mikrotik RouterBOARD SXT Lite 2nD */
 	ATH79_MACH_RB_SXTLITE5ND,		/* Mikrotik RouterBOARD SXT Lite 5nD */
 	ATH79_MACH_RE450,			/* TP-LINK RE450 */
@@ -202,6 +213,7 @@ enum ath79_mach_type {
 	ATH79_MACH_TL_WA801ND_V3,		/* TP-LINK TL-WA801ND v3 */
 	ATH79_MACH_TL_WA830RE_V2,		/* TP-LINK TL-WA830RE v2 */
 	ATH79_MACH_TL_WA850RE,			/* TP-LINK TL-WA850RE */
+	ATH79_MACH_TL_WA850RE_V2,		/* TP-LINK TL-WA850RE v2 */
 	ATH79_MACH_TL_WA860RE,			/* TP-LINK TL-WA860RE */
 	ATH79_MACH_TL_WA901ND,			/* TP-LINK TL-WA901ND */
 	ATH79_MACH_TL_WA901ND_V2,		/* TP-LINK TL-WA901ND v2 */

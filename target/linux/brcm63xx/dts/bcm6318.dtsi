@@ -36,7 +36,7 @@
 		compatible = "simple-bus";
 
 		ext_intc: interrupt-controller@10000018 {
-			compatible = "brcm,bcm6345-ext-intc";
+			compatible = "brcm,bcm6318-ext-intc";
 			reg = <0x10000018 0x4>;
 
 			interrupt-controller;
@@ -65,6 +65,10 @@
 			#gpio-cells = <2>;
 
 			ngpios = <18>;
+
+			interrupt-parent = <&ext_intc>;
+			interrupts = <0 0>, <1 0>;
+			interrupt-names = "gpio1", "gpio2";
 		};
 
 		gpio0: gpio-controller@10000084 {
