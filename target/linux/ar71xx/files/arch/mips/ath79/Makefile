@@ -38,6 +38,7 @@ obj-$(CONFIG_ATH79_ROUTERBOOT)		+= routerboot.o
 #
 # Machines
 #
+obj-$(CONFIG_ATH79_MACH_A60)			+= mach-a60.o
 obj-$(CONFIG_ATH79_MACH_ALFA_AP120C)		+= mach-alfa-ap120c.o
 obj-$(CONFIG_ATH79_MACH_ALFA_AP96)		+= mach-alfa-ap96.o
 obj-$(CONFIG_ATH79_MACH_ALFA_NX)		+= mach-alfa-nx.o
@@ -152,6 +153,7 @@ obj-$(CONFIG_ATH79_MACH_RB91X)			+= mach-rb91x.o
 obj-$(CONFIG_ATH79_MACH_RB922)			+= mach-rb922.o
 obj-$(CONFIG_ATH79_MACH_RB941)			+= mach-rb941.o
 obj-$(CONFIG_ATH79_MACH_RB95X)			+= mach-rb95x.o
+obj-$(CONFIG_ATH79_MACH_RBSPI)			+= mach-rbspi.o
 obj-$(CONFIG_ATH79_MACH_RBSXTLITE)		+= mach-rbsxtlite.o
 obj-$(CONFIG_ATH79_MACH_RE450)			+= mach-re450.o
 obj-$(CONFIG_ATH79_MACH_RW2458N)		+= mach-rw2458n.o
@@ -175,6 +177,7 @@ obj-$(CONFIG_ATH79_MACH_TL_WA701ND_V2)		+= mach-tl-wa701nd-v2.o
 obj-$(CONFIG_ATH79_MACH_TL_WA7210N_V2)		+= mach-tl-wa7210n-v2.o
 obj-$(CONFIG_ATH79_MACH_TL_WA801ND_V3)		+= mach-tl-wa801nd-v3.o
 obj-$(CONFIG_ATH79_MACH_TL_WA830RE_V2)		+= mach-tl-wa830re-v2.o
+obj-$(CONFIG_ATH79_MACH_TL_WA850RE_V2)		+= mach-tl-wax50re.o
 obj-$(CONFIG_ATH79_MACH_TL_WA901ND)		+= mach-tl-wa901nd.o
 obj-$(CONFIG_ATH79_MACH_TL_WA901ND_V2)		+= mach-tl-wa901nd-v2.o
 obj-$(CONFIG_ATH79_MACH_TL_WA901ND_V4)		+= mach-tl-wa901nd-v4.o

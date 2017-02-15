@@ -58,7 +58,6 @@ ramips_setup_interfaces()
 	timecloud|\
 	w150m|\
 	widora-neo|\
-	wn3000rpv3|\
 	wnce2001|\
 	zbt-cpe102|\
 	zte-q7)
@@ -195,6 +194,7 @@ ramips_setup_interfaces()
 	pbr-d1|\
 	wli-tx4-ag300n|\
 	wmr-300|\
+	wn3000rpv3|\
 	wrh-300cr)
 		ucidef_set_interface_lan "eth0"
 		;;
@@ -237,11 +237,8 @@ ramips_setup_interfaces()
 			"0:lan" "4:lan" "6t@eth0"
 		;;
 	newifi-d1)
-		ucidef_set_interface_lan_wan "eth0.1" "eth0.2"
 		ucidef_add_switch "switch0" \
-			"0:lan" "1:lan" "2:lan" "3:lan" "5:wan" "6t@eth0" "7t@eth0"
-		ucidef_add_switch "switch1" \
-			"4:lan" "6t@eth0" "7t@eth0"
+		"1:lan:2" "2:lan:1" "4:wan" "6@eth0"
 		;;
 	rt-n56u)
 		ucidef_add_switch "switch0" \

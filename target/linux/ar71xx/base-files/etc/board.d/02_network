@@ -90,6 +90,7 @@ ar71xx_setup_interfaces()
 	rb-911g-5hpnd|\
 	rb-912uag-2hpnd|\
 	rb-912uag-5hpnd|\
+	rb-mapl-2nd|\
 	rb-sxt2n|\
 	rb-sxt5n|\
 	re450|\
@@ -108,6 +109,7 @@ ar71xx_setup_interfaces()
 	tl-wa801nd-v2|\
 	tl-wa830re-v2|\
 	tl-wa850re|\
+	tl-wa850re-v2|\
 	tl-wa901nd|\
 	tl-wa901nd-v2|\
 	tl-wa901nd-v3|\
@@ -120,6 +122,8 @@ ar71xx_setup_interfaces()
 	wp543)
 		ucidef_set_interface_lan "eth0"
 		;;
+	a40|\
+	a60|\
 	alfa-ap96|\
 	alfa-nx|\
 	gl-ar150|\
@@ -128,9 +132,14 @@ ar71xx_setup_interfaces()
 	gl-inet|\
 	gl-mifi|\
 	jwap003|\
+	om2pv4|\
+	om2p-hsv4|\
 	pb42|\
 	pb44|\
+	rb-750-r2|\
+	rb-750up-r2|\
 	rb-951ui-2hnd|\
+	rb-951ui-2nd|\
 	routerstation|\
 	tl-wr710n|\
 	tl-wr720n-v3|\
@@ -304,6 +313,11 @@ ar71xx_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0u@eth0" "2:lan" "3:lan" "4:lan"
 		ucidef_add_switch_attr "switch0" "enable" "false"
+		;;
+	ebr-2310-c1)
+		ucidef_set_interfaces_lan_wan "eth0.1" "eth1"
+		ucidef_add_switch "switch0" \
+			"0@eth0" "1:lan:1" "2:lan:2" "3:lan:3" "4:lan:4"
 		;;
 	el-m150)
 		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"

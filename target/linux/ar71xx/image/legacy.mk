@@ -925,6 +925,7 @@ $(eval $(call SingleProfile,CameoAP91,64kraw,DIR600A1,dir-600-a1,DIR-600-A1,ttyS
 $(eval $(call SingleProfile,CameoAP91,64kraw,DIR601A1,dir-601-a1,DIR-600-A1,ttyS0,115200,"AP91-AR7240-RT-090223-02"))
 $(eval $(call SingleProfile,CameoAP91,64kraw,FR54RTR,fr-54rtr,DIR-600-A1,ttyS0,115200,"AP91-AR7240-RT-090223-01"))
 
+$(eval $(call SingleProfile,CameoAP99,64kraw,EBR2310C1,ebr-2310-c1,EBR-2310-C1,ttyS0,115200,"AP91-AR7240-RT-090223-03"))
 $(eval $(call SingleProfile,CameoAP99,64kraw,DIR615E1,dir-615-e1,DIR-615-E1,ttyS0,115200,"AP93-AR7240-RT-081028-00"))
 $(eval $(call SingleProfile,CameoAP99,64kraw,DIR615E4,dir-615-e4,DIR-615-E4,ttyS0,115200,"AP99-AR7240-RT-091105-05"))
 
@@ -984,6 +985,7 @@ $(eval $(call SingleProfile,Netgear,64kraw,REALWNR1000V2,wnr1000v2,WNR1000V2,tty
 $(eval $(call SingleProfile,Netgear,64kraw,WNR1000V2_VC,wnr1000v2-vc,WNR1000V2,ttyS0,115200,$$(wnr2000v3_mtdlayout),0x31303030,WNR1000V2-VC,"",))
 $(eval $(call SingleProfile,Netgear,64kraw,WPN824N,wpn824n,WPN824N,ttyS0,115200,$$(wnr2000v3_mtdlayout),0x31313030,WPN824N,"" NA,))
 
+$(eval $(call SingleProfile,OpenMesh,squashfs-only,A60,a60,,,,A60))
 $(eval $(call SingleProfile,OpenMesh,squashfs-only,OM2P,om2p,,,,OM2P))
 $(eval $(call SingleProfile,OpenMesh,squashfs-only,OM5P,om5p,,,,OM5P))
 $(eval $(call SingleProfile,OpenMesh,squashfs-only,OM5PAC,om5pac,,,,OM5PAC))

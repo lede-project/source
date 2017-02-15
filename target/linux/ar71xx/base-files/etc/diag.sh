@@ -8,6 +8,12 @@ get_status_led() {
 	local board=$(ar71xx_board_name)
 
 	case $board in
+	a40)
+		status_led="a40:green:status"
+		;;
+	a60)
+		status_led="a60:green:status"
+		;;
 	alfa-nx)
 		status_led="alfa:green:led_8"
 		;;
@@ -242,9 +248,11 @@ get_status_led() {
 		;;
 	om2p|\
 	om2pv2|\
+	om2pv4|\
 	om2p-hs|\
 	om2p-hsv2|\
 	om2p-hsv3|\
+	om2p-hsv4|\
 	om2p-lc)
 		status_led="om2p:blue:power"
 		;;
@@ -285,14 +293,19 @@ get_status_led() {
 	rb-750)
 		status_led="rb750:green:act"
 		;;
+	rb-750-r2|\
+	rb-750up-r2|\
 	rb-911g-2hpnd|\
 	rb-911g-5hpacd|\
 	rb-911g-5hpnd|\
 	rb-912uag-2hpnd|\
-	rb-912uag-5hpnd)
+	rb-912uag-5hpnd|\
+	rb-941-2nd|\
+	rb-951ui-2nd|\
+	rb-mapl-2nd)
 		status_led="rb:green:user"
 		;;
-	rb-951ui-2hnd | rb-941-2nd)
+	rb-951ui-2hnd)
 		status_led="rb:green:act"
 		;;
 	rb-sxt2n|\
@@ -333,7 +346,8 @@ get_status_led() {
 	tl-wa750re)
 		status_led="tp-link:orange:re"
 		;;
-	tl-wa850re)
+	tl-wa850re|\
+	tl-wa850re-v2)
 		status_led="tp-link:blue:re"
 		;;
 	tl-wa860re)
