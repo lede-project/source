@@ -50,18 +50,18 @@ define Package/linino-conf/install
 	$(INSTALL_CONF) ./files/etc/triggerhappy/triggers.d/reset.conf $(1)/etc/triggerhappy/triggers.d/
 
 	# /etc/ DIR
-	$(INSTALL_CONF) ./files/etc/banner $(1)/etc/
-	$(INSTALL_CONF) ./files/etc/inittab $(1)/etc/
-	$(INSTALL_CONF) ./files/etc/rc.local $(1)/etc/
+	# $(INSTALL_CONF) ./files/etc/banner $(1)/etc/
+	# $(INSTALL_CONF) ./files/etc/inittab $(1)/etc/
+	# $(INSTALL_CONF) ./files/etc/rc.local $(1)/etc/
 	$(INSTALL_CONF) ./files/etc/httpd.conf $(1)/etc/
 	$(INSTALL_CONF) ./files/etc/fw_env.config $(1)/etc/
 
 	# /etc/config DIR
 	# $(INSTALL_CONF) ./files/etc/config/arduino $(1)/etc/config/
-	$(INSTALL_CONF) ./files/etc/config/firewall $(1)/etc/config/
+	# $(INSTALL_CONF) ./files/etc/config/firewall $(1)/etc/config/
 	# $(INSTALL_CONF) ./files/etc/config/network $(1)/etc/config/
 	# $(INSTALL_CONF) ./files/etc/config/system $(1)/etc/config/
-	$(INSTALL_CONF) ./files/etc/config/uhttpd $(1)/etc/config/
+	# $(INSTALL_CONF) ./files/etc/config/uhttpd $(1)/etc/config/
 	
 	# /etc/arduino DIR
 	$(INSTALL_DATA) ./files/etc/arduino/Caterina-Yun.hex $(1)/etc/arduino/
