@@ -16,7 +16,7 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/libevent2-$(PKG_VERSION)
 PKG_SOURCE:=libevent-$(PKG_VERSION)-stable.tar.gz
 PKG_SOURCE_URL:=https://github.com/libevent/libevent.git
 PKG_SOURCE_VERSION:=release-$(PKG_VERSION)-stable
-PKG_HASH:=71c2c49f0adadacfdbe6332a372c38cf9c8b7895bb73dabeaa53cdcc1d4e1fa3
+PKG_HASH:=7c04f164404ca390c4f58beb5b5690a51985a6c63b4eb0a1e63fed1fab253fd2
 PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=BSD-3-Clause
 
