@@ -608,7 +608,7 @@ CONFIG_EXTRA_OPTIMIZATION="-fno-caller-saves"
 CONFIG_TARGET_OPTIONS=y
 CONFIG_TARGET_OPTIMIZATION="-Os -pipe -mno-branch-likely -mips32r2 -mtune=34kc"
 CONFIG_SOFT_FLOAT=y
-CONFIG_USE_MIPS16=y
+# CONFIG_USE_MIPS16 is not set
 # CONFIG_EXTERNAL_TOOLCHAIN is not set
 CONFIG_NEED_TOOLCHAIN=y
 CONFIG_TOOLCHAINOPTS=y
@@ -2102,16 +2102,25 @@ CONFIG_BUSYBOX_CONFIG_FEATURE_PASSWD_WEAK_CHECK=y
 # Linux Module Utilities
 #
 # CONFIG_BUSYBOX_CONFIG_MODPROBE_SMALL is not set
-# CONFIG_BUSYBOX_CONFIG_DEPMOD is not set
-# CONFIG_BUSYBOX_CONFIG_INSMOD is not set
-# CONFIG_BUSYBOX_CONFIG_LSMOD is not set
-# CONFIG_BUSYBOX_CONFIG_MODINFO is not set
-# CONFIG_BUSYBOX_CONFIG_MODPROBE is not set
-# CONFIG_BUSYBOX_CONFIG_RMMOD is not set
+CONFIG_BUSYBOX_CONFIG_DEPMOD=y
+CONFIG_BUSYBOX_CONFIG_INSMOD=y
+CONFIG_BUSYBOX_CONFIG_LSMOD=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_LSMOD_PRETTY_2_6_OUTPUT is not set
+CONFIG_BUSYBOX_CONFIG_MODINFO=y
+CONFIG_BUSYBOX_CONFIG_MODPROBE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_MODPROBE_BLACKLIST=y
+CONFIG_BUSYBOX_CONFIG_RMMOD=y
 
 #
 # Options common to multiple modutils
 #
+# CONFIG_BUSYBOX_CONFIG_FEATURE_2_4_MODULES is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_INSMOD_TRY_MMAP is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_CHECK_TAINTED_MODULE is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_MODUTILS_ALIAS is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_MODUTILS_SYMBOLS is not set
+CONFIG_BUSYBOX_CONFIG_DEFAULT_MODULES_DIR=""
+CONFIG_BUSYBOX_CONFIG_DEFAULT_DEPMOD_FILE=""
 
 #
 # Linux System Utilities
@@ -2718,36 +2727,6 @@ CONFIG_PACKAGE_ath9k-htc-firmware=y
 # CONFIG_PACKAGE_rtl8192su-firmware is not set
 # CONFIG_PACKAGE_wl12xx-firmware is not set
 # CONFIG_PACKAGE_wl18xx-firmware is not set
-
-#
-# Fonts
-#
-
-#
-# DejaVu
-#
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuMathTeXGyre=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSans=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSans-Bold=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSans-BoldOblique=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSans-ExtraLight=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSans-Oblique=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSansCondensed=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSansCondensed-Bold=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSansCondensed-BoldOblique=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSansCondensed-Oblique=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSansMono=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSansMono-Bold=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSansMono-BoldOblique=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSansMono-Oblique=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSerif=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSerif-Bold=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSerif-BoldItalic=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSerif-Italic=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSerifCondensed=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSerifCondensed-Bold=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSerifCondensed-BoldItalic=m
-CONFIG_PACKAGE_dejavu-fonts-ttf-DejaVuSerifCondensed-Italic=m
 
 #
 # Kernel modules
@@ -3529,7 +3508,6 @@ CONFIG_PACKAGE_luasocket=m
 CONFIG_PACKAGE_luasql-mysql=m
 CONFIG_PACKAGE_luasql-pgsql=m
 CONFIG_PACKAGE_luasql-sqlite3=m
-# CONFIG_PACKAGE_luv is not set
 # CONFIG_PACKAGE_lzmq is not set
 CONFIG_PACKAGE_uuid=m
 
@@ -3556,7 +3534,7 @@ CONFIG_PACKAGE_node-ideino-linino-lib=m
 CONFIG_PACKAGE_node-johnny-five=m
 CONFIG_PACKAGE_node-level=m
 CONFIG_PACKAGE_node-leveldown=m
-# CONFIG_PACKAGE_node-libwyliodrin is not set
+CONFIG_PACKAGE_node-libwyliodrin=m
 CONFIG_PACKAGE_node-modbus=m
 CONFIG_PACKAGE_node-muzzley-client=m
 CONFIG_PACKAGE_node-nitrogen=m
@@ -3816,7 +3794,7 @@ CONFIG_PACKAGE_python-itsdangerous=m
 CONFIG_PACKAGE_python-jinja2=m
 # CONFIG_PACKAGE_python-ldap is not set
 CONFIG_PACKAGE_python-lib2to3=m
-# CONFIG_PACKAGE_python-libwyliodrin is not set
+CONFIG_PACKAGE_python-libwyliodrin=m
 CONFIG_PACKAGE_python-light=y
 CONFIG_PACKAGE_python-logging=m
 CONFIG_PACKAGE_python-markupsafe=m
@@ -3871,35 +3849,35 @@ CONFIG_PACKAGE_python-webassets=m
 CONFIG_PACKAGE_python-werkzeug=m
 CONFIG_PACKAGE_python-xml=m
 CONFIG_PACKAGE_python-yaml=m
-CONFIG_PACKAGE_python3=m
-CONFIG_PACKAGE_python3-asyncio=m
-CONFIG_PACKAGE_python3-base=m
+# CONFIG_PACKAGE_python3 is not set
+# CONFIG_PACKAGE_python3-asyncio is not set
+# CONFIG_PACKAGE_python3-base is not set
 # CONFIG_PACKAGE_python3-bottle is not set
 # CONFIG_PACKAGE_python3-cffi is not set
-CONFIG_PACKAGE_python3-codecs=m
-CONFIG_PACKAGE_python3-ctypes=m
-CONFIG_PACKAGE_python3-dbm=m
-CONFIG_PACKAGE_python3-decimal=m
+# CONFIG_PACKAGE_python3-codecs is not set
+# CONFIG_PACKAGE_python3-ctypes is not set
+# CONFIG_PACKAGE_python3-dbm is not set
+# CONFIG_PACKAGE_python3-decimal is not set
 # CONFIG_PACKAGE_python3-dev is not set
-CONFIG_PACKAGE_python3-distutils=m
-CONFIG_PACKAGE_python3-email=m
-CONFIG_PACKAGE_python3-gdbm=m
+# CONFIG_PACKAGE_python3-distutils is not set
+# CONFIG_PACKAGE_python3-email is not set
+# CONFIG_PACKAGE_python3-gdbm is not set
 # CONFIG_PACKAGE_python3-lib2to3 is not set
-CONFIG_PACKAGE_python3-light=m
-CONFIG_PACKAGE_python3-logging=m
-CONFIG_PACKAGE_python3-lzma=m
-CONFIG_PACKAGE_python3-multiprocessing=m
-CONFIG_PACKAGE_python3-ncurses=m
-CONFIG_PACKAGE_python3-openssl=m
+# CONFIG_PACKAGE_python3-light is not set
+# CONFIG_PACKAGE_python3-logging is not set
+# CONFIG_PACKAGE_python3-lzma is not set
+# CONFIG_PACKAGE_python3-multiprocessing is not set
+# CONFIG_PACKAGE_python3-ncurses is not set
+# CONFIG_PACKAGE_python3-openssl is not set
 # CONFIG_PACKAGE_python3-pip is not set
 # CONFIG_PACKAGE_python3-ply is not set
 # CONFIG_PACKAGE_python3-pycparser is not set
-CONFIG_PACKAGE_python3-pydoc=m
+# CONFIG_PACKAGE_python3-pydoc is not set
 # CONFIG_PACKAGE_python3-setuptools is not set
 # CONFIG_PACKAGE_python3-smbus is not set
-CONFIG_PACKAGE_python3-sqlite3=m
-CONFIG_PACKAGE_python3-unittest=m
-CONFIG_PACKAGE_python3-xml=m
+# CONFIG_PACKAGE_python3-sqlite3 is not set
+# CONFIG_PACKAGE_python3-unittest is not set
+# CONFIG_PACKAGE_python3-xml is not set
 # CONFIG_PACKAGE_pytz is not set
 # CONFIG_PACKAGE_rcssmin is not set
 # CONFIG_PACKAGE_simplejson is not set
@@ -4301,7 +4279,6 @@ CONFIG_PACKAGE_boost-container=m
 # CONFIG_PACKAGE_boost-math is not set
 # CONFIG_PACKAGE_boost-program_options is not set
 # CONFIG_PACKAGE_boost-python is not set
-# CONFIG_PACKAGE_boost-python3 is not set
 # CONFIG_PACKAGE_boost-random is not set
 # CONFIG_PACKAGE_boost-regex is not set
 # CONFIG_PACKAGE_boost-serialization is not set
@@ -4343,7 +4320,7 @@ CONFIG_PACKAGE_libassuan=y
 CONFIG_PACKAGE_libaudiofile=m
 CONFIG_PACKAGE_libavahi-client=m
 # CONFIG_PACKAGE_libavahi-compat-libdnssd is not set
-CONFIG_PACKAGE_libavahi-dbus-support=m
+CONFIG_PACKAGE_libavahi-dbus-support=y
 CONFIG_PACKAGE_libavahi-nodbus-support=y
 # CONFIG_PACKAGE_libavl is not set
 CONFIG_PACKAGE_libbfd=m
@@ -4399,14 +4376,10 @@ CONFIG_LIBCURL_PROXY=y
 # CONFIG_LIBCURL_VERBOSE is not set
 CONFIG_PACKAGE_libdaemon=y
 CONFIG_PACKAGE_libdaq=m
-CONFIG_PACKAGE_libdb47=y
-# CONFIG_PACKAGE_libdb47xx is not set
 CONFIG_PACKAGE_libdbi=m
 # CONFIG_PACKAGE_libdbd-mysql is not set
 # CONFIG_PACKAGE_libdbd-pgsql is not set
 # CONFIG_PACKAGE_libdbd-sqlite3 is not set
-CONFIG_PACKAGE_libdbus=y
-CONFIG_PACKAGE_libdbus-glib=m
 CONFIG_PACKAGE_libdevmapper=m
 # CONFIG_PACKAGE_libdmapsharing is not set
 CONFIG_PACKAGE_libdnet=m
@@ -4415,6 +4388,10 @@ CONFIG_PACKAGE_libdrm=m
 # CONFIG_PACKAGE_libedit is not set
 CONFIG_PACKAGE_libelf1=y
 CONFIG_PACKAGE_libasm=m
+CONFIG_PACKAGE_libdb47=y
+# CONFIG_PACKAGE_libdb47xx is not set
+CONFIG_PACKAGE_libdbus=y
+CONFIG_PACKAGE_libdbus-glib=m
 CONFIG_PACKAGE_libdw=m
 # CONFIG_PACKAGE_libecdsautil is not set
 # CONFIG_PACKAGE_libesmtp is not set
@@ -4433,174 +4410,28 @@ CONFIG_PACKAGE_libexif=m
 CONFIG_PACKAGE_libexpat=y
 CONFIG_PACKAGE_libexslt=m
 # CONFIG_PACKAGE_libextractor is not set
-# CONFIG_PACKAGE_libf2fs is not set
-CONFIG_PACKAGE_libfaad2=m
-# CONFIG_FAAD2_ALWAYS_USE_FLOATING_POINT is not set
 # CONFIG_PACKAGE_libfastjson is not set
-CONFIG_PACKAGE_libfdisk=m
-# CONFIG_PACKAGE_libfdt is not set
 CONFIG_PACKAGE_libffi=y
-CONFIG_PACKAGE_libffmpeg-audio-dec=m
-CONFIG_PACKAGE_libffmpeg-custom=m
-
-#
-# Build Licensing
-#
-CONFIG_FFMPEG_CUSTOM_GPL=y
-CONFIG_FFMPEG_CUSTOM_GPLV3=y
-CONFIG_FFMPEG_CUSTOM_NONFREE=y
-CONFIG_FFMPEG_CUSTOM_PATENTED=y
-
-#
-# Build Properties
-#
-CONFIG_FFMPEG_CUSTOM_LARGE=y
-
-#
-# Profiles
-#
-CONFIG_FFMPEG_CUSTOM_FFSERVER_SUPPORT=y
-CONFIG_FFMPEG_CUSTOM_MINIDLNA_SUPPORT=y
-CONFIG_FFMPEG_CUSTOM_AUDIO_DEC_SUPPORT=y
-
-#
-# External Libraries
-#
-CONFIG_FFMPEG_CUSTOM_SELECT_libmp3lame=y
-CONFIG_FFMPEG_CUSTOM_SELECT_libopus=y
-CONFIG_FFMPEG_CUSTOM_SELECT_libshine=y
-CONFIG_FFMPEG_CUSTOM_SELECT_libx264=y
-
-#
-# Encoders
-#
-CONFIG_FFMPEG_CUSTOM_ENCODER_ac3=y
-CONFIG_FFMPEG_CUSTOM_ENCODER_jpegls=y
-CONFIG_FFMPEG_CUSTOM_ENCODER_mpeg1video=y
-CONFIG_FFMPEG_CUSTOM_ENCODER_mpeg2video=y
-CONFIG_FFMPEG_CUSTOM_ENCODER_mpeg4=y
-CONFIG_FFMPEG_CUSTOM_ENCODER_pcm_s16be=y
-CONFIG_FFMPEG_CUSTOM_ENCODER_pcm_s16le=y
-CONFIG_FFMPEG_CUSTOM_ENCODER_png=y
-CONFIG_FFMPEG_CUSTOM_ENCODER_vorbis=y
-CONFIG_FFMPEG_CUSTOM_ENCODER_zlib=y
-
-#
-# Decoders
-#
-CONFIG_FFMPEG_CUSTOM_DECODER_aac=y
-CONFIG_FFMPEG_CUSTOM_SELECT_adpcm=y
-CONFIG_FFMPEG_CUSTOM_DECODER_ac3=y
-CONFIG_FFMPEG_CUSTOM_DECODER_alac=y
-CONFIG_FFMPEG_CUSTOM_DECODER_amrnb=y
-CONFIG_FFMPEG_CUSTOM_DECODER_amrwb=y
-CONFIG_FFMPEG_CUSTOM_DECODER_ape=y
-CONFIG_FFMPEG_CUSTOM_DECODER_atrac3=y
-CONFIG_FFMPEG_CUSTOM_DECODER_flac=y
-CONFIG_FFMPEG_CUSTOM_DECODER_gif=y
-CONFIG_FFMPEG_CUSTOM_DECODER_h264=y
-CONFIG_FFMPEG_CUSTOM_DECODER_hevc=y
-CONFIG_FFMPEG_CUSTOM_DECODER_jpegls=y
-CONFIG_FFMPEG_CUSTOM_DECODER_mp2=y
-CONFIG_FFMPEG_CUSTOM_DECODER_mp3=y
-CONFIG_FFMPEG_CUSTOM_DECODER_mpegvideo=y
-CONFIG_FFMPEG_CUSTOM_DECODER_mpeg1video=y
-CONFIG_FFMPEG_CUSTOM_DECODER_mpeg2video=y
-CONFIG_FFMPEG_CUSTOM_DECODER_mpeg4=y
-CONFIG_FFMPEG_CUSTOM_DECODER_mpc7=y
-CONFIG_FFMPEG_CUSTOM_DECODER_mpc8=y
-CONFIG_FFMPEG_CUSTOM_DECODER_opus=y
-CONFIG_FFMPEG_CUSTOM_DECODER_pcm_s16be=y
-CONFIG_FFMPEG_CUSTOM_DECODER_pcm_s16le=y
-CONFIG_FFMPEG_CUSTOM_DECODER_png=y
-CONFIG_FFMPEG_CUSTOM_DECODER_vc1=y
-CONFIG_FFMPEG_CUSTOM_DECODER_vorbis=y
-CONFIG_FFMPEG_CUSTOM_DECODER_wavpack=y
-CONFIG_FFMPEG_CUSTOM_DECODER_wmav1=y
-CONFIG_FFMPEG_CUSTOM_DECODER_wmav2=y
-CONFIG_FFMPEG_CUSTOM_DECODER_zlib=y
-
-#
-# Muxers
-#
-CONFIG_FFMPEG_CUSTOM_MUXER_ac3=y
-CONFIG_FFMPEG_CUSTOM_MUXER_ffm=y
-CONFIG_FFMPEG_CUSTOM_MUXER_h264=y
-CONFIG_FFMPEG_CUSTOM_MUXER_hevc=y
-CONFIG_FFMPEG_CUSTOM_MUXER_mp3=y
-CONFIG_FFMPEG_CUSTOM_MUXER_mp4=y
-CONFIG_FFMPEG_CUSTOM_MUXER_mpeg1video=y
-CONFIG_FFMPEG_CUSTOM_MUXER_mpeg2video=y
-CONFIG_FFMPEG_CUSTOM_MUXER_mpegts=y
-CONFIG_FFMPEG_CUSTOM_MUXER_ogg=y
-CONFIG_FFMPEG_CUSTOM_MUXER_rtp=y
-
-#
-# Demuxers
-#
-CONFIG_FFMPEG_CUSTOM_DEMUXER_aac=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_avi=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_ac3=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_amr=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_ape=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_flac=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_ffm=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_h264=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_hevc=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_matroska=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_mov=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_mp3=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_mpegvideo=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_mpegps=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_mpegts=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_mpc=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_mpc8=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_ogg=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_rm=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_rtsp=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_sdp=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_rtp=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_vc1=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_wav=y
-CONFIG_FFMPEG_CUSTOM_DEMUXER_wv=y
-
-#
-# Parsers
-#
-CONFIG_FFMPEG_CUSTOM_PARSER_aac=y
-CONFIG_FFMPEG_CUSTOM_PARSER_ac3=y
-CONFIG_FFMPEG_CUSTOM_PARSER_flac=y
-CONFIG_FFMPEG_CUSTOM_PARSER_h264=y
-CONFIG_FFMPEG_CUSTOM_PARSER_hevc=y
-CONFIG_FFMPEG_CUSTOM_PARSER_mpegaudio=y
-CONFIG_FFMPEG_CUSTOM_PARSER_mpegvideo=y
-CONFIG_FFMPEG_CUSTOM_PARSER_mpeg4video=y
-CONFIG_FFMPEG_CUSTOM_PARSER_opus=y
-CONFIG_FFMPEG_CUSTOM_PARSER_vc1=y
-
-#
-# Protocols
-#
-CONFIG_FFMPEG_CUSTOM_PROTOCOL_file=y
-CONFIG_FFMPEG_CUSTOM_PROTOCOL_http=y
-CONFIG_FFMPEG_CUSTOM_PROTOCOL_icecast=y
-CONFIG_FFMPEG_CUSTOM_PROTOCOL_pipe=y
-CONFIG_FFMPEG_CUSTOM_PROTOCOL_rtp=y
-CONFIG_FFMPEG_CUSTOM_PROTOCOL_tcp=y
-CONFIG_FFMPEG_CUSTOM_PROTOCOL_udp=y
-CONFIG_PACKAGE_libffmpeg-full=m
-CONFIG_PACKAGE_libffmpeg-mini=m
-CONFIG_PACKAGE_libflac=m
 # CONFIG_PACKAGE_libfreecwmp is not set
-CONFIG_PACKAGE_libfreetype=y
 CONFIG_PACKAGE_libftdi=m
 CONFIG_PACKAGE_libftdi1=y
-# CONFIG_PACKAGE_libgconf2 is not set
 CONFIG_PACKAGE_libgcrypt=m
 CONFIG_PACKAGE_libgd=m
 CONFIG_PACKAGE_libgdbm=y
 # CONFIG_PACKAGE_libgee is not set
 # CONFIG_PACKAGE_libglpk is not set
+# CONFIG_PACKAGE_libf2fs is not set
+CONFIG_PACKAGE_libfaad2=m
+# CONFIG_FAAD2_ALWAYS_USE_FLOATING_POINT is not set
+CONFIG_PACKAGE_libfdisk=m
+# CONFIG_PACKAGE_libfdt is not set
+# CONFIG_PACKAGE_libffmpeg-audio-dec is not set
+# CONFIG_PACKAGE_libffmpeg-custom is not set
+# CONFIG_PACKAGE_libffmpeg-full is not set
+# CONFIG_PACKAGE_libffmpeg-mini is not set
+CONFIG_PACKAGE_libflac=m
+CONFIG_PACKAGE_libfreetype=y
+# CONFIG_PACKAGE_libgconf2 is not set
 CONFIG_PACKAGE_libgmp=m
 # CONFIG_PACKAGE_libgnurl is not set
 CONFIG_PACKAGE_libgpg-error=y
@@ -4698,9 +4529,6 @@ CONFIG_PACKAGE_libpcap=m
 # CONFIG_PCAP_HAS_USB is not set
 CONFIG_PACKAGE_libpcre=y
 # CONFIG_PACKAGE_libpcre16 is not set
-# CONFIG_PACKAGE_libpcre2 is not set
-# CONFIG_PACKAGE_libpcre2-16 is not set
-# CONFIG_PACKAGE_libpcre2-32 is not set
 # CONFIG_PACKAGE_libpcrecpp is not set
 CONFIG_PACKAGE_libpcsclite=m
 # CONFIG_PACKAGE_libpkcs11-spy is not set
@@ -4784,7 +4612,7 @@ CONFIG_PACKAGE_libvorbisidec=m
 # CONFIG_PACKAGE_libwebsockets-full is not set
 CONFIG_PACKAGE_libwebsockets-openssl=m
 CONFIG_PACKAGE_libwrap=m
-# CONFIG_PACKAGE_libwyliodrin is not set
+CONFIG_PACKAGE_libwyliodrin=m
 CONFIG_PACKAGE_libx264=m
 # CONFIG_PACKAGE_libxerces-c is not set
 # CONFIG_PACKAGE_libxerces-c-samples is not set
@@ -4879,17 +4707,20 @@ CONFIG_PACKAGE_luci-app-6lowpand=m
 CONFIG_PACKAGE_luci-app-ahcp=m
 # CONFIG_PACKAGE_luci-app-aria2 is not set
 # CONFIG_PACKAGE_luci-app-asterisk is not set
+# CONFIG_PACKAGE_luci-app-bcp38 is not set
 # CONFIG_PACKAGE_luci-app-bird4 is not set
 # CONFIG_PACKAGE_luci-app-bird6 is not set
 # CONFIG_PACKAGE_luci-app-bmx6 is not set
 # CONFIG_PACKAGE_luci-app-bmx7 is not set
 # CONFIG_PACKAGE_luci-app-cjdns is not set
+# CONFIG_PACKAGE_luci-app-clamav is not set
 CONFIG_PACKAGE_luci-app-commands=m
 # CONFIG_PACKAGE_luci-app-cshark is not set
 CONFIG_PACKAGE_luci-app-ddns=m
 CONFIG_PACKAGE_luci-app-diag-core=m
 # CONFIG_PACKAGE_luci-app-dump1090 is not set
 # CONFIG_PACKAGE_luci-app-dynapoint is not set
+# CONFIG_PACKAGE_luci-app-e2guardian is not set
 CONFIG_PACKAGE_luci-app-firewall=y
 # CONFIG_PACKAGE_luci-app-freifunk-diagnostics is not set
 # CONFIG_PACKAGE_luci-app-freifunk-policyrouting is not set
@@ -4922,6 +4753,7 @@ CONFIG_PACKAGE_luci-app-samba=m
 # CONFIG_PACKAGE_luci-app-siitwizard is not set
 CONFIG_PACKAGE_luci-app-splash=m
 # CONFIG_PACKAGE_luci-app-sqm is not set
+# CONFIG_PACKAGE_luci-app-squid is not set
 # CONFIG_PACKAGE_luci-app-statistics is not set
 CONFIG_PACKAGE_luci-app-tinyproxy=m
 CONFIG_PACKAGE_luci-app-transmission=m
@@ -5547,9 +5379,9 @@ CONFIG_PACKAGE_ssmtp=m
 #
 # CONFIG_PACKAGE_oggfwd is not set
 # CONFIG_PACKAGE_crtmpserver is not set
-CONFIG_PACKAGE_ffmpeg=m
-CONFIG_PACKAGE_ffprobe=m
-CONFIG_PACKAGE_ffserver=m
+# CONFIG_PACKAGE_ffmpeg is not set
+# CONFIG_PACKAGE_ffprobe is not set
+# CONFIG_PACKAGE_ffserver is not set
 # CONFIG_PACKAGE_fswebcam is not set
 # CONFIG_PACKAGE_grilo is not set
 # CONFIG_PACKAGE_grilo-plugins is not set
@@ -5728,8 +5560,31 @@ CONFIG_PACKAGE_snort=m
 #
 # FreeRADIUS (version 2)
 #
-# CONFIG_PACKAGE_freeradius2 is not set
-# CONFIG_PACKAGE_freeradius2-common is not set
+CONFIG_PACKAGE_freeradius2=m
+# CONFIG_FREERADIUS_NOSSL is not set
+CONFIG_FREERADIUS_OPENSSL=y
+CONFIG_PACKAGE_freeradius2-common=m
+# CONFIG_PACKAGE_freeradius2-democerts is not set
+# CONFIG_PACKAGE_freeradius2-mod-always is not set
+# CONFIG_PACKAGE_freeradius2-mod-attr-filter is not set
+# CONFIG_PACKAGE_freeradius2-mod-attr-rewrite is not set
+# CONFIG_PACKAGE_freeradius2-mod-chap is not set
+# CONFIG_PACKAGE_freeradius2-mod-detail is not set
+# CONFIG_PACKAGE_freeradius2-mod-eap is not set
+# CONFIG_PACKAGE_freeradius2-mod-exec is not set
+# CONFIG_PACKAGE_freeradius2-mod-expiration is not set
+# CONFIG_PACKAGE_freeradius2-mod-expr is not set
+# CONFIG_PACKAGE_freeradius2-mod-files is not set
+# CONFIG_PACKAGE_freeradius2-mod-ldap is not set
+# CONFIG_PACKAGE_freeradius2-mod-logintime is not set
+# CONFIG_PACKAGE_freeradius2-mod-mschap is not set
+# CONFIG_PACKAGE_freeradius2-mod-pap is not set
+# CONFIG_PACKAGE_freeradius2-mod-passwd is not set
+# CONFIG_PACKAGE_freeradius2-mod-preprocess is not set
+# CONFIG_PACKAGE_freeradius2-mod-radutmp is not set
+# CONFIG_PACKAGE_freeradius2-mod-realm is not set
+# CONFIG_PACKAGE_freeradius2-mod-sql is not set
+# CONFIG_PACKAGE_freeradius2-mod-sqllog is not set
 # CONFIG_PACKAGE_freeradius2-utils is not set
 
 #
@@ -6213,8 +6068,6 @@ CONFIG_PACKAGE_vpnc=m
 CONFIG_VPNC_GNUTLS=y
 # CONFIG_VPNC_OPENSSL is not set
 CONFIG_PACKAGE_vpnc-scripts=m
-# CONFIG_PACKAGE_wireguard is not set
-# CONFIG_PACKAGE_wireguard-tools is not set
 CONFIG_PACKAGE_xl2tpd=m
 # CONFIG_PACKAGE_zerotier is not set
 
@@ -6450,9 +6303,9 @@ CONFIG_PACKAGE_pppdump=m
 CONFIG_PACKAGE_pppstats=m
 # CONFIG_PACKAGE_radsecproxy is not set
 CONFIG_PACKAGE_redis=m
-CONFIG_PACKAGE_redis-git=m
-CONFIG_PACKAGE_redis3=m
-CONFIG_PACKAGE_redis4=m
+# CONFIG_PACKAGE_redis-git is not set
+# CONFIG_PACKAGE_redis3 is not set
+# CONFIG_PACKAGE_redis4 is not set
 # CONFIG_PACKAGE_redsocks is not set
 # CONFIG_PACKAGE_remserial is not set
 CONFIG_PACKAGE_rssileds=m
@@ -6518,6 +6371,8 @@ CONFIG_PACKAGE_vsc7385-ucode-pb44=m
 CONFIG_PACKAGE_vsc7395-ucode-pb44=m
 # CONFIG_PACKAGE_vti is not set
 # CONFIG_PACKAGE_wakeonlan is not set
+# CONFIG_PACKAGE_wireguard is not set
+# CONFIG_PACKAGE_wireguard-tools is not set
 CONFIG_PACKAGE_wpa-cli=m
 CONFIG_PACKAGE_wpa-supplicant=m
 # CONFIG_WPA_SUPPLICANT_NO_TIMESTAMP_CHECK is not set
@@ -6580,7 +6435,7 @@ CONFIG_PACKAGE_pulseaudio-tools=m
 # CONFIG_PACKAGE_shairport-sync-mbedtls is not set
 # CONFIG_PACKAGE_shairport-sync-mini is not set
 # CONFIG_PACKAGE_shairport-sync-openssl is not set
-CONFIG_PACKAGE_shine=m
+# CONFIG_PACKAGE_shine is not set
 # CONFIG_PACKAGE_sox is not set
 # CONFIG_PACKAGE_squeezelite-full is not set
 # CONFIG_PACKAGE_squeezelite-mini is not set
@@ -7172,7 +7027,7 @@ CONFIG_PACKAGE_uuidgen=m
 CONFIG_PACKAGE_watchcat=m
 CONFIG_PACKAGE_whereis=m
 CONFIG_PACKAGE_wifitoggle=m
-# CONFIG_PACKAGE_wyliodrin-server is not set
+CONFIG_PACKAGE_wyliodrin-server=m
 CONFIG_PACKAGE_xsltproc=m
 CONFIG_PACKAGE_xxd=m
 # CONFIG_PACKAGE_yanglint is not set
@@ -7231,6 +7086,7 @@ CONFIG_PACKAGE_xxd=m
 #
 # font
 #
+# CONFIG_PACKAGE_dejavu-fonts-ttf is not set
 # CONFIG_PACKAGE_encodings is not set
 # CONFIG_PACKAGE_font-alias is not set
 # CONFIG_PACKAGE_font-base is not set
