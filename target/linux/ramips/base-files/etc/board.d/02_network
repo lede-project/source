@@ -172,6 +172,7 @@ ramips_setup_interfaces()
 	rt-n14u|\
 	tl-wr840n-v4|\
 	tl-wr841n-v13|\
+	u25awf|\
 	ubnt-erx|\
 	ubnt-erx-sfp|\
 	ur-326n4g|\
