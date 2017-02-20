@@ -1,0 +1,19 @@
+#if PACKAGE_iptables
+
+config IPTABLES_IPV4
+	bool
+	default y
+	prompt "iptables binary and essential extensions"
+
+config IPTABLES_IPV6
+	bool
+	default y if IPV6
+	prompt "ip6tables binary and essential extensions"
+
+config IPTABLES_ARPTABLES
+	bool
+
+config IPTABLES_EBTABLES
+	bool
+
+#endif
