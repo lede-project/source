@@ -8,14 +8,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=imagemagick
-PKG_VERSION:=6.9.2
-PKG_REVISION:=7
+PKG_VERSION:=7.0.4
+PKG_REVISION:=10
 PKG_RELEASE:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/ImageMagick-$(PKG_VERSION)-$(PKG_REVISION)
 PKG_SOURCE:=ImageMagick-$(PKG_VERSION)-$(PKG_REVISION).tar.bz2
 PKG_SOURCE_URL:=ftp://ftp.fifi.org/pub/ImageMagick/
-# PKG_MD5SUM:=c66bea4710370b2e115aed512fbe4601
+PKG_MD5SUM:=31f865d644e85eeb63ca0b8116526549
+
+PKG_USE_MIPS16:=0
 
 PKG_FIXUP:=autoreconf
 PKG_REMOVE_FILES:=aclocal.m4 m4/libtool.m4
@@ -104,8 +106,8 @@ CONFIGURE_ARGS += \
 	--without-x \
 	--without-magick-plus-plus
 
-EXTRA_CFLAGS += "-I$(STAGING_DIR)/usr/include/freetype2"
-EXTRA_CXXFLAGS += "-I$(STAGING_DIR)/usr/include/freetype2"
+#  EXTRA_CFLAGS += "-I$(STAGING_DIR)/usr/include/freetype2"
+# EXTRA_CXXFLAGS += "-I$(STAGING_DIR)/usr/include/freetype2"
 
 define Build/Compile
 	$(MAKE) -C $(PKG_BUILD_DIR) \
@@ -150,19 +152,23 @@ define Package/imagemagick-tools/install
 endef
 
 define Package/imagemagick-config/install
-	$(INSTALL_DIR) $(1)/etc/ImageMagick-6
+	$(INSTALL_DIR) $(1)/etc/ImageMagick-7
 	$(CP) \
-		$(PKG_INSTALL_DIR)/etc/ImageMagick-6/*.xml \
-		$(1)/etc/ImageMagick-6
+		$(PKG_INSTALL_DIR)/etc/ImageMagick-7/*.xml \
+		$(1)/etc/ImageMagick-7
+
+	$(INSTALL_DIR) $(1)/usr/lib/ImageMagick-$(PKG_VERSION)/config-Q16HDRI
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/ImageMagick-$(PKG_VERSION)/config-Q16HDRI/configure.xml \
+		$(1)/usr/lib/ImageMagick-$(PKG_VERSION)/config-Q16HDRI
 endef
 
 define BuildPlugin
   define Package/imagemagick-$(1)/install
-	$(INSTALL_DIR) $$(1)/usr/lib/ImageMagick-$(PKG_VERSION)/modules-Q16/coders
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/ImageMagick-$(PKG_VERSION)/modules-Q16/coders/$(1).so \
-		$$(1)/usr/lib/ImageMagick-$(PKG_VERSION)/modules-Q16/coders
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/ImageMagick-$(PKG_VERSION)/modules-Q16/coders/$(1).la \
-		$$(1)/usr/lib/ImageMagick-$(PKG_VERSION)/modules-Q16/coders
+	$(INSTALL_DIR) $$(1)/usr/lib/ImageMagick-$(PKG_VERSION)/modules-Q16HDRI/coders
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/ImageMagick-$(PKG_VERSION)/modules-Q16HDRI/coders/$(1).so \
+		$$(1)/usr/lib/ImageMagick-$(PKG_VERSION)/modules-Q16HDRI/coders
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/ImageMagick-$(PKG_VERSION)/modules-Q16HDRI/coders/$(1).la \
+		$$(1)/usr/lib/ImageMagick-$(PKG_VERSION)/modules-Q16HDRI/coders
   endef
 
   $$(eval $$(call BuildPackage,imagemagick-$(1)))
