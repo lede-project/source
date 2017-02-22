@@ -247,6 +247,7 @@ platform_check_image() {
 	hiwifi-hc6361|\
 	hornet-ub-x2|\
 	jwap230|\
+	lima|\
 	loco-m-xw|\
 	mzk-w04nu|\
 	mzk-w300nh|\
@@ -343,7 +344,11 @@ platform_check_image() {
 	ls-sr71|\
 	pb42|\
 	pb44|\
+	rb-750-r2|\
+	rb-750up-r2|\
 	rb-941-2nd|\
+	rb-951ui-2nd|\
+	rb-mapl-2nd|\
 	routerstation-pro|\
 	routerstation|\
 	wp543|\
@@ -425,6 +430,7 @@ platform_check_image() {
 	tl-wr741nd-v4|\
 	tl-wr741nd|\
 	tl-wr802n-v1|\
+	tl-wr802n-v2|\
 	tl-wr810n|\
 	tl-wr841n-v11|\
 	tl-wr841n-v1|\
@@ -615,7 +621,11 @@ platform_pre_upgrade() {
 	local board=$(ar71xx_board_name)
 
 	case "$board" in
-	rb-941-2nd)
+	rb-750-r2|\
+	rb-750up-r2|\
+	rb-941-2nd|\
+	rb-951ui-2nd|\
+	rb-mapl-2nd)
 		;;
 	rb*|\
 	c-60|\
@@ -651,7 +661,11 @@ platform_do_upgrade() {
 	local board=$(ar71xx_board_name)
 
 	case "$board" in
-	rb-941-2nd)
+	rb-750-r2|\
+	rb-750up-r2|\
+	rb-941-2nd|\
+	rb-951ui-2nd|\
+	rb-mapl-2nd)
 		PLATFORM_DO_UPGRADE_COMBINED_SEPARATE_MTD=1
 		platform_do_upgrade_combined "$ARGV"
 		;;

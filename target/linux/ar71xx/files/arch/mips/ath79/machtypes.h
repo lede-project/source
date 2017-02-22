@@ -113,6 +113,7 @@ enum ath79_mach_type {
 	ATH79_MACH_JA76PF2,			/* jjPlus JA76PF2 */
 	ATH79_MACH_JWAP003,			/* jjPlus JWAP003 */
 	ATH79_MACH_JWAP230,			/* jjPlus JWAP230 */
+	ATH79_MACH_LIMA,			/* 8devices Lima */
 	ATH79_MACH_MC_MAC1200R,			/* MERCURY MAC1200R */
 	ATH79_MACH_MR12,			/* Cisco Meraki MR12 */
 	ATH79_MACH_MR16,			/* Cisco Meraki MR16 */
@@ -167,12 +168,18 @@ enum ath79_mach_type {
 	ATH79_MACH_RB_711GR100,			/* Mikrotik RouterBOARD 911/912 boards */
 	ATH79_MACH_RB_750,			/* MikroTik RouterBOARD 750 */
 	ATH79_MACH_RB_750G_R3,			/* MikroTik RouterBOARD 750GL */
+	ATH79_MACH_RB_750UPR2,			/* MikroTik RouterBOARD 750UP r2 */
 	ATH79_MACH_RB_751,			/* MikroTik RouterBOARD 751 */
 	ATH79_MACH_RB_751G,			/* Mikrotik RouterBOARD 751G */
 	ATH79_MACH_RB_922GS,			/* Mikrotik RouterBOARD 911/922GS boards */
 	ATH79_MACH_RB_941,			/* MikroTik RouterBOARD 941-2nD */
 	ATH79_MACH_RB_951G,			/* Mikrotik RouterBOARD 951G */
 	ATH79_MACH_RB_951U,			/* Mikrotik RouterBOARD 951Ui-2HnD */
+	ATH79_MACH_RB_952,			/* MikroTik RouterBOARD 951Ui-2nD */
+	ATH79_MACH_RB_CAP,			/* Mikrotik RouterBOARD cAP2nD */
+	ATH79_MACH_RB_MAP,			/* Mikrotik RouterBOARD mAP2nD */
+	ATH79_MACH_RB_MAPL,			/* Mikrotik RouterBOARD mAP L-2nD */
+	ATH79_MACH_RB_WAP,			/* Mikrotik RouterBOARD wAP2nD */
 	ATH79_MACH_RB_SXTLITE2ND,		/* Mikrotik RouterBOARD SXT Lite 2nD */
 	ATH79_MACH_RB_SXTLITE5ND,		/* Mikrotik RouterBOARD SXT Lite 5nD */
 	ATH79_MACH_RE450,			/* TP-LINK RE450 */
@@ -230,6 +237,7 @@ enum ath79_mach_type {
 	ATH79_MACH_TL_WR741ND,			/* TP-LINK TL-WR741ND */
 	ATH79_MACH_TL_WR741ND_V4,		/* TP-LINK TL-WR741ND v4 */
 	ATH79_MACH_TL_WR802N_V1,		/* TP-LINK TL-WR802N v1 */
+	ATH79_MACH_TL_WR802N_V2,		/* TP-LINK TL-WR802N v2 */
 	ATH79_MACH_TL_WR810N,			/* TP-LINK TL-WR810N */
 	ATH79_MACH_TL_WR841N_V1,		/* TP-LINK TL-WR841N v1 */
 	ATH79_MACH_TL_WR841N_V11,		/* TP-LINK TL-WR841N/ND v11 */

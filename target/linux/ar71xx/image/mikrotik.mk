@@ -25,7 +25,7 @@ endef
 TARGET_DEVICES += nand-64m nand-large
 
 define Device/rb-nor-flash-16M
-  DEVICE_TITLE := MikroTik RouterBoard with 16 MB NOR flash
+  DEVICE_TITLE := MikroTik RouterBoard with 16 MB SPI NOR flash
   DEVICE_PACKAGES := rbcfg
   BLOCKSIZE := 64k
   IMAGE_SIZE := 16000k
@@ -37,10 +37,4 @@ define Device/rb-nor-flash-16M
   IMAGE/sysupgrade.bin = append-rootfs | pad-rootfs | combined-image | check-size $$$$(IMAGE_SIZE)
 endef
 
-define Device/rb-941-2nd
-$(Device/rb-nor-flash-16M)
-  DEVICE_TITLE := hAP lite
-  BOARDNAME:= rb-941-2nd
-endef
-
-TARGET_DEVICES += rb-nor-flash-16M rb-941-2nd
+TARGET_DEVICES += rb-nor-flash-16M

@@ -220,6 +220,10 @@ tplink_board_detect() {
 		;;
 	"080200"*)
 		model="TP-Link TL-WR802N"
+
+		if [ "$hwid" = '08020002' -a "$mid" = '00000002' ]; then
+			hwver=' v2'
+		fi
 		;;
 	"083000"*)
 		model="TP-Link TL-WA830RE"
@@ -838,6 +842,12 @@ ar71xx_board_detect() {
 	*"RouterBOARD 750GL")
 		name="rb-750gl"
 		;;
+	*"RouterBOARD 750 r2")
+		name="rb-750-r2"
+		;;
+	*"RouterBOARD 750UP r2")
+		name="rb-750up-r2"
+		;;
 	*"RouterBOARD 751")
 		name="rb-751"
 		;;
@@ -868,6 +878,9 @@ ar71xx_board_detect() {
 	*"RouterBOARD 951Ui-2HnD")
 		name="rb-951ui-2hnd"
 		;;
+	*"951Ui-2nD")
+		name="rb-951ui-2nd"
+		;;
 	*"RouterBOARD 2011L")
 		name="rb-2011l"
 		;;
@@ -882,6 +895,9 @@ ar71xx_board_detect() {
 		;;
 	*"RouterBOARD 2011UiAS-2HnD")
 		name="rb-2011uias-2hnd"
+		;;
+	*"RouterBOARD mAP L-2nD")
+		name="rb-mapl-2nd"
 		;;
 	*"RouterBOARD SXT Lite2")
 		name="rb-sxt2n"
@@ -1018,6 +1034,9 @@ ar71xx_board_detect() {
 		;;
 	*"TL-WR802N v1")
 		name="tl-wr802n-v1"
+		;;
+	*"TL-WR802N v2")
+		name="tl-wr802n-v2"
 		;;
 	*TL-WA901ND)
 		name="tl-wa901nd"
@@ -1249,6 +1268,9 @@ ar71xx_board_detect() {
 		;;
 	"8devices Carambola2"*)
 		name="carambola2"
+		;;
+	"8devices Lima"*)
+		name="lima"
 		;;
 	*"Sitecom WLR-8100")
 		name="wlr8100"

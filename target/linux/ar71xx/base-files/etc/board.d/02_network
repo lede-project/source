@@ -90,6 +90,7 @@ ar71xx_setup_interfaces()
 	rb-911g-5hpnd|\
 	rb-912uag-2hpnd|\
 	rb-912uag-5hpnd|\
+	rb-mapl-2nd|\
 	rb-sxt2n|\
 	rb-sxt5n|\
 	re450|\
@@ -115,6 +116,7 @@ ar71xx_setup_interfaces()
 	tl-wa901nd-v4|\
 	tl-wr703n|\
 	tl-wr802n-v1|\
+	tl-wr802n-v2|\
 	tube2h|\
 	unifiac-lite|\
 	wndap360|\
@@ -135,7 +137,10 @@ ar71xx_setup_interfaces()
 	om2p-hsv4|\
 	pb42|\
 	pb44|\
+	rb-750-r2|\
+	rb-750up-r2|\
 	rb-951ui-2hnd|\
+	rb-951ui-2nd|\
 	routerstation|\
 	tl-wr710n|\
 	tl-wr720n-v3|\
@@ -202,9 +207,15 @@ ar71xx_setup_interfaces()
 			"0@eth1" "2:lan" "3:lan" "4:lan" "5:lan" "6@eth0" "1:wan"
 		;;
 	archer-c59-v1|\
-	archer-c60-v1)
+	rb-450g)
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
 		ucidef_add_switch "switch0" \
-			"0@eth0" "2:lan:4" "3:lan:3" "4:lan:2" "5:lan:1" "1:wan"
+			"0@eth1" "1:lan:1" "2:lan:4" "3:lan:3" "4:lan:2"
+		;;
+	archer-c60-v1)
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
+		ucidef_add_switch "switch0" \
+			"0@eth1" "1:lan:1" "2:lan:2" "3:lan:3" "4:lan:4"
 		;;
 	arduino-yun|\
 	dir-505-a1|\
@@ -294,7 +305,7 @@ ar71xx_setup_interfaces()
 	wpn824n)
 		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
 		ucidef_add_switch "switch0" \
-			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "4@eth1"
+			"0@eth1" "1:lan:1" "2:lan:2" "3:lan:3" "4:lan:4"
 		;;
 	dir-825-b1|\
 	nbg460n_550n_550nh|\
@@ -369,11 +380,6 @@ ar71xx_setup_interfaces()
 		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
 		ucidef_add_switch "switch0" \
 			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "5@eth1"
-		;;
-	rb-450g)
-		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
-		ucidef_add_switch "switch0" \
-			"0@eth1" "1:lan:1" "2:lan:4" "3:lan:3" "4:lan:2"
 		;;
 	routerstation-pro)
 		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"

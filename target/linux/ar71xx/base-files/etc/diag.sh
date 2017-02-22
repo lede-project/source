@@ -26,6 +26,7 @@ get_status_led() {
 	minibox-v1|\
 	som9331|\
 	sr3200|\
+	tl-wr802n-v2|\
 	xd3200)
 		status_led="$board:green:system"
 		;;
@@ -293,14 +294,19 @@ get_status_led() {
 	rb-750)
 		status_led="rb750:green:act"
 		;;
+	rb-750-r2|\
+	rb-750up-r2|\
 	rb-911g-2hpnd|\
 	rb-911g-5hpacd|\
 	rb-911g-5hpnd|\
 	rb-912uag-2hpnd|\
-	rb-912uag-5hpnd)
+	rb-912uag-5hpnd|\
+	rb-941-2nd|\
+	rb-951ui-2nd|\
+	rb-mapl-2nd)
 		status_led="rb:green:user"
 		;;
-	rb-951ui-2hnd | rb-941-2nd)
+	rb-951ui-2hnd)
 		status_led="rb:green:act"
 		;;
 	rb-sxt2n|\

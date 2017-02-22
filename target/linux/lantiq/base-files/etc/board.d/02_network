@@ -58,7 +58,7 @@ ARV7519PW)
 ARV7519RW22)
 	wan_mac=$(macaddr_add "$(mtd_get_mac_binary boardconfig 22)" 1)
 	ucidef_add_switch "switch0" \
-		"0:lan" "2:lan" "3:lan" "4:lan" "5:lan" "6t@eth0"
+		"0:lan:5" "2:lan:3" "3:lan:4" "4:lan:1" "5:lan:2" "6t@eth0"
 	;;
 
 BTHOMEHUBV2B)
@@ -164,11 +164,10 @@ WBMR300)
 
 esac
 
-if [ -n "$(ls /lib/modules/`uname -r`/ltq_atm*)" ]; then
+ls /lib/modules/$(uname -r)/ltq_atm* 1> /dev/null 2>&1 && \
 	ucidef_add_atm_bridge "$vpi" "$vci" "$encaps" "$payload"
-fi
 
-if grep -qE "system type.*: (VR9|xRX200)" /proc/cpuinfo; then
+if lantiq_is_vdsl_system; then
 	interface_wan="ptm0"
 	ucidef_add_vdsl_modem "$annex" "av" "ptm"
 else
