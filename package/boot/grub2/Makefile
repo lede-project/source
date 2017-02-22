@@ -36,6 +36,7 @@ define Package/grub2
   TITLE:=GRand Unified Bootloader
   URL:=http://www.gnu.org/software/grub/
   DEPENDS:=@TARGET_x86||TARGET_x86_64
+  DEPENDS:=@!(TARGET_x86_64_efi||TARGET_x86_efi)
 endef
 
 define Package/grub2-editenv
@@ -45,6 +46,7 @@ define Package/grub2-editenv
   TITLE:=Grub2 Environment editor
   URL:=http://www.gnu.org/software/grub/
   DEPENDS:=@TARGET_x86||TARGET_x86_64
+  DEPENDS:=@!(TARGET_x86_64_efi||TARGET_x86_efi)
 endef
 
 define Package/grub2-editenv/description
