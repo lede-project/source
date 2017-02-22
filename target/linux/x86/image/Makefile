@@ -11,6 +11,7 @@ export PATH=$(TARGET_PATH):/sbin
 
 GRUB2_MODULES = biosdisk boot chain configfile ext2 linux ls part_msdos reboot serial vga
 GRUB2_MODULES_ISO = biosdisk boot chain configfile iso9660 linux ls part_msdos reboot serial vga
+GRUB2_MODULES_EFI = boot chain configfile fat ext2 linux ls part_msdos part_gpt halt reboot serial efi_gop efi_uga video fixvideo video_fb gfxterm terminal font
 GRUB_TERMINALS =
 GRUB_SERIAL_CONFIG =
 GRUB_TERMINAL_CONFIG =
@@ -24,6 +25,24 @@ ifneq ($(strip $(foreach subtarget,$(USE_ATKBD),$(CONFIG_TARGET_x86_$(subtarget)
   GRUB2_MODULES_ISO += at_keyboard
 endif
 
+ifneq ($(CONFIG_GRUB_EFI),)
+
+ifneq ($(CONFIG_TARGET_x86_64_efi),)
+  GRUB_EFI_PLATFORM = x86_64-efi
+  GRUB_EFI_PACKAGE = grub2-efi-amd64
+  GRUB_EFI_BOOTFILE = BOOTX64.EFI
+  GRUB_EFI_CALL = grub-efi-amd64
+endif
+
+ifneq ($(CONFIG_TARGET_x86_efi),)
+  GRUB_EFI_PLATFORM = i386-efi
+  GRUB_EFI_PACKAGE = grub2-efi-i386
+  GRUB_EFI_BOOTFILE = BOOTIA32.EFI
+  GRUB_EFI_CALL = grub-efi-i386
+endif
+
+endif
+
 ifneq ($(CONFIG_GRUB_CONSOLE),)
   GRUB_CONSOLE_CMDLINE += console=tty0
   GRUB_TERMINALS += console
@@ -35,6 +54,14 @@ ifneq ($(GRUB_SERIAL),)
   GRUB_CONSOLE_CMDLINE += console=$(GRUB_SERIAL),$(CONFIG_GRUB_BAUDRATE)n8
   GRUB_SERIAL_CONFIG := serial --unit=0 --speed=$(CONFIG_GRUB_BAUDRATE) --word=8 --parity=no --stop=1 --rtscts=off
   GRUB_TERMINALS += serial
+endif
+
+ifneq ($(CONFIG_GRUB_EFI),)
+  GRUB_FONT = unifont
+  GRUB_EFI_CONFIG = insmod font; loadfont /boot/grub/$(GRUB_FONT).pf2; insmod efi_gop; insmod efi_uga; set gfxmode=1024x768,800x600,640x480,auto; insmod gfxterm; set gfxpayload=keep 
+  GRUB_TERMINAL_INPUT_EFI += console serial
+  GRUB_TERMINAL_OUTPUT_EFI += console serial gfxterm
+  GRUB_TERMINAL_CONFIG_EFI := terminal_input $(GRUB_TERMINAL_INPUT_EFI); terminal_output $(GRUB_TERMINAL_OUTPUT_EFI)
 endif
 
 ifneq ($(GRUB_TERMINALS),)
@@ -94,6 +121,35 @@ ifneq ($(CONFIG_GRUB_IMAGES),)
 		-r "hd0,msdos1" \
 		"$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img"
 	$(call Image/Build/grub/$(1))
+  endef
+
+  define Image/Build/$(GRUB_EFI_PACKAGE)
+	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/root.grub/EFI/BOOT
+	$(CP) $(KDIR)/bzImage $(KDIR)/root.grub/boot/vmlinuz
+	grub-mkimage \
+		-p /boot/grub \
+		-d $(STAGING_DIR_HOST)/lib/grub/$(GRUB_EFI_PLATFORM) \
+		-o $(KDIR)/root.grub/EFI/BOOT/$(GRUB_EFI_BOOTFILE) \
+		-O $(GRUB_EFI_PLATFORM) \
+		-c ./grub-early.cfg \
+		$(GRUB2_MODULES_EFI)
+	grub-mkfont \
+		-o $(KDIR)/root.grub/boot/grub/$(GRUB_FONT).pf2 \
+		$(STAGING_DIR_HOST)/share/fonts/$(GRUB_FONT)/$(GRUB_FONT).bdf
+	sed \
+		-e 's#@EFI_CONFIG@#$(strip $(GRUB_EFI_CONFIG))#g' \
+		-e 's#@SERIAL_CONFIG@#$(strip $(GRUB_SERIAL_CONFIG))#g' \
+		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG_EFI))#g' \
+		-e 's#@CMDLINE@#$(strip $(call Image/cmdline/$(1)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
+		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
+		-e 's#@ROOT@#$(GRUB_ROOT)#g' \
+		./grub-efi.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
+	PADDING="$(CONFIG_TARGET_IMAGES_PAD)" SIGNATURE="$(SIGNATURE)" PATH="$(TARGET_PATH)" ./gen_image_efi.sh \
+		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
+		$(CONFIG_TARGET_KERNEL_PARTSIZE) $(KDIR)/root.grub \
+		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(KDIR)/root.$(1) \
+		256
+	$(call Image/Build/$(GRUB_EFI_CALL)/$(1))
   endef
 endif
 
@@ -179,7 +235,11 @@ endef
 define Image/Build
 	$(call Image/Build/$(1))
   ifneq ($(1),iso)
+  ifneq ($(CONFIG_GRUB_EFI),)
+	$(call Image/Build/$(GRUB_EFI_PACKAGE),$(1))
+  else
 	$(call Image/Build/grub2,$(1))
+  endif
 	$(call Image/Build/vdi,$(1))
 	$(call Image/Build/vmdk,$(1))
 	$(CP) $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
