@@ -64,8 +64,7 @@ all0256n)
 	;;
 ar670w|\
 ar725w|\
-awapn2403|\
-e220)
+awapn2403)
 	set_wifi_led "rt2800soc-phy0::radio"
 	;;
 asl26555)
@@ -159,6 +158,11 @@ vr500)
 	;;
 dir-860l-b1)
 	ucidef_set_led_netdev "wan" "wan" "$board:green:net" "eth0.2"
+	;;
+e220)
+	set_wifi_led "$board:blue:wifi"
+	ucidef_set_led_netdev "lan" "lan" "$board:green:lan" "eth0.1"
+	ucidef_set_led_netdev "wan" "wan" "$board:green:wan" "eth0.2"
 	;;
 ex2700|\
 wn3000rpv3)

@@ -10,7 +10,7 @@
 	model = "Maestro Wireless Solutions E220";
 
 	chosen {
-		bootargs = "console=ttyS0,57600";
+		bootargs = "console=ttyS0,115200";
 	};
 
 	gpio-leds {
@@ -26,6 +26,11 @@
 			gpios = <&gpio1 5 GPIO_ACTIVE_LOW>;
 		};
 
+		lan {
+			label = "e220:green:lan";
+			gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;
+		};
+
 		network {
 			label = "e220:orange:network";
 			gpios = <&gpio1 2 GPIO_ACTIVE_LOW>;
@@ -39,6 +44,16 @@
 		signal {
 			label = "e220:orange:signal";
 			gpios = <&gpio1 4 GPIO_ACTIVE_LOW>;
+		};
+
+		wan {
+			label = "e220:green:wan";
+			gpios = <&gpio1 1 GPIO_ACTIVE_LOW>;
+		};
+
+		wifi {
+			label = "e220:blue:wifi";
+			gpios = <&gpio3 0 GPIO_ACTIVE_LOW>;
 		};
 	};
 
@@ -131,6 +146,10 @@
 	status = "okay";
 };
 
+&gpio3 {
+	status = "okay";
+};
+
 &spi0 {
 	status = "okay";
 
@@ -188,8 +207,14 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "jtag", "rgmii1", "rgmii2", "mdio";
+			ralink,group = "wled", "rgmii1", "rgmii2", "mdio";
 			ralink,function = "gpio";
+		};
+	};
+	i2c_pins: i2c {
+		i2c {
+			ralink,group = "i2c";
+			ralink,function = "i2c";
 		};
 	};
 };
