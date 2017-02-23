@@ -22,6 +22,22 @@ endef
 
 $(eval $(call KernelPackage,leds-gpio))
 
+
+define KernelPackage/leds-pwm
+  SUBMENU:=$(LEDS_MENU)
+  TITLE:=PWM LED support
+  KCONFIG:=CONFIG_LEDS_PWM
+  FILES:=$(LINUX_DIR)/drivers/leds/leds-pwm.ko
+  AUTOLOAD:=$(call AutoLoad,60,leds-pwm,1)
+endef
+
+define KernelPackage/leds-pwm/description
+ Kernel module for LEDs on PWM lines
+endef
+
+$(eval $(call KernelPackage,leds-pwm))
+
+
 LED_TRIGGER_DIR=$(LINUX_DIR)/drivers/leds/trigger
 
 define KernelPackage/ledtrig-heartbeat
