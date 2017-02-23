@@ -7,7 +7,7 @@ BOARDNAME:=MT7621 based boards
 FEATURES+=usb rtc nand
 CPU_TYPE:=24kc
 
-DEFAULT_PACKAGES += kmod-mt76
+DEFAULT_PACKAGES += kmod-mt76 mt76-firmware
 
 define Target/Description
 	Build firmware images for Ralink MT7621 based boards.
