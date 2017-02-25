@@ -1,0 +1,217 @@
+From cb9b71d23d2f07f9d1397f52ea6858af9226b381 Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Fri, 23 Dec 2016 11:41:25 +0100
+Subject: [PATCH 10/13] added enable-disable cs
+
+---
+ libloragw/src/loragw_spi-stm32.c | 89 +++++++++++++++++++++++++++++-----------
+ 1 file changed, 64 insertions(+), 25 deletions(-)
+
+diff --git a/libloragw/src/loragw_spi-stm32.c b/libloragw/src/loragw_spi-stm32.c
+index 164c7c6..c86af82 100644
+--- a/libloragw/src/loragw_spi-stm32.c
++++ b/libloragw/src/loragw_spi-stm32.c
+@@ -95,7 +95,9 @@ ssize_t read_spi(int fd, void *buf, size_t count)
+ #define WRITE_ACCESS    0x80
+ #define SPI_SPEED       8000000
+ #define SPI_DEV_PATH    "/dev/ttyACM0"
++
+ uint8_t dummy[LGW_BURST_CHUNK] = {0};
++
+ #define BAUDRATE B115200
+ 
+ 
+@@ -125,6 +127,8 @@ int lgw_spi_open(void **spi_target_ptr) {
+         return LGW_SPI_ERROR;
+     }
+ 
++	DEBUG_PRINTF("Openened %s dev:%d\n", SPI_DEV_PATH, dev);
++
+      
+     fcntl(dev, F_SETFL);            // Configure port reading
+     tcgetattr(dev, &options);       // Get the current options for the port
+@@ -156,6 +160,7 @@ int lgw_spi_open(void **spi_target_ptr) {
+   speed_t ospeed = cfgetospeed(&options);
+   printf("baud rate in: 0%o\n", ispeed);
+   printf("baud rate out: 0%o\n", ospeed);
++  
+     *spi_device = dev;
+     *spi_target_ptr = (void *)spi_device;
+     DEBUG_MSG("Note: SPI port opened and configured ok\n");
+@@ -187,6 +192,49 @@ int lgw_spi_close(void *spi_target) {
+     }
+ }
+ 
++int enable_CS(int dev)
++{
++	struct termios options;
++    tcgetattr(dev, &options);       
++    cfsetispeed(&options, B1200);    
++    cfsetospeed(&options, B1200);
++    // Set the new attributes
++    int ret = tcsetattr(dev, TCSANOW, &options);
++
++	return ret;
++}
++
++int disable_CS(int dev)
++{
++	struct termios options;
++    tcgetattr(dev, &options);      
++    cfsetispeed(&options, B2400);
++    cfsetospeed(&options, B2400);
++    // Set the new attributes
++    int ret = tcsetattr(dev, TCSANOW, &options);
++
++	return ret;
++}
++
++
++
++int lgw_spi_loop_cs(void *spi_target) {
++    
++    int spi_device = *(int *)spi_target; /* must check that spi_target is not null beforehand */
++    
++    DEBUG_PRINTF("Openened dev:%d\n", spi_device);
++    for (int ii=0; ii<10000; ++ii)
++    {
++		if (enable_CS(spi_device) != 0)
++			DEBUG_MSG("**ERROR ENABLE CS **\n");
++		sleep(1);
++		if (disable_CS(spi_device) != 0)
++			DEBUG_MSG("**ERROR DISABLE CS **\n");
++		sleep(1);
++	}
++}
++
++
+ /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+ 
+ /* Simple write */
+@@ -217,14 +265,10 @@ int lgw_spi_w(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+         command_size = 2;
+     }
+ 
++	enable_CS(spi_device);
+ 	nw = write(spi_device, &out_buf[0], command_size);
+-	    
+-	if (nw != command_size) {
+-        	DEBUG_MSG("ERROR: SPI WRITE FAILURE\n");
+-        	return LGW_SPI_ERROR;
+-	}
+ 	nr = read_spi(spi_device, &dummy[0], command_size);
+-
++	disable_CS(spi_device);
+ 	
+     /* determine return code */
+     if ((nw != command_size)||(nr != command_size)) {
+@@ -249,7 +293,7 @@ int lgw_spi_r(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+     uint8_t in_buf[ARRAY_SIZE(out_buf)];
+     int nw, nr;
+ 
+-	DEBUG_MSG("\n**SIMPLE READ ** - ");
++	//DEBUG_MSG("\n**SIMPLE READ ** - ");
+     /* check input variables */
+     CHECK_NULL(spi_target);
+     if ((address & 0x80) != 0) {
+@@ -271,13 +315,10 @@ int lgw_spi_r(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+         command_size = 2;
+     }
+     
++    enable_CS(spi_device);
+     nw = write(spi_device, &out_buf[0], command_size);
+-	if (nw != command_size) {
+-        	ERROR_MSG("ERROR: SPI WRITE FAILURE\n");
+-        	return LGW_SPI_ERROR;
+-	}
+     nr = read_spi(spi_device, &in_buf[0], command_size);
+-
++	disable_CS(spi_device);
+ 
+     /* determine return code */
+     if ((nw != (int)command_size) || (nr != (int)command_size)) {
+@@ -304,7 +345,7 @@ int lgw_spi_wb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+     int byte_transfered = 0;
+     int i, nw, nr;
+ 
+-	DEBUG_MSG("\n**BURST MULTIPLE WRITE ** - ");
++	//DEBUG_MSG("\n**BURST MULTIPLE WRITE ** - ");
+     /* check input parameters */
+     CHECK_NULL(spi_target);
+     if ((address & 0x80) != 0) {
+@@ -328,20 +369,18 @@ int lgw_spi_wb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+         command_size = 1;
+     }
+     
++	enable_CS(spi_device);
+     nw = write(spi_device, &command[0], command_size);
+-	if (nw != command_size) {
+-        	ERROR_MSG("ERROR: SPI WRITE FAILURE\n");
+-        	return LGW_SPI_ERROR;
+-	}
+     nr = read_spi(spi_device, &dummy[0], command_size);
+ 
+-
+-    /* determine return code */
++    
++     /* determine return code */
+      if ((nw != command_size)||(nr != command_size))  {
+ 		DUMP_STATS(nw, nr);
+         ERROR_MSG("ERROR: SPI BURST WRITE FAILURE\n");
+         return LGW_SPI_ERROR;
+ 	}
++
+     size_to_do = size;
+     
+     for (i=0; size_to_do > 0; ++i) {
+@@ -355,6 +394,7 @@ int lgw_spi_wb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+         //DEBUG_PRINTF("BURST WRITE: to trans %d # chunk %d # transferred %d \n", size_to_do, chunk_size, byte_transfered);
+         size_to_do -= chunk_size; /* subtract the quantity of data already transferred */
+     }
++    disable_CS(spi_device);
+ 
+     /* determine return code */
+     if (byte_transfered != size) {
+@@ -379,7 +419,7 @@ int lgw_spi_rb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+     int byte_transfered = 0;
+     int i, nw, nr;
+ 
+-	DEBUG_MSG("\n**BURST MULTIPLE READ ** - ");
++	//DEBUG_MSG("\n**BURST MULTIPLE READ ** - ");
+     /* check input parameters */
+     CHECK_NULL(spi_target);
+     if ((address & 0x80) != 0) {
+@@ -402,12 +442,9 @@ int lgw_spi_rb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+         command[0] = READ_ACCESS | (address & 0x7F);
+         command_size = 1;
+     }
+-    
++
++	enable_CS(spi_device);
+     nw = write(spi_device, &command[0], command_size);
+-	if (nw != command_size) {
+-        	ERROR_MSG("ERROR: SPI WRITE FAILURE\n");
+-        	return LGW_SPI_ERROR;
+-	}
+     nr = read_spi(spi_device, &dummy[0], command_size);
+ 
+     /* determine return code */
+@@ -417,6 +454,7 @@ int lgw_spi_rb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+         return LGW_SPI_ERROR;
+ 	}
+ 
++
+     size_to_do = size;
+     memset(&dummy, 0, sizeof(dummy)); /* clear dummy */
+     memset(data, 0, size); /* clear data */
+@@ -451,6 +489,7 @@ int lgw_spi_rb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+         size_to_do -= chunk_size; /* subtract the quantity of data already transferred */
+     }
+ 
++	disable_CS(spi_device);
+     /* determine return code */
+     if (byte_transfered != size) {
+ 
+-- 
+2.11.0
+

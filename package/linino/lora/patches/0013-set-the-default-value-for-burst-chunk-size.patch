@@ -1,0 +1,39 @@
+From a158cafecf77a869720377629db5fc8f0d64ce56 Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Fri, 3 Feb 2017 11:40:21 +0100
+Subject: [PATCH] set the default value for burst chunk size
+
+---
+ libloragw/inc/loragw_spi.h | 2 +-
+ libloragw/src/loragw_reg.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/libloragw/inc/loragw_spi.h b/libloragw/inc/loragw_spi.h
+index 20afb9a..fef1f48 100644
+--- a/libloragw/inc/loragw_spi.h
++++ b/libloragw/inc/loragw_spi.h
+@@ -33,7 +33,7 @@ Maintainer: Sylvain Miermont
+ 
+ #define LGW_SPI_SUCCESS     0
+ #define LGW_SPI_ERROR       -1
+-#define LGW_BURST_CHUNK     255
++#define LGW_BURST_CHUNK     1024
+ 
+ #define LGW_SPI_MUX_MODE0   0x0     /* No FPGA */
+ #define LGW_SPI_MUX_MODE1   0x1     /* FPGA, with spi mux header */
+diff --git a/libloragw/src/loragw_reg.c b/libloragw/src/loragw_reg.c
+index aeba05b..4df5943 100644
+--- a/libloragw/src/loragw_reg.c
++++ b/libloragw/src/loragw_reg.c
+@@ -48,7 +48,7 @@ Maintainer: Sylvain Miermont
+ #define PAGE_ADDR        0x00
+ #define PAGE_MASK        0x03
+ 
+-const uint8_t FPGA_VERSION[] = { 27, 103 }; /* several versions could be supported */
++const uint8_t FPGA_VERSION[] = { 31, 33 }; /* several versions could be supported */
+ 
+ /*
+ auto generated register mapping for C code : 11-Jul-2013 13:20:40
+-- 
+2.11.0
+

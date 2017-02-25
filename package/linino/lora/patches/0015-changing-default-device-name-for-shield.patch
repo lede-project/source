@@ -1,0 +1,12 @@
+diff --git a/libloragw/src/loragw_spi-stm32.c b/libloragw/src/loragw_spi-stm32.c
+index c6649b2..a9ec563 100644
+--- a/libloragw/src/loragw_spi-stm32.c
++++ b/libloragw/src/loragw_spi-stm32.c
+@@ -94,7 +94,7 @@ ssize_t read_spi(int fd, void *buf, size_t count)
+ #define READ_ACCESS     0x00
+ #define WRITE_ACCESS    0x80
+ #define SPI_SPEED       8000000
+-#define SPI_DEV_PATH    "/dev/ttyACM0"
++#define SPI_DEV_PATH    "/dev/ttyLRA"
+
+ uint8_t dummy[LGW_BURST_CHUNK] = {0};

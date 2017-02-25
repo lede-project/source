@@ -1,0 +1,28 @@
+From cfc4e4a2cadbff042a65732aecf01f424a2bdb9a Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Fri, 2 Dec 2016 18:05:10 +0100
+Subject: [PATCH 04/13] enable debug messages
+
+---
+ libloragw/library.cfg | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/libloragw/library.cfg b/libloragw/library.cfg
+index f962ba2..ecb5a92 100644
+--- a/libloragw/library.cfg
++++ b/libloragw/library.cfg
+@@ -5,8 +5,8 @@
+ # Warning: that makes the module *very verbose*, do not use for production
+ 
+ DEBUG_AUX= 0
+-DEBUG_SPI= 0
+-DEBUG_REG= 0
+-DEBUG_HAL= 0
++DEBUG_SPI= 1
++DEBUG_REG= 1
++DEBUG_HAL= 1
+ DEBUG_LBT= 0
+ DEBUG_GPS= 0
+-- 
+2.11.0
+

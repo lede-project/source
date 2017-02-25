@@ -1,0 +1,39 @@
+From d7fd23507f2122df5816b8de9a82a8c3c3dae728 Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Fri, 2 Dec 2016 18:04:44 +0100
+Subject: [PATCH 02/13] set also a progressive data in read
+
+---
+ libloragw/tst/test_loragw_spi.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/libloragw/tst/test_loragw_spi.c b/libloragw/tst/test_loragw_spi.c
+index 872a075..eec622e 100644
+--- a/libloragw/tst/test_loragw_spi.c
++++ b/libloragw/tst/test_loragw_spi.c
+@@ -48,12 +48,12 @@ int main()
+ 
+     for (i = 0; i < BURST_TEST_SIZE; ++i) {
+         dataout[i] = 0x30 + (i % 10); /* ASCCI code for 0 -> 9 */
+-        datain[i] = 0x23; /* garbage data, to be overwritten by received data */
++        datain[i] = 0x30 + (i % 10);; /* garbage data, to be overwritten by received data */
+     }
+ 
+     printf("Beginning of test for loragw_spi.c\n");
+     lgw_spi_open(&spi_target);
+-
++#if 1
+     /* normal R/W test */
+     for (i = 0; i < TIMING_REPEAT; ++i)
+         lgw_spi_w(spi_target, spi_mux_mode, LGW_SPI_MUX_TARGET_SX1301, 0xAA, 0x96);
+@@ -69,6 +69,7 @@ int main()
+     /* burst R/W test, large bursts >> LGW_BURST_CHUNK */
+     for (i = 0; i < TIMING_REPEAT; ++i)
+         lgw_spi_wb(spi_target, spi_mux_mode, LGW_SPI_MUX_TARGET_SX1301, 0x5A, dataout, ARRAY_SIZE(dataout));
++#endif
+     for (i = 0; i < TIMING_REPEAT; ++i)
+         lgw_spi_rb(spi_target, spi_mux_mode, LGW_SPI_MUX_TARGET_SX1301, 0x5A, datain, ARRAY_SIZE(datain));
+ 
+-- 
+2.11.0
+

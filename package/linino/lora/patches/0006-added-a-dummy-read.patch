@@ -1,0 +1,127 @@
+From 9b6582c8b6b01afa10c96854c53f308c0fa0e2cc Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Mon, 5 Dec 2016 14:31:31 +0100
+Subject: [PATCH 06/13] added a dummy read
+
+---
+ libloragw/src/loragw_spi-stm32.c | 22 ++++++++++++++++------
+ libloragw/tst/test_loragw_spi.c  | 10 +++++++---
+ 2 files changed, 23 insertions(+), 9 deletions(-)
+
+diff --git a/libloragw/src/loragw_spi-stm32.c b/libloragw/src/loragw_spi-stm32.c
+index 3e28f23..7b6a76f 100644
+--- a/libloragw/src/loragw_spi-stm32.c
++++ b/libloragw/src/loragw_spi-stm32.c
+@@ -54,6 +54,7 @@ Maintainer: Sylvain Miermont
+ #define WRITE_ACCESS    0x80
+ #define SPI_SPEED       8000000
+ #define SPI_DEV_PATH    "/dev/ttyACM0"
++uint8_t dummy[LGW_BURST_CHUNK] = {0};
+ 
+ /* -------------------------------------------------------------------------- */
+ /* --- PUBLIC FUNCTIONS DEFINITION ------------------------------------------ */
+@@ -118,7 +119,7 @@ int lgw_spi_w(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+     int spi_device;
+     uint8_t out_buf[3];
+     uint8_t command_size;
+-    int a;
++    int nw, nr;
+ 
+     /* check input variables */
+     CHECK_NULL(spi_target);
+@@ -140,10 +141,13 @@ int lgw_spi_w(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+         command_size = 2;
+     }
+ 
+-	a = write(spi_device, &out_buf[0], command_size);
++	nw = write(spi_device, &out_buf[0], command_size);
++	DEBUG_PRINTF("INFO: written n.bytes %d\n", nw);
++    nr = read(spi_device, &dummy[0], command_size);
++    DEBUG_PRINTF("INFO: read n.bytese %d\n", nr);
+ 	
+     /* determine return code */
+-    if (a != command_size) {
++    if (nw != command_size) {
+         DEBUG_MSG("ERROR: SPI WRITE FAILURE\n");
+         return LGW_SPI_ERROR;
+     } else {
+@@ -208,7 +212,7 @@ int lgw_spi_wb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+     uint8_t command_size;
+     int size_to_do, chunk_size, offset;
+     int byte_transfered = 0;
+-    int i, nw;
++    int i, nw, nr;
+ 
+     /* check input parameters */
+     CHECK_NULL(spi_target);
+@@ -239,6 +243,9 @@ int lgw_spi_wb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+         DEBUG_MSG("ERROR: SPI BURST WRITE FAILURE\n");
+         return LGW_SPI_ERROR;
+ 	}
++	DEBUG_PRINTF("INFO: written n.bytes %d\n", nw);
++    nr = read(spi_device, &dummy[0], command_size);
++    DEBUG_PRINTF("INFO: read n.bytese %d\n", nr);
+     size_to_do = size;
+     
+     for (i=0; size_to_do > 0; ++i) {
+@@ -246,7 +253,7 @@ int lgw_spi_wb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+         offset = i * LGW_BURST_CHUNK;
+         nw = write(spi_device, &data[offset], chunk_size);
+         byte_transfered += nw;
+-
++		nr = read(spi_device, &dummy[offset], chunk_size);
+         DEBUG_PRINTF("BURST WRITE: to trans %d # chunk %d # transferred %d \n", size_to_do, chunk_size, byte_transfered);
+         size_to_do -= chunk_size; /* subtract the quantity of data already transferred */
+     }
+@@ -302,12 +309,15 @@ int lgw_spi_rb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+         DEBUG_MSG("ERROR: SPI BURST WRITE FAILURE\n");
+         return LGW_SPI_ERROR;
+ 	}
++	DEBUG_PRINTF("INFO: written n.bytes %d\n", nw);
++    nr = read(spi_device, &dummy[0], command_size);
++    DEBUG_PRINTF("INFO: read n.bytese %d\n", nr);
+     size_to_do = size;
+ 
+     for (i=0; size_to_do > 0; ++i) {
+         chunk_size = (size_to_do < LGW_BURST_CHUNK) ? size_to_do : LGW_BURST_CHUNK;
+         offset = i * LGW_BURST_CHUNK;
+-        nw = write(spi_device, &data[offset], chunk_size);
++        nw = write(spi_device, &dummy[offset], chunk_size);
+         nr = read(spi_device, &data[offset], chunk_size);
+         byte_transfered += nr;
+ 
+diff --git a/libloragw/tst/test_loragw_spi.c b/libloragw/tst/test_loragw_spi.c
+index eec622e..2260362 100644
+--- a/libloragw/tst/test_loragw_spi.c
++++ b/libloragw/tst/test_loragw_spi.c
+@@ -53,20 +53,24 @@ int main()
+ 
+     printf("Beginning of test for loragw_spi.c\n");
+     lgw_spi_open(&spi_target);
+-#if 1
++#if 0
+     /* normal R/W test */
+     for (i = 0; i < TIMING_REPEAT; ++i)
+         lgw_spi_w(spi_target, spi_mux_mode, LGW_SPI_MUX_TARGET_SX1301, 0xAA, 0x96);
++
+     for (i = 0; i < TIMING_REPEAT; ++i)
+         lgw_spi_r(spi_target, spi_mux_mode, LGW_SPI_MUX_TARGET_SX1301, 0x55, &data);
+-
++#endif
++#if 0
+     /* burst R/W test, small bursts << LGW_BURST_CHUNK */
+     for (i = 0; i < TIMING_REPEAT; ++i)
+         lgw_spi_wb(spi_target, spi_mux_mode, LGW_SPI_MUX_TARGET_SX1301, 0x55, dataout, 16);
++
+     for (i = 0; i < TIMING_REPEAT; ++i)
+         lgw_spi_rb(spi_target, spi_mux_mode, LGW_SPI_MUX_TARGET_SX1301, 0x55, datain, 16);
+-
++#endif
+     /* burst R/W test, large bursts >> LGW_BURST_CHUNK */
++#if 0
+     for (i = 0; i < TIMING_REPEAT; ++i)
+         lgw_spi_wb(spi_target, spi_mux_mode, LGW_SPI_MUX_TARGET_SX1301, 0x5A, dataout, ARRAY_SIZE(dataout));
+ #endif
+-- 
+2.11.0
+

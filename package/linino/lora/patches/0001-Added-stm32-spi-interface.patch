@@ -1,0 +1,425 @@
+From 5dea11e2dc3276a9364e1d7823a4fd08474d9ec9 Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Fri, 2 Dec 2016 18:04:21 +0100
+Subject: [PATCH 01/13] Added stm32 spi interface
+
+---
+ libloragw/Makefile               |  31 ++--
+ libloragw/src/loragw_spi-stm32.c | 326 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 346 insertions(+), 11 deletions(-)
+ create mode 100644 libloragw/src/loragw_spi-stm32.c
+
+diff --git a/libloragw/Makefile b/libloragw/Makefile
+index 53c33d9..0e96cb9 100644
+--- a/libloragw/Makefile
++++ b/libloragw/Makefile
+@@ -10,21 +10,21 @@ CROSS_COMPILE ?=
+ CC := $(CROSS_COMPILE)gcc
+ AR := $(CROSS_COMPILE)ar
+ 
+-CFLAGS := -O2 -Wall -Wextra -std=c99 -Iinc -I.
++CFLAGS := -O2 -Wall -Wextra -Wunused-but-set-variable -std=c99 -Iinc -I.
+ 
+ OBJDIR = obj
+ INCLUDES = $(wildcard inc/*.h)
+ 
+ ### linking options
+ 
+-LIBS := -lloragw -lrt -lm
++LIBS := -lloragw-stm32 -lrt -lm
+ 
+ ### general build targets
+ 
+-all: libloragw.a test_loragw_spi test_loragw_reg test_loragw_hal test_loragw_gps test_loragw_cal
++all: libloragw-stm32.a test_loragw_spi-stm32 test_loragw_reg test_loragw_hal test_loragw_gps test_loragw_cal
+ 
+ clean:
+-	rm -f libloragw.a
++	rm -f libloragw*.a
+ 	rm -f test_loragw_*
+ 	rm -f $(OBJDIR)/*.o
+ 	rm -f inc/config.h
+@@ -60,7 +60,10 @@ $(OBJDIR):
+ $(OBJDIR)/%.o: src/%.c $(INCLUDES) inc/config.h | $(OBJDIR)
+ 	$(CC) -c $(CFLAGS) $< -o $@
+ 
+-$(OBJDIR)/loragw_spi.o: src/loragw_spi.native.c $(INCLUDES) inc/config.h | $(OBJDIR)
++#$(OBJDIR)/loragw_spi.o: src/loragw_spi.native.c $(INCLUDES) inc/config.h | $(OBJDIR)
++#	$(CC) -c $(CFLAGS) $< -o $@
++	
++$(OBJDIR)/loragw_spi-stm32.o: src/loragw_spi-stm32.c $(INCLUDES) inc/config.h | $(OBJDIR)
+ 	$(CC) -c $(CFLAGS) $< -o $@
+ 
+ $(OBJDIR)/loragw_hal.o: src/loragw_hal.c $(INCLUDES) src/arb_fw.var src/agc_fw.var src/cal_fw.var inc/config.h | $(OBJDIR)
+@@ -68,24 +71,30 @@ $(OBJDIR)/loragw_hal.o: src/loragw_hal.c $(INCLUDES) src/arb_fw.var src/agc_fw.v
+ 
+ ### static library
+ 
+-libloragw.a: $(OBJDIR)/loragw_hal.o $(OBJDIR)/loragw_gps.o $(OBJDIR)/loragw_reg.o $(OBJDIR)/loragw_spi.o $(OBJDIR)/loragw_aux.o $(OBJDIR)/loragw_radio.o $(OBJDIR)/loragw_fpga.o $(OBJDIR)/loragw_lbt.o
++#libloragw.a: $(OBJDIR)/loragw_hal.o $(OBJDIR)/loragw_gps.o $(OBJDIR)/loragw_reg.o $(OBJDIR)/loragw_spi.o $(OBJDIR)/loragw_aux.o $(OBJDIR)/loragw_radio.o $(OBJDIR)/loragw_fpga.o $(OBJDIR)/loragw_lbt.o
++#	$(AR) rcs $@ $^
++	
++libloragw-stm32.a: $(OBJDIR)/loragw_hal.o $(OBJDIR)/loragw_gps.o $(OBJDIR)/loragw_reg.o $(OBJDIR)/loragw_spi-stm32.o $(OBJDIR)/loragw_aux.o $(OBJDIR)/loragw_radio.o $(OBJDIR)/loragw_fpga.o $(OBJDIR)/loragw_lbt.o
+ 	$(AR) rcs $@ $^
+ 
+ ### test programs
+ 
+-test_loragw_spi: tst/test_loragw_spi.c libloragw.a
++#test_loragw_spi: tst/test_loragw_spi.c libloragw.a
++#	$(CC) $(CFLAGS) -L. $< -o $@ $(LIBS)
++	
++test_loragw_spi-stm32: tst/test_loragw_spi.c libloragw-stm32.a
+ 	$(CC) $(CFLAGS) -L. $< -o $@ $(LIBS)
+ 
+-test_loragw_reg: tst/test_loragw_reg.c libloragw.a
++test_loragw_reg: tst/test_loragw_reg.c libloragw-stm32.a
+ 	$(CC) $(CFLAGS) -L. $< -o $@ $(LIBS)
+ 
+-test_loragw_hal: tst/test_loragw_hal.c libloragw.a
++test_loragw_hal: tst/test_loragw_hal.c libloragw-stm32.a
+ 	$(CC) $(CFLAGS) -L. $< -o $@ $(LIBS)
+ 
+-test_loragw_gps: tst/test_loragw_gps.c libloragw.a
++test_loragw_gps: tst/test_loragw_gps.c libloragw-stm32.a
+ 	$(CC) $(CFLAGS) -L. $< -o $@ $(LIBS)
+ 
+-test_loragw_cal: tst/test_loragw_cal.c libloragw.a src/cal_fw.var
++test_loragw_cal: tst/test_loragw_cal.c libloragw-stm32.a src/cal_fw.var
+ 	$(CC) $(CFLAGS) -L. $< -o $@ $(LIBS)
+ 
+ ### EOF
+diff --git a/libloragw/src/loragw_spi-stm32.c b/libloragw/src/loragw_spi-stm32.c
+new file mode 100644
+index 0000000..686941e
+--- /dev/null
++++ b/libloragw/src/loragw_spi-stm32.c
+@@ -0,0 +1,326 @@
++/*
++ / _____)             _              | |
++( (____  _____ ____ _| |_ _____  ____| |__
++ \____ \| ___ |    (_   _) ___ |/ ___)  _ \
++ _____) ) ____| | | || |_| ____( (___| | | |
++(______/|_____)_|_|_| \__)_____)\____)_| |_|
++  (C)2013 Semtech-Cycleo
++
++Description:
++    Host specific functions to address the LoRa concentrator registers through
++    a SPI interface.
++    Single-byte read/write and burst read/write.
++    Does not handle pagination.
++    Could be used with multiple SPI ports in parallel (explicit file descriptor)
++
++License: Revised BSD License, see LICENSE.TXT file include in the project
++Maintainer: Sylvain Miermont
++*/
++
++
++/* -------------------------------------------------------------------------- */
++/* --- DEPENDANCIES --------------------------------------------------------- */
++
++#include <stdint.h>        /* C99 types */
++#include <stdio.h>        /* printf fprintf */
++#include <stdlib.h>        /* malloc free */
++#include <unistd.h>        /* lseek, close */
++#include <fcntl.h>        /* open */
++#include <string.h>        /* memset */
++
++#include <sys/ioctl.h>
++
++#include "loragw_spi.h"
++#include "loragw_hal.h"
++
++/* -------------------------------------------------------------------------- */
++/* --- PRIVATE MACROS ------------------------------------------------------- */
++
++#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
++#if DEBUG_SPI == 1
++    #define DEBUG_MSG(str)                fprintf(stderr, str)
++    #define DEBUG_PRINTF(fmt, args...)    fprintf(stderr,"%s:%d: "fmt, __FUNCTION__, __LINE__, args)
++    #define CHECK_NULL(a)                if(a==NULL){fprintf(stderr,"%s:%d: ERROR: NULL POINTER AS ARGUMENT\n", __FUNCTION__, __LINE__);return LGW_SPI_ERROR;}
++#else
++    #define DEBUG_MSG(str)
++    #define DEBUG_PRINTF(fmt, args...)
++    #define CHECK_NULL(a)                if(a==NULL){return LGW_SPI_ERROR;}
++#endif
++
++/* -------------------------------------------------------------------------- */
++/* --- PRIVATE CONSTANTS ---------------------------------------------------- */
++
++#define READ_ACCESS     0x00
++#define WRITE_ACCESS    0x80
++#define SPI_SPEED       8000000
++#define SPI_DEV_PATH    "/dev/ttyACM0"
++
++/* -------------------------------------------------------------------------- */
++/* --- PUBLIC FUNCTIONS DEFINITION ------------------------------------------ */
++
++/* SPI initialization and configuration */
++int lgw_spi_open(void **spi_target_ptr) {
++    int *spi_device = NULL;
++    int dev;
++
++    /* check input variables */
++    CHECK_NULL(spi_target_ptr); /* cannot be null, must point on a void pointer (*spi_target_ptr can be null) */
++
++    /* allocate memory for the device descriptor */
++    spi_device = malloc(sizeof(int));
++    if (spi_device == NULL) {
++        DEBUG_MSG("ERROR: MALLOC FAIL\n");
++        return LGW_SPI_ERROR;
++    }
++
++    /* open SPI device */
++    dev = open(SPI_DEV_PATH, O_RDWR);
++    if (dev < 0) {
++        DEBUG_PRINTF("ERROR: failed to open SPI device %s\n", SPI_DEV_PATH);
++        return LGW_SPI_ERROR;
++    }
++
++    *spi_device = dev;
++    *spi_target_ptr = (void *)spi_device;
++    DEBUG_MSG("Note: SPI port opened and configured ok\n");
++    return LGW_SPI_SUCCESS;
++}
++
++/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
++
++/* SPI release */
++int lgw_spi_close(void *spi_target) {
++    int spi_device;
++    int a;
++
++    /* check input variables */
++    CHECK_NULL(spi_target);
++
++    /* close file & deallocate file descriptor */
++    spi_device = *(int *)spi_target; /* must check that spi_target is not null beforehand */
++    a = close(spi_device);
++    free(spi_target);
++
++    /* determine return code */
++    if (a < 0) {
++        DEBUG_MSG("ERROR: SPI PORT FAILED TO CLOSE\n");
++        return LGW_SPI_ERROR;
++    } else {
++        DEBUG_MSG("Note: SPI port closed\n");
++        return LGW_SPI_SUCCESS;
++    }
++}
++
++/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
++
++/* Simple write */
++int lgw_spi_w(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, uint8_t address, uint8_t data) {
++    int spi_device;
++    uint8_t out_buf[3];
++    uint8_t command_size;
++    int a;
++
++    /* check input variables */
++    CHECK_NULL(spi_target);
++    if ((address & 0x80) != 0) {
++        DEBUG_MSG("WARNING: SPI address > 127\n");
++    }
++
++    spi_device = *(int *)spi_target; /* must check that spi_target is not null beforehand */
++
++    /* prepare frame to be sent */
++    if (spi_mux_mode == LGW_SPI_MUX_MODE1) {
++        out_buf[0] = spi_mux_target;
++        out_buf[1] = WRITE_ACCESS | (address & 0x7F);
++        out_buf[2] = data;
++        command_size = 3;
++    } else {
++        out_buf[0] = WRITE_ACCESS | (address & 0x7F);
++        out_buf[1] = data;
++        command_size = 2;
++    }
++
++	a = write(spi_device, &out_buf[0], command_size);
++	
++    /* determine return code */
++    if (a != command_size) {
++        DEBUG_MSG("ERROR: SPI WRITE FAILURE\n");
++        return LGW_SPI_ERROR;
++    } else {
++        DEBUG_MSG("Note: SPI write success\n");
++        return LGW_SPI_SUCCESS;
++    }
++}
++
++/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
++
++/* Simple read */
++int lgw_spi_r(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, uint8_t address, uint8_t *data) {
++    int spi_device;
++    uint8_t out_buf[3];
++    uint8_t command_size;
++    uint8_t in_buf[ARRAY_SIZE(out_buf)];
++    int nw, nr;
++
++    /* check input variables */
++    CHECK_NULL(spi_target);
++    if ((address & 0x80) != 0) {
++        DEBUG_MSG("WARNING: SPI address > 127\n");
++    }
++    CHECK_NULL(data);
++
++    spi_device = *(int *)spi_target; /* must check that spi_target is not null beforehand */
++
++    /* prepare frame to be sent */
++    if (spi_mux_mode == LGW_SPI_MUX_MODE1) {
++        out_buf[0] = spi_mux_target;
++        out_buf[1] = READ_ACCESS | (address & 0x7F);
++        out_buf[2] = 0x00;
++        command_size = 3;
++    } else {
++        out_buf[0] = READ_ACCESS | (address & 0x7F);
++        out_buf[1] = 0x00;
++        command_size = 2;
++    }
++    
++    nw = write(spi_device, &out_buf[0], command_size);
++    nr = read(spi_device, &in_buf[0], command_size);
++
++    /* determine return code */
++    if ((nw != (int)command_size) || (nr != (int)command_size)) {
++        DEBUG_MSG("ERROR: SPI READ FAILURE\n");
++        return LGW_SPI_ERROR;
++    } else {
++        DEBUG_MSG("Note: SPI read success\n");
++        *data = in_buf[command_size - 1];
++        return LGW_SPI_SUCCESS;
++    }
++}
++
++/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
++
++/* Burst (multiple-byte) write */
++int lgw_spi_wb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, uint8_t address, uint8_t *data, uint16_t size) {
++    int spi_device;
++    uint8_t command[2];
++    uint8_t command_size;
++    int size_to_do, chunk_size, offset;
++    int byte_transfered = 0;
++    int i, nw;
++
++    /* check input parameters */
++    CHECK_NULL(spi_target);
++    if ((address & 0x80) != 0) {
++        DEBUG_MSG("WARNING: SPI address > 127\n");
++    }
++    CHECK_NULL(data);
++    if (size == 0) {
++        DEBUG_MSG("ERROR: BURST OF NULL LENGTH\n");
++        return LGW_SPI_ERROR;
++    }
++
++    spi_device = *(int *)spi_target; /* must check that spi_target is not null beforehand */
++
++    /* prepare command byte */
++    if (spi_mux_mode == LGW_SPI_MUX_MODE1) {
++        command[0] = spi_mux_target;
++        command[1] = WRITE_ACCESS | (address & 0x7F);
++        command_size = 2;
++    } else {
++        command[0] = WRITE_ACCESS | (address & 0x7F);
++        command_size = 1;
++    }
++    
++    nw = write(spi_device, &command[0], command_size);
++    /* determine return code */
++    if (nw != command_size) {
++        DEBUG_MSG("ERROR: SPI BURST WRITE FAILURE\n");
++        return LGW_SPI_ERROR;
++	}
++    size_to_do = size;
++    
++    for (i=0; size_to_do > 0; ++i) {
++        chunk_size = (size_to_do < LGW_BURST_CHUNK) ? size_to_do : LGW_BURST_CHUNK;
++        offset = i * LGW_BURST_CHUNK;
++        nw = write(spi_device, &data[offset], chunk_size);
++        byte_transfered += nw;
++
++        DEBUG_PRINTF("BURST WRITE: to trans %d # chunk %d # transferred %d \n", size_to_do, chunk_size, byte_transfered);
++        size_to_do -= chunk_size; /* subtract the quantity of data already transferred */
++    }
++
++    /* determine return code */
++    if (byte_transfered != size) {
++        DEBUG_MSG("ERROR: SPI BURST WRITE FAILURE\n");
++        return LGW_SPI_ERROR;
++    } else {
++        DEBUG_MSG("Note: SPI burst write success\n");
++        return LGW_SPI_SUCCESS;
++    }
++}
++
++/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
++
++/* Burst (multiple-byte) read */
++int lgw_spi_rb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, uint8_t address, uint8_t *data, uint16_t size) {
++    int spi_device;
++    uint8_t command[2];
++    uint8_t command_size;
++
++    int size_to_do, chunk_size, offset;
++    int byte_transfered = 0;
++    int i, nw, nr;
++
++    /* check input parameters */
++    CHECK_NULL(spi_target);
++    if ((address & 0x80) != 0) {
++        DEBUG_MSG("WARNING: SPI address > 127\n");
++    }
++    CHECK_NULL(data);
++    if (size == 0) {
++        DEBUG_MSG("ERROR: BURST OF NULL LENGTH\n");
++        return LGW_SPI_ERROR;
++    }
++
++    spi_device = *(int *)spi_target; /* must check that spi_target is not null beforehand */
++
++    /* prepare command byte */
++    if (spi_mux_mode == LGW_SPI_MUX_MODE1) {
++        command[0] = spi_mux_target;
++        command[1] = READ_ACCESS | (address & 0x7F);
++        command_size = 2;
++    } else {
++        command[0] = READ_ACCESS | (address & 0x7F);
++        command_size = 1;
++    }
++    
++    nw = write(spi_device, &command[0], command_size);
++    /* determine return code */
++    if (nw != command_size) {
++        DEBUG_MSG("ERROR: SPI BURST WRITE FAILURE\n");
++        return LGW_SPI_ERROR;
++	}
++    size_to_do = size;
++
++    for (i=0; size_to_do > 0; ++i) {
++        chunk_size = (size_to_do < LGW_BURST_CHUNK) ? size_to_do : LGW_BURST_CHUNK;
++        offset = i * LGW_BURST_CHUNK;
++        nw = write(spi_device, &data[offset], chunk_size);
++        nr = read(spi_device, &data[offset], chunk_size);
++        byte_transfered += nr;
++
++        DEBUG_PRINTF("BURST WRITE: to trans %d # chunk %d # transferred %d \n", size_to_do, chunk_size, byte_transfered);
++        size_to_do -= chunk_size; /* subtract the quantity of data already transferred */
++    }
++
++    /* determine return code */
++    if (byte_transfered != size) {
++        DEBUG_MSG("ERROR: SPI BURST READ FAILURE\n");
++        return LGW_SPI_ERROR;
++    } else {
++        DEBUG_MSG("Note: SPI burst read success\n");
++        return LGW_SPI_SUCCESS;
++    }
++}
++
++/* --- EOF ------------------------------------------------------------------ */
+-- 
+2.11.0
+

@@ -1,0 +1,2 @@
+KERNEL=="ttyACM[0-9]*", SUBSYSTEM=="tty", ATTRS{interface}=="LoRa Port", ENV{ID_VENDOR_ID}=="2a03", ENV{ID_MODEL_ID}=="005b", SYMLINK+="ttyLRA"
+KERNEL=="ttyACM[0-9]*", SUBSYSTEM=="tty", ATTRS{interface}=="GPS Port", ENV{ID_VENDOR_ID}=="2a03", ENV{ID_MODEL_ID}=="005b", SYMLINK+="ttyGPS"

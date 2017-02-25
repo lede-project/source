@@ -1,0 +1,28 @@
+From 9eed66a007131170e3c531e2323180eb73c66190 Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Fri, 3 Feb 2017 11:22:23 +0100
+Subject: [PATCH 12/13] disable debug messages
+
+---
+ libloragw/library.cfg      | 6 +++---
+ libloragw/src/loragw_reg.c | 5 -----
+ 2 files changed, 3 insertions(+), 8 deletions(-)
+
+diff --git a/libloragw/library.cfg b/libloragw/library.cfg
+index ecb5a92..f962ba2 100644
+--- a/libloragw/library.cfg
++++ b/libloragw/library.cfg
+@@ -5,8 +5,8 @@
+ # Warning: that makes the module *very verbose*, do not use for production
+
+ DEBUG_AUX= 0
+-DEBUG_SPI= 1
+-DEBUG_REG= 1
+-DEBUG_HAL= 1
++DEBUG_SPI= 0
++DEBUG_REG= 0
++DEBUG_HAL= 0
+ DEBUG_LBT= 0
+ DEBUG_GPS= 0
+--
+2.11.0

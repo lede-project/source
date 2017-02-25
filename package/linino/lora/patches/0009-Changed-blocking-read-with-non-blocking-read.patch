@@ -1,0 +1,239 @@
+From 689b11ccd83e5bad9f96460fa870a92e53703935 Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Thu, 22 Dec 2016 07:21:24 +0100
+Subject: [PATCH 09/13] Changed blocking read with non-blocking read
+
+---
+ libloragw/src/loragw_spi-stm32.c | 101 ++++++++++++++++++++++++++++-----------
+ 1 file changed, 74 insertions(+), 27 deletions(-)
+
+diff --git a/libloragw/src/loragw_spi-stm32.c b/libloragw/src/loragw_spi-stm32.c
+index 2614e22..164c7c6 100644
+--- a/libloragw/src/loragw_spi-stm32.c
++++ b/libloragw/src/loragw_spi-stm32.c
+@@ -42,6 +42,9 @@ Maintainer: Sylvain Miermont
+ /* --- PRIVATE MACROS ------------------------------------------------------- */
+ 
+ #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
++#define ERROR_MSG(str)                fprintf(stderr, str)
++#define ERROR_PRINTF(fmt, args...)    fprintf(stderr,"%s:%d: "fmt, __FUNCTION__, __LINE__, args)
++
+ #if DEBUG_SPI == 1
+     #define DEBUG_MSG(str)                fprintf(stderr, str)
+     #define DEBUG_PRINTF(fmt, args...)    fprintf(stderr,"%s:%d: "fmt, __FUNCTION__, __LINE__, args)
+@@ -60,6 +63,31 @@ Maintainer: Sylvain Miermont
+     #define DUMP_STATS(a, b)
+ #endif
+ 
++// If enabled during the read block the write buffer will be filled by incremental values 0-255 and during the read will be verified. 
++// Need to add a hardware loop between MISO and MOSI. The test pass if the read buffer is equal to the sent buffer
++//#define TEST_BUFFER_LOOP
++//#define READ_BLOCK
++#define READ_TIMEOUT 10
++
++#ifdef READ_BLOCK	
++ssize_t read_spi(int fd, void *buf, size_t count)
++{
++	return read(fd, buf, count);
++}
++#else
++ssize_t read_spi(int fd, void *buf, size_t count)
++{
++		size_t nr = 0;
++		int timeout = 0;
++		do {
++		int n = read(fd, (void*)(buf + nr), 1);
++		nr += n;
++		if (n==0) { DEBUG_MSG("."); ++timeout; }
++		} while ((nr < count)&&(timeout<READ_TIMEOUT));
++		return nr;
++}
++#endif
++
+ /* -------------------------------------------------------------------------- */
+ /* --- PRIVATE CONSTANTS ---------------------------------------------------- */
+ 
+@@ -69,7 +97,7 @@ Maintainer: Sylvain Miermont
+ #define SPI_DEV_PATH    "/dev/ttyACM0"
+ uint8_t dummy[LGW_BURST_CHUNK] = {0};
+ #define BAUDRATE B115200
+-#define DELAY 10000 
++
+ 
+ /* -------------------------------------------------------------------------- */
+ /* --- PUBLIC FUNCTIONS DEFINITION ------------------------------------------ */
+@@ -91,7 +119,7 @@ int lgw_spi_open(void **spi_target_ptr) {
+     }
+     
+      /* open SPI device */
+-	dev = open(SPI_DEV_PATH, O_RDWR);
++	dev = open(SPI_DEV_PATH, O_RDWR | O_NOCTTY );
+     if (dev < 0) {
+         DEBUG_PRINTF("ERROR: failed to open SPI device %s\n", SPI_DEV_PATH);
+         return LGW_SPI_ERROR;
+@@ -109,10 +137,17 @@ int lgw_spi_open(void **spi_target_ptr) {
+     options.c_cflag &= ~CSIZE;              // Mask data size
+     options.c_cflag |=  CS8;                // Select 8 data bits
+     options.c_cflag &= ~CRTSCTS;            // Disable hardware flow control  
++    options.c_cc[VMIN]   =  1;              // read doesn't block
++	options.c_cc[VTIME]  =  5;              // 0.5 seconds read timeout
+ 
+     // Enable data to be processed as raw input
+     options.c_lflag &= ~(ICANON | ECHO | ISIG);
+ 
++	/* Make raw */
++	cfmakeraw(&options);
++	
++	tcflush( dev, TCIFLUSH );
++	
+     // Set the new attributes
+     tcsetattr(dev, TCSANOW, &options);
+      
+@@ -188,8 +223,7 @@ int lgw_spi_w(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+         	DEBUG_MSG("ERROR: SPI WRITE FAILURE\n");
+         	return LGW_SPI_ERROR;
+ 	}
+-	usleep(DELAY);
+-	nr = read(spi_device, &dummy[0], command_size);
++	nr = read_spi(spi_device, &dummy[0], command_size);
+ 
+ 	
+     /* determine return code */
+@@ -239,11 +273,10 @@ int lgw_spi_r(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+     
+     nw = write(spi_device, &out_buf[0], command_size);
+ 	if (nw != command_size) {
+-        	DEBUG_MSG("ERROR: SPI WRITE FAILURE\n");
++        	ERROR_MSG("ERROR: SPI WRITE FAILURE\n");
+         	return LGW_SPI_ERROR;
+ 	}
+-    usleep(DELAY);
+-    nr = read(spi_device, &in_buf[0], command_size);
++    nr = read_spi(spi_device, &in_buf[0], command_size);
+ 
+ 
+     /* determine return code */
+@@ -251,7 +284,7 @@ int lgw_spi_r(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+ 		DUMP_BUFFER_W( out_buf, command_size);
+ 		DUMP_BUFFER_R( in_buf, command_size);
+ 		DUMP_STATS(nw, nr);
+-        DEBUG_MSG("[FAIL]\n");
++        ERROR_MSG("[FAIL]\n");
+         return LGW_SPI_ERROR;
+     } else {
+         DEBUG_MSG("[ OK ]\n");
+@@ -297,17 +330,16 @@ int lgw_spi_wb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+     
+     nw = write(spi_device, &command[0], command_size);
+ 	if (nw != command_size) {
+-        	DEBUG_MSG("ERROR: SPI WRITE FAILURE\n");
++        	ERROR_MSG("ERROR: SPI WRITE FAILURE\n");
+         	return LGW_SPI_ERROR;
+ 	}
+-    usleep(DELAY);
+-    nr = read(spi_device, &dummy[0], command_size);
++    nr = read_spi(spi_device, &dummy[0], command_size);
+ 
+ 
+     /* determine return code */
+      if ((nw != command_size)||(nr != command_size))  {
+ 		DUMP_STATS(nw, nr);
+-        DEBUG_MSG("ERROR: SPI BURST WRITE FAILURE\n");
++        ERROR_MSG("ERROR: SPI BURST WRITE FAILURE\n");
+         return LGW_SPI_ERROR;
+ 	}
+     size_to_do = size;
+@@ -316,13 +348,10 @@ int lgw_spi_wb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+         chunk_size = (size_to_do < LGW_BURST_CHUNK) ? size_to_do : LGW_BURST_CHUNK;
+         offset = i * LGW_BURST_CHUNK;
+         nw = write(spi_device, &data[offset], chunk_size);
+-        //fsync(spi_device);
+-
+         byte_transfered += nw;
+-        usleep(DELAY);
+-		nr = read(spi_device, &dummy[0], chunk_size);
++		nr = read_spi(spi_device, &dummy[0], chunk_size);
+ 
+-	if (( nr != chunk_size)||(nw != chunk_size)) { DEBUG_MSG("\n--WARNING --"); DUMP_STATS(nw, nr); }
++	if (( nr != chunk_size)||(nw != chunk_size)) { ERROR_PRINTF("\n--WARNING -- %d %d --", i, offset); DUMP_STATS(nw, nr); }
+         //DEBUG_PRINTF("BURST WRITE: to trans %d # chunk %d # transferred %d \n", size_to_do, chunk_size, byte_transfered);
+         size_to_do -= chunk_size; /* subtract the quantity of data already transferred */
+     }
+@@ -330,7 +359,7 @@ int lgw_spi_wb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+     /* determine return code */
+     if (byte_transfered != size) {
+ 	    DUMP_STATS(nw, nr);
+-        DEBUG_MSG("[FAIL]\n");
++        ERROR_MSG("[FAIL]\n");
+         return LGW_SPI_ERROR;
+     } else {
+         DEBUG_MSG("[ OK ]\n");
+@@ -376,30 +405,48 @@ int lgw_spi_rb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+     
+     nw = write(spi_device, &command[0], command_size);
+ 	if (nw != command_size) {
+-        	DEBUG_MSG("ERROR: SPI WRITE FAILURE\n");
++        	ERROR_MSG("ERROR: SPI WRITE FAILURE\n");
+         	return LGW_SPI_ERROR;
+ 	}
+-    usleep(DELAY);
+-    nr = read(spi_device, &dummy[0], command_size);
++    nr = read_spi(spi_device, &dummy[0], command_size);
+ 
+     /* determine return code */
+      if ((nw != command_size)||(nr != command_size))  {
+ 		        DUMP_STATS(nw, nr);
+-        DEBUG_MSG("ERROR: SPI BURST WRITE FAILURE\n");
++        ERROR_MSG("ERROR: SPI BURST WRITE FAILURE\n");
+         return LGW_SPI_ERROR;
+ 	}
+ 
+     size_to_do = size;
+     memset(&dummy, 0, sizeof(dummy)); /* clear dummy */
++    memset(data, 0, size); /* clear data */
+     for (i=0; size_to_do > 0; ++i) {
+         chunk_size = (size_to_do < LGW_BURST_CHUNK) ? size_to_do : LGW_BURST_CHUNK;
+         offset = i * LGW_BURST_CHUNK;
++#ifdef TEST_BUFFER_LOOP
++		int ii=0;
++		nw = 0;
++        do
++        {
++			int n =  write(spi_device, &ii, 1);
++			nw += n;
++			++ii;
++		}while(ii<chunk_size) ;
++#else
+         nw = write(spi_device, &dummy[0], chunk_size);
+-		usleep(DELAY);
+-        nr = read(spi_device, &data[offset], chunk_size);
+-
++#endif
++		nr = read_spi(spi_device, &data[offset], chunk_size);
+         byte_transfered += nr;
+-	if (( nr != chunk_size)||(nw != chunk_size)) { DEBUG_MSG("\n--WARNING --"); DUMP_STATS(nw, nr); }
++        
++#ifdef TEST_BUFFER_LOOP
++		for (int ii=0; ii<chunk_size; ++ii) 
++        {
++			if (data[offset+ii] != ii)
++				DEBUG_PRINTF("**MISMATCH** %d] %d - %d\n", offset, ii, data[offset+ii]);
++		}
++#endif
++        
++	if (( nr != chunk_size)||(nw != chunk_size)) { ERROR_PRINTF("\n--WARNING -- %d %d --", i, offset); DUMP_STATS(nw, nr); }
+         //DEBUG_PRINTF("BURST READ: to trans %d # chunk %d # transferred %d \n", size_to_do, chunk_size, byte_transfered);
+         size_to_do -= chunk_size; /* subtract the quantity of data already transferred */
+     }
+@@ -407,7 +454,7 @@ int lgw_spi_rb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+     /* determine return code */
+     if (byte_transfered != size) {
+ 
+-        DEBUG_MSG("[FAIL]\n");
++        ERROR_MSG("[FAIL]\n");
+         return LGW_SPI_ERROR;
+     } else {
+         DEBUG_MSG("[OK]\n");
+-- 
+2.11.0
+

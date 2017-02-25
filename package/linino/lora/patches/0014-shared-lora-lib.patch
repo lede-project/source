@@ -1,0 +1,49 @@
+diff --git a/libloragw/Makefile b/libloragw/Makefile
+index 2d0eb1a..4fafc95 100644
+--- a/libloragw/Makefile
++++ b/libloragw/Makefile
+@@ -21,10 +21,11 @@ LIBS := -lloragw -lrt -lm
+ 
+ ### general build targets
+ 
+-all: libloragw.a test_loragw_spi-stm32 test_loragw_reg test_loragw_hal test_loragw_gps test_loragw_cal
++all: libloragw.a libloragw.so test_loragw_spi-stm32 test_loragw_reg test_loragw_hal test_loragw_gps test_loragw_cal
+ 
+ clean:
+ 	rm -f libloragw*.a
++	rm -f libloragw*.so
+ 	rm -f test_loragw_*
+ 	rm -f $(OBJDIR)/*.o
+ 	rm -f inc/config.h
+@@ -62,7 +63,7 @@ $(OBJDIR)/%.o: src/%.c $(INCLUDES) inc/config.h | $(OBJDIR)
+ 
+ #$(OBJDIR)/loragw_spi.o: src/loragw_spi.native.c $(INCLUDES) inc/config.h | $(OBJDIR)
+ #	$(CC) -c $(CFLAGS) $< -o $@
+-	
++
+ $(OBJDIR)/loragw_spi-stm32.o: src/loragw_spi-stm32.c $(INCLUDES) inc/config.h | $(OBJDIR)
+ 	$(CC) -c $(CFLAGS) $< -o $@
+ 
+@@ -73,15 +74,20 @@ $(OBJDIR)/loragw_hal.o: src/loragw_hal.c $(INCLUDES) src/arb_fw.var src/agc_fw.v
+ 
+ #libloragw.a: $(OBJDIR)/loragw_hal.o $(OBJDIR)/loragw_gps.o $(OBJDIR)/loragw_reg.o $(OBJDIR)/loragw_spi.o $(OBJDIR)/loragw_aux.o $(OBJDIR)/loragw_radio.o $(OBJDIR)/loragw_fpga.o $(OBJDIR)/loragw_lbt.o
+ #	$(AR) rcs $@ $^
+-	
++
+ libloragw.a: $(OBJDIR)/loragw_hal.o $(OBJDIR)/loragw_gps.o $(OBJDIR)/loragw_reg.o $(OBJDIR)/loragw_spi-stm32.o $(OBJDIR)/loragw_aux.o $(OBJDIR)/loragw_radio.o $(OBJDIR)/loragw_fpga.o $(OBJDIR)/loragw_lbt.o
+ 	$(AR) rcs $@ $^
+ 
++### shared library
++
++libloragw.so: $(OBJDIR)/loragw_hal.o $(OBJDIR)/loragw_gps.o $(OBJDIR)/loragw_reg.o $(OBJDIR)/loragw_spi-stm32.o $(OBJDIR)/loragw_aux.o $(OBJDIR)/loragw_radio.o $(OBJDIR)/loragw_fpga.o $(OBJDIR)/loragw_lbt.o
++	$(CC) -shared -lm -o $@ $^
++
+ ### test programs
+ 
+ #test_loragw_spi: tst/test_loragw_spi.c libloragw.a
+ #	$(CC) $(CFLAGS) -L. $< -o $@ $(LIBS)
+-	
++
+ test_loragw_spi-stm32: tst/test_loragw_spi.c libloragw.a
+ 	$(CC) $(CFLAGS) -L. $< -o $@ $(LIBS)
+ 
