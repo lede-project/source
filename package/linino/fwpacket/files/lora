@@ -1,0 +1,32 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2013 DogHunter
+
+START=99
+STOP=99
+
+status() {
+	oi=$(pidof lora_pkt_fwd)
+	if [ "x$oi" == "x" ]; then
+		echo "lora_pkt_fwd is not running"
+	else
+		echo "lora_pkt_fwd is running ($oi)"
+	fi
+}
+
+start() {
+	oi=$(pidof lora_pkt_fwd)
+	if [ "x$oi" == "x" ]; then
+		stty -F /dev/ttyLRA 600
+		echo "Start lora_pkt_fwd" > /dev/kmsg
+		/usr/bin/lora_pkt_fwd 2>&1 >> /var/log/lora_pkt_fwd.log
+	else
+		echo "lora_pkt_fwd is already running ($oi)"
+	fi
+}
+
+stop() {
+	kill $(pidof lora_pkt_fwd)
+}
+
+EXTRA_COMMANDS="status"
+EXTRA_HELP="		status  Print the status of the service"

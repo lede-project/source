@@ -1,0 +1,17 @@
+diff --git a/lora_pkt_fwd/src/lora_pkt_fwd.c b/lora_pkt_fwd/src/lora_pkt_fwd.c
+index 1c54d57..db13155 100644
+--- a/lora_pkt_fwd/src/lora_pkt_fwd.c
++++ b/lora_pkt_fwd/src/lora_pkt_fwd.c
+@@ -912,9 +912,9 @@ int main(void)
+     int x;
+ 
+     /* configuration file related */
+-    char *global_cfg_path= "global_conf.json"; /* contain global (typ. network-wide) configuration */
+-    char *local_cfg_path = "local_conf.json"; /* contain node specific configuration, overwrite global parameters for parameters that are defined in both */
+-    char *debug_cfg_path = "debug_conf.json"; /* if present, all other configuration files are ignored */
++    char *global_cfg_path= "/etc/pkt_fwd/global_conf.json"; /* contain global (typ. network-wide) configuration */
++    char *local_cfg_path = "/etc/pkt_fwd/local_conf.json"; /* contain node specific configuration, overwrite global parameters for parameters that are defined in both */
++    char *debug_cfg_path = "/etc/pkt_fwd/debug_conf.json"; /* if present, all other configuration files are ignored */
+ 
+     /* threads */
+     pthread_t thrid_up;
