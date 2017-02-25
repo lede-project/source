@@ -473,3 +473,10 @@ define Device/d240
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-mt76 kmod-sdhci-mt7620
 endef
 TARGET_DEVICES += d240
+
+define Device/dwr-921
+  DTS := DWR-921
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := D-Link DWR-921
+endef
+TARGET_DEVICES += dwr-921
