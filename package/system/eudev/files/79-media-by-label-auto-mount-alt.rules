@@ -1,0 +1,15 @@
+SUBSYSTEMS=="usb", KERNEL!="sd[b-z][0-9]", GOTO="media_by_label_auto_mount_end"
+# Import FS infos
+IMPORT{program}="/usr/sbin/blkid -o udev -p %N"
+# Setting dir name, the LABEL field won't be taken into account
+ENV{dir_name}="%k"
+# Global mount options
+ACTION=="add", ENV{mount_options}="relatime"
+# Filesystem-specific mount options
+ACTION=="add", ENV{ID_FS_TYPE}=="vfat|ntfs", ENV{mount_options}="$env{mount_options},utf8,gid=100,umask=002"
+# Mount the device
+ACTION=="add", RUN+="/bin/mkdir -p /mnt/%E{dir_name}", RUN+="/bin/mount -o $env{mount_options} /dev/%k /mnt/%E{dir_name}"
+# Clean up after removal
+ACTION=="remove", ENV{dir_name}!="", RUN+="/bin/umount -l /mnt/%E{dir_name}", RUN+="/bin/rmdir /mnt/%E{dir_name}"
+# Exit
+LABEL="media_by_label_auto_mount_end"
