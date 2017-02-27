@@ -1,0 +1,25 @@
+This patch stops SIGHUP from enabling dnssec timechecks if disabled by
+use of --dnssec-no-timecheck option.  --dnssec-timestamp continues to
+work correctly, using the timestamp file as the arbiter of correct
+time.
+
+Enabling dnssec timechecks now requires restarting dnsmasq without
+the --dnssec-no-timecheck configuration option.
+
+This closes an unintended side-effect of accidentally enabling
+time checks when using --dnssec-timestamp and the system time does not
+yet match Internet time, a situation which if using --dnssec-check-unsigned
+would lead to external name resolution via dnsmasq stopping entirely.
+
+Signed-off-by: Kevin Darbyshire-Bryant <kevin@darbyshire-bryant.me.uk>
+--- a/src/dnsmasq.c
++++ b/src/dnsmasq.c
+@@ -1088,7 +1088,7 @@ static void sig_handler(int sig)
+       int event, errsave = errno;
+       
+       if (sig == SIGHUP)
+-	event = EVENT_RELOAD;
++	event = EVENT_INIT;
+       else if (sig == SIGCHLD)
+ 	event = EVENT_CHILD;
+       else if (sig == SIGALRM)
