@@ -185,6 +185,16 @@ menu "Target Images"
 		select PACKAGE_grub2
 		default y
 
+	config GRUB_EFI
+		bool "Build UEFI bootable image"
+		help
+		  Build UEFI bootable image in addition to BIOS bootable image.
+		  The image uses FAT formatted boot partition and can be booted
+		  on both BIOS and UEFI based system.
+		depends on TARGET_ROOTFS_EXT4FS
+		depends on GRUB_IMAGES
+		default y
+
 	config GRUB_CONSOLE
 		bool "Use Console Terminal (in addition to Serial)"
 		depends on GRUB_IMAGES
