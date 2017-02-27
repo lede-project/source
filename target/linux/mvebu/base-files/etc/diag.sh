@@ -22,6 +22,9 @@ get_status_led() {
 	armada-xp-linksys-mamba)
 		status_led="mamba:white:power"
 		;;
+	armada-385-linksys-shelby)
+		status_led="shelby:white:power"
+		;;
 	esac
 }
 
