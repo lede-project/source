@@ -158,7 +158,10 @@ insert_modules() {
 		if [ -f /etc/modules.d/$m ]; then
 			sed 's/^[^#]/insmod &/' /etc/modules.d/$m | ash 2>&- || :
 		else
-			modprobe $m
+			# Since busybox modprobe returns 0 on loading non-existing
+			# and 255 on loading already loaded modules
+			# its return-code is not useful        
+			modprobe $m || true 
 		fi
 	done
 }
