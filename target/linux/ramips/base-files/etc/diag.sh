@@ -23,6 +23,7 @@ get_status_led() {
 	dch-m225|\
 	dir-860l-b1|\
 	e1700|\
+	e220|\
 	fonera20n|\
 	kn_rc|\
 	kn_rf|\

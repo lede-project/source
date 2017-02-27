@@ -52,6 +52,7 @@ platform_check_image() {
 	duzun-dm06|\
 	dwr-512-b|\
 	e1700|\
+	e220|\
 	esr-9753|\
 	ex2700|\
 	f7c027|\
