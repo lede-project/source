@@ -206,6 +206,14 @@ endef
 # Disabled due to problems with 2 TRX partitions
 # TARGET_DEVICES += linksys-ea6300-v1
 
+define Device/linksys-ea9500
+  DEVICE_TITLE := Linksys EA9500
+  #Add BRCMFMAC_4366C firmware package when available
+  DEVICE_PACKAGES := kmod-brcmfmac $(USB3_PACKAGES)
+endef
+# Disabled due to problems with 2 TRX partitions
+# TARGET_DEVICES += linksys-ea9500
+
 define Device/netgear
   IMAGES := chk
   IMAGE/chk := append-ubi | trx-nand | netgear-chk

@@ -11,6 +11,14 @@ netgear,r8000)
 	ucidef_set_led_usbport "usb2" "USB 2.0" "bcm53xx:white:usb2" "usb1-port2" "usb2-port2"
 	ucidef_set_led_usbport "usb3" "USB 3.0" "bcm53xx:white:usb3" "usb1-port1" "usb2-port1" "usb4-port1"
 	;;
+
+linksys,ea9500)
+	ucidef_set_led_usbport "usb2" "USB 2.0" "bcm53xx:green:usb2" "usb1-port2" "usb2-port2"
+	ucidef_set_led_usbport "usb3" "USB 3.0" "bcm53xx:green:usb3" "usb1-port1" "usb2-port1" "usb4-port1"
+	ucidef_set_led_netdev "wireless" "Wireless5G1" "bcm53xx:white:wireless" "wlan0" "link"
+	ucidef_set_led_default "power" "Power" "bcm53xx:white:power" "1"
+	;;
+
 esac
 
 board_config_flush

@@ -35,7 +35,8 @@ asus,rt-ac87u)
 dlink,dir-885l | \
 netgear,r7900 | \
 netgear,r8000 | \
-netgear,r8500)
+netgear,r8500 | \
+linksys,ea9500)
 	ifname=eth2
 	etXmacaddr=$(nvram get et2macaddr)
 	;;
@@ -53,7 +54,8 @@ case "$board" in
 dlink,dir-885l | \
 netgear,r7900 | \
 netgear,r8000 | \
-netgear,r8500)
+netgear,r8500 | \
+linksys,ea9500)
 	ifname=eth0
 	ucidef_add_switch "switch0" \
 		"0:lan" "1:lan" "2:lan" "3:lan" "4:wan" "5t@$ifname"
