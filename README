@@ -12,6 +12,7 @@ and "./scripts/feeds install -a" to install symlinks of all of them into
 package/feeds/.
 
 Use "make menuconfig" to configure your image.
+You will need to have installed libncurses-dev.
 
 Simply running "make" will build your firmware.
 It will download all sources, build the cross-compile toolchain, 
