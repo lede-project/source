@@ -106,3 +106,35 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  	ee_name = rt2x00lib_get_eeprom_file_name(rt2x00dev);
  	if (!ee_name && test_bit(REQUIRE_EEPROM_FILE, &rt2x00dev->cap_flags)) {
  		rt2x00_err(rt2x00dev, "Required EEPROM name is missing.");
+@@ -90,6 +155,7 @@ static int rt2x00lib_request_eeprom_file
+ 	}
+ 
+ 	rt2x00dev->eeprom_file = ee;
++	rt2x00dev->eeprom_file_dynamic = true;
+ 	return 0;
+ 
+ err_release_ee:
+@@ -111,6 +177,9 @@ int rt2x00lib_load_eeprom_file(struct rt
+ 
+ void rt2x00lib_free_eeprom_file(struct rt2x00_dev *rt2x00dev)
+ {
++	if(!rt2x00dev->eeprom_file_dynamic)
++		return;
++
+ 	release_firmware(rt2x00dev->eeprom_file);
+ 	rt2x00dev->eeprom_file = NULL;
+ }
+--- a/drivers/net/wireless/ralink/rt2x00/rt2x00.h
++++ b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
+@@ -982,6 +982,11 @@ struct rt2x00_dev {
+ 	const struct firmware *eeprom_file;
+ 
+ 	/*
++	 * Flag indicating whether the EEPROM image was dynamically allocated
++	 */
++	bool eeprom_file_dynamic;
++
++	/*
+ 	 * FIFO for storing tx status reports between isr and tasklet.
+ 	 */
+ 	DECLARE_KFIFO_PTR(txstatus_fifo, u32);
