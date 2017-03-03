@@ -1,3 +1,19 @@
+define Device/OpenMesh
+  FILESYSTEMS := squashfs
+  DEVICE_PACKAGES := om-watchdog
+  KERNEL := kernel-bin | lzma | uImage lzma
+  IMAGES := sysupgrade.bin
+  IMAGE/sysupgrade.bin/squashfs := append-rootfs | pad-rootfs | combined-ext-image
+endef
+
+define Device/a60
+  $(Device/OpenMesh)
+  DEVICE_TITLE := OpenMesh A40/A60
+  DEVICE_PACKAGES += kmod-ath10k ath10k-firmware-qca988x mod-usb-core kmod-usb2
+  BOARD_NAME = A60
+endef
+TARGET_DEVICES += a60
+
 define Device/ap90q
   DEVICE_TITLE := YunCore AP90Q
   BOARDNAME = AP90Q
@@ -196,6 +212,28 @@ define Device/mr16
 endef
 TARGET_DEVICES += mr16
 
+define Device/mr1750
+  $(Device/OpenMesh)
+  DEVICE_TITLE := OpenMesh MR1750
+  DEVICE_PACKAGES += kmod-ath10k ath10k-firmware-qca988x
+  BOARD_NAME = MR1750
+endef
+TARGET_DEVICES += mr1750
+
+define Device/mr600
+  $(Device/OpenMesh)
+  DEVICE_TITLE := OpenMesh MR600
+  BOARD_NAME = MR600
+endef
+TARGET_DEVICES += mr600
+
+define Device/mr900
+  $(Device/OpenMesh)
+  DEVICE_TITLE := OpenMesh MR900
+  BOARD_NAME = MR900
+endef
+TARGET_DEVICES += mr900
+
 define Device/dr531
   DEVICE_TITLE := Wallys DR531
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2
@@ -204,6 +242,28 @@ define Device/dr531
   MTDPARTS = spi0.0:192k(u-boot)ro,64k(u-boot-env),64k(partition-table)ro,7808k(firmware),64k(art)ro
 endef
 TARGET_DEVICES += dr531
+
+define Device/om2p
+  $(Device/OpenMesh)
+  DEVICE_TITLE := OpenMesh OM2P/OM2P-HS/OM2P-LC
+  BOARD_NAME = OM2P
+endef
+TARGET_DEVICES += om2p
+
+define Device/om5p
+  $(Device/OpenMesh)
+  DEVICE_TITLE := OpenMesh OM5P/OM5P-AN
+  BOARD_NAME = OM5P
+endef
+TARGET_DEVICES += om5p
+
+define Device/om5pac
+  $(Device/OpenMesh)
+  DEVICE_TITLE := OpenMesh OM5P-AC
+  DEVICE_PACKAGES += kmod-ath10k ath10k-firmware-qca988x
+  BOARD_NAME = OM5PAC
+endef
+TARGET_DEVICES += om5pac
 
 define Device/wndr3700
   DEVICE_TITLE := NETGEAR WNDR3700

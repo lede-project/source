@@ -1,10 +1,3 @@
-define LegacyDevice/A60
-   DEVICE_TITLE := OpenMesh A40/A60
-   DEVICE_PACKAGES := om-watchdog kmod-ath10k ath10k-firmware-qca988x \
-	mod-usb-core kmod-usb2
-endef
-LEGACY_DEVICES += A60
-
 define LegacyDevice/ALFANX
   DEVICE_TITLE := ALFA Network N2/N5 board
 endef
@@ -479,42 +472,6 @@ define LegacyDevice/WPN824N
   DEVICE_TITLE := NETGEAR WPN824N
 endef
 LEGACY_DEVICES += WPN824N
-
-define LegacyDevice/OM2P
-  DEVICE_TITLE := OpenMesh OM2P/OM2P-HS/OM2P-LC
-  DEVICE_PACKAGES := om-watchdog
-endef
-LEGACY_DEVICES += OM2P
-
-define LegacyDevice/OM5P
-  DEVICE_TITLE := OpenMesh OM5P/OM5P-AN
-  DEVICE_PACKAGES := om-watchdog
-endef
-LEGACY_DEVICES += OM5P
-
-define LegacyDevice/OM5PAC
-  DEVICE_TITLE := OpenMesh OM5P-AC
-  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x om-watchdog
-endef
-LEGACY_DEVICES += OM5PAC
-
-define LegacyDevice/MR600
-  DEVICE_TITLE := OpenMesh MR600
-  DEVICE_PACKAGES := om-watchdog
-endef
-LEGACY_DEVICES += MR600
-
-define LegacyDevice/MR900
-  DEVICE_TITLE := OpenMesh MR900
-  DEVICE_PACKAGES := om-watchdog
-endef
-LEGACY_DEVICES += MR900
-
-define LegacyDevice/MR1750
-  DEVICE_TITLE := OpenMesh MR1750
-  DEVICE_PACKAGES := om-watchdog kmod-ath10k ath10k-firmware-qca988x
-endef
-LEGACY_DEVICES += MR1750
 
 define LegacyDevice/ALL0305
   DEVICE_TITLE := Allnet ALL0305
