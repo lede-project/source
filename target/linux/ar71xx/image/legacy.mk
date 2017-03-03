@@ -813,26 +813,6 @@ define Image/Build/ZyXELNAND
 endef
 
 
-Image/Build/OpenMesh/buildkernel=$(call MkuImageLzma,$(2))
-Image/Build/OpenMesh/initramfs=$(call MkuImageLzma/initramfs,$(2),)
-
-define Image/Build/OpenMesh
-	-sh $(TOPDIR)/scripts/om-fwupgradecfg-gen.sh \
-		"$(4)" \
-		"$(BUILD_DIR)/fwupgrade.cfg-$(4)" \
-		"$(KDIR_TMP)/vmlinux-$(2).uImage" \
-		"$(KDIR)/root.$(1)"
-	-sh $(TOPDIR)/scripts/combined-ext-image.sh \
-		"$(4)" "$(call factoryname,$(1),$(2))" \
-		"$(BUILD_DIR)/fwupgrade.cfg-$(4)" "fwupgrade.cfg" \
-		"$(KDIR_TMP)/vmlinux-$(2).uImage" "kernel" \
-		"$(KDIR)/root.$(1)" "rootfs"
-	if [ -e "$(call factoryname,$(1),$(2))" ]; then \
-		cp "$(call factoryname,$(1),$(2))" "$(call sysupname,$(1),$(2))"; \
-	fi
-endef
-
-
 Image/Build/Zcomax/buildkernel=$(call MkuImageLzma,$(2),$(3) $(4))
 Image/Build/Zcomax/initramfs=$(call MkuImageLzma/initramfs,$(2),$(3) $(4))
 
@@ -984,14 +964,6 @@ $(eval $(call SingleProfile,Netgear,64kraw,N150R,n150r,WNR612V2,ttyS0,115200,$$(
 $(eval $(call SingleProfile,Netgear,64kraw,REALWNR1000V2,wnr1000v2,WNR1000V2,ttyS0,115200,$$(wnr2000v3_mtdlayout),0x31303031,WNR1000V2,"",))
 $(eval $(call SingleProfile,Netgear,64kraw,WNR1000V2_VC,wnr1000v2-vc,WNR1000V2,ttyS0,115200,$$(wnr2000v3_mtdlayout),0x31303030,WNR1000V2-VC,"",))
 $(eval $(call SingleProfile,Netgear,64kraw,WPN824N,wpn824n,WPN824N,ttyS0,115200,$$(wnr2000v3_mtdlayout),0x31313030,WPN824N,"" NA,))
-
-$(eval $(call SingleProfile,OpenMesh,squashfs-only,A60,a60,,,,A60))
-$(eval $(call SingleProfile,OpenMesh,squashfs-only,OM2P,om2p,,,,OM2P))
-$(eval $(call SingleProfile,OpenMesh,squashfs-only,OM5P,om5p,,,,OM5P))
-$(eval $(call SingleProfile,OpenMesh,squashfs-only,OM5PAC,om5pac,,,,OM5PAC))
-$(eval $(call SingleProfile,OpenMesh,squashfs-only,MR600,mr600,,,,MR600))
-$(eval $(call SingleProfile,OpenMesh,squashfs-only,MR900,mr900,,,,MR900))
-$(eval $(call SingleProfile,OpenMesh,squashfs-only,MR1750,mr1750,,,,MR1750))
 
 $(eval $(call SingleProfile,PB4X,128k,ALL0305,all0305,ALL0305,ttyS0,115200))
 $(eval $(call SingleProfile,PB4X,128k,EAP7660D,eap7660d,EAP7660D,ttyS0,115200))
