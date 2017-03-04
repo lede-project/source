@@ -292,11 +292,6 @@
 		};
 	};
 
-	usb3_phy: usb3_phy {
-		compatible = "usb-nop-xceiv";
-		vcc-supply = <&reg_xhci0_vbus>;
-	};
-
 	reg_xhci0_vbus: xhci0-vbus {
 		compatible = "regulator-fixed";
 		pinctrl-names = "default";
@@ -306,26 +301,6 @@
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
 		gpio = <&gpio1 15 GPIO_ACTIVE_HIGH>;
-	};
-
-	gpio_keys {
-		compatible = "gpio-keys";
-		#address-cells = <1>;
-		#size-cells = <0>;
-		pinctrl-0 = <&reset_key_pin &wps_key_pin>;
-		pinctrl-names = "default";
-
-		button@1 {
-			label = "WPS";
-			linux,code = <KEY_WPS_BUTTON>;
-			gpios = <&gpio0 24 GPIO_ACTIVE_LOW>;
-		};
-
-		button@2 {
-			label = "Factory Reset Button";
-			linux,code = <KEY_RESTART>;
-			gpios = <&gpio0 29 GPIO_ACTIVE_LOW>;
-		};
 	};
 
 	gpio-leds {
@@ -357,48 +332,7 @@
 	};
 
 	dsa@0 {
-		compatible = "marvell,dsa";
-		#address-cells = <2>;
-		#size-cells = <0>;
-
-		dsa,ethernet = <&eth2>;
-		dsa,mii-bus = <&mdio>;
-
-		switch@0 {
-			#address-cells = <1>;
-			#size-cells = <0>;
-			reg = <0x0 0>;	/* MDIO address 0, switch 0 in tree */
-
-			port@0 {
-				reg = <0>;
-				label = "lan4";
-			};
-
-			port@1 {
-				reg = <1>;
-				label = "lan3";
-			};
-
-			port@2 {
-				reg = <2>;
-				label = "lan2";
-			};
-
-			port@3 {
-				reg = <3>;
-				label = "lan1";
-			};
-
-			port@4 {
-				reg = <4>;
-				label = "wan";
-			};
-
-			port@5 {
-				reg = <5>;
-				label = "cpu";
-			};
-		};
+		status = "okay";
 	};
 
 	mvsw61xx {
@@ -418,16 +352,6 @@
 &pinctrl {
 	sata_led_pin: sata-led-pin {
 		marvell,pins = "mpp21";
-		marvell,function = "gpio";
-	};
-
-	wps_key_pin: wps-key-pin {
-		marvell,pins = "mpp24";
-		marvell,function = "gpio";
-	};
-
-	reset_key_pin: reset-key-pin {
-		marvell,pins = "mpp29";
 		marvell,function = "gpio";
 	};
 
