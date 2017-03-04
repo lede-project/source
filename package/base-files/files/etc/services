@@ -74,6 +74,7 @@ dhcpv6-server	547/tcp
 dhcpv6-server	547/udp
 afpovertcp	548/tcp
 afpovertcp	548/udp
+submission	587/tcp
 nntps		563/tcp		snntp
 nntps		563/udp		snntp
 ldaps		636/tcp
