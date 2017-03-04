@@ -7,7 +7,6 @@
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/prereq.mk
-include $(INCLUDE_DIR)/host.mk
 include $(INCLUDE_DIR)/host-build.mk
 
 SHELL:=sh
@@ -23,6 +22,10 @@ $(eval $(call TestHostCommand,case-sensitive-fs, \
 	LEDE can only be built on a case-sensitive filesystem, \
 	rm -f $(TMP_DIR)/test.*; touch $(TMP_DIR)/test.fs; \
 		test ! -f $(TMP_DIR)/test.FS))
+
+$(eval $(call TestHostCommand,proper-umask, \
+	Please build with umask 022 - other values produce broken packages, \
+	umask | grep -xE 00[012][012]))
 
 $(eval $(call SetupHostCommand,gcc, \
 	Please install the GNU C Compiler (gcc), \
@@ -71,14 +74,6 @@ $(eval $(call TestHostCommand,zlib, \
 	echo 'int main(int argc, char **argv) { gzdopen(0, "rb"); return 0; }' | \
 		gcc -include zlib.h -x c -o $(TMP_DIR)/a.out - $(zlib_link_flags)))
 
-# Xcode deprecated openssl, MacPorts doesn't work nicely for other packages
-ifneq ($(HOST_OS),Darwin)
-$(eval $(call TestHostCommand,libssl, \
-	Please install the openssl library (with development headers), \
-	echo 'int main(int argc, char **argv) { SSL_library_init(); return 0; }' | \
-		gcc $(HOST_CFLAGS) -include openssl/ssl.h -x c -o $(TMP_DIR)/a.out - -lcrypto -lssl $(HOST_LDFLAGS)))
-endif
-
 $(eval $(call TestHostCommand,perl-thread-queue, \
 	Please install the Perl Thread::Queue module, \
 	perl -MThread::Queue -e 1))
@@ -105,8 +100,8 @@ $(eval $(call SetupHostCommand,diff,Please install diffutils, \
 	diff --version 2>&1 | grep diff))
 
 $(eval $(call SetupHostCommand,cp,Please install GNU fileutils, \
-	gcp --help, \
-	cp --help))
+	gcp --help 2>&1 | grep 'Copy SOURCE', \
+	cp --help 2>&1 | grep 'Copy SOURCE'))
 
 $(eval $(call SetupHostCommand,seq,, \
 	gseq --version, \
@@ -127,14 +122,9 @@ $(eval $(call SetupHostCommand,getopt, \
 	getopt -o t --long test -- --test | grep '^ *--test *--'))
 
 $(eval $(call SetupHostCommand,stat,Cannot find a file stat utility, \
-	gnustat -c%s $(TMP_DIR)/.host.mk, \
-	gstat -c%s $(TMP_DIR)/.host.mk, \
-	stat -c%s $(TMP_DIR)/.host.mk))
-
-$(eval $(call SetupHostCommand,md5sum,, \
-	gmd5sum /dev/null | grep d41d8cd98f00b204e9800998ecf8427e, \
-	md5sum /dev/null | grep d41d8cd98f00b204e9800998ecf8427e, \
-	$(SCRIPT_DIR)/md5sum /dev/null | grep d41d8cd98f00b204e9800998ecf8427e))
+	gnustat -c%s $(TOPDIR)/Makefile, \
+	gstat -c%s $(TOPDIR)/Makefile, \
+	stat -c%s $(TOPDIR)/Makefile))
 
 $(eval $(call SetupHostCommand,unzip,Please install 'unzip', \
 	unzip 2>&1 | grep zipfile, \
@@ -160,11 +150,11 @@ $(eval $(call SetupHostCommand,git,Please install Git (git-core) >= 1.7.12.2, \
 $(eval $(call SetupHostCommand,file,Please install the 'file' package, \
 	file --version 2>&1 | grep file))
 
-ifneq ($(HOST_OS),Darwin)
-$(eval $(call SetupHostCommand,openssl,Please install the 'openssl' utility, \
-	openssl version | grep '\(OpenSSL\|LibreSSL\)'))
-endif
+$(STAGING_DIR_HOST)/bin/mkhash: $(SCRIPT_DIR)/mkhash.c
+	mkdir -p $(dir $@)
+	$(CC) -O2 -I$(TOPDIR)/tools/include -o $@ $<
 
+prereq: $(STAGING_DIR_HOST)/bin/mkhash
 
 # Install ldconfig stub
 $(eval $(call TestHostCommand,ldconfig-stub,Failed to install stub, \

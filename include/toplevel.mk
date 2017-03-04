@@ -16,13 +16,17 @@ ifeq ($(SDK),1)
   include $(TOPDIR)/include/version.mk
 else
   REVISION:=$(shell $(TOPDIR)/scripts/getver.sh)
+  SOURCE_DATE_EPOCH:=$(shell $(TOPDIR)/scripts/get_source_date_epoch.sh)
 endif
 
 HOSTCC ?= $(CC)
 export REVISION
+export SOURCE_DATE_EPOCH
 export GIT_CONFIG_PARAMETERS='core.autocrlf=false'
 export MAKE_JOBSERVER=$(filter --jobserver%,$(MAKEFLAGS))
-export SOURCE_DATE_EPOCH:=$(shell $(TOPDIR)/scripts/get_source_date_epoch.sh)
+export GNU_HOST_NAME:=$(shell $(TOPDIR)/scripts/config.guess)
+export HOST_OS:=$(shell uname)
+export HOST_ARCH:=$(shell uname -m)
 
 # prevent perforce from messing with the patch utility
 unexport P4PORT P4USER P4CONFIG P4CLIENT
@@ -66,7 +70,7 @@ SUBMAKE:=umask 022; $(SUBMAKE)
 
 ULIMIT_FIX=_limit=`ulimit -n`; [ "$$_limit" = "unlimited" -o "$$_limit" -ge 1024 ] || ulimit -n 1024;
 
-prepare-mk: FORCE ;
+prepare-mk: staging_dir/host/.prereq-build FORCE ;
 
 ifdef SDK
   IGNORE_PACKAGES = linux
@@ -131,7 +135,7 @@ prepare_kernel_conf: .config FORCE
 
 ifeq ($(wildcard staging_dir/host/bin/quilt),)
   prepare_kernel_conf:
-	@+$(SUBMAKE) -r tools/quilt/install
+	@+$(SUBMAKE) -r tools/quilt/compile
 else
   prepare_kernel_conf: ;
 endif
@@ -147,7 +151,6 @@ kernel_nconfig: prepare_kernel_conf
 
 staging_dir/host/.prereq-build: include/prereq-build.mk
 	mkdir -p tmp
-	rm -f tmp/.host.mk
 	@$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f $(TOPDIR)/include/prereq-build.mk prereq 2>/dev/null || { \
 		echo "Prerequisite check failed. Use FORCE=1 to override."; \
 		false; \
@@ -177,6 +180,9 @@ clean dirclean: .config
 
 prereq:: prepare-tmpinfo .config
 	@+$(NO_TRACE_MAKE) -r -s $@
+
+check: .config FORCE
+	@+$(NO_TRACE_MAKE) -r -s $@ QUIET= V=s
 
 WARN_PARALLEL_ERROR = $(if $(BUILD_LOG),,$(and $(filter -j,$(MAKEFLAGS)),$(findstring s,$(OPENWRT_VERBOSE))))
 
@@ -221,12 +227,6 @@ package/symlinks-clean:
 
 help:
 	cat README
-
-docs docs/compile: FORCE
-	@$(_SINGLE)$(SUBMAKE) -C docs compile
-
-docs/clean: FORCE
-	@$(_SINGLE)$(SUBMAKE) -C docs clean
 
 distclean:
 	rm -rf bin build_dir .config* dl feeds key-build* logs package/feeds package/openwrt-packages staging_dir tmp

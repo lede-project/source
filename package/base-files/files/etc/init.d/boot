@@ -38,16 +38,12 @@ boot() {
 
 	/sbin/kmodloader
 
-	# allow wifi modules time to settle
-	sleep 1
-
-	/sbin/wifi detect > /tmp/wireless.tmp
-	[ -s /tmp/wireless.tmp ] && {
-		cat /tmp/wireless.tmp >> /etc/config/wireless
+	[ ! -f /etc/config/wireless ] && {
+		# compat for brcm47xx and mvebu
+		sleep 1
 	}
-	rm -f /tmp/wireless.tmp
 
-	/bin/board_detect
+	/bin/config_generate
 	uci_apply_defaults
 	
 	# temporary hack until configd exists

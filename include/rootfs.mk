@@ -40,17 +40,20 @@ opkg = \
   TMPDIR=$(1)/tmp \
   $(STAGING_DIR_HOST)/bin/opkg \
 	--offline-root $(1) \
-	--force-depends \
-	--force-overwrite \
 	--force-postinstall \
-	--force-maintainer \
 	--add-dest root:/ \
 	--add-arch all:100 \
 	--add-arch $(if $(ARCH_PACKAGES),$(ARCH_PACKAGES),$(BOARD)):200
 
-opkg_package_files = $(wildcard \
-	$(foreach dir,$(PACKAGE_SUBDIRS), \
-	  $(foreach pkg,$(1), $(dir)/$(pkg)_*.ipk)))
+TARGET_DIR_ORIG := $(TARGET_ROOTFS_DIR)/root.orig-$(BOARD)
+
+ifdef CONFIG_CLEAN_IPKG
+  define clean_ipkg
+	-find $(1)/usr/lib/opkg -type f -and -not -name '*.control' | $(XARGS) rm -rf
+	-sed -i -ne '/^Require-User: /p' $(1)/usr/lib/opkg/info/*.control
+	-find $(1)/usr/lib/opkg -empty | $(XARGS) rm -rf
+  endef
+endif
 
 define prepare_rootfs
 	@if [ -d $(TOPDIR)/files ]; then \
@@ -61,6 +64,11 @@ define prepare_rootfs
 		cd $(1); \
 		for script in ./usr/lib/opkg/info/*.postinst; do \
 			IPKG_INSTROOT=$(1) $$(which bash) $$script; \
+			ret=$$?; \
+			if [ $$ret -ne 0 ]; then \
+				echo "postinst script $$script has failed with exit code $$ret" >&2; \
+				exit 1; \
+			fi; \
 		done; \
 		for script in ./etc/init.d/*; do \
 			grep '#!/bin/sh /etc/rc.common' $$script >/dev/null || continue; \
@@ -72,8 +80,9 @@ define prepare_rootfs
 	@-find $(1) -name .svn  | $(XARGS) rm -rf
 	@-find $(1) -name .git  | $(XARGS) rm -rf
 	@-find $(1) -name '.#*' | $(XARGS) rm -f
+	rm -f $(1)/usr/lib/opkg/lists/*
 	rm -f $(1)/usr/lib/opkg/info/*.postinst*
 	rm -f $(1)/usr/lib/opkg/info/*.prerm*
-	$(if $(CONFIG_CLEAN_IPKG),rm -rf $(1)/usr/lib/opkg)
+	$(call clean_ipkg,$(1))
 	$(call mklibs,$(1))
 endef

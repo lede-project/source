@@ -9,18 +9,18 @@ include $(TOPDIR)/rules.mk
 ARCH:=mips64
 BOARD:=octeon
 BOARDNAME:=Cavium Networks Octeon
-FEATURES:=squashfs ext4 initramfs pci usb
+FEATURES:=squashfs ramdisk pci usb
 CPU_TYPE:=octeon
-CPU_CFLAGS_octeon:=-march=octeon -mabi=64
 MAINTAINER:=John Crispin <john@phrozen.org>
 
-KERNEL_PATCHVER:=4.4
-
-include $(INCLUDE_DIR)/target.mk
-
+KERNEL_PATCHVER:=4.9
 
 define Target/Description
 	Build firmware images for Cavium Networks Octeon-based boards.
 endef
+
+include $(INCLUDE_DIR)/target.mk
+
+DEFAULT_PACKAGES += mkf2fs e2fsprogs
 
 $(eval $(call BuildTarget))

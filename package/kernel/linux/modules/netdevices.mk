@@ -130,24 +130,6 @@ endef
 $(eval $(call KernelPackage,et131x))
 
 
-define KernelPackage/gw16083
-  SUBMENU:=$(NETWORK_DEVICES_MENU)
-  TITLE:=Gateworks Ventana Ethernet Expansion Mezzanine driver
-  URL:=http://www.gateworks.com
-  FILES:=$(LINUX_DIR)/drivers/net/phy/gw16083.ko
-  KCONFIG:=CONFIG_GATEWORKS_GW16083
-  DEPENDS:=@TARGET_imx6 @PCI_SUPPORT +kmod-libphy +kmod-igb
-  AUTOLOAD:=$(call AutoLoad,36,gw16083)
-endef
-
-define KernelPackage/gw16083/description
- This package contains the gw16083 kernel module for supporting the Gateworks
- Ventana Ethernet Expansion Mezzanine.
-endef
-
-$(eval $(call KernelPackage,gw16083))
-
-
 define KernelPackage/phylib-broadcom
    SUBMENU:=$(NETWORK_DEVICES_MENU)
    TITLE:=Broadcom Ethernet PHY library
@@ -272,6 +254,22 @@ endef
 $(eval $(call KernelPackage,switch-rtl8366s))
 
 
+define KernelPackage/switch-rtl8367b
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Realtek RTL8367R/B switch support
+  DEPENDS:=+kmod-switch-rtl8366-smi
+  KCONFIG:=CONFIG_RTL8367B_PHY
+  FILES:=$(LINUX_DIR)/drivers/net/phy/rtl8367b.ko
+  AUTOLOAD:=$(call AutoLoad,43,rtl8367b)
+endef
+
+define KernelPackage/switch-rtl8367b/description
+ Realtek RTL8367R/B switch support
+endef
+
+$(eval $(call KernelPackage,switch-rtl8367b))
+
+
 define KernelPackage/natsemi
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=National Semiconductor DP8381x series
@@ -364,7 +362,7 @@ $(eval $(call KernelPackage,via-rhine))
 define KernelPackage/via-velocity
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=VIA Velocity Gigabit Ethernet Adapter kernel support
-  DEPENDS:=@TARGET_ixp4xx||TARGET_mpc83xx||PCI_SUPPORT +kmod-lib-crc-ccitt
+  DEPENDS:=@PCI_SUPPORT +kmod-lib-crc-ccitt
   KCONFIG:=CONFIG_VIA_VELOCITY
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/via/via-velocity.ko
   AUTOLOAD:=$(call AutoProbe,via-velocity)
@@ -796,7 +794,9 @@ define KernelPackage/of-mdio
   TITLE:=OpenFirmware MDIO support
   DEPENDS:=+kmod-libphy
   KCONFIG:=CONFIG_OF_MDIO
-  FILES:=$(LINUX_DIR)/drivers/of/of_mdio.ko
+  FILES:= \
+	$(LINUX_DIR)/drivers/net/phy/fixed_phy.ko@ge4.9 \
+	$(LINUX_DIR)/drivers/of/of_mdio.ko
   AUTOLOAD:=$(call AutoLoad,41,of_mdio)
 endef
 
@@ -805,38 +805,6 @@ define KernelPackage/of-mdio/description
 endef
 
 $(eval $(call KernelPackage,of-mdio))
-
-
-define KernelPackage/fsl-pq-mdio
-  SUBMENU:=$(NETWORK_DEVICES_MENU)
-  TITLE:=Freescale PQ MDIO bus support
-  DEPENDS:=@TARGET_mpc85xx +kmod-of-mdio
-  KCONFIG:=CONFIG_FSL_PQ_MDIO
-  FILES:=$(LINUX_DIR)/drivers/net/ethernet/freescale/fsl_pq_mdio.ko
-  AUTOLOAD:=$(call AutoLoad,42,fsl_pq_mdio)
-endef
-
-define KernelPackage/fsl-pq-mdio/description
- Kernel driver for the Freescale PQ MDIO bus
-endef
-
-$(eval $(call KernelPackage,fsl-pq-mdio))
-
-
-define KernelPackage/gianfar
-  SUBMENU:=$(NETWORK_DEVICES_MENU)
-  TITLE:=Gianfar Ethernet support
-  DEPENDS:=@TARGET_mpc85xx +kmod-fsl-pq-mdio
-  KCONFIG:=CONFIG_GIANFAR
-  FILES:=$(LINUX_DIR)/drivers/net/ethernet/freescale/gianfar_driver.ko
-  AUTOLOAD:=$(call AutoProbe,gianfar_driver)
-endef
-
-define KernelPackage/gianfar/description
- Kernel driver for Freescale Gianfar Ethernet support
-endef
-
-$(eval $(call KernelPackage,gianfar))
 
 
 define KernelPackage/vmxnet3
@@ -870,3 +838,35 @@ define KernelPackage/spi-ks8995/description
 endef
 
 $(eval $(call KernelPackage,spi-ks8995))
+
+
+define KernelPackage/ethoc
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Opencore.org ethoc driver
+  DEPENDS:=+kmod-libphy
+  FILES:=$(LINUX_DIR)/drivers/net/ethernet/ethoc.ko
+  KCONFIG:=CONFIG_ETHOC
+  AUTOLOAD:=$(call AutoProbe,ethoc)
+endef
+
+define KernelPackage/ethoc/description
+  Kernel module for the Opencores.org ethernet adapter
+endef
+
+$(eval $(call KernelPackage,ethoc))
+
+
+define KernelPackage/bnx2
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=BCM5706/5708/5709/5716 ethernet adapter driver
+  DEPENDS:=@PCI_SUPPORT +bnx2-firmware
+  FILES:=$(LINUX_DIR)/drivers/net/ethernet/broadcom/bnx2.ko
+  KCONFIG:=CONFIG_BNX2
+  AUTOLOAD:=$(call AutoProbe,bnx2)
+endef
+
+define KernelPackage/bnx2/description
+  Kernel module for the BCM5706/5708/5709/5716 ethernet adapter
+endef
+
+$(eval $(call KernelPackage,bnx2))

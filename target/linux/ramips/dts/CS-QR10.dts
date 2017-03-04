@@ -2,20 +2,11 @@
 
 #include "mt7620a.dtsi"
 
+#include <dt-bindings/input/input.h>
+
 / {
 	compatible = "ralink,mt7620a-soc";
 	model = "Planex CS-QR10";
-
-	sound {
-		compatible = "mediatek,mt7620-audio-wm8960";
-		model = "mt7620-wm8960";
-		i2s-controller = <&i2s>;
-		audio-routing =
-			"Ext Spk", "SPK_LP",
-			"Ext Spk", "SPK_LN",
-			"Ext Spk", "SPK_RP",
-			"Ext Spk", "SPK_RN";
-	};
 
 	gpio-leds {
 		compatible = "gpio-leds";
@@ -35,13 +26,13 @@
 		s1 {
 			label = "reset";
 			gpios = <&gpio1 1 1>;
-			linux,code = <0x198>;
+			linux,code = <KEY_RESTART>;
 		};
 
 		s2 {
 			label = "wps";
 			gpios = <&gpio1 3 1>;
-			linux,code = <0x211>;
+			linux,code = <KEY_WPS_BUTTON>;
 		};
 	};
 };
@@ -80,7 +71,6 @@
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		linux,modalias = "m25p80", "mx25l6405d";
 		spi-max-frequency = <10000000>;
 
 		partition@0 {

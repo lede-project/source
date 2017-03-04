@@ -104,53 +104,6 @@ endef
 
 $(eval $(call KernelPackage,i2c-gpio))
 
-I2C_MPC_MODULES:=\
-  CONFIG_I2C_MPC:drivers/i2c/busses/i2c-mpc
-
-define KernelPackage/i2c-mpc
-  $(call i2c_defaults,$(I2C_MPC_MODULES),59)
-  TITLE:=MPC I2C accessors
-  DEPENDS:=@TARGET_mpc52xx||TARGET_mpc83xx||TARGET_mpc85xx +kmod-i2c-core
-endef
-
-define KernelPackage/i2c-mpc/description
- Kernel module for Freescale MPC52xx MPC83xx MPC85xx I2C accessors
-endef
-
-$(eval $(call KernelPackage,i2c-mpc))
-
-I2C_IBM_IIC_MODULES:=\
-  CONFIG_I2C_IBM_IIC:drivers/i2c/busses/i2c-ibm_iic
-
-define KernelPackage/i2c-ibm-iic
-  $(call i2c_defaults,$(OF_I2C_MODULES),59)
-  TITLE:=IBM PPC 4xx on-chip I2C interface support
-  DEPENDS:=@TARGET_ppc40x||TARGET_ppc4xx +kmod-i2c-core
-endef
-
-define KernelPackage/i2c-ibm-iic/description
- Kernel module for IIC peripheral found on embedded IBM PPC4xx based systems
-endef
-
-$(eval $(call KernelPackage,i2c-ibm-iic))
-
-I2C_MV64XXX_MODULES:=\
-  CONFIG_I2C_MV64XXX:drivers/i2c/busses/i2c-mv64xxx
-
-define KernelPackage/i2c-mv64xxx
-  $(call i2c_defaults,$(I2C_MV64XXX_MODULES),59)
-  TITLE:=Orion Platform I2C interface support
-  DEPENDS:=@TARGET_kirkwood||TARGET_orion +kmod-i2c-core
-endef
-
-define KernelPackage/i2c-mv64xxx/description
- Kernel module for I2C interface on the Kirkwood, Orion and Armada XP/370
- family processors
-endef
-
-$(eval $(call KernelPackage,i2c-mv64xxx))
-
-
 I2C_TINY_USB_MODULES:= \
   CONFIG_I2C_TINY_USB:drivers/i2c/busses/i2c-tiny-usb
 

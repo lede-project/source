@@ -5,7 +5,6 @@
 # See /LICENSE for more information.
 #
 include $(TOPDIR)/rules.mk
-include $(INCLUDE_DIR)/host.mk
 
 # UML only makes sense on linux
 ifeq ($(HOST_OS),Linux)
@@ -20,7 +19,7 @@ ARCH:=$(shell uname -m | sed \
 )
 BOARD:=uml
 BOARDNAME:=User Mode Linux
-FEATURES:=ext4 audio
+FEATURES:=squashfs ext4 audio source-only
 MAINTAINER:=Florian Fainelli <florian@openwrt.org>
 
 KERNEL_PATCHVER:=4.4
@@ -35,7 +34,7 @@ endef
 
 LINUX_TARGET_CONFIG:=$(CURDIR)/config/$(ARCH)
 
-DEFAULT_PACKAGES += wpad-mini kmod-mac80211-hwsim
+DEFAULT_PACKAGES += wpad-mini kmod-mac80211-hwsim mkf2fs e2fsprogs
 
 endif
 

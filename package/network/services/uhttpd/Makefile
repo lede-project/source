@@ -8,14 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=uhttpd
-PKG_VERSION:=2016-06-16
-PKG_RELEASE=$(PKG_SOURCE_VERSION)
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(LEDE_GIT)/project/uhttpd.git
-PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=9d9f07142bbef1c63a79620967a847a9493105e5
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
+PKG_SOURCE_DATE:=2016-10-25
+PKG_SOURCE_VERSION:=1628fa4b34aa143187353f81e8001b9a15286bda
+PKG_MIRROR_HASH:=2ac4ba8dc0b349d72174aac9ff693a73a214295a9890fe3d2a8eedcad54d06e3
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=ISC
 
@@ -49,40 +48,6 @@ define Package/uhttpd/config
     default n
 endef
 
-
-define Package/uhttpd-mod-tls
-  $(Package/uhttpd/default)
-  TITLE+= (TLS plugin)
-  DEPENDS:=uhttpd \
-	+PACKAGE_uhttpd-mod-tls_polarssl:libustream-polarssl \
-	+PACKAGE_uhttpd-mod-tls_mbedtls:libustream-mbedtls \
-	+PACKAGE_uhttpd-mod-tls_cyassl:libustream-cyassl \
-	+PACKAGE_uhttpd-mod-tls_openssl:libustream-openssl
-endef
-
-define Package/uhttpd-mod-tls/description
- The TLS plugin adds HTTPS support to uHTTPd.
-endef
-
-define Package/uhttpd-mod-tls/config
-  choice
-    depends on PACKAGE_uhttpd-mod-tls
-    prompt "TLS Provider"
-    default PACKAGE_uhttpd-mod-tls_polarssl
-
-    config PACKAGE_uhttpd-mod-tls_mbedtls
-      bool "mbedTLS"
-
-    config PACKAGE_uhttpd-mod-tls_polarssl
-      bool "PolarSSL"
-
-    config PACKAGE_uhttpd-mod-tls_cyassl
-      bool "CyaSSL"
-
-    config PACKAGE_uhttpd-mod-tls_openssl
-      bool "OpenSSL"
-  endchoice
-endef
 
 define Package/uhttpd-mod-lua
   $(Package/uhttpd/default)
@@ -130,10 +95,6 @@ define Package/uhttpd/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd $(1)/usr/sbin/uhttpd
 endef
 
-define Package/uhttpd-mod-tls/install
-	true
-endef
-
 define Package/uhttpd-mod-lua/install
 	$(INSTALL_DIR) $(1)/usr/lib
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd_lua.so $(1)/usr/lib/
@@ -147,6 +108,5 @@ endef
 
 
 $(eval $(call BuildPackage,uhttpd))
-$(eval $(call BuildPackage,uhttpd-mod-tls))
 $(eval $(call BuildPackage,uhttpd-mod-lua))
 $(eval $(call BuildPackage,uhttpd-mod-ubus))

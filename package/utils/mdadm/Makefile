@@ -13,7 +13,7 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_URL:=@KERNEL/linux/utils/raid/mdadm
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_MD5SUM:=2fd33dedcdb06f0d1461f50ddabb7e4a
+PKG_HASH:=ec1d264e4126309aafe76d76067e8f3fd6649941cff6cb0242d467a1e66a01e0
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
@@ -24,6 +24,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/mdadm
   SECTION:=utils
   CATEGORY:=Utilities
+  SUBMENU:=Disc
   TITLE:=A tool for managing Soft RAID under Linux
   URL:=http://www.kernel.org/pub/linux/utils/raid/mdadm/
   DEPENDS:=+@KERNEL_DIRECT_IO

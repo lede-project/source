@@ -6,20 +6,68 @@
 
 menu "Busybox Library Tuning"
 
-config BUSYBOX_CONFIG_FEATURE_SYSTEMD
-	bool "Enable systemd support"
-	default BUSYBOX_DEFAULT_FEATURE_SYSTEMD
+config BUSYBOX_CONFIG_FEATURE_USE_BSS_TAIL
+	bool "Use the end of BSS page"
+	default BUSYBOX_DEFAULT_FEATURE_USE_BSS_TAIL
 	help
-	  If you plan to use busybox daemons on a system where daemons
-	  are controlled by systemd, enable this option.
-	  If you don't use systemd, it is still safe to enable it,
-	  but the downside is increased code size.
+	  Attempt to reclaim a small unused part of BSS.
+
+	  Executables have the following parts:
+	  = read-only executable code and constants, also known as "text"
+	  = read-write data
+	  = non-initialized (zeroed on demand) data, also known as "bss"
+
+	  At link time, "text" is padded to a full page. At runtime, all "text"
+	  pages are mapped RO and executable.
+	  "Data" starts on the next page boundary, but is not padded
+	  to a full page at the end. "Bss" starts wherever "data" ends.
+	  At runtime, "data" pages are mapped RW and they are file-backed
+	  (this includes a small portion of "bss" which may live in the last
+	  partial page of "data").
+	  Pages which are fully in "bss" are mapped to anonymous memory.
+
+	  "Bss" end is usually not page-aligned. There is an unused space
+	  in the last page. Linker marks its start with the "_end" symbol.
+
+	  This option will attempt to use that space for bb_common_bufsiz1[]
+	  array. If it fits after _end, it will be used, and COMMON_BUFSIZE
+	  will be enlarged from its guaranteed minimum size of 1 kbyte.
+	  This may require recompilation a second time, since value of _end
+	  is known only after final link.
+
+	  If you are getting a build error like this:
+	        appletlib.c:(.text.main+0xd): undefined reference to '_end'
+	  disable this option.
 config BUSYBOX_CONFIG_FEATURE_RTMINMAX
 	bool "Support RTMIN[+n] and RTMAX[-n] signal names"
 	default BUSYBOX_DEFAULT_FEATURE_RTMINMAX
 	help
 	  Support RTMIN[+n] and RTMAX[-n] signal names
 	  in kill, killall etc. This costs ~250 bytes.
+
+choice
+	prompt "Buffer allocation policy"
+	default BUSYBOX_CONFIG_FEATURE_BUFFERS_GO_ON_STACK
+	help
+	  There are 3 ways BusyBox can handle buffer allocations:
+	  - Use malloc. This costs code size for the call to xmalloc.
+	  - Put them on stack. For some very small machines with limited stack
+	    space, this can be deadly. For most folks, this works just fine.
+	  - Put them in BSS. This works beautifully for computers with a real
+	    MMU (and OS support), but wastes runtime RAM for uCLinux. This
+	    behavior was the only one available for BusyBox versions 0.48 and
+	    earlier.
+
+config BUSYBOX_CONFIG_FEATURE_BUFFERS_USE_MALLOC
+	bool "Allocate with Malloc"
+
+config BUSYBOX_CONFIG_FEATURE_BUFFERS_GO_ON_STACK
+	bool "Allocate on the Stack"
+
+config BUSYBOX_CONFIG_FEATURE_BUFFERS_GO_IN_BSS
+	bool "Allocate in the .bss section"
+
+endchoice
 
 config BUSYBOX_CONFIG_PASSWORD_MINLEN
 	int "Minimum password length"
@@ -30,7 +78,7 @@ config BUSYBOX_CONFIG_PASSWORD_MINLEN
 
 config BUSYBOX_CONFIG_MD5_SMALL
 	int "MD5: Trade bytes for speed (0:fast, 3:slow)"
-	default BUSYBOX_DEFAULT_MD5_SMALL
+	default BUSYBOX_DEFAULT_MD5_SMALL  # all "fast or small" options default to small
 	range 0 3
 	help
 	  Trade binary size versus speed for the md5sum algorithm.
@@ -44,7 +92,7 @@ config BUSYBOX_CONFIG_MD5_SMALL
 
 config BUSYBOX_CONFIG_SHA3_SMALL
 	int "SHA3: Trade bytes for speed (0:fast, 1:slow)"
-	default BUSYBOX_DEFAULT_SHA3_SMALL
+	default BUSYBOX_DEFAULT_SHA3_SMALL  # all "fast or small" options default to small
 	range 0 1
 	help
 	  Trade binary size versus speed for the sha3sum algorithm.
@@ -54,7 +102,7 @@ config BUSYBOX_CONFIG_SHA3_SMALL
 
 config BUSYBOX_CONFIG_FEATURE_FAST_TOP
 	bool "Faster /proc scanning code (+100 bytes)"
-	default BUSYBOX_DEFAULT_FEATURE_FAST_TOP
+	default BUSYBOX_DEFAULT_FEATURE_FAST_TOP  # all "fast or small" options default to small
 	help
 	  This option makes top (and ps) ~20% faster (or 20% less CPU hungry),
 	  but code size is slightly bigger.
@@ -128,7 +176,7 @@ config BUSYBOX_CONFIG_FEATURE_EDITING_SAVE_ON_EXIT
 config BUSYBOX_CONFIG_FEATURE_REVERSE_SEARCH
 	bool "Reverse history search"
 	default BUSYBOX_DEFAULT_FEATURE_REVERSE_SEARCH
-	depends on BUSYBOX_CONFIG_FEATURE_EDITING_SAVEHISTORY
+	depends on BUSYBOX_CONFIG_FEATURE_EDITING
 	help
 	  Enable readline-like Ctrl-R combination for reverse history search.
 	  Increases code by about 0.5k.
@@ -167,6 +215,131 @@ config BUSYBOX_CONFIG_FEATURE_EDITING_ASK_TERMINAL
 	  correctly, or want to save on code size (about 400 bytes),
 	  then do not turn this option on.
 
+config BUSYBOX_CONFIG_LOCALE_SUPPORT
+	bool "Enable locale support (system needs locale for this to work)"
+	default BUSYBOX_DEFAULT_LOCALE_SUPPORT
+	help
+	  Enable this if your system has locale support and you would like
+	  busybox to support locale settings.
+
+config BUSYBOX_CONFIG_UNICODE_SUPPORT
+	bool "Support Unicode"
+	default BUSYBOX_DEFAULT_UNICODE_SUPPORT
+	help
+	  This makes various applets aware that one byte is not
+	  one character on screen.
+
+	  Busybox aims to eventually work correctly with Unicode displays.
+	  Any older encodings are not guaranteed to work.
+	  Probably by the time when busybox will be fully Unicode-clean,
+	  other encodings will be mainly of historic interest.
+
+config BUSYBOX_CONFIG_UNICODE_USING_LOCALE
+	bool "Use libc routines for Unicode (else uses internal ones)"
+	default BUSYBOX_DEFAULT_UNICODE_USING_LOCALE
+	depends on BUSYBOX_CONFIG_UNICODE_SUPPORT && BUSYBOX_CONFIG_LOCALE_SUPPORT
+	help
+	  With this option on, Unicode support is implemented using libc
+	  routines. Otherwise, internal implementation is used.
+	  Internal implementation is smaller.
+
+config BUSYBOX_CONFIG_FEATURE_CHECK_UNICODE_IN_ENV
+	bool "Check $LC_ALL, $LC_CTYPE and $LANG environment variables"
+	default BUSYBOX_DEFAULT_FEATURE_CHECK_UNICODE_IN_ENV
+	depends on BUSYBOX_CONFIG_UNICODE_SUPPORT && !BUSYBOX_CONFIG_UNICODE_USING_LOCALE
+	help
+	  With this option on, Unicode support is activated
+	  only if locale-related variables have the value of the form
+	  "xxxx.utf8"
+
+	  Otherwise, Unicode support will be always enabled and active.
+
+config BUSYBOX_CONFIG_SUBST_WCHAR
+	int "Character code to substitute unprintable characters with"
+	depends on BUSYBOX_CONFIG_UNICODE_SUPPORT
+	default BUSYBOX_DEFAULT_SUBST_WCHAR
+	help
+	  Typical values are 63 for '?' (works with any output device),
+	  30 for ASCII substitute control code,
+	  65533 (0xfffd) for Unicode replacement character.
+
+config BUSYBOX_CONFIG_LAST_SUPPORTED_WCHAR
+	int "Range of supported Unicode characters"
+	depends on BUSYBOX_CONFIG_UNICODE_SUPPORT
+	default BUSYBOX_DEFAULT_LAST_SUPPORTED_WCHAR
+	help
+	  Any character with Unicode value bigger than this is assumed
+	  to be non-printable on output device. Many applets replace
+	  such characters with substitution character.
+
+	  The idea is that many valid printable Unicode chars
+	  nevertheless are not displayed correctly. Think about
+	  combining charachers, double-wide hieroglyphs, obscure
+	  characters in dozens of ancient scripts...
+	  Many terminals, terminal emulators, xterms etc will fail
+	  to handle them correctly. Choose the smallest value
+	  which suits your needs.
+
+	  Typical values are:
+	  126 - ASCII only
+	  767 (0x2ff) - there are no combining chars in [0..767] range
+			(the range includes Latin 1, Latin Ext. A and B),
+			code is ~700 bytes smaller for this case.
+	  4351 (0x10ff) - there are no double-wide chars in [0..4351] range,
+			code is ~300 bytes smaller for this case.
+	  12799 (0x31ff) - nearly all non-ideographic characters are
+			available in [0..12799] range, including
+			East Asian scripts like katakana, hiragana, hangul,
+			bopomofo...
+	  0 - off, any valid printable Unicode character will be printed.
+
+config BUSYBOX_CONFIG_UNICODE_COMBINING_WCHARS
+	bool "Allow zero-width Unicode characters on output"
+	default BUSYBOX_DEFAULT_UNICODE_COMBINING_WCHARS
+	depends on BUSYBOX_CONFIG_UNICODE_SUPPORT
+	help
+	  With this option off, any Unicode char with width of 0
+	  is substituted on output.
+
+config BUSYBOX_CONFIG_UNICODE_WIDE_WCHARS
+	bool "Allow wide Unicode characters on output"
+	default BUSYBOX_DEFAULT_UNICODE_WIDE_WCHARS
+	depends on BUSYBOX_CONFIG_UNICODE_SUPPORT
+	help
+	  With this option off, any Unicode char with width > 1
+	  is substituted on output.
+
+config BUSYBOX_CONFIG_UNICODE_BIDI_SUPPORT
+	bool "Bidirectional character-aware line input"
+	default BUSYBOX_DEFAULT_UNICODE_BIDI_SUPPORT
+	depends on BUSYBOX_CONFIG_UNICODE_SUPPORT && !BUSYBOX_CONFIG_UNICODE_USING_LOCALE
+	help
+	  With this option on, right-to-left Unicode characters
+	  are treated differently on input (e.g. cursor movement).
+
+config BUSYBOX_CONFIG_UNICODE_NEUTRAL_TABLE
+	bool "In bidi input, support non-ASCII neutral chars too"
+	default BUSYBOX_DEFAULT_UNICODE_NEUTRAL_TABLE
+	depends on BUSYBOX_CONFIG_UNICODE_BIDI_SUPPORT
+	help
+	  In most cases it's enough to treat only ASCII non-letters
+	  (i.e. punctuation, numbers and space) as characters
+	  with neutral directionality.
+	  With this option on, more extensive (and bigger) table
+	  of neutral chars will be used.
+
+config BUSYBOX_CONFIG_UNICODE_PRESERVE_BROKEN
+	bool "Make it possible to enter sequences of chars which are not Unicode"
+	default BUSYBOX_DEFAULT_UNICODE_PRESERVE_BROKEN
+	depends on BUSYBOX_CONFIG_UNICODE_SUPPORT
+	help
+	  With this option on, on line-editing input (such as used by shells)
+	  invalid UTF-8 bytes are not substituted with the selected
+	  substitution character.
+	  For example, this means that entering 'l', 's', ' ', 0xff, [Enter]
+	  at shell prompt will list file named 0xff (single char name
+	  with char value 255), not file named '?'.
+
 config BUSYBOX_CONFIG_FEATURE_NON_POSIX_CP
 	bool "Non-POSIX, but safer, copying to special nodes"
 	default BUSYBOX_DEFAULT_FEATURE_NON_POSIX_CP
@@ -190,6 +363,19 @@ config BUSYBOX_CONFIG_FEATURE_VERBOSE_CP_MESSAGE
 	    cp: cannot create '/does_not_exist/file': No such file or directory
 	    cp: cannot stat '/vmlinuz/file': Not a directory
 	  This will cost you ~60 bytes.
+
+config BUSYBOX_CONFIG_FEATURE_USE_SENDFILE
+	bool "Use sendfile system call"
+	default BUSYBOX_DEFAULT_FEATURE_USE_SENDFILE
+	select BUSYBOX_CONFIG_PLATFORM_LINUX
+	help
+	  When enabled, busybox will use the kernel sendfile() function
+	  instead of read/write loops to copy data between file descriptors
+	  (for example, cp command does this a lot).
+	  If sendfile() doesn't work, copying code falls back to read/write
+	  loop. sendfile() was originally implemented for faster I/O
+	  from files to sockets, but since Linux 2.6.33 it was extended
+	  to work for many more file types.
 
 config BUSYBOX_CONFIG_FEATURE_COPYBUF_KB
 	int "Copy buffer size, in kilobytes"

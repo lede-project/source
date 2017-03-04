@@ -10,7 +10,7 @@
 
 FEEDS_INSTALLED:=$(notdir $(wildcard $(TOPDIR)/package/feeds/*))
 FEEDS_AVAILABLE:=$(sort $(FEEDS_INSTALLED) $(shell $(SCRIPT_DIR)/feeds list -n))
-FEEDS_ENABLED:=$(foreach feed,$(FEEDS_INSTALLED),$(if $(CONFIG_FEED_$(feed)),$(feed)))
+FEEDS_ENABLED:=$(foreach feed,$(FEEDS_AVAILABLE),$(if $(CONFIG_FEED_$(feed)),$(feed)))
 FEEDS_DISABLED:=$(filter-out $(FEEDS_ENABLED),$(FEEDS_AVAILABLE))
 
 PACKAGE_SUBDIRS=$(PACKAGE_DIR)
@@ -24,6 +24,10 @@ ifneq ($(CONFIG_PER_FEED_REPO),)
 endif
 
 PACKAGE_DIR_ALL := $(TOPDIR)/staging_dir/packages/$(BOARD)
+
+opkg_package_files = $(wildcard \
+	$(foreach dir,$(PACKAGE_SUBDIRS), \
+	  $(foreach pkg,$(1), $(dir)/$(pkg)_*.ipk)))
 
 PKG_CONFIG_DEPENDS += \
 	CONFIG_PER_FEED_REPO \

@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gre
 PKG_VERSION:=1
-PKG_RELEASE:=3
+PKG_RELEASE:=6
 PKG_LICENSE:=GPL-2.0
 
 include $(INCLUDE_DIR)/package.mk
@@ -32,7 +32,7 @@ endef
 define Package/grev4
 $(call Package/gre/Default)
   TITLE:=Generic Routing Encapsulation (IPv4) config support
-  DEPENDS:=@(PACKAGE_gre) +kmod-gre
+  DEPENDS:=@(PACKAGE_gre) +kmod-gre +resolveip
 endef
 
 define Package/grev4/description
@@ -42,7 +42,7 @@ endef
 define Package/grev6
 $(call Package/gre/Default)
   TITLE:=Generic Routing Encapsulation (IPv6) config support
-  DEPENDS:=@(PACKAGE_gre) @IPV6 +kmod-gre6
+  DEPENDS:=@(PACKAGE_gre) @IPV6 +kmod-gre6 +resolveip
 endef
 
 define Package/grev6/description
@@ -58,6 +58,14 @@ endef
 define Package/gre/install
 	$(INSTALL_DIR) $(1)/lib/netifd/proto
 	$(INSTALL_BIN) ./files/gre.sh $(1)/lib/netifd/proto/gre.sh
+endef
+
+define Package/grev4/install
+	:
+endef
+
+define Package/grev6/install
+	:
 endef
 
 $(eval $(call BuildPackage,gre))

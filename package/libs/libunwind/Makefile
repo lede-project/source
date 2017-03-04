@@ -12,8 +12,8 @@ PKG_VERSION:=1.1
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=http://download.savannah.gnu.org/releases/libunwind
-PKG_MD5SUM:=fb4ea2f6fbbe45bf032cd36e586883ce
+PKG_SOURCE_URL:=@SAVANNAH/$(PKG_NAME)
+PKG_HASH:=9dfe0fcae2a866de9d3942c66995e4b460230446887dbdab302d41a8aee8d09a
 PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
 

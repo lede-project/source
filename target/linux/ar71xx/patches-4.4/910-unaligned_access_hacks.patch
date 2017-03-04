@@ -267,16 +267,16 @@
  		case IPV6_2292HOPOPTS:
 --- a/net/ipv6/ip6_gre.c
 +++ b/net/ipv6/ip6_gre.c
-@@ -394,7 +394,7 @@ static void ip6gre_err(struct sk_buff *s
+@@ -395,7 +395,7 @@ static void ip6gre_err(struct sk_buff *s
+ 		return;
+ 	ipv6h = (const struct ipv6hdr *)skb->data;
+ 	greh = (const struct gre_base_hdr *)(skb->data + offset);
+-	key = key_off ? *(__be32 *)(skb->data + key_off) : 0;
++	key = key_off ? net_hdr_word((__be32 *)(skb->data + key_off)) : 0;
  
  	t = ip6gre_tunnel_lookup(skb->dev, &ipv6h->daddr, &ipv6h->saddr,
- 				flags & GRE_KEY ?
--				*(((__be32 *)p) + (grehlen / 4) - 1) : 0,
-+				net_hdr_word(((__be32 *)p) + (grehlen / 4) - 1) : 0,
- 				p[1]);
- 	if (!t)
- 		return;
-@@ -476,11 +476,11 @@ static int ip6gre_rcv(struct sk_buff *sk
+ 				 key, greh->protocol);
+@@ -479,11 +479,11 @@ static int ip6gre_rcv(struct sk_buff *sk
  			offset += 4;
  		}
  		if (flags&GRE_KEY) {
@@ -290,7 +290,7 @@
  			offset += 4;
  		}
  	}
-@@ -742,7 +742,7 @@ static netdev_tx_t ip6gre_xmit2(struct s
+@@ -745,7 +745,7 @@ static netdev_tx_t ip6gre_xmit2(struct s
  
  		if (tunnel->parms.o_flags&GRE_SEQ) {
  			++tunnel->o_seqno;
@@ -299,7 +299,7 @@
  			ptr--;
  		}
  		if (tunnel->parms.o_flags&GRE_KEY) {
-@@ -838,7 +838,7 @@ static inline int ip6gre_xmit_ipv6(struc
+@@ -841,7 +841,7 @@ static inline int ip6gre_xmit_ipv6(struc
  
  	dsfield = ipv6_get_dsfield(ipv6h);
  	if (t->parms.flags & IP6_TNL_F_USE_ORIG_TCLASS)
@@ -310,7 +310,7 @@
  	if (t->parms.flags & IP6_TNL_F_USE_ORIG_FWMARK)
 --- a/net/ipv6/ip6_tunnel.c
 +++ b/net/ipv6/ip6_tunnel.c
-@@ -1386,7 +1386,7 @@ ip6ip6_tnl_xmit(struct sk_buff *skb, str
+@@ -1407,7 +1407,7 @@ ip6ip6_tnl_xmit(struct sk_buff *skb, str
  
  	dsfield = ipv6_get_dsfield(ipv6h);
  	if (t->parms.flags & IP6_TNL_F_USE_ORIG_TCLASS)
@@ -370,7 +370,7 @@
  	return neigh_create(&arp_tbl, pkey, dev);
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -450,48 +450,53 @@ static void tcp_options_write(__be32 *pt
+@@ -451,48 +451,53 @@ static void tcp_options_write(__be32 *pt
  	u16 options = opts->options;	/* mungable copy */
  
  	if (unlikely(OPTION_MD5 & options)) {
@@ -447,7 +447,7 @@
  	}
  
  	if (unlikely(opts->num_sack_blocks)) {
-@@ -499,16 +504,17 @@ static void tcp_options_write(__be32 *pt
+@@ -500,16 +505,17 @@ static void tcp_options_write(__be32 *pt
  			tp->duplicate_sack : tp->selective_acks;
  		int this_sack;
  
@@ -471,7 +471,7 @@
  		}
  
  		tp->rx_opt.dsack = 0;
-@@ -521,13 +527,14 @@ static void tcp_options_write(__be32 *pt
+@@ -522,13 +528,14 @@ static void tcp_options_write(__be32 *pt
  
  		if (foc->exp) {
  			len = TCPOLEN_EXP_FASTOPEN_BASE + foc->len;
@@ -491,7 +491,7 @@
  		memcpy(p, foc->val, foc->len);
 --- a/net/ipv4/igmp.c
 +++ b/net/ipv4/igmp.c
-@@ -500,7 +500,7 @@ static struct sk_buff *add_grec(struct s
+@@ -505,7 +505,7 @@ static struct sk_buff *add_grec(struct s
  		if (!skb)
  			return NULL;
  		psrc = (__be32 *)skb_put(skb, sizeof(__be32));
@@ -610,7 +610,7 @@
  			goto next_ht;
 --- a/net/ipv6/ip6_offload.c
 +++ b/net/ipv6/ip6_offload.c
-@@ -221,7 +221,7 @@ static struct sk_buff **ipv6_gro_receive
+@@ -222,7 +222,7 @@ static struct sk_buff **ipv6_gro_receive
  			continue;
  
  		iph2 = (struct ipv6hdr *)(p->data + off);
@@ -838,7 +838,7 @@
  
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -3809,14 +3809,16 @@ static bool tcp_parse_aligned_timestamp(
+@@ -3818,14 +3818,16 @@ static bool tcp_parse_aligned_timestamp(
  {
  	const __be32 *ptr = (const __be32 *)(th + 1);
  

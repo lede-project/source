@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=e2fsprogs
-PKG_VERSION:=1.43.1
-PKG_MD5SUM:=1775f3f0eed9dee1c5f39e08d1964a97
-PKG_RELEASE:=2
+PKG_VERSION:=1.43.4
+PKG_HASH:=54b3f21123a531a6a536b9cdcc21344b0122a72790dbe4dacc98e64db25e4a24
+PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=@SF/e2fsprogs
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+PKG_SOURCE_URL:=@KERNEL/linux/kernel/people/tytso/e2fsprogs/v$(PKG_VERSION)/
 
 PKG_BUILD_DEPENDS:=util-linux
 PKG_INSTALL:=1
@@ -44,6 +44,7 @@ define Package/libext2fs
 $(call Package/e2fsprogs/Default)
   SECTION:=libs
   CATEGORY:=Libraries
+  DEPENDS:=+libuuid
   TITLE:=ext2/3/4 filesystem library
 endef
 
@@ -131,12 +132,16 @@ define Build/Compile
 		CFLAGS="" \
 		CPPFLAGS="" \
 		LDFLAGS="" \
+		V=$(if $(findstring c,$(OPENWRT_VERBOSE)),1,) \
 		subst
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		LDFLAGS=-Wl,--gc-sections \
 		BUILDCC="$(HOSTCC)" \
 		DESTDIR="$(PKG_INSTALL_DIR)" \
 		LIBBLKID="$(PKG_BUILD_DIR)/lib/libblkid.a -luuid" \
+		ELF_OTHER_LIBS="$(TARGET_LDFLAGS) -luuid" \
+		SYSLIBS="$(TARGET_LDFLAGS) -ldl -L$(PKG_BUILD_DIR)/lib/ -l:libcom_err.so.0.0" \
+		V=$(if $(findstring c,$(OPENWRT_VERBOSE)),1,) \
 		all
 endef
 

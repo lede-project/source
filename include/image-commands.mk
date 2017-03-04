@@ -8,7 +8,40 @@ define Build/uImage
 		-O linux -T kernel \
 		-C $(1) -a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
 		-n '$(if $(UIMAGE_NAME),$(UIMAGE_NAME),$(call toupper,$(LINUX_KARCH)) LEDE Linux-$(LINUX_VERSION))' -d $@ $@.new
-	@mv $@.new $@
+	mv $@.new $@
+endef
+
+define Build/buffalo-enc
+	$(eval product=$(word 1,$(1)))
+	$(eval version=$(word 2,$(1)))
+	$(eval args=$(wordlist 3,$(words $(1)),$(1)))
+	$(STAGING_DIR_HOST)/bin/buffalo-enc \
+		-p $(product) -v $(version) $(args) \
+		-i $@ -o $@.new
+	mv $@.new $@
+endef
+
+define Build/buffalo-enc-tag
+	$(call Build/buffalo-enc,'' '' -S 152 $(1))
+endef
+
+define Build/buffalo-tag-dhp
+	$(eval product=$(word 1,$(1)))
+	$(eval region=$(word 2,$(1)))
+	$(eval language=$(word 3,$(1)))
+	$(STAGING_DIR_HOST)/bin/buffalo-tag \
+		-d 0x01000000 -w 1 \
+		-a $(BUFFALO_TAG_PLATFORM) \
+		-v $(BUFFALO_TAG_VERSION) -m $(BUFFALO_TAG_MINOR) \
+		-b $(product) -p $(product) \
+		-r $(region) -r $(region) -l $(language) \
+		-I $@ -o $@.new
+	mv $@.new $@
+endef
+
+define Build/buffalo-dhp-image
+	$(STAGING_DIR_HOST)/bin/mkdhpimg $@ $@.new
+	mv $@.new $@
 endef
 
 define Build/netgear-chk
@@ -27,6 +60,18 @@ define Build/netgear-dni
 		-r "$(1)" \
 		-i $@ -o $@.new
 	mv $@.new $@
+endef
+
+# append a fake/empty rootfs uImage header, to fool the bootloaders
+# rootfs integrity check
+define Build/append-uImage-fakeroot-hdr
+	rm -f $@.fakeroot
+	$(STAGING_DIR_HOST)/bin/mkimage \
+		-A $(LINUX_KARCH) -O linux -T filesystem -C none \
+		-n '$(call toupper,$(LINUX_KARCH)) LEDE fakeroot' \
+		-s \
+		$@.fakeroot
+	cat $@.fakeroot >> $@
 endef
 
 define Build/tplink-safeloader
@@ -59,7 +104,7 @@ define Build/fit
 		-D $(DEVICE_NAME) -o $@.its -k $@ \
 		$(if $(word 2,$(1)),-d $(word 2,$(1))) -C $(word 1,$(1)) \
 		-a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
-		-A $(ARCH) -v $(LINUX_VERSION)
+		-A $(LINUX_KARCH) -v $(LINUX_VERSION)
 	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage -f $@.its $@.new
 	@mv $@.new $@
 endef
@@ -103,20 +148,21 @@ define Build/patch-cmdline
 endef
 
 define Build/append-kernel
-	dd if=$(IMAGE_KERNEL) $(if $(1),bs=$(1) conv=sync) >> $@
+	dd if=$(IMAGE_KERNEL) >> $@
 endef
 
 define Build/append-rootfs
-	dd if=$(IMAGE_ROOTFS) $(if $(1),bs=$(1) conv=sync) >> $@
+	dd if=$(IMAGE_ROOTFS) >> $@
 endef
 
 define Build/append-ubi
 	sh $(TOPDIR)/scripts/ubinize-image.sh \
 		$(if $(UBOOTENV_IN_UBI),--uboot-env) \
 		$(if $(KERNEL_IN_UBI),--kernel $(IMAGE_KERNEL)) \
+		$(foreach part,$(UBINIZE_PARTS),--part $(part)) \
 		$(IMAGE_ROOTFS) \
 		$@.tmp \
-		-p $(BLOCKSIZE) -m $(PAGESIZE) \
+		-p $(BLOCKSIZE:%k=%KiB) -m $(PAGESIZE) \
 		$(if $(SUBPAGESIZE),-s $(SUBPAGESIZE)) \
 		$(if $(VID_HDR_OFFSET),-O $(VID_HDR_OFFSET)) \
 		$(UBINIZE_OPTS)
@@ -129,15 +175,20 @@ define Build/pad-to
 	mv $@.new $@
 endef
 
+define Build/pad-extra
+	dd if=/dev/zero bs=$(1) count=1 >> $@
+endef
+
 define Build/pad-rootfs
-	$(STAGING_DIR_HOST)/bin/padjffs2 $@ $(1) 4 8 16 64 128 256
+	$(STAGING_DIR_HOST)/bin/padjffs2 $@ $(1) \
+		$(if $(BLOCKSIZE),$(BLOCKSIZE:%k=%),4 8 16 64 128 256)
 endef
 
 define Build/pad-offset
 	let \
 		size="$$(stat -c%s $@)" \
-		pad="$(word 1, $(1))" \
-		offset="$(word 2, $(1))" \
+		pad="$(subst k,* 1024,$(word 1, $(1)))" \
+		offset="$(subst k,* 1024,$(word 2, $(1)))" \
 		pad="(pad - ((size + offset) % pad)) % pad" \
 		newsize='size + pad'; \
 		dd if=$@ of=$@.new bs=$$newsize count=1 conv=sync
@@ -165,4 +216,27 @@ define Build/sysupgrade-tar
 		--kernel $(call param_get_default,kernel,$(1),$(IMAGE_KERNEL)) \
 		--rootfs $(call param_get_default,rootfs,$(1),$(IMAGE_ROOTFS)) \
 		$@
+endef
+
+json_quote=$(subst ','\'',$(subst ",\",$(1)))
+#")')
+metadata_devices=$(if $(1),$(subst "$(space)","$(comma)",$(strip $(foreach v,$(1),"$(call json_quote,$(v))"))))
+metadata_json = \
+	'{ $(if $(IMAGE_METADATA),$(IMAGE_METADATA)$(comma)) \
+		"supported_devices":[$(call metadata_devices,$(1))], \
+		"version": { \
+			"dist": "$(call json_quote,$(VERSION_DIST))", \
+			"version": "$(call json_quote,$(VERSION_NUMBER))", \
+			"revision": "$(call json_quote,$(REVISION))", \
+			"board": "$(call json_quote,$(BOARD))" \
+		} \
+	}'
+
+define Build/append-metadata
+	$(if $(SUPPORTED_DEVICES),echo $(call metadata_json,$(SUPPORTED_DEVICES)) | fwtool -I - $@)
+endef
+
+define Build/kernel2minor
+	kernel2minor -k $@ -r $@.new $(1)
+	mv $@.new $@
 endef

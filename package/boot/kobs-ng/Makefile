@@ -8,12 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=kobs-ng
-PKG_VERSION:=3.0.35-4.0.0
-PKG_RELEASE:=2
+PKG_VERSION:=5.4
+PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=http://repository.timesys.com/buildsources/k/kobs-ng/kobs-ng-$(PKG_VERSION)/
-PKG_MD5SUM:=26104c577f59a6b81782a5bd16aadd82
+PKG_SOURCE:=imx-kobs-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=http://www.freescale.com/lgfiles/NMG/MAD/YOCTO/
+PKG_HASH:=85171b46068ac47c42fedb8104167bf9afd33dd9527ed127e1ca2eb29d7a86bf
+PKG_BUILD_DIR:=$(BUILD_DIR)/imx-kobs-$(PKG_VERSION)
 
 PKG_LICENSE:=GPLv2
 PKG_LICENSE_FILES:=COPYING

@@ -1,21 +1,25 @@
 /dts-v1/;
 
-/include/ "danube.dtsi"
+#include "danube.dtsi"
+
+#include <dt-bindings/input/input.h>
 
 / {
 	model = "ARV8539PW22 - Speedport W 504V Typ A";
 
-    chosen {
-	    leds {
-			boot = &power_green;
-			failsafe = &power_red;
-			running = &power_green;
+	chosen {
+		bootargs = "console=ttyLTQ0,115200";
+	};
 
-		    dsl = &dsl_green;
-		    internet = &online_green;
-		    wifi = &wireless_green;
-	    };
-    };
+	aliases {
+		led-boot = &power_green;
+		led-failsafe = &power_red;
+		led-running = &power_green;
+
+		led-dsl = &dsl_green;
+		led-internet = &online_green;
+		led-wifi = &wireless_green;
+	};
 
 	memory@0 {
 		reg = <0x0 0x4000000>;
@@ -24,7 +28,7 @@
 	sram@1F000000 {
 		vmmc@107000 {
 			status = "okay";
-			gpios = <&gpio 31 0>;
+			gpios = <&gpio 31 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
@@ -59,28 +63,12 @@
 						reg = <0x40000 0x7B0000>;       /* 7872 KiB */
 					};
 
-					partition@7F0000 {
+					art: partition@7F0000 {
 						label = "art";
 						reg = <0x7F0000 0x10000>;       /* 64 KiB*/
 						read-only;
 					};
 				};
-			};
-
-			mac_addr {
-				compatible = "lantiq,eth-mac";
-				reg = <0 0x7f0016 0x6>;
-				mac-increment = <2>;
-			};
-
-			ath9k_eep {
-				compatible = "ath9k,eeprom";
-				reg = <0 0x7f0400 0x1000
-					0 0x7f0016 0x6>;
-				ath,mac-increment = <1>;
-				ath,pci-slot = <14>;
-				ath,eep-endian;
-				ath,arv-ath9k-fix;
 			};
 		};
 
@@ -115,19 +103,14 @@
 
 		etop@E180000 {
 			phy-mode = "mii";
-		};
-
-		pci@E105400 {
-			status = "okay";
-			gpio-reset = <&gpio 21 0>;
+			mtd-mac-address = <&art 0x16>;
 		};
 
 		ifxhcd@E101000 {
 			status = "okay";
-			gpios = <&gpio 14 0>;
+			gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
 			lantiq,portmask = <0x3>;
 		};
-
 	};
 
 	gpio-keys-polled {
@@ -138,14 +121,15 @@
 
 		wlan {
 			label = "wlan";
-			gpios = <&gpio 29 1>;
-			linux,code = <0x211>;
+			gpios = <&gpio 29 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
 		};
 		reset {
 			label = "reset";
-			gpios = <&gpio 30 1>;
-			linux,code = <0x198>;
+			gpios = <&gpio 30 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
 		};
+		/* key DECT is missing */
 	};
 
 	gpio-leds {
@@ -153,27 +137,27 @@
 
 		power_green: power-green {
 			label = "arv8539pw22:green:power";
-			gpios = <&gpio 24 1>;
+			gpios = <&gpio 24 GPIO_ACTIVE_LOW>;
 			default-state = "keep";
 		};
 		power_red: power-red {
 			label = "arv8539pw22:red:power";
-			gpios = <&gpio 4 1>;
+			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
 		};
 
 		dsl_green: dsl-green {
 			label = "arv8539pw22:green:dsl";
-			gpios = <&gpio 5 1>;
+			gpios = <&gpio 5 GPIO_ACTIVE_LOW>;
 		};
 
 		online_green: online-green {
 			label = "arv8539pw22:green:online";
-			gpios = <&gpio 6 1>;
+			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
 		};
 
 		wireless_green: wireless-green {
 			label = "arv8539pw22:green:wlan";
-			gpios = <&gpio 8 1>;
+			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
 		};
 		/*
 			telefonie green is missing
@@ -181,3 +165,15 @@
 	};
 };
 
+&pci0 {
+	status = "okay";
+	gpio-reset = <&gpio 21 GPIO_ACTIVE_HIGH>;
+
+	wifi@168c,0029 {
+		compatible = "pci168c,0029";
+		reg = <0x7000 0 0 0 0>;
+		qca,no-eeprom; /* load from ath9k-eeprom-pci-0000:00:0e.0.bin */
+		mtd-mac-address = <&art 0x16>;
+		mtd-mac-address-increment = <1>;
+	};
+};

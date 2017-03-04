@@ -2,6 +2,8 @@
 
 #include "rt3050.dtsi"
 
+#include <dt-bindings/input/input.h>
+
 / {
 	compatible = "RUT5XX", "ralink,rt3050-soc";
 	model = "Teltonika RUT5XX";
@@ -24,7 +26,7 @@
 		reset {
 			label = "reset";
 			gpios = <&gpio0 10 1>;
-			linux,code = <0x198>;
+			linux,code = <KEY_RESTART>;
 		};
 	};
 };
@@ -37,7 +39,6 @@
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		linux,modalias = "m25p80", "n25q128a13";
 		spi-max-frequency = <10000000>;
 
 		partition@0 {

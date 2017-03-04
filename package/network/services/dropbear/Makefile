@@ -8,14 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dropbear
-PKG_VERSION:=2016.73
-PKG_RELEASE:=1
+PKG_VERSION:=2016.74
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:= \
 	http://matt.ucc.asn.au/dropbear/releases/ \
 	https://dropbear.nl/mirror/releases/
-PKG_MD5SUM:=8d6d78ce60ca52350ec04fcbd711ce9b
+PKG_HASH:=2720ea54ed009af812701bcc290a2a601d5c107d12993e5d92c0f5f81f718891
 
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=LICENSE libtomcrypt/LICENSE libtommath/LICENSE
@@ -28,7 +28,7 @@ PKG_CONFIG_DEPENDS:=CONFIG_TARGET_INIT_PATH CONFIG_DROPBEAR_ECC CONFIG_DROPBEAR_
 include $(INCLUDE_DIR)/package.mk
 
 ifneq ($(DUMP),1)
-  STAMP_CONFIGURED:=$(strip $(STAMP_CONFIGURED))_$(shell $(SH_FUNC) echo $(CONFIG_TARGET_INIT_PATH) | md5s)
+  STAMP_CONFIGURED:=$(strip $(STAMP_CONFIGURED))_$(shell echo $(CONFIG_TARGET_INIT_PATH) | mkhash md5)
 endif
 
 define Package/dropbear/Default
@@ -66,7 +66,6 @@ CONFIGURE_ARGS += \
 	--disable-pam \
 	--enable-openpty \
 	--enable-syslog \
-	$(if $(CONFIG_SHADOW_PASSWORDS),,--disable-shadow) \
 	--disable-lastlog \
 	--disable-utmpx \
 	$(if $(CONFIG_DROPBEAR_UTMP),,--disable-utmp) \
@@ -78,13 +77,13 @@ CONFIGURE_ARGS += \
 	--disable-zlib \
 	--enable-bundled-libtom
 
-TARGET_CFLAGS += -DDEFAULT_PATH=\\\"$(CONFIG_TARGET_INIT_PATH)\\\" -DARGTYPE=3 -ffunction-sections -fdata-sections
+TARGET_CFLAGS += -DARGTYPE=3 -ffunction-sections -fdata-sections
 TARGET_LDFLAGS += -Wl,--gc-sections
 
 define Build/Configure
 	$(Build/Configure/Default)
 
-	$(SED) 's,^#define DEFAULT_PATH .*$$$$,#define DEFAULT_PATH "$(CONFIG_TARGET_INIT_PATH)",g' \
+	$(SED) 's,^#define DEFAULT_PATH .*$$$$,#define DEFAULT_PATH "$(TARGET_INIT_PATH)",g' \
 		$(PKG_BUILD_DIR)/options.h
 
 	awk 'BEGIN { rc = 1 } \
@@ -104,6 +103,10 @@ define Build/Configure
 	       >$(PKG_BUILD_DIR)/options.h.new && \
 	  mv $(PKG_BUILD_DIR)/options.h.new $(PKG_BUILD_DIR)/options.h || exit 1; \
 	done
+
+	# remove protocol idented software version number
+	$(SED) 's,^#define LOCAL_IDENT .*$$$$,#define LOCAL_IDENT "SSH-2.0-dropbear",g' \
+		$(PKG_BUILD_DIR)/sysoptions.h
 
 	# Enforce rebuild of svr-chansession.c
 	rm -f $(PKG_BUILD_DIR)/svr-chansession.o

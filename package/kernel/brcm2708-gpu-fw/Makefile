@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2012-2016 OpenWrt.org
-# Copyright (C) 2016 LEDE project
+# Copyright (C) 2017 LEDE project
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -9,8 +9,8 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=brcm2708-gpu-fw
-PKG_VERSION:=2016-07-08
-PKG_RELEASE:=6364331ee24c03108b4a572cb218164480b9275b
+PKG_VERSION:=2017-02-05
+PKG_RELEASE:=eba0fa58add5aa548d18ae436d2f0be93cdfbbe3
 
 PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(PKG_NAME)/rpi-firmware-$(PKG_RELEASE)
 
@@ -25,7 +25,7 @@ define Download/LICENCE_broadcom
   FILE:=$(RPI_FIRMWARE_FILE)-LICENCE.broadcom
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=LICENCE.broadcom
-  MD5SUM:=4a4d169737c0786fb9482bb6d30401d1
+  HASH:=ba76edfc10a248166d965b8eaf320771c44f4f432d4fce2fd31fd272e7038add
 endef
 $(eval $(call Download,LICENCE_broadcom))
 
@@ -33,7 +33,7 @@ define Download/bootcode_bin
   FILE:=$(RPI_FIRMWARE_FILE)-bootcode.bin
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=bootcode.bin
-  MD5SUM:=5bbb5f25dfe16f2871d5defcc48ac9ff
+  HASH:=e68fafc606a1e8ee6ccd4cbc5d9c7ca3b322c37bf65389a2ea011eb59cc96bbd
 endef
 $(eval $(call Download,bootcode_bin))
 
@@ -41,7 +41,7 @@ define Download/fixup_dat
   FILE:=$(RPI_FIRMWARE_FILE)-fixup.dat
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=fixup.dat
-  MD5SUM:=ab7cdc81eddc455497391a64bae58ac2
+  HASH:=4032c5de826ca3bc6294b2da713849486c290d83553895e1162cd2a7309861e8
 endef
 $(eval $(call Download,fixup_dat))
 
@@ -49,7 +49,7 @@ define Download/fixup_cd_dat
   FILE:=$(RPI_FIRMWARE_FILE)-fixup_cd.dat
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=fixup_cd.dat
-  MD5SUM:=9d86a9ed23631db63b9d3d85afdbafa9
+  HASH:=b3b6983fd781cfc4b6fc0ba3d7f7242d7fef66fa6a27faf817572faf3165e02a
 endef
 $(eval $(call Download,fixup_cd_dat))
 
@@ -57,7 +57,7 @@ define Download/start_elf
   FILE:=$(RPI_FIRMWARE_FILE)-start.elf
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=start.elf
-  MD5SUM:=6a704ac53346894b13ed33886690ba56
+  HASH:=18717d43450e75926c929058ace530f76520a9dcc603d5c5953d08138c73a2c0
 endef
 $(eval $(call Download,start_elf))
 
@@ -65,7 +65,7 @@ define Download/start_cd_elf
   FILE:=$(RPI_FIRMWARE_FILE)-start_cd.elf
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=start_cd.elf
-  MD5SUM:=381ae908e45515d4dafe642ddbc48a32
+  HASH:=d4d09b015b0376b37b22c108c01095a1c35ff1943e227a3f428edc57ed26670f
 endef
 $(eval $(call Download,start_cd_elf))
 

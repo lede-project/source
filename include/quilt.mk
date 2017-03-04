@@ -64,6 +64,7 @@ ifneq ($(PKG_BUILD_DIR),)
   ifneq ($(QUILT),)
     STAMP_CHECKED:=$(PKG_BUILD_DIR)/.quilt_checked
     override CONFIG_AUTOREBUILD=
+    override CONFIG_AUTOREMOVE=
     quilt-check: $(STAMP_CHECKED)
   endif
 endif
@@ -73,6 +74,7 @@ ifneq ($(HOST_BUILD_DIR),)
   ifneq ($(HOST_QUILT),)
     HOST_STAMP_CHECKED:=$(HOST_BUILD_DIR)/.quilt_checked
     override CONFIG_AUTOREBUILD=
+    override CONFIG_AUTOREMOVE=
     host-quilt-check: $(HOST_STAMP_CHECKED)
   endif
 endif
@@ -91,7 +93,7 @@ endef
 
 kernel_files=$(foreach fdir,$(GENERIC_FILES_DIR) $(FILES_DIR),$(fdir)/.)
 define Kernel/Patch/Default
-	rm -rf $(PKG_BUILD_DIR)/patches; mkdir -p $(PKG_BUILD_DIR)/patches
+	$(if $(QUILT),rm -rf $(PKG_BUILD_DIR)/patches; mkdir -p $(PKG_BUILD_DIR)/patches)
 	$(if $(kernel_files),$(CP) $(kernel_files) $(LINUX_DIR)/)
 	find $(LINUX_DIR)/ -name \*.rej -or -name \*.orig | $(XARGS) rm -f
 	$(call PatchDir,$(PKG_BUILD_DIR),$(GENERIC_PATCH_DIR),generic/)
@@ -149,7 +151,8 @@ define Quilt/Template
 		echo "The source directory contains no quilt patches."; \
 		false; \
 	}
-	@[ -n "$$$$(ls $(1)/patches/series)" -o "$$$$(cat $(1)/patches/series | md5sum)" = "$$(sort $(1)/patches/series | md5sum)" ] || { \
+	@[ -n "$$$$(ls $(1)/patches/series)" -o \
+	   "$$$$(cat $(1)/patches/series | mkhash md5)" = "$$(sort $(1)/patches/series | mkhash md5)" ] || { \
 		echo "The patches are not sorted in the right order. Please fix."; \
 		false; \
 	}

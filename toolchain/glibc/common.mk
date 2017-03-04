@@ -6,33 +6,14 @@
 #
 include $(TOPDIR)/rules.mk
 
-
-MD5SUM_2.19 = 42dad4edd3bcb38006d13b5640b00b38
-REVISION_2.19 = 25243
-
-MD5SUM_2.21 = 76050a65c444d58b5c4aa0d6034736ed
-REVISION_2.21 = 16d0a0c
-
-MD5SUM_2.22 = b575850e77b37d70f96472285290b391
-REVISION_2.22 = b995d95
-
-
 PKG_NAME:=glibc
-PKG_VERSION:=$(call qstrip,$(CONFIG_GLIBC_VERSION))
+PKG_VERSION:=2.25
 
-PKG_REVISION:=$(REVISION_$(PKG_VERSION))
-PKG_MIRROR_MD5SUM:=$(MD5SUM_$(PKG_VERSION))
+PKG_SOURCE_URL:=@GNU/libc
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+PKG_HASH:=067bd9bb3390e79aa45911537d13c3721f1d9d3769931a30c2681bfee66f23a0
 
-PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=git://sourceware.org/git/glibc.git
-PKG_SOURCE_VERSION:=$(PKG_REVISION)
-PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_REVISION)
-PKG_SOURCE:=$(PKG_SOURCE_SUBDIR).tar.bz2
-
-GLIBC_PATH:=
-
-PATCH_DIR:=$(PATH_PREFIX)/patches/$(PKG_VERSION)
-
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 HOST_BUILD_DIR:=$(BUILD_DIR_TOOLCHAIN)/$(PKG_SOURCE_SUBDIR)
 CUR_BUILD_DIR:=$(HOST_BUILD_DIR)-$(VARIANT)
 
@@ -55,10 +36,14 @@ ifeq ($(ARCH),mips64)
   endif
 endif
 
+
+# -Os miscompiles w. 2.24 gcc5/gcc6
+# only -O2 tested by upstream changeset
+# "Optimize i386 syscall inlining for GCC 5"
 GLIBC_CONFIGURE:= \
 	BUILD_CC="$(HOSTCC)" \
 	$(TARGET_CONFIGURE_OPTS) \
-	CFLAGS="$(TARGET_CFLAGS)" \
+	CFLAGS="-O2 $(filter-out -Os,$(call qstrip,$(TARGET_CFLAGS)))" \
 	libc_cv_slibdir="/lib" \
 	use_ldconfig=no \
 	$(HOST_BUILD_DIR)/$(GLIBC_PATH)configure \
@@ -74,6 +59,7 @@ GLIBC_CONFIGURE:= \
 		--$(if $(CONFIG_SOFT_FLOAT),without,with)-fp
 
 export libc_cv_ssp=no
+export libc_cv_ssp_strong=no
 export ac_cv_header_cpuid_h=yes
 export HOST_CFLAGS := $(HOST_CFLAGS) -idirafter $(CURDIR)/$(PATH_PREFIX)/include
 
@@ -86,7 +72,7 @@ endef
 
 define Host/Configure
 	[ -f $(HOST_BUILD_DIR)/.autoconf ] || { \
-		cd $(HOST_BUILD_DIR)/$(GLIBC_PATH); \
+		cd $(HOST_BUILD_DIR)/; \
 		autoconf --force && \
 		touch $(HOST_BUILD_DIR)/.autoconf; \
 	}

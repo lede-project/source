@@ -1,23 +1,25 @@
 /dts-v1/;
 
-/include/ "ar9.dtsi"
+#include "ar9.dtsi"
+
+#include <dt-bindings/input/input.h>
 
 / {
 	model = "WBMR - Buffalo WBMR-HP-G300H";
 
 	chosen {
-		bootargs = "console=ttyLTQ0,115200 init=/etc/preinit";
+		bootargs = "console=ttyLTQ0,115200";
+	};
 
-		leds {
-			boot = &power_green;
-			failsafe = &power_red;
-			running = &power_green;
+	aliases {
+		led-boot = &power_green;
+		led-failsafe = &power_red;
+		led-running = &power_green;
 
-			dsl = &dsl;
-			internet = &online_green;
-			usb = &usb;
-			wifi = &wifi;
-		};
+		led-dsl = &dsl;
+		led-internet = &online_green;
+		led-usb = &usb;
+		led-wifi = &wifi;
 	};
 
 	memory@0 {
@@ -55,23 +57,18 @@
 						reg = <0x60000 0x1f20000>;
 					};
 
-					partition@0x1fc0000 {
+					boardconfig: partition@1fc0000 {
 						label = "board";
 						reg = <0x1fc0000 0x20000>;
 						read-only;
 					};
 
-					partition@0x1fe0000 {
+					partition@1fe0000 {
 						label = "calibration";
 						reg = <0x1fe0000 0x20000>;
 						read-only;
 					};
 				};
-			};
-
-			mac_addr {
-				compatible = "lantiq,eth-mac";
-				reg = <0 0x1fd0024 0x6>;
 			};
 		};
 
@@ -101,11 +98,12 @@
 
 		etop@E180000 {
 			phy-mode = "rgmii";
+			mtd-mac-address = <&boardconfig 0x10024>;
 		};
 
 		ifxhcd@E101000 {
 			status = "okay";
-			gpios = <&gpio 36 0>;
+			gpios = <&gpio 36 GPIO_ACTIVE_HIGH>;
 		};
 
 		pci@E105400 {
@@ -121,23 +119,23 @@
 
 		wps {
 			label = "wps";
-			gpios = <&gpio 0 1>;
-			linux,code = <0x211>;
+			gpios = <&gpio 0 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
 		};
 		reset {
 			label = "reset";
-			gpios = <&gpio 37 1>;
-			linux,code = <0x198>;
+			gpios = <&gpio 37 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
 		};
 		eject {
 			label = "eject";
-			gpios = <&gpio 34 1>;
-			linux,code = <0xf7>;
+			gpios = <&gpio 34 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_EJECTCD>;
 		};
 		movie {
 			label = "movie";
-			gpios = <&gpio 22 1>;
-			linux,code = <0x109>;
+			gpios = <&gpio 22 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_VIDEO>;
 		};
 	};
 
@@ -146,40 +144,40 @@
 
 		power_green: power {
 			label = "wbmr:green:power";
-			gpios = <&gpio 1 1>;
+			gpios = <&gpio 1 GPIO_ACTIVE_LOW>;
 			default-state = "keep";
 		};
 		power_red: power2 {
 			label = "wbmr:red:power";
-			gpios = <&gpio 5 1>;
+			gpios = <&gpio 5 GPIO_ACTIVE_LOW>;
 		};
 		security {
 			label = "wbmr:yellow:security";
-			gpios = <&gpio 14 1>;
+			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
 		};
 		wifi: wifi {
 			label = "wbmr:green:wireless";
-			gpios = <&gpio 15 1>;
+			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
 		};
 		dsl: dsl {
 			label = "wbmr:green:dsl";
-			gpios = <&gpio 16 1>;
+			gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
 		};
 		online_green: online {
 			label = "wbmr:green:internet";
-			gpios = <&gpio 17 1>;
+			gpios = <&gpio 17 GPIO_ACTIVE_LOW>;
 		};
 		online2 {
 			label = "wbmr:red:internet";
-			gpios = <&gpio 18 1>;
+			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
 		};
 		movie {
 			label = "wbmr:blue:movie";
-			gpios = <&gpio 20 1>;
+			gpios = <&gpio 20 GPIO_ACTIVE_LOW>;
 		};
 		usb: usb {
 			label = "wbmr:green:usb";
-			gpios = <&gpio 28 1>;
+			gpios = <&gpio 28 GPIO_ACTIVE_LOW>;
 			default-state = "on";
 		};
 	};

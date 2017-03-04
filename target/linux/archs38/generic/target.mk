@@ -1,8 +1,8 @@
 BOARDNAME:=Generic
-FEATURES += ramdisk usb
+FEATURES += ext4 usb ramdisk
 
 define Target/Description
-	Build firmware images for generic ARC HS38 based boards.
+	Build firmware images for ARC HS38 based boards.
 endef
 
 

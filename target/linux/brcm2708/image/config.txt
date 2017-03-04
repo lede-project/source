@@ -941,17 +941,20 @@ dtparam=i2c1=on
 dtparam=spi=on
 
 #dtoverlay=adau1977-adc
+#dtoverlay=allo-piano-dac-pcm512x-audio
 #dtoverlay=audioinjector-wm8731-audio
 #dtoverlay=dionaudio-loco
 #dtoverlay=hifiberry-amp
 #dtoverlay=hifiberry-dac
 #dtoverlay=hifiberry-dacplus
 #dtoverlay=hifiberry-digi
+#dtoverlay=hifiberry-digi-pro
 #dtoverlay=iqaudio-dac
 #dtoverlay=iqaudio-dacplus
 #dtoverlay=iqaudio-digi-wm8804-audio
 #dtoverlay=justboom-dac
 #dtoverlay=justboom-digi
+#dtoverlay=pisound
 #dtoverlay=raspidac3
 #dtoverlay=rpi-dac
 #dtoverlay=rpi-proto

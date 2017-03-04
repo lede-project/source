@@ -90,25 +90,6 @@ endef
 $(eval $(call KernelPackage,ata-artop))
 
 
-define KernelPackage/ata-imx
-  TITLE:=Freescale i.MX AHCI SATA support
-  DEPENDS:=@TARGET_imx6
-  KCONFIG:=\
-	CONFIG_AHCI_IMX \
-	CONFIG_SATA_AHCI_PLATFORM \
-	CONFIG_PATA_IMX=n
-  FILES:=$(LINUX_DIR)/drivers/ata/ahci_imx.ko
-  AUTOLOAD:=$(call AutoLoad,41,ahci_imx,1)
-  $(call AddDepends/ata)
-endef
-
-define KernelPackage/ata-imx/description
- SATA support for the Freescale i.MX6 SoC's onboard AHCI SATA
-endef
-
-$(eval $(call KernelPackage,ata-imx))
-
-
 define KernelPackage/ata-marvell-sata
   TITLE:=Marvell Serial ATA support
   KCONFIG:=CONFIG_SATA_MV
@@ -345,7 +326,7 @@ $(eval $(call KernelPackage,md-raid10))
 
 
 define KernelPackage/md-raid456
-$(call KernelPackage/md/Depends,+kmod-lib-raid6 +kmod-lib-xor +LINUX_4_4:kmod-lib-crc32c)
+$(call KernelPackage/md/Depends,+kmod-lib-raid6 +kmod-lib-xor +!LINUX_3_18:kmod-lib-crc32c)
   TITLE:=RAID Level 456 Driver
   KCONFIG:= \
        CONFIG_ASYNC_CORE \
@@ -396,115 +377,6 @@ define KernelPackage/md-multipath/description
 endef
 
 $(eval $(call KernelPackage,md-multipath))
-
-
-define KernelPackage/ide-core
-  SUBMENU:=$(BLOCK_MENU)
-  TITLE:=IDE (ATA/ATAPI) device support
-  DEPENDS:=@PCI_SUPPORT
-  KCONFIG:= \
-	CONFIG_IDE \
-	CONFIG_BLK_DEV_IDE \
-	CONFIG_BLK_DEV_IDEDISK \
-	CONFIG_IDE_GD \
-	CONFIG_IDE_GD_ATA=y \
-	CONFIG_IDE_GD_ATAPI=n \
-	CONFIG_IDEPCI_PCIBUS_ORDER=y \
-	CONFIG_BLK_DEV_IDEDMA_PCI=y \
-	CONFIG_BLK_DEV_IDEPCI=y
-  FILES:= \
-	$(LINUX_DIR)/drivers/ide/ide-core.ko \
-	$(LINUX_DIR)/drivers/ide/ide-gd_mod.ko
-endef
-
-define KernelPackage/ide-core/description
- Kernel support for IDE, useful for usb mass storage devices (e.g. on WL-HDD)
- Includes:
- - ide-core
- - ide-gd_mod
-endef
-
-$(eval $(call KernelPackage,ide-core))
-
-
-define AddDepends/ide
-  SUBMENU:=$(BLOCK_MENU)
-  DEPENDS+=kmod-ide-core $(1)
-endef
-
-
-define KernelPackage/ide-generic
-  SUBMENU:=$(BLOCK_MENU)
-  DEPENDS:=@PCI_SUPPORT
-  TITLE:=Kernel support for generic PCI IDE chipsets
-  KCONFIG:=CONFIG_BLK_DEV_GENERIC
-  FILES:=$(LINUX_DIR)/drivers/ide/ide-pci-generic.ko
-  AUTOLOAD:=$(call AutoLoad,30,ide-pci-generic,1)
-  $(call AddDepends/ide)
-endef
-
-$(eval $(call KernelPackage,ide-generic))
-
-
-define KernelPackage/ide-generic-old
-  SUBMENU:=$(BLOCK_MENU)
-  TITLE:=Kernel support for generic (legacy) IDE chipsets
-  KCONFIG:=CONFIG_IDE_GENERIC
-  FILES:=$(LINUX_DIR)/drivers/ide/ide-generic.ko
-  AUTOLOAD:=$(call AutoLoad,30,ide-generic,1)
-  $(call AddDepends/ide)
-endef
-
-$(eval $(call KernelPackage,ide-generic-old))
-
-
-define KernelPackage/ide-aec62xx
-  TITLE:=Acard AEC62xx IDE driver
-  DEPENDS:=@PCI_SUPPORT
-  KCONFIG:=CONFIG_BLK_DEV_AEC62XX
-  FILES:=$(LINUX_DIR)/drivers/ide/aec62xx.ko
-  AUTOLOAD:=$(call AutoLoad,30,aec62xx,1)
-  $(call AddDepends/ide)
-endef
-
-define KernelPackage/ide-aec62xx/description
- Support for Acard AEC62xx (Artop ATP8xx) IDE controllers
-endef
-
-$(eval $(call KernelPackage,ide-aec62xx,1))
-
-
-define KernelPackage/ide-pdc202xx
-  TITLE:=Promise PDC202xx IDE driver
-  DEPENDS:=@PCI_SUPPORT
-  KCONFIG:=CONFIG_BLK_DEV_PDC202XX_OLD
-  FILES:=$(LINUX_DIR)/drivers/ide/pdc202xx_old.ko
-  AUTOLOAD:=$(call AutoLoad,30,pdc202xx_old,1)
-  $(call AddDepends/ide)
-endef
-
-define KernelPackage/ide-pdc202xx/description
- Support for the Promise Ultra 33/66/100 (PDC202{46|62|65|67|68}) IDE
- controllers.
-endef
-
-$(eval $(call KernelPackage,ide-pdc202xx))
-
-
-define KernelPackage/ide-it821x
-  TITLE:=ITE IT821x IDE driver
-  DEPENDS:=@PCI_SUPPORT
-  KCONFIG:=CONFIG_BLK_DEV_IT821X
-  FILES=$(LINUX_DIR)/drivers/ide/it821x.ko
-  AUTOLOAD:=$(call AutoLoad,30,it821x,1)
-  $(call AddDepends/ide)
-endef
-
-define KernelPackage/ide-it821x/description
- Kernel module for the ITE IDE821x IDE controllers
-endef
-
-$(eval $(call KernelPackage,ide-it821x))
 
 
 define KernelPackage/libsas

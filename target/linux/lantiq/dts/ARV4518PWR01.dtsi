@@ -1,19 +1,21 @@
-/include/ "danube.dtsi"
+#include "danube.dtsi"
+
+#include <dt-bindings/input/input.h>
 
 / {
 	chosen {
-		bootargs = "console=ttyLTQ0,115200 init=/etc/preinit";
+		bootargs = "console=ttyLTQ0,115200";
+	};
 
-		leds {
-			boot = &power;
-			failsafe = &power;
-			running = &power;
+	aliases {
+		led-boot = &power;
+		led-failsafe = &power;
+		led-running = &power;
 
-			dsl = &dsl;
-			internet = &online;
-			usb = &usb;
-			wifi = &wifi;
-		};
+		led-dsl = &dsl;
+		led-internet = &online;
+		led-usb = &usb;
+		led-wifi = &wifi;
 	};
 
 	memory@0 {
@@ -23,7 +25,7 @@
 	sram@1F000000 {
 		vmmc@107000 {
 			status = "okay";
-			gpios = <&gpio 31 0>;
+			gpios = <&gpio 31 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
@@ -58,7 +60,7 @@
 						reg = <0x20000 0x3d0000>;
 					};
 
-					partition@400000 {
+					boardconfig: partition@400000 {
 						label = "boardconfig";
 						reg = <0x3f0000 0x10000>;
 						read-only;
@@ -76,16 +78,10 @@
 				lantiq,shadow = <0x0>;
 			};
 
-			mac_addr {
-				compatible = "lantiq,eth-mac";
-				reg = <0 0x3f0016 0x6>;
-				mac-increment = <2>;
-			};
-
 			ath5k_eep {
 				compatible = "ath5k,eeprom";
-				reg = <0 0x3f0400 0x1000
-					0 0x3f0016 0x6>;
+				ath,eep-flash = <&boardconfig 0x400>;
+				ath,mac-offset = <0x16>;
 				ath,mac-increment = <1>;
 				ath,eep-swap;
 			};
@@ -118,19 +114,19 @@
 
 		etop@E180000 {
 			phy-mode = "mii";
+			mtd-mac-address = <&boardconfig 0x16>;
 		};
 
 		ifxhcd@E101000 {
 			status = "okay";
-			gpios = <&gpio 14 0>;
+			gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
 		};
 
 		pci@E105400 {
 			status = "okay";
-			gpio-reset = <&gpio 21 0>;
+			gpio-reset = <&gpio 21 GPIO_ACTIVE_HIGH>;
 			req-mask = <0xf>;
 		};
-
 	};
 
 	gpio-keys-polled {
@@ -141,13 +137,13 @@
 
 		rfkill {
 			label = "rfkill";
-			gpios = <&gpio 28 1>;
-			linux,code = <0xf7>;
+			gpios = <&gpio 28 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RFKILL>;
 		};
 		reset {
 			label = "reset";
-			gpios = <&gpio 30 1>;
-			linux,code = <0x198>;
+			gpios = <&gpio 30 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
 		};
 	};
 
@@ -155,48 +151,48 @@
 		compatible = "gpio-leds";
 		power: power {
 			label = "power";
-			gpios = <&gpio 3 0>;
+			gpios = <&gpio 3 GPIO_ACTIVE_HIGH>;
 			default-state = "keep";
 		};
 		dsl: dsl {
 			label = "dsl";
-			gpios = <&gpio 4 1>;
+			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
 		};
 		online: online {
 			label = "online";
-			gpios = <&gpio 5 1>;
+			gpios = <&gpio 5 GPIO_ACTIVE_LOW>;
 		};
 		wifi: wifi {
 			label = "wifi";
-			gpios = <&gpio 6 1>;
+			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
 		};
 		wps {
 			label = "wps";
-			gpios = <&gpio 7 1>;
+			gpios = <&gpio 7 GPIO_ACTIVE_LOW>;
 		};
 		dsl2 {
 			label = "dsl2";
-			gpios = <&gpio 8 1>;
+			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
 		};
 		usb: usb {
 			label = "usb";
-			gpios = <&gpio 19 1>;
+			gpios = <&gpio 19 GPIO_ACTIVE_LOW>;
 		};
 		voice {
 			label = "voice";
-			gpios = <&gpiomm 0 1>;
+			gpios = <&gpiomm 0 GPIO_ACTIVE_LOW>;
 		};
 		fxs1 {
 			label = "fxs1";
-			gpios = <&gpiomm 1 1>;
+			gpios = <&gpiomm 1 GPIO_ACTIVE_LOW>;
 		};
 		fxs2 {
 			label = "fxs2";
-			gpios = <&gpiomm 2 1>;
+			gpios = <&gpiomm 2 GPIO_ACTIVE_LOW>;
 		};
 		fxo {
 			label = "fxo";
-			gpios = <&gpiomm 3 1>;
+			gpios = <&gpiomm 3 GPIO_ACTIVE_LOW>;
 		};
 	};
 };

@@ -63,7 +63,7 @@ Signed-off-by: Mathieu Olivari <mathieu@codeaurora.org>
  
  / {
  	model = "Qualcomm IPQ8064";
-@@ -99,6 +102,33 @@
+@@ -99,6 +102,34 @@
  			interrupt-controller;
  			#interrupt-cells = <2>;
  			interrupts = <0 16 0x4>;
@@ -72,7 +72,7 @@ Signed-off-by: Mathieu Olivari <mathieu@codeaurora.org>
 +				mux {
 +					pins = "gpio3";
 +					function = "pcie1_rst";
-+					drive-strength = <12>;
++					drive-strength = <2>;
 +					bias-disable;
 +				};
 +			};
@@ -81,7 +81,7 @@ Signed-off-by: Mathieu Olivari <mathieu@codeaurora.org>
 +				mux {
 +					pins = "gpio48";
 +					function = "pcie2_rst";
-+					drive-strength = <12>;
++					drive-strength = <2>;
 +					bias-disable;
 +				};
 +			};
@@ -90,14 +90,15 @@ Signed-off-by: Mathieu Olivari <mathieu@codeaurora.org>
 +				mux {
 +					pins = "gpio63";
 +					function = "pcie3_rst";
-+					drive-strength = <12>;
++					drive-strength = <2>;
 +					bias-disable;
++					output-low;
 +				};
 +			};
  		};
  
  		intc: interrupt-controller@2000000 {
-@@ -417,6 +447,144 @@
+@@ -415,6 +446,144 @@
  				dr_mode = "host";
  			};
  		};
@@ -143,7 +144,7 @@ Signed-off-by: Mathieu Olivari <mathieu@codeaurora.org>
 +			pinctrl-0 = <&pcie0_pins>;
 +			pinctrl-names = "default";
 +
-+			perst-gpio = <&qcom_pinmux 3 GPIO_ACTIVE_LOW>;
++			perst-gpios = <&qcom_pinmux 3 GPIO_ACTIVE_LOW>;
 +
 +			status = "disabled";
 +		};
@@ -189,7 +190,7 @@ Signed-off-by: Mathieu Olivari <mathieu@codeaurora.org>
 +			pinctrl-0 = <&pcie1_pins>;
 +			pinctrl-names = "default";
 +
-+			perst-gpio = <&qcom_pinmux 48 GPIO_ACTIVE_LOW>;
++			perst-gpios = <&qcom_pinmux 48 GPIO_ACTIVE_LOW>;
 +
 +			status = "disabled";
 +		};
@@ -235,7 +236,7 @@ Signed-off-by: Mathieu Olivari <mathieu@codeaurora.org>
 +			pinctrl-0 = <&pcie2_pins>;
 +			pinctrl-names = "default";
 +
-+			perst-gpio = <&qcom_pinmux 63 GPIO_ACTIVE_LOW>;
++			perst-gpios = <&qcom_pinmux 63 GPIO_ACTIVE_LOW>;
 +
 +			status = "disabled";
 +		};

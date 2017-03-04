@@ -19,12 +19,12 @@ PKG_LICENSE_FILES:=
 
 export SHELL:=/bin/sh
 .ONESHELL:
+.SHELLFLAGS = -ec
 
 include $(INCLUDE_DIR)/package.mk
 
-STAMP_BUILT:=$(STAMP_BUILT)_$(firstword $(shell $(SCRIPT_DIR)/kconfig.pl $(LINUX_DIR)/.config | md5sum))
-
 ifeq ($(DUMP),)
+  STAMP_BUILT:=$(STAMP_BUILT)_$(shell $(SCRIPT_DIR)/kconfig.pl $(LINUX_DIR)/.config | mkhash md5)
   -include $(LINUX_DIR)/.config
 endif
 

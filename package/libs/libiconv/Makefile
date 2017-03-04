@@ -27,11 +27,6 @@ define Package/libiconv
   TITLE:=Tiny drop-in replacement for the GNU Character set conversion library
 endef
 
-define Build/Prepare
-	$(INSTALL_DIR) $(PKG_BUILD_DIR)
-	$(CP) ./src/* $(PKG_BUILD_DIR)/
-endef      
-
 define Build/Configure
 endef
 
@@ -70,14 +65,14 @@ define Host/Compile
 endef
 
 define Host/Install
-	$(INSTALL_DIR) $(STAGING_DIR)/host/lib
-	$(INSTALL_DATA) $(HOST_BUILD_DIR)/libiconv.a $(STAGING_DIR)/host/lib/
+	$(INSTALL_DIR) $(STAGING_DIR_HOSTPKG)/lib
+	$(INSTALL_DATA) $(HOST_BUILD_DIR)/libiconv.a $(STAGING_DIR_HOSTPKG)/lib/
 
-	$(INSTALL_DIR) $(STAGING_DIR)/host/include
-	$(INSTALL_DATA) ./src/include/iconv.h $(STAGING_DIR)/host/include/
+	$(INSTALL_DIR) $(STAGING_DIR_HOSTPKG)/include
+	$(INSTALL_DATA) ./src/include/iconv.h $(STAGING_DIR_HOSTPKG)/include/
 
-	$(INSTALL_DIR) $(STAGING_DIR)/host/share/aclocal
-	$(INSTALL_DATA) ./src/m4/* $(STAGING_DIR)/host/share/aclocal/
+	$(INSTALL_DIR) $(STAGING_DIR_HOSTPKG)/share/aclocal
+	$(INSTALL_DATA) ./src/m4/* $(STAGING_DIR_HOSTPKG)/share/aclocal/
 endef
 
 $(eval $(call HostBuild))

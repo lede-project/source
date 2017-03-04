@@ -25,6 +25,11 @@ config MTD_SPLIT_SEAMA_FW
 	depends on MTD_SPLIT_SUPPORT
 	select MTD_SPLIT
 
+config MTD_SPLIT_WRGG_FW
+	bool "WRGG firmware parser"
+	depends on MTD_SPLIT_SUPPORT
+	select MTD_SPLIT
+
 config MTD_SPLIT_UIMAGE_FW
 	bool "uImage based firmware partition parser"
 	depends on MTD_SPLIT_SUPPORT
@@ -57,5 +62,10 @@ config MTD_SPLIT_BRNIMAGE_FW
 
 config MTD_SPLIT_EVA_FW
 	bool "EVA image based firmware partition parser"
+	depends on MTD_SPLIT_SUPPORT
+	select MTD_SPLIT
+
+config MTD_SPLIT_MINOR_FW
+	bool "Mikrotik NOR image based firmware partition parser"
 	depends on MTD_SPLIT_SUPPORT
 	select MTD_SPLIT

@@ -33,7 +33,7 @@ fast2604 |\
 rta1320 |\
 v2110)
 	ucidef_add_switch "switch0" \
-		"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "5@eth0"
+		"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "5u@eth0"
 	;;
 
 agpf-s0 |\
@@ -42,7 +42,6 @@ bcm96348gw-10 |\
 bcm96348gw-11 |\
 bcm96358vw |\
 bcm96358vw2 |\
-cpva502p |\
 dg834gt |\
 dmv-s0 |\
 dsl-2650u |\
@@ -57,7 +56,7 @@ usr9108 |\
 v2500v_bb)
 	ucidef_set_interfaces_lan_wan "eth1" "eth0"
 	ucidef_add_switch "switch0" \
-		"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "5@eth1"
+		"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "5u@eth1"
 	;;
 
 dsl-274xb-c |\
@@ -80,6 +79,7 @@ a4001n1 |\
 a4001n |\
 ar-5381u |\
 ar-5387un |\
+av4202n |\
 bcm963281tan |\
 bcm96328avng |\
 bcm96368mvngr |\
@@ -96,6 +96,11 @@ vr-3025u |\
 vr-3026e)
 	ucidef_add_switch "switch0" \
 		"0:lan:1" "1:lan:2" "2:lan:3" "3:lan:4" "8t@eth0"
+	;;
+
+vh4032n)
+	ucidef_add_switch "switch0" \
+		"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "8t@eth0"
 	;;
 
 bcm96368mvwg)
@@ -127,6 +132,11 @@ vg50)
 bcm963268bu_p300)
 	ucidef_add_switch "switch0" \
 		"0:lan" "3:lan" "4:lan" "5:lan" "6:lan" "7:lan" "8t@eth0"
+	;;
+
+cpva502p |\
+livebox1)
+	ucidef_set_interfaces_lan_wan "eth0" "eth1"
 	;;
 
 *)

@@ -1,7 +1,17 @@
+#include <dt-bindings/gpio/gpio.h>
+
 / {
 	#address-cells = <1>;
 	#size-cells = <1>;
 	compatible = "lantiq,xway", "lantiq,ase";
+
+	aliases {
+		serial0 = &asc1;
+	};
+
+	chosen {
+		stdout-path = "serial0:115200n8";
+	};
 
 	cpus {
 		cpu@0 {
@@ -87,7 +97,7 @@
 			compatible = "lantiq,gptu-xway";
 			reg = <0xE100A00 0x100>;
 			interrupt-parent = <&icu0>;
-                        interrupts = <97 98 99 100 101 102>;
+			interrupts = <97 98 99 100 101 102>;
 			status = "disabled";
 		};
 
@@ -98,7 +108,7 @@
 			reg = <0xE100B10 0xA0>;
 		};
 
-		serial@E100C00 {
+		asc1: serial@E100C00 {
 			compatible = "lantiq,asc";
 			reg = <0xE100C00 0x400>;
 			interrupt-parent = <&icu0>;
@@ -112,11 +122,12 @@
 		};
 
 		ifxhcd@E101000 {
-			compatible = "lantiq,ifxhcd-ase";
+			compatible = "lantiq,ase-usb", "lantiq,ifxhcd-ase";
 			reg = <0xE101000 0x1000
 				0xE120000 0x3f000>;
 			interrupt-parent = <&icu0>;
 			interrupts = <39>;
+			dr_mode = "host";
 			status = "disabled";
 		};
 

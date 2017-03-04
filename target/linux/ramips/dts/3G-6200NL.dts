@@ -2,6 +2,8 @@
 
 #include "rt3050.dtsi"
 
+#include <dt-bindings/input/input.h>
+
 / {
 	compatible = "3G-6200NL", "ralink,rt3050-soc";
 	model = "Edimax 3g-6200nl";
@@ -47,8 +49,13 @@
 	gpio-leds {
 		compatible = "gpio-leds";
 
+		internet {
+			label = "3g-6200nl:green:internet";
+			gpios = <&gpio0 9 1>;
+		};
+
 		wlan {
-			label = "3g-6200nl:amber:wlan";
+			label = "3g-6200nl:green:wlan";
 			gpios = <&gpio0 14 1>;
 		};
 	};
@@ -59,10 +66,10 @@
 		#size-cells = <0>;
 		poll-interval = <20>;
 
-		wps {
-			label = "wps";
+		reset {
+			label = "reset";
 			gpios = <&gpio0 12 1>;
-			linux,code = <0x211>;
+			linux,code = <KEY_RESTART>;
 		};
 	};
 };
@@ -81,7 +88,7 @@
 };
 
 &esw {
-	mediatek,portmap = <0x2f>;
+	mediatek,portdisable = <0x37>;
 };
 
 &wmac {

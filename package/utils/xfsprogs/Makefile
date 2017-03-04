@@ -11,7 +11,7 @@ PKG_NAME:=xfsprogs
 PKG_RELEASE:=1
 PKG_VERSION:=3.1.7
 PKG_SOURCE_URL:=ftp://oss.sgi.com/projects/xfs/previous/
-PKG_MD5SUM:=049cf9873794ea49d0bb3f12d45748a4
+PKG_HASH:=e150914210ac5fd29c098ef0fd94bdec51d2fb231cf9faa765c16ec6d75c8eaa
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_INSTALL:=1
@@ -69,19 +69,19 @@ MAKE_FLAGS += \
 	PKG_DOC_DIR=$(PKG_INSTALL_DIR)/usr/share/doc/xfsprogs
 
 define Package/xfs-mkfs/install
-	mkdir -p $(1)/sbin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/sbin/mkfs.xfs $(1)/sbin
+	mkdir -p $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/sbin/mkfs.xfs $(1)/usr/sbin
 endef
 
 define Package/xfs-fsck/install
-	mkdir -p $(1)/sbin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/sbin/xfs_repair $(1)/sbin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/xfs_db $(1)/sbin
+	mkdir -p $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/sbin/xfs_repair $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/xfs_db $(1)/usr/sbin
 endef
 
 define Package/xfs-growfs/install
-	mkdir -p $(1)/sbin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/xfs_growfs $(1)/sbin
+	mkdir -p $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/xfs_growfs $(1)/usr/sbin
 endef
 
 $(eval $(call BuildPackage,xfs-mkfs))

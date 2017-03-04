@@ -1,21 +1,24 @@
 /dts-v1/;
 
-/include/ "danube.dtsi"
+#include "danube.dtsi"
+
+#include <dt-bindings/input/input.h>
 
 / {
 	model = "ARV7510PW22 - Astoria Networks";
 
 	chosen {
-		bootargs = "console=ttyLTQ0,115200 init=/etc/preinit";
+		bootargs = "console=ttyLTQ0,115200";
+	};
 
-		leds {
-			boot = &power;
-			failsafe = &power;
-			running = &power;
+	aliases {
+		led-boot = &power;
+		led-failsafe = &power;
+		led-running = &power;
 
-			internet = &internet;
-			wifi = &wlan;
-		};
+		led-internet = &internet;
+		led-usb = &umts;
+		led-wifi = &wlan;
 	};
 
 	memory@0 {
@@ -25,7 +28,7 @@
 	sram@1F000000 {
 		vmmc@107000 {
 			status = "okay";
-			gpios = <&gpio 9 0>;
+			gpios = <&gpio 9 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
@@ -60,18 +63,12 @@
 						reg = <0x60000 0xf80000>;
 					};
 
-					partition@fe0000 {
+					boardconfig: partition@fe0000 {
 						label = "board_config";
 						reg = <0xfe0000 0x20000>;
 						read-only;
 					};
 				};
-			};
-
-			mac_addr {
-				compatible = "lantiq,eth-mac";
-				reg = <0 0xfe0016 0x6>;
-				mac-increment = <2>;
 			};
 		};
 
@@ -118,31 +115,14 @@
 
 		ifxhcd@E101000 {
 			status = "okay";
-			gpios = <&gpio 8 0>;
+			gpios = <&gpio 8 GPIO_ACTIVE_HIGH>;
 		};
 
 		etop@E180000 {
-			phy-mode = "mii";
 			/* Switch reset 19 */
+			phy-mode = "mii";
+			mtd-mac-address = <&boardconfig 0x16>;
 		};
-
-		pci@E105400 {
-			status = "okay";
-			lantiq,external-clock;
-			interrupt-map = <
-				0x7000 0 0 1 &icu0 30
-				0x7800 0 0 1 &icu0 135
-				0x7800 0 0 2 &icu0 135
-				0x7800 0 0 3 &icu0 135
-			>;
-			gpio-reset = <&gpio 21 0>;
-			req-mask = <0x3>;
-		};
-	};
-
-	ralink_eep {
-		compatible = "ralink,eeprom";
-		ralink,eeprom = "RT2860.eeprom";
 	};
 
 	gpio-keys-polled {
@@ -153,18 +133,18 @@
 
 		rfkill {
 			label = "rfkill";
-			gpios = <&gpio 11 1>;
-			linux,code = <0xf7>;
+			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RFKILL>;
 		};
 		restart {
 			label = "restart";
-			gpios = <&gpio 12 1>;
-			linux,code = <0x100>;
+			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_POWER>;
 		};
 		reset {
 			label = "reset";
-			gpios = <&gpio 28 1>;
-			linux,code = <0x198>;
+			gpios = <&gpio 28 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
 		};
 	};
 
@@ -172,24 +152,44 @@
 		compatible = "gpio-leds";
 		power: power {
 			label = "power";
-			gpios = <&gpio 2 1>;
+			gpios = <&gpio 2 GPIO_ACTIVE_LOW>;
 			default-state = "keep";
 		};
 		internet: internet {
 			label = "internet";
-			gpios = <&gpio 4 1>;
+			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
 		};
 		wlan: wlan {
 			label = "wlan";
-			gpios = <&gpio 10 1>;
+			gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
 		};
-		3g {
+		umts: 3g {
 			label = "3g";
-			gpios = <&gpio 15 1>;
+			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
 		};
 		message {
 			label = "message";
-			gpios = <&gpio 20 1>;
+			gpios = <&gpio 20 GPIO_ACTIVE_LOW>;
 		};
+	};
+};
+
+&pci0 {
+	status = "okay";
+	lantiq,external-clock;
+	interrupt-map = <
+		0x7000 0 0 1 &icu0 30
+		0x7800 0 0 1 &icu0 135
+		0x7800 0 0 2 &icu0 135
+		0x7800 0 0 3 &icu0 135
+	>;
+	gpio-reset = <&gpio 21 GPIO_ACTIVE_HIGH>;
+	req-mask = <0x3>;
+
+	wifi@1814,3592 {
+		compatible = "pci1814,3592";
+		reg = <0x7000 0 0 0 0>;
+		ralink,mtd-eeprom = <&boardconfig 0x410>;
+		ralink,mtd-eeprom-swap;
 	};
 };

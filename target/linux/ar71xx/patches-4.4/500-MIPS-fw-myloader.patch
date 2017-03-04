@@ -1,6 +1,6 @@
 --- a/arch/mips/Makefile
 +++ b/arch/mips/Makefile
-@@ -222,6 +222,7 @@ cflags-$(CONFIG_MIPS_COMPACT_BRANCHES_AL
+@@ -218,6 +218,7 @@ endif
  #
  libs-$(CONFIG_FW_ARC)		+= arch/mips/fw/arc/
  libs-$(CONFIG_FW_CFE)		+= arch/mips/fw/cfe/
@@ -10,7 +10,7 @@
  
 --- a/arch/mips/Kconfig
 +++ b/arch/mips/Kconfig
-@@ -1117,6 +1117,9 @@ config MIPS_MSC
+@@ -1118,6 +1118,9 @@ config MIPS_MSC
  config MIPS_NILE4
  	bool
  

@@ -9,7 +9,6 @@
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
-include $(INCLUDE_DIR)/host.mk
 include $(INCLUDE_DIR)/version.mk
 
 override MAKEFLAGS=
@@ -58,6 +57,7 @@ $(BIN_DIR)/$(TOOLCHAIN_NAME).tar.bz2: clean
 	find $(TOOLCHAIN_BUILD_DIR) -name .git | $(XARGS) rm -rf
 	find $(TOOLCHAIN_BUILD_DIR) -name .svn | $(XARGS) rm -rf
 	find $(TOOLCHAIN_BUILD_DIR) -name CVS | $(XARGS) rm -rf
+	mkdir -p $(BIN_DIR)
 	(cd $(BUILD_DIR); \
 		tar cfj $@ $(TOOLCHAIN_NAME); \
 	)

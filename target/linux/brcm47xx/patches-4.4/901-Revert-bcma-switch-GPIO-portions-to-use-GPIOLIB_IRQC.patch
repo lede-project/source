@@ -20,7 +20,7 @@ Signed-off-by: Rafał Miłecki <zajec5@gmail.com>
 
 --- a/drivers/bcma/Kconfig
 +++ b/drivers/bcma/Kconfig
-@@ -99,7 +99,7 @@ config BCMA_DRIVER_GMAC_CMN
+@@ -106,7 +106,7 @@ config BCMA_DRIVER_GMAC_CMN
  config BCMA_DRIVER_GPIO
  	bool "BCMA GPIO driver"
  	depends on BCMA && GPIOLIB

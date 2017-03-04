@@ -10,18 +10,18 @@ ARCH:=mipsel
 BOARD:=au1000
 BOARDNAME:=RMI/AMD AU1x00
 FEATURES:=squashfs usb pci
-SUBTARGETS=au1500 au1550
+SUBTARGETS:=au1500 au1550
 MAINTAINER:=Florian Fainelli <florian@openwrt.org>
 
 KERNEL_PATCHVER:=3.18
-
-include $(INCLUDE_DIR)/target.mk
-DEFAULT_PACKAGES += wpad-mini yamonenv
 
 define Target/Description
 	Build firmware for RMI/AMD Alchemy 1500,1550 boards
 	(e.g. 4G-Systems Mesh/Access Cube, DBAu1550 ...)
 endef
+
+include $(INCLUDE_DIR)/target.mk
+DEFAULT_PACKAGES += wpad-mini yamonenv
 
 define Kernel/BuildImage
 	$(call Kernel/BuildImage/Default)

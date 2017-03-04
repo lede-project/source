@@ -26,7 +26,7 @@ v2: incorporated changes suggested by Jonas Gorski
 
 --- a/arch/mips/Kconfig
 +++ b/arch/mips/Kconfig
-@@ -2724,6 +2724,20 @@ config MIPS_O32_FP64_SUPPORT
+@@ -2725,6 +2725,20 @@ config MIPS_O32_FP64_SUPPORT
  
  	  If unsure, say N.
  
@@ -49,7 +49,7 @@ v2: incorporated changes suggested by Jonas Gorski
  	select OF
 --- a/arch/mips/Makefile
 +++ b/arch/mips/Makefile
-@@ -289,7 +289,7 @@ OBJCOPYFLAGS		+= --remove-section=.regin
+@@ -285,7 +285,7 @@ OBJCOPYFLAGS		+= --remove-section=.regin
  head-y := arch/mips/kernel/head.o
  
  libs-y			+= arch/mips/lib/

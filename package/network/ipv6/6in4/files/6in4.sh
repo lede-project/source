@@ -11,7 +11,7 @@
 
 proto_6in4_update() {
 	sh -c '
-		local timeout=5
+		timeout=5
 
 		(while [ $((timeout--)) -gt 0 ]; do
 			sleep 1
@@ -84,7 +84,7 @@ proto_6in4_setup() {
 		local http="http"
 		local urlget="uclient-fetch"
 		local urlget_opts="-qO-"
-		local ca_path="${SSL_CERT_DIR-/etc/ssl/certs}"
+		local ca_path="${SSL_CERT_DIR:-/etc/ssl/certs}"
 
 		[ -f /lib/libustream-ssl.so ] && http=https
 		[ "$http" = "https" -a -z "$(find $ca_path -name "*.0" 2>/dev/null)" ] && {

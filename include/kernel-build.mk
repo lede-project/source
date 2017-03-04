@@ -4,15 +4,15 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-include $(INCLUDE_DIR)/host.mk
 include $(INCLUDE_DIR)/prereq.mk
+include $(INCLUDE_DIR)/depends.mk
 
 ifneq ($(DUMP),1)
   all: compile
 endif
 
-export QUILT=1
-STAMP_PREPARED:=$(LINUX_DIR)/.prepared
+KERNEL_FILE_DEPENDS=$(GENERIC_PATCH_DIR) $(PATCH_DIR) $(GENERIC_FILES_DIR) $(FILES_DIR)
+STAMP_PREPARED=$(LINUX_DIR)/.prepared$(if $(QUILT)$(DUMP),,_$(shell $(call find_md5,$(KERNEL_FILE_DEPENDS),)))
 STAMP_CONFIGURED:=$(LINUX_DIR)/.configured
 include $(INCLUDE_DIR)/download.mk
 include $(INCLUDE_DIR)/quilt.mk
@@ -42,7 +42,25 @@ endef
 define Download/kernel
   URL:=$(LINUX_SITE)
   FILE:=$(LINUX_SOURCE)
-  MD5SUM:=$(LINUX_KERNEL_MD5SUM)
+  HASH:=$(LINUX_KERNEL_HASH)
+endef
+
+KERNEL_GIT_OPTS:=
+ifneq ($(strip $(CONFIG_KERNEL_GIT_LOCAL_REPOSITORY)),"")
+  KERNEL_GIT_OPTS+=--reference $(CONFIG_KERNEL_GIT_LOCAL_REPOSITORY)
+endif
+
+ifneq ($(strip $(CONFIG_KERNEL_GIT_BRANCH)),"")
+  KERNEL_GIT_OPTS+=--branch $(CONFIG_KERNEL_GIT_BRANCH)
+endif
+
+define Download/git-kernel
+  URL:=$(call qstrip,$(CONFIG_KERNEL_GIT_CLONE_URI))
+  PROTO:=git
+  VERSION:=$(CONFIG_KERNEL_GIT_BRANCH)
+  FILE:=$(LINUX_SOURCE)
+  SUBDIR:=linux-$(LINUX_VERSION)
+  OPTS:=$(KERNEL_GIT_OPTS)
 endef
 
 ifdef CONFIG_COLLECT_KERNEL_DEBUG
@@ -60,12 +78,23 @@ ifdef CONFIG_COLLECT_KERNEL_DEBUG
   endef
 endif
 
+ifeq ($(DUMP)$(filter prereq clean refresh update,$(MAKECMDGOALS)),)
+  ifneq ($(if $(QUILT),,$(CONFIG_AUTOREBUILD)),)
+    define Kernel/Autoclean
+      $(PKG_BUILD_DIR)/.dep_files: $(STAMP_PREPARED)
+      $(call rdep,$(KERNEL_FILE_DEPENDS),$(STAMP_PREPARED),$(PKG_BUILD_DIR)/.dep_files,-x "*/.dep_*")
+    endef
+  endif
+endif
+
 define BuildKernel
   $(if $(QUILT),$(Build/Quilt))
   $(if $(LINUX_SITE),$(call Download,kernel))
+  $(if $(call qstrip,$(CONFIG_KERNEL_GIT_CLONE_URI)),$(call Download,git-kernel))
 
   .NOTPARALLEL:
 
+  $(Kernel/Autoclean)
   $(STAMP_PREPARED): $(if $(LINUX_SITE),$(DL_DIR)/$(LINUX_SOURCE))
 	-rm -rf $(KERNEL_BUILD_DIR)
 	-mkdir -p $(KERNEL_BUILD_DIR)
@@ -102,7 +131,7 @@ define BuildKernel
 		echo; \
 	) > $$@
 
-  $(STAMP_CONFIGURED): $(STAMP_PREPARED) $(LINUX_KCONFIG_LIST) $(TOPDIR)/.config
+  $(STAMP_CONFIGURED): $(STAMP_PREPARED) $(LINUX_KCONFIG_LIST) $(TOPDIR)/.config FORCE
 	$(Kernel/Configure)
 	touch $$@
 
@@ -122,7 +151,7 @@ define BuildKernel
   endef
 
   download: $(if $(LINUX_SITE),$(DL_DIR)/$(LINUX_SOURCE))
-  prepare: $(STAMP_CONFIGURED)
+  prepare: $(STAMP_PREPARED)
   compile: $(LINUX_DIR)/.modules
 	$(MAKE) -C image compile TARGET_BUILD=
 
@@ -130,7 +159,7 @@ define BuildKernel
 	rm -f $(LINUX_DIR)/.config.prev
 	rm -f $(STAMP_CONFIGURED)
 	$(LINUX_RECONF_CMD) > $(LINUX_DIR)/.config
-	$(_SINGLE)$(MAKE) -C $(LINUX_DIR) $(KERNEL_MAKEOPTS) $$@
+	$(_SINGLE)$(MAKE) -C $(LINUX_DIR) $(KERNEL_MAKEOPTS) HOST_LOADLIBES="-L$(STAGING_DIR_HOST)/lib -lncurses" $$@
 	$(LINUX_RECONF_DIFF) $(LINUX_DIR)/.config > $(LINUX_RECONFIG_TARGET)
 
   install: $(LINUX_DIR)/.image

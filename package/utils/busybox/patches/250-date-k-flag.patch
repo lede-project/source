@@ -1,6 +1,6 @@
 --- a/coreutils/date.c
 +++ b/coreutils/date.c
-@@ -123,6 +123,7 @@
+@@ -122,6 +122,7 @@
  //usage:	IF_FEATURE_DATE_ISOFMT(
  //usage:     "\n	-D FMT		Use FMT for -d TIME conversion"
  //usage:	)
@@ -9,9 +9,9 @@
  //usage:     "\nRecognized TIME formats:"
  //usage:     "\n	hh:mm[:ss]"
 @@ -138,9 +139,8 @@
- //usage:       "Wed Apr 12 18:52:41 MDT 2000\n"
  
  #include "libbb.h"
+ #include "common_bufsiz.h"
 -#if ENABLE_FEATURE_DATE_NANO
 -# include <sys/syscall.h>
 -#endif

@@ -9,11 +9,13 @@
 /dts-v1/;
 #include "ox820.dtsi"
 
+#include <dt-bindings/input/input.h>
+
 / {
 	model = "Shuttle KD20";
 
 	chosen {
-		bootargs = "console=ttyS0,115200n8 earlyprintk=serial";
+		bootargs = "console=ttyS0,115200n8 earlyprintk=serial mem=256M";
 	};
 
 	pcie-controller@47C00000 {
@@ -27,21 +29,6 @@
 	sata@45900000 {
 		status = "okay";
 		nr-ports = <2>;
-	};
-
-	nand@41000000 {
-		status = "okay";
-
-		partition@0 {
-			label = "boot";
-			reg = <0x00000000 0x00e00000>;
-			/*read-only;*/
-		};
-
-		partition@e00000 {
-			label = "ubi";
-			reg = <0x00e00000 0x07200000>;
-		};
 	};
 
 	ethernet@40400000 {
@@ -75,17 +62,17 @@
 		power {
 			label = "power";
 			gpios = <&GPIOA 10 1>;
-			linux,code = <116>;
+			linux,code = <KEY_POWER>;
 		};
 		reset {
 			label = "reset";
 			gpios = <&GPIOA 11 1>;
-			linux,code = <0x198>;
+			linux,code = <KEY_RESTART>;
 		};
 		eject1 {
 			label = "eject1";
 			gpios = <&GPIOA 5 1>;
-			linux,code = <161>;
+			linux,code = <KEY_EJECTCD>;
 		};
 		eject2 {
 			label = "eject2";
@@ -143,5 +130,44 @@
 	gpio-poweroff {
 		compatible = "gpio-poweroff";
 		gpios = <&GPIOA 9 0>;
+	};
+};
+
+&nandc {
+	status = "okay";
+
+	nand@0 {
+		reg = <0>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		nand-ecc-mode = "soft";
+		nand-ecc-algo = "hamming";
+
+		partition@0 {
+			label = "stage1";
+			reg = <0x00000000 0x00040000>;
+			read-only;
+		};
+
+		partition@40000 {
+			label = "u-boot";
+			reg = <0x00040000 0x00200000>;
+			read-only;
+		};
+
+		partition@240000 {
+			label = "initrd";
+			reg = <0x00240000 0x00600000>;
+		};
+
+		partition@840000 {
+			label = "kernel";
+			reg = <0x00840000 0x007C0000>;
+		};
+
+		partition@e00000 {
+			label = "ubi";
+			reg = <0x01000000 0x07000000>;
+		};
 	};
 };

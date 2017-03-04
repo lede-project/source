@@ -4,7 +4,6 @@
 #
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
-include $(INCLUDE_DIR)/host.mk
 
 DEVICE_VARS += DEVICE_PROFILE IMAGE_SIZE DTB_SIZE
 
@@ -20,6 +19,10 @@ endef
 
 define Build/dtb
 	$(call Image/BuildDTB,../dts/$(DEVICE_DTS).dts,$@.dtb,,--space $(DTB_SIZE))
+endef
+
+define Build/export-dtb
+	cp $(IMAGE_KERNEL).dtb $@
 endef
 
 ifeq ($(SUBTARGET),nand)
@@ -69,16 +72,52 @@ define Device/mr24
   DEVICE_PACKAGES := kmod-spi-gpio kmod-ath9k wpad-mini
   DEVICE_PROFILE := MR24
   DEVICE_DTS := MR24
-  BLOCKSIZE := 64512
+  BLOCKSIZE := 63k
   IMAGES := sysupgrade.tar
   DTB_SIZE := 64512
-  KERNEL_SIZE := 2048k
+  KERNEL_SIZE := 1984k
   IMAGE_SIZE := 8191k
   KERNEL := kernel-bin | lzma | uImage lzma | MerakiAdd-dtb | MerakiNAND
-  KERNEL_INITRAMFS := copy-file $(KDIR)/vmlinux | gzip | uImage gzip | MerakiAdd-dtb | pad-to 2047k | MerakiAdd-initramfs | MerakiNAND
+  KERNEL_INITRAMFS := copy-file $(KDIR)/vmlinux | lzma | uImage lzma | \
+		      check-size $$(KERNEL_SIZE) | \
+		      MerakiAdd-dtb | pad-to 2047k | MerakiAdd-initramfs | \
+		      MerakiNAND
   IMAGE/sysupgrade.tar := sysupgrade-tar
+  UBINIZE_OPTS := -E 5
 endef
 TARGET_DEVICES += mr24
+
+define Device/mx60
+  DEVICE_TITLE := Cisco Meraki MX60
+  DEVICE_PACKAGES := kmod-spi-gpio swconfig kmod-usb-ledtrig-usbport \
+	kmod-usb-dwc2 kmod-usb-storage block-mount
+  DEVICE_PROFILE := MX60
+  DEVICE_DTS := MX60
+  BLOCKSIZE := 63k
+  IMAGES := sysupgrade.tar
+  DTB_SIZE := 64512
+  # The kernel size will need to match the offset defined in mkmerakifw.c,
+  # otherwise the final image will fail to boot. This is set within the
+  # MX60 kernel header definition which is found at
+  # ./tools/firmware-utils/src/mkmerakifw.c, line 103~
+  KERNEL_SIZE := 2984k
+  IMAGE_SIZE := 1021m
+  KERNEL := kernel-bin | gzip | uImage gzip | MerakiAdd-dtb | MerakiNAND
+  KERNEL_INITRAMFS := copy-file $(KDIR)/vmlinux | gzip | uImage gzip | \
+		      check-size $$(KERNEL_SIZE) | \
+		      MerakiAdd-dtb | pad-to 2047k | MerakiAdd-initramfs | \
+		      MerakiNAND
+  IMAGE/sysupgrade.tar := sysupgrade-tar
+  UBINIZE_OPTS := -E 5
+endef
+TARGET_DEVICES += mx60
+
+define Device/mx60w
+$(Device/mx60)
+  DEVICE_TITLE := Cisco Meraki MX60W
+  DEVICE_PACKAGES += kmod-ath9k wpad-mini
+endef
+TARGET_DEVICES += mx60w
 
 define Build/create-uImage-dtb
 	# flat_dt target expect FIT image - which WNDR4700's uboot doesn't support
@@ -87,23 +126,6 @@ define Build/create-uImage-dtb
 		-n '$(call toupper,$(LINUX_KARCH)) LEDE Linux-$(LINUX_VERSION)' \
 		-d $(IMAGE_KERNEL).dtb $@.new
 	@mv $@.new $@
-endef
-
-define Build/append-fakerootfs
-	rm -rf $@.fakerootsquashfs $@.fakefs
-
-	# append a fake/empty rootfs to fool netgear's uboot
-	# CHECK_DNI_FIRMWARE_ROOTFS_INTEGRITY in do_chk_dniimg()
-	dd if=/dev/zero of=$@.fakerd bs=16 count=1 conv=sync
-
-	-$(STAGING_DIR_HOST)/bin/mkimage \
-		-A $(LINUX_KARCH) -O linux -T filesystem -C none \
-		-a 0x00000000 -e 0x00000000 \
-		-n '$(DEVICE_PROFILE) fakerootfs' \
-		-d $@.fakerd $@.fakefs
-
-	cat $@.fakefs >> $@
-	rm -rf $@.fakerootsquashfs $@.fakefs
 endef
 
 define Build/wndr4700-specialImage
@@ -138,7 +160,7 @@ endef
 define Device/WNDR4700
   DEVICE_TITLE := Netgear Centria N900 WNDR4700/WNDR4720
   DEVICE_PACKAGES := badblocks block-mount e2fsprogs \
-	kmod-ath9k kmod-dm kmod-fs-ext4 kmod-fs-vfat kmod-ledtrig-usbdev \
+	kmod-ath9k kmod-dm kmod-fs-ext4 kmod-fs-vfat kmod-usb-ledtrig-usbport \
 	kmod-md-mod kmod-nls-cp437 kmod-nls-iso8859-1 kmod-nls-iso8859-15 \
 	kmod-nls-utf8 kmod-usb3 kmod-usb-dwc2 kmod-usb-storage \
 	partx-utils swconfig wpad-mini
@@ -147,18 +169,21 @@ define Device/WNDR4700
   DEVICE_DTS := wndr4700
   PAGESIZE := 2048
   SUBPAGESIZE := 512
-  BLOCKSIZE := 131072
+  BLOCKSIZE := 128k
   DTB_SIZE := 131008
-  IMAGE_SIZE:=25559040
-  IMAGES := factory.img sysupgrade.tar
+  IMAGE_SIZE := 24960k
+  IMAGES := factory.img sysupgrade.tar kernel.dtb
   KERNEL_SIZE := 1920k
-  KERNEL := dtb | kernel-bin | lzma | uImage lzma | pad-offset $$(BLOCKSIZE) 64 | append-fakerootfs
+  KERNEL := dtb | kernel-bin | lzma | uImage lzma | pad-offset $$(BLOCKSIZE) 64 | \
+	  append-uImage-fakeroot-hdr
   KERNEL_INITRAMFS := kernel-bin | gzip | dtb | wndr4700-specialImage gzip
   IMAGE/factory.img := create-uImage-dtb | append-kernel | pad-to 2M | append-ubi | \
 		       netgear-dni | check-size $$$$(IMAGE_SIZE)
   IMAGE/sysupgrade.tar := sysupgrade-tar
+  IMAGE/kernel.dtb := export-dtb | uImage none
   NETGEAR_BOARD_ID := WNDR4700
   NETGEAR_HW_ID := 29763875+128+256
+  UBINIZE_OPTS := -E 5
 endef
 TARGET_DEVICES += WNDR4700
 
@@ -181,7 +206,7 @@ define Build/boot-img
 	$(CP) $(IMAGE_KERNEL).dtb $@.bootdir/boot/$(DEVICE_DTB)
 	$(CP) $(IMAGE_KERNEL) $@.bootdir/boot/uImage
 
-	genext2fs --block-size $(BLOCKSIZE) --size-in-blocks $$((1024 * $(BOOT_SIZE))) --root $@.bootdir $@.boot
+	genext2fs --block-size $(BLOCKSIZE:%k=%Ki) --size-in-blocks $$((1024 * $(BOOT_SIZE))) --root $@.bootdir $@.boot
 
 	# convert it to revision 1 - needed for u-boot ext2load
 	$(STAGING_DIR_HOST)/bin/tune2fs -O filetype $@.boot
@@ -190,43 +215,20 @@ endef
 
 define Build/hdd-img
 	./mbl_gen_hdd_img.sh $@ $@.boot $(IMAGE_ROOTFS)
-	$(if $(CONFIG_TARGET_IMAGES_GZIP),gzip -9n -c $@ > $(BIN_DIR)/$(notdir $@).gz)
-endef
-
-define Build/uRamdisk
-	$(STAGING_DIR_HOST)/bin/mkimage \
-		-A powerpc -T ramdisk -C gzip \
-		-n "$(DEVICE_NAME) rootfs" \
-		-d $@ $@.new
-	mv $@.new $@
-endef
-
-define Build/recovery-tar
-	sh ./mbl_gen_recovery_tar.sh \
-		--profile $(DEVICE_PROFILE) \
-		--dtb $(IMAGE_KERNEL).dtb \
-		--dtbname $(DEVICE_DTB) \
-		--kernel $(IMAGE_KERNEL) \
-		--rootfs $@ \
-		$@
-endef
-
-define Build/export-dtb
-	cp $(IMAGE_KERNEL).dtb $@
 endef
 
 define Device/MyBookLiveDefault
   IMAGE_SIZE := 48m
-  BLOCKSIZE := 1024
+  BLOCKSIZE := 1k
   DTB_SIZE := 16384
   KERNEL := kernel-bin | dtb | gzip | uImage gzip
+  KERNEL_INITRAMFS := kernel-bin | dtb | gzip | uImage gzip
   BOOT_SIZE := 8
-  IMAGES := rootfs.img recovery.tar kernel.dtb
+  IMAGES := rootfs.img kernel.dtb
   DEVICE_DTB := apollo3g.dtb
   FILESYSTEMS := ext4
   IMAGE/kernel.dtb := export-dtb
   IMAGE/rootfs.img := boot-script | boot-img | hdd-img
-  IMAGE/recovery.tar := append-rootfs | gzip | uRamdisk | recovery-tar
 endef
 
 define Device/MyBookLiveSingle
@@ -241,7 +243,7 @@ TARGET_DEVICES += MyBookLiveSingle
 define Device/MyBookLiveDuo
 $(Device/MyBookLiveDefault)
   DEVICE_TITLE := Western Digital My Book Live Duo
-  DEVICE_PACKAGES := kmod-usb-dwc2 kmod-ledtrig-usbdev kmod-usb-storage kmod-fs-vfat wpad-mini
+  DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport kmod-usb-storage kmod-fs-vfat wpad-mini
   DEVICE_DTS := apollo3g-duo
   DEVICE_PROFILE := ap2nc
 endef

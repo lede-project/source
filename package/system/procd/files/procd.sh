@@ -29,6 +29,9 @@
 # procd_kill(service, [instance]):
 #   Kill a service instance (or all instances)
 #
+# procd_send_signal(service, [instance], [signal])
+#   Send a signal to a service instance (or all instances)
+#
 
 . $IPKG_INSTROOT/usr/share/libubox/jshn.sh
 
@@ -76,7 +79,7 @@ _procd_close_service() {
 	_procd_open_trigger
 	service_triggers
 	_procd_close_trigger
-	_procd_ubus_call set
+	_procd_ubus_call ${1:-set}
 }
 
 _procd_add_array_data() {
@@ -213,6 +216,9 @@ _procd_set_param() {
 		nice)
 			json_add_int "$type" "$1"
 		;;
+		reload_signal)
+			json_add_int "$type" $(kill -l "$1")
+		;;
 		pidfile|user|seccomp|capabilities)
 			json_add_string "$type" "$1"
 		;;
@@ -245,9 +251,8 @@ _procd_add_interface_trigger() {
 	json_close_array
 
 	json_close_array
-	json_close_array
-
 	_procd_add_timeout
+	json_close_array
 }
 
 _procd_add_reload_interface_trigger() {
@@ -277,10 +282,8 @@ _procd_add_config_trigger() {
 	json_close_array
 
 	json_close_array
-
-	json_close_array
-
 	_procd_add_timeout
+	json_close_array
 }
 
 _procd_add_raw_trigger() {
@@ -373,6 +376,18 @@ _procd_kill() {
 	_procd_ubus_call delete
 }
 
+_procd_send_signal() {
+	local service="$1"
+	local instance="$2"
+	local signal="$3"
+
+	json_init
+	json_add_string name "$service"
+	[ -n "$instance" -a "$instance" != "*" ] && json_add_string instance "$instance"
+	[ -n "$signal" ] && json_add_int signal "$signal"
+	_procd_ubus_call signal
+}
+
 procd_open_data() {
 	local name="$1"
 	json_set_namespace procd __procd_old_cb
@@ -457,4 +472,5 @@ _procd_wrapper \
 	procd_append_param \
 	procd_add_validation \
 	procd_set_config_changed \
-	procd_kill
+	procd_kill \
+	procd_send_signal

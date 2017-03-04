@@ -1,22 +1,24 @@
 /dts-v1/;
 
-/include/ "danube.dtsi"
+#include "danube.dtsi"
+
+#include <dt-bindings/input/input.h>
 
 / {
 	model = "ARV452CQW - Arcor 801";
 
 	chosen {
-		bootargs = "console=ttyLTQ0,115200 init=/etc/preinit";
+		bootargs = "console=ttyLTQ0,115200";
+	};
 
-		leds {
-			boot = &power_blue;
-			failsafe = &power_red;
-			running = &power_blue;
+	aliases {
+		led-boot = &power_blue;
+		led-failsafe = &power_red;
+		led-running = &power_blue;
 
-			internet = &dsl_blue;
-			usb = &usb;
-			wifi = &wifi;
-		};
+		led-internet = &dsl_blue;
+		led-usb = &usb;
+		led-wifi = &wifi;
 	};
 
 	memory@0 {
@@ -26,8 +28,8 @@
 	sram@1F000000 {
 		vmmc@107000 {
 			status = "okay";
-			gpios = <&gpio 31 0
-				&gpiomm 7 0>;
+			gpios = <&gpio 31 GPIO_ACTIVE_HIGH
+				&gpiomm 7 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
@@ -62,7 +64,7 @@
 						reg = <0x20000 0x3d0000>;
 					};
 
-					partition@3f0000 {
+					boardconfig: partition@3f0000 {
 						label = "boardconfig";
 						reg = <0x3f0000 0x10000>;
 						read-only;
@@ -70,16 +72,10 @@
 				};
 			};
 
-			mac_addr {
-				compatible = "lantiq,eth-mac";
-				reg = <0 0x3f0016 0x6>;
-				mac-increment = <2>;
-			};
-
 			ath5k_eep {
 				compatible = "ath5k,eeprom";
-				reg = <0 0x3f0400 0x1000>;
-				ath,mac-offset = <0>;
+				ath,eep-flash = <&boardconfig 0x400>;
+				ath,mac-offset = <0x0>;
 				ath,eep-swap;
 			};
 			gpiomm: gpiomm@4000000 {
@@ -128,44 +124,44 @@
 
 		ifxhcd@E101000 {
 			status = "okay";
-			gpios = <&gpio 28 0>;
+			gpios = <&gpio 28 GPIO_ACTIVE_HIGH>;
 		};
 
 		etop@E180000 {
 			phy-mode = "rmii";
+			mtd-mac-address = <&boardconfig 0x16>;
 		};
 
 		pci@E105400 {
 			status = "okay";
 			lantiq,external-clock;
-			gpio-reset = <&gpio 21 0>;
+			gpio-reset = <&gpio 21 GPIO_ACTIVE_HIGH>;
 		};
-
 	};
 
 /*
 #define ARV452CPW_SWITCH_RESET          110
 */
 	gpio-keys-polled {
-		compatible = "gpio-keys-polled1";
+		compatible = "gpio-keys-polled";
 		#address-cells = <1>;
 		#size-cells = <0>;
 		poll-interval = <100>;
 
 		rfkill {
 			label = "rfkill";
-			gpios = <&gpio 11 1>;
-			linux,code = <0xf7>;
+			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RFKILL>;
 		};
 		wps {
 			label = "wps";
-			gpios = <&gpio 29 1>;
-			linux,code = <0x101>;
+			gpios = <&gpio 29 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
 		};
 		reset {
 			label = "reset";
-			gpios = <&gpio 30 1>;
-			linux,code = <0x198>;
+			gpios = <&gpio 30 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
 		};
 	};
 
@@ -173,56 +169,56 @@
 		compatible = "gpio-leds";
 		power_blue: power0 {
 			label = "arv452cqw:blue:power";
-			gpios = <&gpio 3 1>;
+			gpios = <&gpio 3 GPIO_ACTIVE_LOW>;
 			default-state = "keep";
 		};
 		dsl_blue: dsl {
 			label = "arv452cqw:blue:dsl";
-			gpios = <&gpio 4 1>;
+			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
 		};
 		isdn {
 			label = "arv452cqw:blue:isdn";
-			gpios = <&gpio 5 1>;
+			gpios = <&gpio 5 GPIO_ACTIVE_LOW>;
 		};
 		power_red: power1 {
 			label = "arv452cqw:red:power";
-			gpios = <&gpio 6 1>;
+			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
 		};
 		wps {
 			label = "arv452cqw:blue:wps";
-			gpios = <&gpio 7 1>;
+			gpios = <&gpio 7 GPIO_ACTIVE_LOW>;
 		};
 		wps1 {
 			label = "arv452cqw:yellow:wps";
-			gpios = <&gpio 9 1>;
+			gpios = <&gpio 9 GPIO_ACTIVE_LOW>;
 		};
 		fxs1 {
 			label = "arv452cqw:blue:telefon1";
-			gpios = <&gpiomm 0 1>;
+			gpios = <&gpiomm 0 GPIO_ACTIVE_LOW>;
 		};
 		fxs2 {
 			label = "arv452cqw:blue:telefon2";
-			gpios = <&gpiomm 1 1>;
+			gpios = <&gpiomm 1 GPIO_ACTIVE_LOW>;
 		};
 		wps2 {
 			label = "arv452cqw:red:wps";
-			gpios = <&gpiomm 2 1>;
+			gpios = <&gpiomm 2 GPIO_ACTIVE_LOW>;
 		};
 		fxo {
 			label = "arv452cqw:blue:line";
-			gpios = <&gpiomm 3 1>;
+			gpios = <&gpiomm 3 GPIO_ACTIVE_LOW>;
 		};
 		voice {
 			label = "arv452cqw:blue:sprache";
-			gpios = <&gpiomm 4  1>;
+			gpios = <&gpiomm 4 1>;
 		};
 		usb: usb {
 			label = "arv452cqw:blue:usb";
-			gpios = <&gpiomm 5 1>;
+			gpios = <&gpiomm 5 GPIO_ACTIVE_LOW>;
 		};
 		wifi: wifi {
 			label = "arv452cqw:blue:wlan";
-			gpios = <&gpiomm 6 1>;
+			gpios = <&gpiomm 6 GPIO_ACTIVE_LOW>;
 		};
 		/*
 			internet blue and internet red are missing
@@ -230,11 +226,11 @@
 		*/
 		dsl2 {
 			label = "arv452cqw:yellow:dsl";
-			gpios = <&gpiomm 8 1>;
+			gpios = <&gpiomm 8 GPIO_ACTIVE_LOW>;
 		};
 		dsl3 {
 			label = "arv452cqw:red:dsl";
-			gpios = <&gpiomm 9 1>;
+			gpios = <&gpiomm 9 GPIO_ACTIVE_LOW>;
 		};
 	};
 };

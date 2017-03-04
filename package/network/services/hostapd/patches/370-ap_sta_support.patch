@@ -34,8 +34,8 @@
  -include .config
  -include $(if $(MULTICALL),../hostapd/.config)
  
-@@ -113,6 +117,8 @@ OBJS_c += ../src/utils/wpa_debug.o
- OBJS_c += ../src/utils/common.o
+@@ -115,6 +119,8 @@ OBJS_c += ../src/utils/common.o
+ OBJS_c += ../src/common/cli.o
  OBJS += wmm_ac.o
  
 +OBJS += ../src/common/wpa_ctrl.o
@@ -101,7 +101,7 @@
  /* Configure default/group WEP keys for static WEP */
  int wpa_set_wep_keys(struct wpa_supplicant *wpa_s, struct wpa_ssid *ssid)
  {
-@@ -812,8 +861,12 @@ void wpa_supplicant_set_state(struct wpa
+@@ -819,8 +868,12 @@ void wpa_supplicant_set_state(struct wpa
  		wpas_p2p_completed(wpa_s);
  
  		sme_sched_obss_scan(wpa_s, 1);
@@ -114,7 +114,7 @@
  		wpa_s->new_connection = 1;
  		wpa_drv_set_operstate(wpa_s, 0);
  #ifndef IEEE8021X_EAPOL
-@@ -4646,6 +4699,20 @@ static int wpa_supplicant_init_iface(str
+@@ -4790,6 +4843,20 @@ static int wpa_supplicant_init_iface(str
  			   sizeof(wpa_s->bridge_ifname));
  	}
  
@@ -135,7 +135,7 @@
  	/* RSNA Supplicant Key Management - INITIALIZE */
  	eapol_sm_notify_portEnabled(wpa_s->eapol, FALSE);
  	eapol_sm_notify_portValid(wpa_s->eapol, FALSE);
-@@ -4937,6 +5004,11 @@ static void wpa_supplicant_deinit_iface(
+@@ -5083,6 +5150,11 @@ static void wpa_supplicant_deinit_iface(
  	if (terminate)
  		wpa_msg(wpa_s, MSG_INFO, WPA_EVENT_TERMINATING);
  
@@ -155,9 +155,9 @@
  #include "common/ieee802_11_defs.h"
 +#include "common/ieee802_11_common.h"
  #include "drivers/driver.h"
+ #include "eap_peer/eap.h"
  #include "wpa_supplicant_i.h"
- #include "config.h"
-@@ -287,6 +288,10 @@ static void calculate_update_time(const
+@@ -290,6 +291,10 @@ static void calculate_update_time(const
  static void wpa_bss_copy_res(struct wpa_bss *dst, struct wpa_scan_res *src,
  			     struct os_reltime *fetch_time)
  {
@@ -168,7 +168,7 @@
  	dst->flags = src->flags;
  	os_memcpy(dst->bssid, src->bssid, ETH_ALEN);
  	dst->freq = src->freq;
-@@ -299,6 +304,15 @@ static void wpa_bss_copy_res(struct wpa_
+@@ -302,6 +307,15 @@ static void wpa_bss_copy_res(struct wpa_
  	dst->est_throughput = src->est_throughput;
  	dst->snr = src->snr;
  
@@ -199,7 +199,7 @@
  	       "  -g = global ctrl_interface\n"
  	       "  -G = global ctrl_interface group\n"
  	       "  -h = show this help text\n"
-+		   "  -H = connect to a hostapd instance to manage state changes\n"
++	       "  -H = connect to a hostapd instance to manage state changes\n"
  	       "  -i = interface name\n"
  	       "  -I = additional configuration file\n"
  	       "  -K = include keys (passwords, etc.) in debug output\n"
@@ -224,11 +224,11 @@
  			break;
 --- a/wpa_supplicant/bss.h
 +++ b/wpa_supplicant/bss.h
-@@ -79,6 +79,10 @@ struct wpa_bss {
+@@ -80,6 +80,10 @@ struct wpa_bss {
  	u8 ssid[SSID_MAX_LEN];
  	/** Length of SSID */
  	size_t ssid_len;
-+	/** HT caapbilities */
++	/** HT capabilities */
 +	u16 ht_capab;
 +	/* Five octets of HT Operation Information */
 +	u8 ht_param;

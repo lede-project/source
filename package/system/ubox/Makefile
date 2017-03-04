@@ -1,14 +1,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ubox
-PKG_VERSION:=2016-07-19
-PKG_RELEASE=$(PKG_SOURCE_VERSION)
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(LEDE_GIT)/project/ubox.git
-PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=aead2c0cbffdda9b46d74a998a4c6aeef423b21a
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
+PKG_SOURCE_DATE:=2017-03-03
+PKG_SOURCE_VERSION:=21a4bd04062e16164f4f3e1c67005a062f470b0c
+PKG_MIRROR_HASH:=2cab4f98fc1e7fc9911e5fa272e711fed1c7f612b392566a6b7524d60af73d23
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
@@ -29,24 +28,24 @@ define Package/ubox
 endef
 
 define Package/logd
-  SECTION:=base
+SECTION:=base
   CATEGORY:=Base system
   DEPENDS:=+libubox +libubus +libblobmsg-json +USE_GLIBC:librt
   TITLE:=OpenWrt system log implementation
 endef
 
 define Package/ubox/install
-	$(INSTALL_DIR) $(1)/sbin $(1)/usr/sbin $(1)/lib/ $(1)/usr/bin
+	$(INSTALL_DIR) $(1)/sbin $(1)/usr/sbin $(1)/lib $(1)/usr/bin
 
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/{kmodloader,validate_data} $(1)/sbin/
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/getrandom $(1)/usr/bin/
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libvalidate.so $(1)/lib
 
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/rmmod
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/insmod
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/lsmod
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/modinfo
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/modprobe
+	$(LN) kmodloader $(1)/sbin/rmmod
+	$(LN) kmodloader $(1)/sbin/insmod
+	$(LN) kmodloader $(1)/sbin/lsmod
+	$(LN) kmodloader $(1)/sbin/modinfo
+	$(LN) kmodloader $(1)/sbin/modprobe
 endef
 
 define Package/logd/install

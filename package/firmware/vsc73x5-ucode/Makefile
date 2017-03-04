@@ -15,7 +15,7 @@ PKG_SOURCE_URL:=http://mirror2.openwrt.org/sources
 PKG_SOURCE:=vsc73x5-ucode.tar.bz2
 PKG_BUILD_DIR:=$(BUILD_DIR)/vsc73x5-ucode
 
-PKG_MD5SUM:=b32e3debcd118f263c79199a7b5afa68
+PKG_HASH:=9728cec2b5d49ddd52578a8c600f1fd9f878a34e7e00ed51c248e0d608dd763a
 
 PKG_FLAGS:=nonshared
 
@@ -32,32 +32,6 @@ endef
 define Package/vsc73x5/install
 	$(INSTALL_DIR) $(1)/lib/firmware
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/$(2) $(1)/lib/firmware/$(3)
-endef
-
-define Package/vsc7385-ucode-ap83
-  $(call Package/vsc73x5-defaults,Vitesse VSC7385 microcode for the Atheros AP83 boards)
-endef
-
-define Package/vsc7385-ucode-ap83/description
-  This package contains the Atheros AP83 board specific microcode for
-  the Vitesse VSC7385 ethernet switch.
-endef
-
-define Package/vsc7385-ucode-ap83/install
-  $(call Package/vsc73x5/install,$(1),g5_Plus1_2_31_unmanaged_Atheros_v3.bin,vsc7385_ucode_ap83.bin)
-endef
-
-define Package/vsc7395-ucode-ap83
-  $(call Package/vsc73x5-defaults, Vitesse VSC7395 microcode for the Atheros AP83 boards)
-endef
-
-define Package/vsc7395-ucode-ap83/description
-  This package contains the Atheros AP83 board specific microcode for
-  the Vitesse VSC7395 ethernet switch.
-endef
-
-define Package/vsc7395-ucode-ap83/install
-  $(call Package/vsc73x5/install,$(1),g5_Plus1_2_31_unmanaged_Atheros_v4.bin,vsc7395_ucode_ap83.bin)
 endef
 
 define Package/vsc7385-ucode-pb44
@@ -78,7 +52,7 @@ define Package/vsc7395-ucode-pb44
 endef
 
 define Package/vsc7395-ucode-pb44/description
-  This package contains the Atheros AP83 board specific microcode for
+  This package contains the Atheros PB44 board specific microcode for
   the Vitesse VSC7395 ethernet switch.
 endef
 
@@ -90,7 +64,5 @@ define Build/Compile
 
 endef
 
-$(eval $(call BuildPackage,vsc7385-ucode-ap83))
-$(eval $(call BuildPackage,vsc7395-ucode-ap83))
 $(eval $(call BuildPackage,vsc7385-ucode-pb44))
 $(eval $(call BuildPackage,vsc7395-ucode-pb44))

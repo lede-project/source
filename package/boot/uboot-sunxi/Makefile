@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013-2016 OpenWrt.org
+# Copyright (C) 2017 Yousong Zhou
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,97 +9,107 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
-PKG_NAME:=u-boot
 PKG_VERSION:=2016.03
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:= \
-	http://mirror2.openwrt.org/sources \
-	ftp://ftp.denx.de/pub/u-boot
 
-PKG_MD5SUM:=973c1d896be751321cc3aafa564f64b2
+PKG_HASH:=e49337262ecac44dbdeac140f2c6ebd1eba345e0162b0464172e7f05583ed7bb
 
-PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_MAINTAINER:=Zoltan HERPAI <wigyori@uid0.hu>
 
-PKG_LICENSE:=GPL-2.0 GPL-2.0+
-PKG_LICENSE_FILES:=Licenses/README
-
+include $(INCLUDE_DIR)/u-boot.mk
 include $(INCLUDE_DIR)/package.mk
 
-define uboot/Default
-  TITLE:=
-  CONFIG:=
-  IMAGE:=
+define U-Boot/Default
+  BUILD_TARGET:=sunxi
+  UBOOT_IMAGE:=u-boot-sunxi-with-spl.bin
+  UENV:=default
+  HIDDEN:=1
 endef
 
-define uboot/A10-OLinuXino-Lime
-  TITLE:=U-Boot for the A10 OLinuXino LIME
+define U-Boot/A10-OLinuXino-Lime
+  NAME:=A10 OLinuXino LIME
+  BUILD_DEVICES:=sun4i-a10-olinuxino-lime
 endef
 
-define uboot/A13-OLinuXino
-  TITLE:=U-Boot for the A13 OlinuXino
+define U-Boot/A13-OLinuXino
+  NAME:=A13 OlinuXino
+  BUILD_DEVICES:=sun5i-a13-olinuxino
 endef
 
-define uboot/A20-OLinuXino-Lime
-  TITLE:=U-Boot for the A20 OLinuXino LIME
+define U-Boot/A20-OLinuXino-Lime
+  NAME:=A20 OLinuXino LIME
+  BUILD_DEVICES:=sun7i-a20-olinuxino-lime
 endef
 
-define uboot/A20-OLinuXino_MICRO
-  TITLE:=U-Boot for A20 OLinuXino MICRO
+define U-Boot/A20-OLinuXino_MICRO
+  NAME:=A20 OLinuXino MICRO
+  BUILD_DEVICES:=sun7i-a20-olinuxino-micro
 endef
 
-define uboot/Bananapi
-  TITLE:=U-Boot for Bananapi
+define U-Boot/Bananapi
+  NAME:=Bananapi
+  BUILD_DEVICES:=sun7i-a20-bananapi
 endef
 
-define uboot/Bananapro
-  TITLE:=U-Boot for Bananapro
+define U-Boot/Bananapro
+  NAME:=Bananapro
+  BUILD_DEVICES:=sun7i-a20-bananapro
 endef
 
-define uboot/Cubieboard
-  TITLE:=U-Boot for Cubieboard
+define U-Boot/Cubieboard
+  NAME:=Cubieboard
+  BUILD_DEVICES:=sun4i-a10-cubieboard
 endef
 
-define uboot/Cubieboard2
-  TITLE:=U-Boot for Cubieboard2
+define U-Boot/Cubieboard2
+  NAME:=Cubieboard2
+  BUILD_DEVICES:=sun7i-a20-cubieboard2
 endef
 
-define uboot/Cubietruck
-  TITLE:=U-Boot for Cubietruck
+define U-Boot/Cubietruck
+  NAME:=Cubietruck
+  BUILD_DEVICES:=sun7i-a20-cubietruck
 endef
 
-define uboot/Hummingbird_A31
-  TITLE:=U-Boot for the Hummingbird A31 board
+define U-Boot/Hummingbird_A31
+  NAME:=Hummingbird A31 board
 endef
 
-define uboot/Mele_M9
-  TITLE:=U-Boot for the Mele M9 (A31)
+define U-Boot/Mele_M9
+  NAME:=Mele M9 (A31)
+  BUILD_DEVICES:=sun6i-a31-m9
 endef
 
-define uboot/OLIMEX_A13_SOM
-  TITLE:=U-Boot for the Olimex A13 SOM
+define U-Boot/OLIMEX_A13_SOM
+  NAME:=Olimex A13 SOM
+  BUILD_DEVICES:=sun5i-a13-olimex-som
 endef
 
-define uboot/Linksprite_pcDuino
-  TITLE:=U-Boot for Linksprite pcDuino
-endef  
-
-define uboot/Linksprite_pcDuino3
-  TITLE:=U-Boot for Linksprite pcDuino3
-endef  
-
-define uboot/Lamobo_R1
-  TITLE:=U-Boot for Lamobo R1
+define U-Boot/Linksprite_pcDuino
+  NAME:=Linksprite pcDuino
+  BUILD_DEVICES:=sun4i-a10-pcduino
 endef
 
-define uboot/pangolin
-  TITLE:=U-Boot for Theobroma A31-yQ7 devboard
+define U-Boot/Linksprite_pcDuino3
+  NAME:=Linksprite pcDuino3
+  BUILD_DEVICES:=sun7i-a20-pcduino3
 endef
 
-define uboot/orangepi_plus
-  TITLE:=U-Boot for Orange Pi Plus (H3)
+define U-Boot/Lamobo_R1
+  NAME:=Lamobo R1
+  BUILD_DEVICES:=sun7i-a20-lamobo-r1
 endef
 
-UBOOTS:= \
+define U-Boot/orangepi_plus
+  NAME:=Orange Pi Plus (H3)
+  BUILD_DEVICES:=sun8i-h3-orangepi-plus
+endef
+
+define U-Boot/pangolin
+  NAME:=Theobroma A31-yQ7 devboard
+  UENV:=pangolin
+endef
+
+UBOOT_TARGETS := \
 	A10-OLinuXino-Lime \
 	A13-OLinuXino \
 	A20-OLinuXino-Lime \
@@ -117,72 +128,16 @@ UBOOTS:= \
 	orangepi_plus \
 	pangolin
 
-define Package/uboot/template
-define Package/uboot-sunxi-$(1)
-  SECTION:=boot
-  CATEGORY:=Boot Loaders
-  DEPENDS:=@TARGET_sunxi
-  TITLE:=$(2)
-  URL:=http://www.denx.de/wiki/U-Boot
-  VARIANT:=$(1)
-  MAINTAINER:=Zoltan HERPAI <wigyori@uid0.hu>
-endef
+UBOOT_CONFIGURE_VARS += USE_PRIVATE_LIBGCC=yes
+
+define Build/InstallDev
+	$(INSTALL_DIR) $(STAGING_DIR_IMAGE)
+	$(CP) $(PKG_BUILD_DIR)/$(UBOOT_IMAGE) $(STAGING_DIR_IMAGE)/$(BUILD_DEVICES)-u-boot-with-spl.bin
+	mkimage -C none -A arm -T script -d uEnv-$(UENV).txt \
+		$(STAGING_DIR_IMAGE)/$(BUILD_DEVICES)-boot.scr
 endef
 
-define BuildUBootPackage
-	$(eval $(uboot/Default))
-	$(eval $(uboot/$(1)))
-	$(call Package/uboot/template,$(1),$(TITLE))
+define Package/u-boot/install/default
 endef
 
-ifdef BUILD_VARIANT
-$(eval $(call uboot/$(BUILD_VARIANT)))
-UBOOT_CONFIG:=$(if $(CONFIG),$(CONFIG),$(BUILD_VARIANT))
-UBOOT_IMAGE:=$(if $(IMAGE),$(IMAGE),openwrt-$(BOARD)-$(BUILD_VARIANT)-u-boot.bin)
-endif
-
-# check if any specialized uEnv bootconfig is required
-ifeq ($(UBOOT_CONFIG),pangolin)
-	UENV:=pangolin
-else
-	UENV:=default
-endif
-
-define Build/Configure
-	$(MAKE) -C $(PKG_BUILD_DIR) \
-		USE_PRIVATE_LIBGCC=yes $(UBOOT_CONFIG)_defconfig
-endef
-
-define Build/Compile
-	$(MAKE) -C $(PKG_BUILD_DIR) \
-		CROSS_COMPILE=$(TARGET_CROSS) \
-		DTCDIR=$(LINUX_DIR)/scripts/dtc/
-endef
-
-define Package/uboot/install/default
-	$(CP) $(PKG_BUILD_DIR)/u-boot.bin \
-		$(KERNEL_BUILD_DIR)/uboot-$(BOARD)-$(1)-u-boot.bin
-	$(CP) $(PKG_BUILD_DIR)/spl/sunxi-spl.bin \
-		$(KERNEL_BUILD_DIR)/uboot-$(BOARD)-$(1)-spl.bin
-	$(CP) $(PKG_BUILD_DIR)/u-boot-sunxi-with-spl.bin \
-		$(KERNEL_BUILD_DIR)/uboot-$(BOARD)-$(1)-u-boot-with-spl.bin
-	$(CP) uEnv-$(UENV).txt \
-		$(KERNEL_BUILD_DIR)/uboot-$(BOARD)-$(1)-uEnv.txt
-	mkimage -C none -A arm -T script -d $(KERNEL_BUILD_DIR)/uboot-$(BOARD)-$(1)-uEnv.txt \
-		$(KERNEL_BUILD_DIR)/uboot-$(BOARD)-$(1)-boot.scr
-endef
-
-define Package/uboot/install/template
-define Package/uboot-sunxi-$(1)/install
-	$(call Package/uboot/install/default,$(2))
-endef
-endef
-
-$(foreach u,$(UBOOTS), \
-	$(eval $(call Package/uboot/install/template,$(u),$(u))) \
-)
-
-$(foreach u,$(UBOOTS), \
-	$(eval $(call BuildUBootPackage,$(u))) \
-	$(eval $(call BuildPackage,uboot-sunxi-$(u))) \
-)
+$(eval $(call BuildPackage/U-Boot))

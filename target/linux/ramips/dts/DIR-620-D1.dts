@@ -2,6 +2,8 @@
 
 #include "rt3352.dtsi"
 
+#include <dt-bindings/input/input.h>
+
 / {
 	compatible = "DIR-620-D1", "ralink,rt3352-soc";
 	model = "D-Link DIR-620 D1";
@@ -29,7 +31,7 @@
 		reset_wps {
 			label = "reset_wps";
 			gpios = <&gpio0 7 1>;
-			linux,code = <0x198>;
+			linux,code = <KEY_RESTART>;
 		};
 	};
 };
@@ -42,7 +44,6 @@
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		linux,modalias = "m25p80", "mx25l6405d";
 		spi-max-frequency = <10000000>;
 
 		partition@0 {

@@ -9,11 +9,11 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=comgt
 PKG_VERSION:=0.32
-PKG_RELEASE:=27
+PKG_RELEASE:=28
 
 PKG_SOURCE:=$(PKG_NAME).$(PKG_VERSION).tgz
 PKG_SOURCE_URL:=@SF/comgt
-PKG_MD5SUM:=db2452680c3d953631299e331daf49ef
+PKG_HASH:=0cedb2a5aa608510da66a99aab74df3db363df495032e57e791a2ff55f1d7913
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=GPL-2.0+
@@ -21,18 +21,21 @@ PKG_LICENSE:=GPL-2.0+
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME).$(PKG_VERSION)
 PKG_CHECK_FORMAT_SECURITY:=0
 
+PKG_FLAGS:=nonshared
+
 include $(INCLUDE_DIR)/package.mk
 
 define Package/comgt/Default
-  SECTION:=utils
-  CATEGORY:=Utilities
+  SECTION:=net
+  CATEGORY:=Network
+  SUBMENU:=WWAN
 endef
 
 define Package/comgt
 $(call Package/comgt/Default)
   TITLE:=Option/Vodafone 3G/GPRS control tool
   DEPENDS:=+chat
-  URL:=http://www.pharscape.org/comgt.html
+  URL:=http://manpages.ubuntu.com/manpages/trusty/man1/comgt.1.html
 endef
 
 define Package/comgt-directip

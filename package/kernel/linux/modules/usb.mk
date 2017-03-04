@@ -36,67 +36,23 @@ define AddDepends/usb
 endef
 
 
-define KernelPackage/usb-musb-hdrc
-  TITLE:=Support for Mentor Graphics silicon dual role USB
-  KCONFIG:= \
-	CONFIG_USB_MUSB_HDRC \
-	CONFIG_USB_INVENTRA_DMA=n \
-	CONFIG_USB_TI_CPPI41_DMA=n \
-	CONFIG_MUSB_PIO_ONLY=y \
-	CONFIG_USB_MUSB_DUAL_ROLE=y \
-	CONFIG_USB_MUSB_GADGET=n \
-	CONFIG_USB_MUSB_HOST=n \
-	CONFIG_USB_MUSB_DEBUG=y
-  DEPENDS:= \
-	@(TARGET_omap||TARGET_omap24xx) +kmod-usb-gadget \
-	+TARGET_omap24xx:kmod-usb-musb-tusb6010
-  FILES:=$(LINUX_DIR)/drivers/usb/musb/musb_hdrc.ko
-  AUTOLOAD:=$(call AutoLoad,46,musb_hdrc)
+define KernelPackage/usb-ledtrig-usbport
+  TITLE:=LED trigger for USB ports
+  KCONFIG:=CONFIG_USB_LEDS_TRIGGER_USBPORT
+  DEPENDS:=@!LINUX_3_18
+  FILES:=$(LINUX_DIR)/drivers/usb/core/ledtrig-usbport.ko
+  AUTOLOAD:=$(call AutoLoad,50,ledtrig-usbport)
   $(call AddDepends/usb)
 endef
 
-define KernelPackage/usb-musb-hdrc/description
-  Kernel support for Mentor Graphics silicon dual role USB device.
+define KernelPackage/usb-ledtrig-usbport/description
+  This driver allows LEDs to be controlled by USB events. Enabling this
+  trigger allows specifying list of USB ports that should turn on LED
+  when some USB device gets connected.
+  If possible it should be prefered over similar ledtrig-usbdev.
 endef
 
-$(eval $(call KernelPackage,usb-musb-hdrc))
-
-
-define KernelPackage/usb-musb-platformglue
-  TITLE:=MUSB platform glue layer
-  KCONFIG:= \
-	CONFIG_USB_MUSB_TUSB6010=n \
-	CONFIG_USB_MUSB_OMAP2PLUS=n \
-	CONFIG_USB_MUSB_AM35X=n \
-	CONFIG_USB_MUSB_DSPS \
-	CONFIG_USB_MUSB_UX500=n
-  DEPENDS:=@TARGET_omap +kmod-usb-phy-nop +kmod-usb-musb-hdrc +kmod-usb-phy-am335x
-  FILES:= \
-	$(LINUX_DIR)/drivers/usb/musb/musb_dsps.ko \
-	$(LINUX_DIR)/drivers/usb/musb/musb_am335x.ko
-  AUTOLOAD:=$(call AutoLoad,45,phy-omap-control musb_dsps musb_am335x)
-  $(call AddDepends/usb)
-endef
-
-define KernelPackage/usb-musb-platformglue/description
-  MUSB platform glue modules
-endef
-
-$(eval $(call KernelPackage,usb-musb-platformglue))
-
-
-define KernelPackage/usb-musb-tusb6010
-  TITLE:=Support for TUSB 6010
-  KCONFIG:=CONFIG_USB_MUSB_TUSB6010
-  DEPENDS:=@TARGET_omap24xx
-  $(call AddDepends/usb)
-endef
-
-define KernelPackage/usb-musb-tusb6010/description
-  TUSB6010 support
-endef
-
-$(eval $(call KernelPackage,usb-musb-tusb6010))
+$(eval $(call KernelPackage,usb-ledtrig-usbport))
 
 
 define KernelPackage/usb-phy-nop
@@ -115,97 +71,10 @@ endef
 $(eval $(call KernelPackage,usb-phy-nop))
 
 
-define KernelPackage/usb-phy-am335x
-  TITLE:=Support for AM335x USB PHY
-  KCONFIG:= \
-	CONFIG_AM335X_PHY_USB \
-	CONFIG_AM335X_CONTROL_USB
-  DEPENDS:=@TARGET_omap +kmod-usb-phy-nop
-  FILES:= \
-	$(LINUX_DIR)/drivers/usb/phy/phy-am335x.ko \
-	$(LINUX_DIR)/drivers/usb/phy/phy-am335x-control.ko
-  AUTOLOAD:=$(call AutoLoad,44,phy-am335x)
-  $(call AddDepends/usb)
-endef
-
-define KernelPackage/usb-phy-am335x/description
-  Support for AM335x USB PHY
-endef
-
-$(eval $(call KernelPackage,usb-phy-am335x))
-
-
-define KernelPackage/usb-phy-omap-usb2
-  TITLE:=Support for OMAP2 USB PHY
-  KCONFIG:= \
-	CONFIG_OMAP_USB2 \
-	CONFIG_OMAP_CONTROL_PHY
-  DEPENDS:=@TARGET_omap
-  FILES:= \
-	$(LINUX_DIR)/drivers/phy/phy-omap-usb2.ko \
-	$(LINUX_DIR)/drivers/phy/phy-omap-control.ko
-  AUTOLOAD:=$(call AutoLoad,45,phy-omap-control phy-omap-usb2)
-  $(call AddDepends/usb)
-endef
-
-define KernelPackage/usb-phy-omap-usb2/description
-  Support for AM335x USB PHY
-endef
-
-$(eval $(call KernelPackage,usb-phy-omap-usb2))
-
-
-define KernelPackage/usb-phy-omap-usb3
-  TITLE:=Support for OMAP USB3 PHY
-  KCONFIG:=CONFIG_OMAP_USB3
-  DEPENDS:=@TARGET_omap +kmod-usb-phy-omap-usb2
-  FILES:=$(LINUX_DIR)/drivers/usb/phy/phy-omap-usb3.ko
-  AUTOLOAD:=$(call AutoLoad,45,phy-omap-usb3)
-  $(call AddDepends/usb)
-endef
-
-define KernelPackage/usb-phy-omap-usb3/description
-  Support for OMAP USB3 PHY
-endef
-
-$(eval $(call KernelPackage,usb-phy-omap-usb3))
-
-
-define KernelPackage/usb-phy-twl4030
-  TITLE:=Support for TWL4030 OTG PHY
-  KCONFIG:=CONFIG_TWL4030_USB
-  DEPENDS:=@TARGET_omap +kmod-usb-phy-omap-usb2 +kmod-usb-musb-hdrc
-  FILES:=$(LINUX_DIR)/drivers/phy/phy-twl4030-usb.ko
-  AUTOLOAD:=$(call AutoLoad,45,phy-twl4030-usb)
-  $(call AddDepends/usb)
-endef
-
-define KernelPackage/usb-phy-twl4030/description
-  Support for TWL4030/TWL5030/TPS659x0 OTG PHY
-endef
-
-$(eval $(call KernelPackage,usb-phy-twl4030))
-
-
-define KernelPackage/usb-phy-twl6030
-  TITLE:=Support for TWL6030 OTG PHY
-  KCONFIG:=CONFIG_TWL6030_USB
-  DEPENDS:=@TARGET_omap +kmod-usb-phy-omap-usb2 +kmod-usb-musb-hdrc
-  FILES:=$(LINUX_DIR)/drivers/usb/phy/phy-twl6030-usb.ko
-  AUTOLOAD:=$(call AutoLoad,45,phy-twl6030-usb)
-  $(call AddDepends/usb)
-endef
-
-define KernelPackage/usb-phy-twl6030/description
-  Support for TWL6030 OTG PHY
-endef
-
-$(eval $(call KernelPackage,usb-phy-twl6030))
-
-
 define KernelPackage/usb-gadget
   TITLE:=USB Gadget support
   KCONFIG:=CONFIG_USB_GADGET
+  HIDDEN:=1
   FILES:=\
 	$(LINUX_DIR)/drivers/usb/gadget/udc/udc-core.ko
   AUTOLOAD:=$(call AutoLoad,45,udc-core)
@@ -223,6 +92,7 @@ define KernelPackage/usb-lib-composite
   TITLE:=USB lib composite
   KCONFIG:=CONFIG_USB_LIBCOMPOSITE
   DEPENDS:=+kmod-usb-gadget +kmod-fs-configfs
+  HIDDEN:=1
   FILES:=$(LINUX_DIR)/drivers/usb/gadget/libcomposite.ko
   AUTOLOAD:=$(call AutoLoad,50,libcomposite)
   $(call AddDepends/usb)
@@ -234,25 +104,25 @@ endef
 
 $(eval $(call KernelPackage,usb-lib-composite))
 
-define KernelPackage/usb-ehci-debug-gadget
+define KernelPackage/usb-gadget-ehci-debug
   TITLE:=USB EHCI debug port Gadget support
   KCONFIG:=\
 	CONFIG_USB_G_DBGP \
 	CONFIG_USB_G_DBGP_SERIAL=y \
 	CONFIG_USB_G_DBGP_PRINTK=n
-  DEPENDS:=+kmod-usb-gadget +kmod-usb-lib-composite +kmod-usb-serial-gadget
+  DEPENDS:=+kmod-usb-gadget +kmod-usb-lib-composite +kmod-usb-gadget-serial
   FILES:=$(LINUX_DIR)/drivers/usb/gadget/legacy/g_dbgp.ko
   AUTOLOAD:=$(call AutoLoad,52,g_dbgp)
   $(call AddDepends/usb)
 endef
 
-define KernelPackage/usb-ehci-debug-gadget/description
+define KernelPackage/usb-gadget-ehci-debug/description
   Kernel support for USB EHCI debug port Gadget.
 endef
 
-$(eval $(call KernelPackage,usb-ehci-debug-gadget))
+$(eval $(call KernelPackage,usb-gadget-ehci-debug))
 
-define KernelPackage/usb-eth-gadget
+define KernelPackage/usb-gadget-eth
   TITLE:=USB Ethernet Gadget support
   KCONFIG:= \
 	CONFIG_USB_ETH \
@@ -269,14 +139,14 @@ define KernelPackage/usb-eth-gadget
   $(call AddDepends/usb)
 endef
 
-define KernelPackage/usb-eth-gadget/description
+define KernelPackage/usb-gadget-eth/description
  Kernel support for USB Ethernet Gadget
 endef
 
-$(eval $(call KernelPackage,usb-eth-gadget))
+$(eval $(call KernelPackage,usb-gadget-eth))
 
 
-define KernelPackage/usb-serial-gadget
+define KernelPackage/usb-gadget-serial
   TITLE:=USB Serial Gadget support
   KCONFIG:=CONFIG_USB_G_SERIAL
   DEPENDS:=+kmod-usb-gadget +kmod-usb-lib-composite
@@ -290,13 +160,13 @@ define KernelPackage/usb-serial-gadget
   $(call AddDepends/usb)
 endef
 
-define KernelPackage/usb-serial-gadget/description
+define KernelPackage/usb-gadget-serial/description
   Kernel support for USB Serial Gadget.
 endef
 
-$(eval $(call KernelPackage,usb-serial-gadget))
+$(eval $(call KernelPackage,usb-gadget-serial))
 
-define KernelPackage/usb-mass-storage-gadget
+define KernelPackage/usb-gadget-mass-storage
   TITLE:=USB Mass Storage support
   KCONFIG:=CONFIG_USB_MASS_STORAGE
   DEPENDS:=+kmod-usb-gadget +kmod-usb-lib-composite
@@ -307,11 +177,11 @@ define KernelPackage/usb-mass-storage-gadget
   $(call AddDepends/usb)
 endef
 
-define KernelPackage/usb-mass-storage-gadget/description
+define KernelPackage/usb-gadget-mass-storage/description
   Kernel support for USB Gadget Mass Storage
 endef
 
-$(eval $(call KernelPackage,usb-mass-storage-gadget))
+$(eval $(call KernelPackage,usb-gadget-mass-storage))
 
 
 define KernelPackage/usb-uhci
@@ -379,40 +249,6 @@ endef
 $(eval $(call KernelPackage,usb-ohci-pci))
 
 
-define KernelPackage/usb2-fsl
-  TITLE:=Support for Freescale USB2 controllers
-  DEPENDS:=@TARGET_mpc85xx
-  HIDDEN:=1
-  KCONFIG:=CONFIG_USB_FSL_MPH_DR_OF
-  FILES:=$(LINUX_DIR)/drivers/usb/host/fsl-mph-dr-of.ko
-  AUTOLOAD:=$(call AutoLoad,39,fsl-mph-dr-of,1)
-  $(call AddDepends/usb)
-endef
-
-define KernelPackage/usb2-fsl/description
- Kernel support for Freescale USB2 (EHCI) controllers
-endef
-
-$(eval $(call KernelPackage,usb2-fsl))
-
-
-define KernelPackage/usb2-omap
-  TITLE:=Support for USB2 for OMAP
-  DEPENDS:=@TARGET_omap +kmod-usb-phy-nop +kmod-usb-phy-am335x +kmod-usb2
-  KCONFIG:=\
-	CONFIG_MFD_OMAP_USB_HOST=y \
-	CONFIG_USB_EHCI_HCD_OMAP
-  FILES:=$(LINUX_DIR)/drivers/usb/host/ehci-omap.ko
-  AUTOLOAD:=$(call AutoLoad,39,ehci-omap)
-  $(call AddDepends/usb)
-endef
-
-define KernelPackage/usb2-omap/description
- Kernel support for OMAP USB2 (EHCI) controllers
-endef
-
-$(eval $(call KernelPackage,usb2-omap))
-
 define KernelPackage/usb-bcma
   TITLE:=Support for BCMA USB controllers
   DEPENDS:=@USB_SUPPORT @TARGET_brcm47xx||TARGET_bcm53xx
@@ -443,7 +279,7 @@ define KernelPackage/usb2
 	+TARGET_brcm47xx:kmod-usb-bcma \
 	+TARGET_brcm47xx:kmod-usb-ssb \
 	+TARGET_bcm53xx:kmod-usb-bcma \
-	+TARGET_mpc85xx:kmod-usb2-fsl
+	+TARGET_bcm53xx:kmod-phy-bcm-ns-usb2
   KCONFIG:=\
 	CONFIG_USB_EHCI_HCD \
 	CONFIG_USB_EHCI_ATH79=y \
@@ -464,10 +300,7 @@ define KernelPackage/usb2
   ifneq ($(wildcard $(LINUX_DIR)/drivers/usb/host/ehci-atmel.ko),)
     FILES+=$(LINUX_DIR)/drivers/usb/host/ehci-atmel.ko
   endif
-  ifneq ($(wildcard $(LINUX_DIR)/drivers/usb/host/ehci-fsl.ko),)
-    FILES+=$(LINUX_DIR)/drivers/usb/host/ehci-fsl.ko
-  endif
-  AUTOLOAD:=$(call AutoLoad,40,ehci-hcd ehci-platform ehci-orion ehci-atmel ehci-fsl,1)
+  AUTOLOAD:=$(call AutoLoad,40,ehci-hcd ehci-platform ehci-orion ehci-atmel,1)
   $(call AddDepends/usb)
 endef
 
@@ -496,7 +329,7 @@ $(eval $(call KernelPackage,usb2-pci))
 
 define KernelPackage/usb-dwc2
   TITLE:=DWC2 USB controller driver
-  DEPENDS:=+(TARGET_brcm2708||TARGET_at91||TARGET_brcm63xx||TARGET_mxs||TARGET_imx6||TARGET_omap):kmod-usb-gadget
+  DEPENDS:=+USB_GADGET_SUPPORT:kmod-usb-gadget
   KCONFIG:= \
 	CONFIG_USB_DWC2 \
 	CONFIG_USB_DWC2_PCI \
@@ -1542,45 +1375,29 @@ endef
 $(eval $(call KernelPackage,usbip-server))
 
 
-define KernelPackage/usb-chipidea-imx
-  TITLE:=Support for ChipIdea controllers
-  DEPENDS:=@TARGET_imx6||TARGET_mxs +kmod-usb2 +USB_GADGET_SUPPORT:kmod-usb-gadget
-  KCONFIG:=\
+define KernelPackage/usb-chipidea
+  TITLE:=Host and device support for Chipidea controllers
+  DEPENDS:=+USB_GADGET_SUPPORT:kmod-usb-gadget @TARGET_ar71xx +kmod-usb2
+  KCONFIG:= \
+	CONFIG_NOP_USB_XCEIV=y \
+	CONFIG_EXTCON \
 	CONFIG_USB_CHIPIDEA \
 	CONFIG_USB_CHIPIDEA_HOST=y \
 	CONFIG_USB_CHIPIDEA_UDC=y \
 	CONFIG_USB_CHIPIDEA_DEBUG=y
-  FILES:=\
-	$(LINUX_DIR)/drivers/usb/chipidea/ci_hdrc.ko \
-	$(if $(CONFIG_OF),$(LINUX_DIR)/drivers/usb/chipidea/ci_hdrc_imx.ko) \
-	$(if $(CONFIG_OF),$(LINUX_DIR)/drivers/usb/chipidea/usbmisc_imx.ko)
-  AUTOLOAD:=$(call AutoLoad,51,ci_hdrc $(if $(CONFIG_OF),ci_hdrc_imx usbmisc_imx),1)
+  FILES:= \
+	$(LINUX_DIR)/drivers/extcon/extcon.ko@lt4.9 \
+	$(LINUX_DIR)/drivers/extcon/extcon-core.ko@ge4.9 \
+	$(LINUX_DIR)/drivers/usb/chipidea/ci_hdrc.ko
+  AUTOLOAD:=$(call AutoLoad,51,ci_hdrc,0)
   $(call AddDepends/usb)
 endef
 
-define KernelPackage/usb-chipidea-imx/description
- Kernel support for USB ChipIdea controllers
+define KernelPackage/usb-chipidea/description
+ Kernel support for USB Chipidea controllers
 endef
 
-$(eval $(call KernelPackage,usb-chipidea-imx,1))
-
-
-define KernelPackage/usb-mxs-phy
-  TITLE:=Support for Freescale MXS USB PHY
-  DEPENDS:=@TARGET_imx6||TARGET_mxs +TARGET_mxs:kmod-usb-chipidea-imx
-  KCONFIG:=CONFIG_USB_MXS_PHY
-  FILES:=\
-	$(LINUX_DIR)/drivers/usb/phy/phy-mxs-usb.ko
-  AUTOLOAD:=$(call AutoLoad,52,phy-mxs-usb,1)
-  $(call AddDepends/usb)
-endef
-
-define KernelPackage/usb-mxs-phy/description
- Kernel support for Freescale MXS USB PHY
-endef
-
-$(eval $(call KernelPackage,usb-mxs-phy,1))
-
+$(eval $(call KernelPackage,usb-chipidea))
 
 define KernelPackage/usbmon
   TITLE:=USB traffic monitor
@@ -1607,7 +1424,7 @@ define KernelPackage/usb3
   TITLE:=Support for USB3 controllers
   DEPENDS:= \
 	+TARGET_bcm53xx:kmod-usb-bcma \
-	+TARGET_omap:kmod-usb-phy-omap-usb3
+	+TARGET_bcm53xx:kmod-phy-bcm-ns-usb3
   KCONFIG:= \
 	CONFIG_USB_XHCI_HCD \
 	CONFIG_USB_XHCI_PCI \
@@ -1626,3 +1443,20 @@ define KernelPackage/usb3/description
 endef
 
 $(eval $(call KernelPackage,usb3))
+
+
+define KernelPackage/usb-net2280
+  TITLE:=Support for NetChip 228x PCI USB peripheral controller
+  KCONFIG:= CONFIG_USB_NET2280
+  DEPENDS:=@PCI_SUPPORT +kmod-usb-gadget
+  FILES:=$(LINUX_DIR)/drivers/usb/gadget/udc/net2280.ko
+  AUTOLOAD:=$(call AutoLoad,46,net2280)
+  $(call AddDepends/usb)
+endef
+
+define KernelPackage/usb-net2280/description
+  Kernel support for NetChip 228x / PLX USB338x PCI USB peripheral controller.
+endef
+
+$(eval $(call KernelPackage,usb-net2280))
+

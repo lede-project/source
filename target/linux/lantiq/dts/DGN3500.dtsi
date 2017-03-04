@@ -1,19 +1,21 @@
-/include/ "ar9.dtsi"
+#include "ar9.dtsi"
+
+#include <dt-bindings/input/input.h>
 
 / {
 	chosen {
 		bootargs = "root= console=ttyLTQ0,115200";
+	};
 
-		leds {
-			boot = &power_green;
-			failsafe = &power_red;
-			running = &power_green;
+	aliases {
+		led-boot = &power_green;
+		led-failsafe = &power_red;
+		led-running = &power_green;
 
-			dsl = &dsl;
-			internet = &internet;
-			usb = &usb;
-			wifi = &wifi;
-		};
+		led-dsl = &dsl;
+		led-internet = &internet;
+		led-usb = &usb;
+		led-wifi = &wifi;
 	};
 
 	memory@0 {
@@ -62,36 +64,17 @@
 
 		etop@E180000 {
 			phy-mode = "mii";
-			mac-address = [ 00 11 22 33 44 55 ];
 		};
 
 		ifxhcd@E101000 {
 			status = "okay";
 		};
-
-		pci@E105400 {
-			status = "okay";
-
-			lantiq,bus-clock = <33333333>;
-			interrupt-map-mask = <0xf800 0x0 0x0 0x7>;
-			interrupt-map = <0x7000 0 0 1 &icu0 30 1>;
-			gpio-reset = <&gpio 21 0>;
-			req-mask = <0x1>; /* GNT1 */
-		};
-	};
-
-	ath9k_eep {
-		compatible = "ath9k,eeprom";
-		ath,eep-flash = <&ath9k_cal 0xf000>;
-		ath,pci-slot = <14>;
-		ath,eep-endian;
-		ath,eep-swap;
 	};
 
 	rtl8366rb {
-		compatible = "rtl8366rb";
-		gpio-sda = <&gpio 35 0>;
-		gpio-sck = <&gpio 37 0>;
+		compatible = "realtek,rtl8366rb";
+		gpio-sda = <&gpio 35 GPIO_ACTIVE_HIGH>;
+		gpio-sck = <&gpio 37 GPIO_ACTIVE_HIGH>;
 	};
 
 	gpio-keys-polled {
@@ -102,18 +85,18 @@
 
 		rfkill {
 			label = "rfkill";
-			gpios = <&gpio 36 1>;
-			linux,code = <0xf7>;
+			gpios = <&gpio 36 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RFKILL>;
 		};
 		wps {
 			label = "wps";
-			gpios = <&gpio 54 1>;
-			linux,code = <0x211>;
+			gpios = <&gpio 54 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
 		};
 		reset {
 			label = "reset";
-			gpios = <&gpio 53 1>;
-			linux,code = <0x198>;
+			gpios = <&gpio 53 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
 		};
 	};
 
@@ -121,39 +104,50 @@
 		compatible = "gpio-leds";
 		internet: internet {
 			label = "dgn3500:green:internet";
-			gpios = <&gpio 2 1>;
+			gpios = <&gpio 2 GPIO_ACTIVE_LOW>;
 		};
 		/*
 			internet red is missing
 		*/
 		dsl: dsl {
 			label = "dgn3500:green:dsl";
-			gpios = <&gpio 4 1>;
+			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
 		};
 		usb: usb {
 			label = "dgn3500:green:usb";
-			gpios = <&gpio 22 1>;
+			gpios = <&gpio 22 GPIO_ACTIVE_LOW>;
 		};
 		power_green: power {
 			label = "dgn3500:green:power";
-			gpios = <&gpio 34 1>;
+			gpios = <&gpio 34 GPIO_ACTIVE_LOW>;
 			default-state = "keep";
 		};
 		power_red: power2 {
 			label = "dgn3500:red:power";
-			gpios = <&gpio 39 1>;
+			gpios = <&gpio 39 GPIO_ACTIVE_LOW>;
 		};
-        /*
+		/*
 			power amber is missing
 		*/
 		wifi: wifi {
 			label = "dgn3500:blue:wireless";
-			gpios = <&gpio 51 1>;
+			gpios = <&gpio 51 GPIO_ACTIVE_LOW>;
 		};
 		wps {
 			label = "dgn3500:green:wps";
-			gpios = <&gpio 52 1>;
+			gpios = <&gpio 52 GPIO_ACTIVE_LOW>;
 		};
+	};
+};
+
+&pci0 {
+	status = "okay";
+	gpio-reset = <&gpio 21 GPIO_ACTIVE_HIGH>;
+
+	wifi@168c,0029 {
+		compatible = "pci168c,0029";
+		reg = <0x7000 0 0 0 0>;
+		qca,no-eeprom; /* load from ath9k-eeprom-pci-0000:00:0e.0.bin */
 	};
 };
 

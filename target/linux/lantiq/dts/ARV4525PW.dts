@@ -1,20 +1,24 @@
 /dts-v1/;
 
-/include/ "danube.dtsi"
+#include "danube.dtsi"
+
+#include <dt-bindings/input/input.h>
 
 / {
 	model = "ARV4525PW - Speedport W501V Typ A";
 
 	chosen {
-		leds {
-			/* we dont have a power led, lets use the online led */
-			boot = &online;
-			failsafe = &online;
+		bootargs = "console=ttyLTQ0,115200";
+	};
 
-			dsl = &dsl;
-			internet = &online;
-			wifi = &wifi;
-		};
+	aliases {
+		/* we dont have a power led, lets use the online led */
+		led-boot = &online;
+		led-failsafe = &online;
+
+		led-dsl = &dsl;
+		led-internet = &online;
+		led-wifi = &wifi;
 	};
 
 	memory@0 {
@@ -24,7 +28,7 @@
 	sram@1F000000 {
 		vmmc@107000 {
 			status = "okay";
-			gpios = <&gpio 31 0>;
+			gpios = <&gpio 31 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
@@ -59,7 +63,7 @@
 						reg = <0x20000 0x3d0000>;
 					};
 
-					partition@400000 {
+					boardconfig: partition@400000 {
 						label = "boardconfig";
 						reg = <0x3f0000 0x10000>;
 						read-only;
@@ -67,16 +71,10 @@
 				};
 			};
 
-			mac_addr {
-				compatible = "lantiq,eth-mac";
-				reg = <0 0x3f0016 0x6>;
-				mac-increment = <2>;
-			};
-
 			ath5k_eep {
 				compatible = "ath5k,eeprom";
-				reg = <0 0x3f0400 0x1000>;
-				ath,mac-offset = <0>;
+				ath,eep-flash = <&boardconfig 0x400>;
+				ath,mac-offset = <0x0>;
 				ath,eep-swap;
 			};
 		};
@@ -112,13 +110,13 @@
 
 		etop@E180000 {
 			phy-mode = "mii";
+			mtd-mac-address = <&boardconfig 0x16>;
 		};
 
 		pci@E105400 {
 			status = "okay";
-			gpio-reset = <&gpio 21 0>;
+			gpio-reset = <&gpio 21 GPIO_ACTIVE_HIGH>;
 		};
-
 	};
 
 /*
@@ -134,13 +132,13 @@
 
 		wps {
 			label = "wps";
-			gpios = <&gpio 29 1>;
-			linux,code = <0x211>;
+			gpios = <&gpio 29 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
 		};
 		reset {
 			label = "reset";
-			gpios = <&gpio 30 1>;
-			linux,code = <0x198>;
+			gpios = <&gpio 30 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
 		};
 	};
 
@@ -148,23 +146,23 @@
 		compatible = "gpio-leds";
 		fxo {
 			label = "arv4525pw:green:festnetz";
-			gpios = <&gpio 4 1>;
+			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
 		};
 		fxs {
 			label = "arv4525pw:green:internet";
-			gpios = <&gpio 5 1>;
+			gpios = <&gpio 5 GPIO_ACTIVE_LOW>;
 		};
 		dsl: dsl {
 			label = "arv4525pw:green:t-dsl";
-			gpios = <&gpio 6 1>;
+			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
 		};
 		wifi: wifi {
 			label = "arv4525pw:green:wlan";
-			gpios = <&gpio 8 1>;
+			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
 		};
 		online: online {
 			label = "arv4525pw:green:online";
-			gpios = <&gpio 9 1>;
+			gpios = <&gpio 9 GPIO_ACTIVE_LOW>;
 		};
 	};
 };

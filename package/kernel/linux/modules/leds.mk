@@ -69,43 +69,6 @@ endef
 $(eval $(call KernelPackage,ledtrig-netdev))
 
 
-define KernelPackage/ledtrig-netfilter
-  SUBMENU:=$(LEDS_MENU)
-  TITLE:=LED NetFilter Trigger
-  DEPENDS:=kmod-ipt-core
-  KCONFIG:=CONFIG_NETFILTER_XT_TARGET_LED
-  FILES:=$(LINUX_DIR)/net/netfilter/xt_LED.ko
-  AUTOLOAD:=$(call AutoLoad,50,xt_LED)
-endef
-
-define KernelPackage/ledtrig-netfilter/description
- Kernel module to flash LED when a particular packets passing through your machine.
-
- For example to create an LED trigger for incoming SSH traffic:
-    iptables -A INPUT -p tcp --dport 22 -j LED --led-trigger-id ssh --led-delay 1000
- Then attach the new trigger to an LED on your system:
-    echo netfilter-ssh > /sys/class/leds/<ledname>/trigger
-endef
-
-$(eval $(call KernelPackage,ledtrig-netfilter))
-
-
-define KernelPackage/ledtrig-usbdev
-  SUBMENU:=$(LEDS_MENU)
-  TITLE:=LED USB device Trigger
-  DEPENDS:=@USB_SUPPORT kmod-usb-core
-  KCONFIG:=CONFIG_LEDS_TRIGGER_USBDEV
-  FILES:=$(LINUX_DIR)/drivers/leds/ledtrig-usbdev.ko
-  AUTOLOAD:=$(call AutoLoad,50,ledtrig-usbdev)
-endef
-
-define KernelPackage/ledtrig-usbdev/description
- Kernel module to drive LEDs based on USB device presence/activity
-endef
-
-$(eval $(call KernelPackage,ledtrig-usbdev))
-
-
 define KernelPackage/ledtrig-default-on
   SUBMENU:=$(LEDS_MENU)
   TITLE:=LED Default ON Trigger

@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=map
 PKG_VERSION:=4
-PKG_RELEASE:=5
+PKG_RELEASE:=6
 PKG_LICENSE:=GPL-2.0
 
 include $(INCLUDE_DIR)/package.mk
@@ -20,7 +20,7 @@ define Package/map
   CATEGORY:=Network
   DEPENDS:=@IPV6 +kmod-ip6-tunnel +libubox +libubus +iptables-mod-conntrack-extra
   TITLE:=MAP-E and Lightweight 4over6 configuration support
-  MAINTAINER:=Steven Barth <steven@midlink.org>
+  MAINTAINER:=Hans Dedecker <dedeckeh@gmail.com>
 endef
 
 define Package/map/description
@@ -28,11 +28,6 @@ define Package/map/description
  Lightweight 4over6 (draft-ietf-softwire-lw4over6) in /etc/config/network.
  Refer to http://wiki.openwrt.org/doc/uci/network for
  configuration details.
-endef
-
-define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-	$(CP) ./src/* $(PKG_BUILD_DIR)/
 endef
 
 define Package/map/install

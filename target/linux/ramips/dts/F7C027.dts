@@ -2,6 +2,8 @@
 
 #include "rt5350.dtsi"
 
+#include <dt-bindings/input/input.h>
+
 / {
 	compatible = "F7C027", "ralink,rt5350-soc";
 	model = "Belkin F7C027";
@@ -37,21 +39,21 @@
 		poll-interval = <20>;
 
 		top {
-			label = "top";
+			label = "restore";
 			gpios = <&gpio0 10 1>;
-			linux,code = <0x198>;
+			linux,code = <KEY_RESTART>;
 		};
 
 		power {
 			label = "power";
 			gpios = <&gpio0 12 1>;
-			linux,code = <0x100>;
+			linux,code = <KEY_RFKILL>;
 		};
 
 		sensor {
 			label = "sensor";
 			gpios = <&gpio0 14 1>;
-			linux,code = <0x101>;
+			linux,code = <BTN_0>;
 		};
 	};
 };
@@ -64,7 +66,6 @@
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		linux,modalias = "m25p80", "mx25l12805d";
 		spi-max-frequency = <10000000>;
 
 		partition@0 {

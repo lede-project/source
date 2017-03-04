@@ -8,7 +8,6 @@
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
-include $(INCLUDE_DIR)/host.mk
 include $(INCLUDE_DIR)/version.mk
 
 override MAKEFLAGS=
@@ -17,7 +16,8 @@ SDK_NAME:=$(VERSION_DIST_SANITIZED)-sdk-$(if $(CONFIG_VERSION_FILENAMES),$(VERSI
 SDK_BUILD_DIR:=$(BUILD_DIR)/$(SDK_NAME)
 
 STAGING_SUBDIR_HOST := staging_dir/host
-STAGING_SUBDIR_TOOLCHAIN := staging_dir/toolchain-$(ARCH)$(ARCH_SUFFIX)_gcc-$(GCCV)_$(LIBC)-$(LIBCV)$(if $(CONFIG_arm),_eabi)
+STAGING_SUBDIR_TARGET := staging_dir/$(TARGET_DIR_NAME)
+STAGING_SUBDIR_TOOLCHAIN := staging_dir/toolchain-$(ARCH)$(ARCH_SUFFIX)_gcc-$(GCCV)_$(LIBC)$(if $(CONFIG_arm),_eabi)
 
 EXCLUDE_DIRS:=*/ccache/* \
 	*/stamp \
@@ -29,16 +29,22 @@ EXCLUDE_DIRS:=*/ccache/* \
 	*.install.clean \
 	*.install.flags \
 	*.install \
-	*/doc
+	*/doc \
+	*/share/locale
 
 SDK_DIRS = \
 		$(STAGING_SUBDIR_HOST) \
 		$(STAGING_SUBDIR_TOOLCHAIN)
 
-BASE_FEED:=$(shell git config --get remote.origin.url 2>/dev/null | sed -ne 's/^/src-git base /p')
+GIT_URL:=$(filter git://% http://% https://%,$(shell git config --get remote.origin.url 2>/dev/null))
+GIT_COMMIT:=$(shell git rev-parse HEAD 2>/dev/null)
+GIT_BRANCH:=$(filter-out master HEAD,$(shell git rev-parse --abbrev-ref HEAD 2>/dev/null))
+GIT_TAGNAME:=$(shell git show-ref --tags --dereference 2>/dev/null | sed -ne '/^$(GIT_COMMIT) / { s|^.*/||; s|\^.*||; p }')
+
+BASE_FEED:=$(if $(GIT_URL),src-git base $(GIT_URL)$(if $(GIT_BRANCH),;$(GIT_BRANCH),$(if $(GIT_TAGNAME),;$(GIT_TAGNAME))))
 BASE_FEED:=$(if $(BASE_FEED),$(BASE_FEED),$(shell cd $(TOPDIR); LC_ALL=C git svn info 2>/dev/null | sed -ne 's/^URL: /src-gitsvn base /p'))
 BASE_FEED:=$(if $(BASE_FEED),$(BASE_FEED),$(shell cd $(TOPDIR); LC_ALL=C svn info 2>/dev/null | sed -ne 's/^URL: /src-svn base /p'))
-BASE_FEED:=$(if $(BASE_FEED),$(BASE_FEED),src-git base https://git.lede-project.org/source.git$(filter-out ;master,;$(shell git rev-parse --abbrev-ref HEAD)))
+BASE_FEED:=$(if $(BASE_FEED),$(BASE_FEED),src-git base https://git.lede-project.org/source.git$(if $(GIT_BRANCH),;$(GIT_BRANCH),$(if $(GIT_TAGNAME),;$(GIT_TAGNAME))))
 
 KDIR_BASE = $(patsubst $(TOPDIR)/%,%,$(LINUX_DIR))
 
@@ -65,9 +71,9 @@ KERNEL_FILES := $(patsubst $(TOPDIR)/%,%,$(wildcard $(addprefix $(LINUX_DIR)/,$(
 
 all: compile
 
-$(BIN_DIR)/$(SDK_NAME).tar.bz2: clean
+$(BIN_DIR)/$(SDK_NAME).tar.xz: clean
 	mkdir -p $(SDK_BUILD_DIR)/dl $(SDK_BUILD_DIR)/package
-	$(CP) $(INCLUDE_DIR) $(SCRIPT_DIR) $(TOPDIR)/docs $(SDK_BUILD_DIR)/
+	$(CP) -L $(INCLUDE_DIR) $(SCRIPT_DIR) $(SDK_BUILD_DIR)/
 	$(TAR) -cf - -C $(TOPDIR) \
 		`cd $(TOPDIR); find $(KDIR_BASE) -name \*.ko` \
 		`cd $(TOPDIR); find $(KDIR_BASE)/firmware/ -newer $(KDIR_BASE)/firmware/Makefile \
@@ -75,6 +81,10 @@ $(BIN_DIR)/$(SDK_NAME).tar.bz2: clean
 		$(foreach exclude,$(EXCLUDE_DIRS),--exclude="$(exclude)") \
 		$(SDK_DIRS) $(KERNEL_FILES) | \
 		$(TAR) -xf - -C $(SDK_BUILD_DIR)
+
+	(cd $(SDK_BUILD_DIR); find $(STAGING_SUBDIR_HOST)/bin $(STAGING_SUBDIR_HOST)/usr/bin \
+		$(STAGING_SUBDIR_TOOLCHAIN)/bin $(STAGING_SUBDIR_TOOLCHAIN)/*/bin $(STAGING_SUBDIR_TOOLCHAIN)/libexec \
+		-type f | $(XARGS) $(SCRIPT_DIR)/bundle-libraries.sh $(SDK_BUILD_DIR)/$(STAGING_SUBDIR_HOST))
 
 	@-( \
 		find \
@@ -87,7 +97,7 @@ $(BIN_DIR)/$(SDK_NAME).tar.bz2: clean
 		find \
 			$(SDK_BUILD_DIR)/$(STAGING_SUBDIR_HOST)/lib \
 			$(SDK_BUILD_DIR)/$(STAGING_SUBDIR_HOST)/usr/lib \
-			-type f -name \*.so\* -or -name \*.a; \
+			-type f -name \*.so\*; \
 	) | xargs strip 2>/dev/null >/dev/null
 
 	mkdir -p $(SDK_BUILD_DIR)/target/linux
@@ -110,6 +120,11 @@ $(BIN_DIR)/$(SDK_NAME).tar.bz2: clean
 		$(TOPDIR)/package/kernel/linux \
 		$(SDK_BUILD_DIR)/package/
 
+	-rm -rf \
+		$(SDK_BUILD_DIR)/$(STAGING_SUBDIR_HOST)/ccache \
+		$(SDK_BUILD_DIR)/$(STAGING_SUBDIR_TARGET)/ccache \
+		$(SDK_BUILD_DIR)/$(STAGING_SUBDIR_TOOLCHAIN)/ccache
+
 	-rm -f $(SDK_BUILD_DIR)/feeds.conf.default
 	$(if $(BASE_FEED),echo "$(BASE_FEED)" > $(SDK_BUILD_DIR)/feeds.conf.default)
 	if [ -f $(TOPDIR)/feeds.conf ]; then \
@@ -118,18 +133,20 @@ $(BIN_DIR)/$(SDK_NAME).tar.bz2: clean
 		cat $(TOPDIR)/feeds.conf.default >> $(SDK_BUILD_DIR)/feeds.conf.default; \
 	fi
 	$(SED) 's,^# REVISION:=.*,REVISION:=$(REVISION),g' $(SDK_BUILD_DIR)/include/version.mk
+	$(SED) 's,^# SOURCE_DATE_EPOCH:=.*,SOURCE_DATE_EPOCH:=$(SOURCE_DATE_EPOCH),g' $(SDK_BUILD_DIR)/include/version.mk
 	$(SED) '/LINUX_VERMAGIC:=/ { s,unknown,$(LINUX_VERMAGIC),g }' $(SDK_BUILD_DIR)/include/kernel.mk
 	find $(SDK_BUILD_DIR) -name .git | $(XARGS) rm -rf
 	find $(SDK_BUILD_DIR) -name .svn | $(XARGS) rm -rf
 	find $(SDK_BUILD_DIR) -name CVS | $(XARGS) rm -rf
+	-make -C $(SDK_BUILD_DIR)/scripts/config clean
 	(cd $(BUILD_DIR); \
-		tar cfj $@ $(SDK_NAME); \
+		tar -I 'xz -7e' -cf $@ $(SDK_NAME); \
 	)
 
 download:
 prepare:
-compile: $(BIN_DIR)/$(SDK_NAME).tar.bz2
+compile: $(BIN_DIR)/$(SDK_NAME).tar.xz
 install: compile
 
 clean:
-	rm -rf $(SDK_BUILD_DIR) $(BIN_DIR)/$(SDK_NAME).tar.bz2
+	rm -rf $(SDK_BUILD_DIR) $(BIN_DIR)/$(SDK_NAME).tar.xz

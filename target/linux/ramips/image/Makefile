@@ -22,7 +22,8 @@ define Image/Build/Initramfs
 	$(call Image/Build/Profile/$(PROFILE),initramfs)
 endef
 
-DEVICE_VARS += DTS IMAGE_SIZE KERNEL_SIZE
+DEVICE_VARS += DTS IMAGE_SIZE NETGEAR_BOARD_ID NETGEAR_HW_ID
+DEVICE_VARS += BUFFALO_TAG_PLATFORM BUFFALO_TAG_VERSION BUFFALO_TAG_MINOR
 
 loadaddr-y := 0x80000000
 loadaddr-$(CONFIG_TARGET_ramips_rt288x) := 0x88000000
@@ -35,9 +36,12 @@ define Device/Default
   PROFILES = Default $$(DTS)
   KERNEL_DEPENDS = $$(wildcard ../dts/$$(DTS).dts)
   KERNEL := $(KERNEL_DTB) | uImage lzma
+  DEVICE_DTS_DIR := ../dts
   IMAGES := sysupgrade.bin
   IMAGE_SIZE := $(ralink_default_fw_size_8M)
-  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE)
+  SUPPORTED_DEVICES = $(1)
+  sysupgrade_bin := append-kernel | append-rootfs | pad-rootfs
+  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
 endef
 
 define Build/patch-dtb
@@ -46,7 +50,7 @@ define Build/patch-dtb
 endef
 
 define Build/trx
-	$(STAGING_DIR_HOST)/bin/trx \
+	$(STAGING_DIR_HOST)/bin/trx $(1) \
 		-o $@ \
 		-m $(IMAGE_SIZE) \
 		-f $(IMAGE_KERNEL) \
@@ -72,6 +76,39 @@ define MkCombineduImage
 		( dd if=$(KDIR)/vmlinux-$(2).bin.lzma bs=`expr $(4) - 64` conv=sync ; dd if=$(KDIR)/root.$(1) ) > $(KDIR)/vmlinux-$(2).bin.lzma.combined ; \
 	fi ; fi
 	$(call MkImage,lzma,$(KDIR)/vmlinux-$(2).bin.lzma.combined,$(call sysupname,$(1),$(2)),$(6))
+endef
+
+define Build/umedia-header
+	fix-u-media-header -T 0x46 -B $(1) -i $@ -o $@.new && mv $@.new $@
+endef
+
+define Build/edimax-header
+	$(STAGING_DIR_HOST)/bin/mkedimaximg -i $@ -o $@.new $(1)
+	@mv $@.new $@
+endef
+
+define Build/poray-header
+	$(STAGING_DIR_HOST)/bin/mkporayfw $(1) -f $@ -o $@.new
+	mv $@.new $@
+endef
+
+define Build/senao-header
+	$(STAGING_DIR_HOST)/bin/mksenaofw $(1) -e $@ -o $@.new
+	mv $@.new $@
+endef
+
+define Build/seama
+	$(STAGING_DIR_HOST)/bin/seama -i $@ $(1)
+	mv $@.seama $@
+endef
+
+define Build/seama-seal
+	$(call Build/seama,-s $@.seama $(1))
+endef
+
+define Build/wrg-header
+	mkwrgimg -i $@ -d "/dev/mtdblock/2" -s $(1) -o $@.new
+	mv $@.new $@
 endef
 
 #
@@ -149,95 +186,9 @@ ralink_default_fw_size_4M=3866624
 BuildFirmware/Default4M/squashfs=$(call BuildFirmware/OF,$(1),$(2),$(3),$(ralink_default_fw_size_4M),$(4))
 BuildFirmware/Default4M/initramfs=$(call BuildFirmware/OF/initramfs,$(1),$(2),$(3),$(4))
 
-# Build images for default ralink layout for 8MB flash
-# kernel + roots = 0x7b0000
-# $(1) = squashfs/initramfs
-# $(2) = lowercase board name
-# $(3) = dts file
-# $(4) = uImage header name field
 ralink_default_fw_size_8M=8060928
-BuildFirmware/Default8M/squashfs=$(call BuildFirmware/OF,$(1),$(2),$(3),$(ralink_default_fw_size_8M),$(4))
-BuildFirmware/Default8M/initramfs=$(call BuildFirmware/OF/initramfs,$(1),$(2),$(3),$(4))
-
 ralink_default_fw_size_16M=16121856
-BuildFirmware/Default16M/squashfs=$(call BuildFirmware/OF,$(1),$(2),$(3),$(ralink_default_fw_size_16M),$(4))
-BuildFirmware/Default16M/initramfs=$(call BuildFirmware/OF/initramfs,$(1),$(2),$(3),$(4))
-
 ralink_default_fw_size_32M=33226752
-BuildFirmware/Default32M/squashfs=$(call BuildFirmware/OF,$(1),$(2),$(3),$(ralink_default_fw_size_32M),$(4))
-BuildFirmware/Default32M/initramfs=$(call BuildFirmware/OF/initramfs,$(1),$(2),$(3),$(4))
-
-# Build images for a custom sized flash layout
-# $(1) = squashfs/initramfs
-# $(2) = lowercase board name
-# $(3) = dts file
-# $(4) = kernel + rootfs size
-BuildFirmware/CustomFlash/squashfs=$(call BuildFirmware/OF,$(1),$(2),$(3),$(4),$(5),$(6))
-BuildFirmware/CustomFlash/initramfs=$(call BuildFirmware/OF/initramfs,$(1),$(2),$(3))
-
-# Some boards need a special header inside the uImage to make them bootable
-define BuildFirmware/CustomFlashFactory/squashfs
-	$(call BuildFirmware/CustomFlash/$(1),$(1),$(2),$(3),$(4))
-	$(call BuildFirmware/CustomFlash/$(1),$(1),$(2),$(3),$(4),$(5),$(6))
-endef
-BuildFirmware/CustomFlashFactory/initramfs=$(call BuildFirmware/OF/initramfs,$(1),$(2),$(3))
-
-# wrappers for boards that have 4MB and 8MB versions
-define BuildFirmware/DefaultDualSize/squashfs
-	$(call BuildFirmware/Default4M/$(1),$(1),$(2)-4M,$(3)-4M)
-	$(call BuildFirmware/Default8M/$(1),$(1),$(2)-8M,$(3)-8M)
-endef
-define BuildFirmware/DefaultDualSize/initramfs
-	$(call BuildFirmware/OF/initramfs,$(1),$(2)-4M,$(3)-4M)
-	$(call BuildFirmware/OF/initramfs,$(1),$(2)-8M,$(3)-8M)
-endef
-
-# build Seama header images
-define BuildFirmware/Seama/squashfs
-	$(call MkImageLzmaDtb,$(2),$(3),$(5))
-	$(eval output_name=$(IMG_PREFIX)-$(2)-$(1)-sysupgrade.bin)
-	cat $(KDIR)/vmlinux-$(2).bin.lzma $(KDIR)/root.$(1) > $(KDIR)/img_$(2).$(1).tmp
-	if [ `stat -c%s "$(KDIR)/img_$(2).$(1).tmp"` -gt $$$$(($(5) - 64)) ]; then \
-		echo "Warning: $(KDIR)/img_$(2).$(1).tmp is too big" >&2; \
-	else \
-		dd if=$(KDIR)/vmlinux-$(2).bin.lzma of=$(KDIR)/vmlinux-$(2).bin.lzma.padded bs=64k conv=sync; \
-		( \
-			dd if=$(KDIR)/vmlinux-$(2).bin.lzma.padded bs=1 count=`expr \`stat -c%s $(KDIR)/vmlinux-$(2).bin.lzma.padded\` - 64`; \
-			dd if=$(KDIR)/root.$(1) bs=64k conv=sync; \
-		) > $(KDIR)/vmlinux-$(2).tmp; \
-		$(STAGING_DIR_HOST)/bin/seama \
-			-i $(KDIR)/vmlinux-$(2).tmp \
-			-m "dev=/dev/mtdblock/2" -m "type=firmware"; \
-		$(STAGING_DIR_HOST)/bin/seama \
-			-s $(call imgname,$(1),$(2))-factory.bin \
-			-m "signature=$(4)" \
-			-i $(KDIR)/vmlinux-$(2).tmp.seama; \
-		dd if=$(KDIR)/vmlinux-$(2).bin.lzma.padded bs=1 count=`expr \`stat -c%s $(KDIR)/vmlinux-$(2).bin.lzma.padded\` - 64` of=$(KDIR)/vmlinux-$(2)-sysupgrade.tmp; \
-		$(STAGING_DIR_HOST)/bin/seama \
-			-i $(KDIR)/vmlinux-$(2)-sysupgrade.tmp \
-			-m "dev=/dev/mtdblock/2" -m "type=firmware"; \
-		( \
-			dd if=$(KDIR)/vmlinux-$(2)-sysupgrade.tmp.seama; \
-			dd if=$(KDIR)/root.$(1) bs=64k conv=sync; \
-		) > $(BIN_DIR)/$(output_name); \
-	fi
-endef
-BuildFirmware/Seama/initramfs=$(call BuildFirmware/OF/initramfs,$(1),$(2),$(3))
-
-define BuildFirmware/PorayDualSize/squashfs
-	$(call BuildFirmware/DefaultDualSize/$(1),$(1),$(2),$(3))
-	if [ -e "$(call sysupname,$(1),$(2)-4M)" ]; then \
-		mkporayfw -B $(3) -F 4M \
-			-f $(call sysupname,$(1),$(2)-4M) \
-			-o $(call imgname,$(1),$(2)-4M)-factory.bin; \
-	fi
-	if [ -e "$(call sysupname,$(1),$(2)-8M)" ]; then \
-		mkporayfw -B $(3) -F 8M \
-			-f $(call sysupname,$(1),$(2)-8M) \
-			-o $(call imgname,$(1),$(2)-8M)-factory.bin; \
-	fi
-endef
-BuildFirmware/PorayDualSize/initramfs=$(call BuildFirmware/DefaultDualSize/initramfs,$(1),$(2),$(3))
 
 
 ifeq ($(SUBTARGET),rt288x)
@@ -269,8 +220,7 @@ ifeq ($(SUBTARGET),mt7688)
 include mt7688.mk
 endif
 
-
-ifndef TARGET_DEVICES
+ifdef LEGACY_DEVICES
 #
 # Generic Targets - only needed for legacy image building code
 #
@@ -294,8 +244,13 @@ endef
 define Image/Build
 	$(call Image/Build/$(1))
 	dd if=$(KDIR)/root.$(1) of=$(BIN_DIR)/$(IMG_PREFIX)-root.$(1) bs=128k conv=sync
-	$(call Image/Build/Profile/$(PROFILE),$(1))
 endef
+
+define Image/Build/Profile
+	$(if $(CONFIG_TARGET_ROOTFS_INITRAMFS),$(call Image/Build/Profile/$(1),initramfs))
+	$(call Image/Build/Profile/$(1),$(2))
+endef
+
 endif
 
 $(eval $(call BuildImage))

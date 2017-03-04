@@ -20,7 +20,7 @@ alias ll='ls -alF --color=auto'
 
 [ -z "$KSH_VERSION" -o \! -s /etc/mkshrc ] || . /etc/mkshrc
 
-[ -x /usr/bin/arp ] || arp() { cat /proc/net/arp; }
+[ -x /usr/bin/arp -o -x /sbin/arp ] || arp() { cat /proc/net/arp; }
 [ -x /usr/bin/ldd ] || ldd() { LD_TRACE_LOADED_OBJECTS=1 $*; }
 
 [ -n "$FAILSAFE" ] || {
@@ -28,4 +28,25 @@ alias ll='ls -alF --color=auto'
 		[ -e "$FILE" ] && . "$FILE"
 	done
 	unset FILE
+}
+
+if ( grep -qs '^root::' /etc/shadow && \
+     [ -z "$FAILSAFE" ] )
+then
+cat << EOF
+=== WARNING! =====================================
+There is no root password defined on this device!
+Use the "passwd" command to set up a new password
+in order to prevent unauthorized SSH logins.
+--------------------------------------------------
+EOF
+fi
+
+service() {
+	[ -f "/etc/init.d/$1" ] || {
+		echo "service "'"'"$1"'"'" not found, the following services are available:"
+		ls "/etc/init.d"
+		return 1
+	}
+	/etc/init.d/$@
 }

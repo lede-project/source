@@ -16,7 +16,7 @@ include $(INCLUDE_DIR)/package.mk
 define KernelPackage/rotary-gpio-custom
   SUBMENU:=Other modules
   TITLE:=Custom GPIO-based rotary encoder device
-  DEPENDS:=@GPIO_SUPPORT +kmod-input-gpio-encoder
+  DEPENDS:=@GPIO_SUPPORT +kmod-input-gpio-encoder @LINUX_3_18||LINUX_4_4
   FILES:=$(PKG_BUILD_DIR)/rotary-gpio-custom.ko
   KCONFIG:=
 endef
@@ -38,11 +38,6 @@ MAKE_OPTS:= \
 	SUBDIRS="$(PKG_BUILD_DIR)" \
 	EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
 	$(EXTRA_KCONFIG)
-
-define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-	$(CP) ./src/* $(PKG_BUILD_DIR)/
-endef
 
 define Build/Compile
 	$(MAKE) -C "$(LINUX_DIR)" \

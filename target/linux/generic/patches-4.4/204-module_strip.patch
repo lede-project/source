@@ -5,18 +5,14 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/include/linux/module.h
 +++ b/include/linux/module.h
-@@ -169,9 +169,10 @@ void trim_init_extable(struct module *m)
+@@ -169,6 +169,7 @@ void trim_init_extable(struct module *m)
  
  /* Generic info of form tag = "info" */
  #define MODULE_INFO(tag, info) __MODULE_INFO(tag, tag, info)
 +#define MODULE_INFO_STRIP(tag, info) __MODULE_INFO_STRIP(tag, tag, info)
  
  /* For userspace: you can also call me... */
--#define MODULE_ALIAS(_alias) MODULE_INFO(alias, _alias)
-+#define MODULE_ALIAS(_alias) MODULE_INFO_STRIP(alias, _alias)
- 
- /* Soft module dependencies. See man modprobe.d for details.
-  * Example: MODULE_SOFTDEP("pre: module-foo module-bar post: module-baz")
+ #define MODULE_ALIAS(_alias) MODULE_INFO(alias, _alias)
 @@ -212,12 +213,12 @@ void trim_init_extable(struct module *m)
   * Author(s), use "Name <email>" or just "Name", for multiple
   * authors use multiple MODULE_AUTHOR() statements/lines.
@@ -109,7 +105,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  config MODULES_TREE_LOOKUP
 --- a/kernel/module.c
 +++ b/kernel/module.c
-@@ -2859,6 +2859,7 @@ static struct module *setup_load_info(st
+@@ -2864,6 +2864,7 @@ static struct module *setup_load_info(st
  
  static int check_modinfo(struct module *mod, struct load_info *info, int flags)
  {
@@ -117,7 +113,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	const char *modmagic = get_modinfo(info, "vermagic");
  	int err;
  
-@@ -2884,6 +2885,7 @@ static int check_modinfo(struct module *
+@@ -2889,6 +2890,7 @@ static int check_modinfo(struct module *
  		pr_warn("%s: module is from the staging directory, the quality "
  			"is unknown, you have been warned.\n", mod->name);
  	}

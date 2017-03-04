@@ -12,6 +12,14 @@ menu "Filesystem/Volume identification"
 	depends on BUSYBOX_CONFIG_VOLUMEID
 
 
+config BUSYBOX_CONFIG_FEATURE_VOLUMEID_BCACHE
+	bool "bcache filesystem"
+	default BUSYBOX_DEFAULT_FEATURE_VOLUMEID_BCACHE
+	depends on BUSYBOX_CONFIG_VOLUMEID
+	help
+	  TODO
+
+
 config BUSYBOX_CONFIG_FEATURE_VOLUMEID_BTRFS
 	bool "btrfs filesystem"
 	default BUSYBOX_DEFAULT_FEATURE_VOLUMEID_BTRFS
@@ -179,6 +187,15 @@ config BUSYBOX_CONFIG_FEATURE_VOLUMEID_SYSV
 	depends on BUSYBOX_CONFIG_VOLUMEID
 	help
 	  TODO
+
+
+config BUSYBOX_CONFIG_FEATURE_VOLUMEID_UBIFS
+	bool "UBIFS filesystem"
+	default BUSYBOX_DEFAULT_FEATURE_VOLUMEID_UBIFS
+	depends on BUSYBOX_CONFIG_VOLUMEID
+	help
+	  UBIFS (Unsorted Block Image File System) is a file
+	  system for use with raw flash memory media.
 
 
 config BUSYBOX_CONFIG_FEATURE_VOLUMEID_UDF

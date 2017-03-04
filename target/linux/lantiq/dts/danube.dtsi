@@ -1,10 +1,16 @@
+#include <dt-bindings/gpio/gpio.h>
+
 / {
 	#address-cells = <1>;
 	#size-cells = <1>;
 	compatible = "lantiq,xway", "lantiq,danube";
 
+	aliases {
+		serial0 = &asc1;
+	};
+
 	chosen {
-		bootargs = "console=ttyLTQ0,115200 init=/etc/preinit";
+		stdout-path = "serial0:115200n8";
 	};
 
 	cpus {
@@ -70,7 +76,7 @@
 
 		vmmc@107000 {
 			status = "disabled";
-			compatible = "lantiq,vmmc";
+			compatible = "lantiq,vmmc-xway";
 			reg = <0x103000 0x400>;
 			interrupt-parent = <&icu0>;
 			interrupts = <150 151 152 153 154 155>;
@@ -137,11 +143,12 @@
 		};
 
 		ifxhcd@E101000 {
-			compatible = "lantiq,ifxhcd-danube";
+			compatible = "lantiq,danube-usb", "lantiq,ifxhcd-danube";
 			reg = <0xE101000 0x1000
 				0xE120000 0x3f000>;
 			interrupt-parent = <&icu0>;
 			interrupts = <62>;
+			dr_mode = "host";
 			status = "disabled";
 		};
 
@@ -194,8 +201,8 @@
 				0xE105400 0x400>;	/* pci bridge */
 			lantiq,bus-clock = <33333333>;
 			interrupt-map-mask = <0xf800 0x0 0x0 0x7>;
-			interrupt-map = <0x7000 0 0 1 &icu0 30 1>;
-			req-mask = <0x1>;
+			interrupt-map = <0x7000 0 0 1 &icu0 30 1>; /* slot 14, irq 30 */
+			req-mask = <0x1>; /* GNT1 */
 		};
 	};
 

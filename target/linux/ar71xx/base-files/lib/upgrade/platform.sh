@@ -7,9 +7,12 @@
 
 PART_NAME=firmware
 RAMFS_COPY_DATA=/lib/ar71xx.sh
+[ -x /usr/sbin/nandwrite ] && RAMFS_COPY_BIN=/usr/sbin/nandwrite
 
 CI_BLKSZ=65536
 CI_LDADR=0x80060000
+
+PLATFORM_DO_UPGRADE_COMBINED_SEPARATE_MTD=0
 
 platform_find_partitions() {
 	local first dev size erasesize name
@@ -40,6 +43,13 @@ platform_find_kernelpart() {
 	done
 }
 
+platform_find_rootfspart() {
+	local part
+	for part in "${1%:*}" "${1#*:}"; do
+		[ "$part" != "$2" ] && echo "$part" && break
+	done
+}
+
 platform_do_upgrade_combined() {
 	local partitions=$(platform_find_partitions)
 	local kernelpart=$(platform_find_kernelpart "${partitions#*:}")
@@ -53,13 +63,22 @@ platform_do_upgrade_combined() {
 	   [ ${root_blocks:-0} -gt 0 ] && \
 	   [ ${erase_size:-0} -gt 0 ];
 	then
+		local rootfspart=$(platform_find_rootfspart "$partitions" "$kernelpart")
 		local append=""
 		[ -f "$CONF_TAR" -a "$SAVE_CONFIG" -eq 1 ] && append="-j $CONF_TAR"
 
-		( dd if="$1" bs=$CI_BLKSZ skip=1 count=$kern_blocks 2>/dev/null; \
-		  dd if="$1" bs=$CI_BLKSZ skip=$((1+$kern_blocks)) count=$root_blocks 2>/dev/null ) | \
-			mtd -r $append -F$kernelpart:$kern_length:$CI_LDADR,rootfs write - $partitions
+		if [ "$PLATFORM_DO_UPGRADE_COMBINED_SEPARATE_MTD" -ne 1 ]; then
+		    ( dd if="$1" bs=$CI_BLKSZ skip=1 count=$kern_blocks 2>/dev/null; \
+		      dd if="$1" bs=$CI_BLKSZ skip=$((1+$kern_blocks)) count=$root_blocks 2>/dev/null ) | \
+			    mtd -r $append -F$kernelpart:$kern_length:$CI_LDADR,rootfs write - $partitions
+		elif [ -n "$rootfspart" ]; then
+		    dd if="$1" bs=$CI_BLKSZ skip=1 count=$kern_blocks 2>/dev/null | \
+			    mtd write - $kernelpart
+		    dd if="$1" bs=$CI_BLKSZ skip=$((1+$kern_blocks)) count=$root_blocks 2>/dev/null | \
+			    mtd -r $append write - $rootfspart
+		fi
 	fi
+	PLATFORM_DO_UPGRADE_COMBINED_SEPARATE_MTD=0
 }
 
 tplink_get_image_hwid() {
@@ -103,6 +122,10 @@ tplink_pharos_check_image() {
 
 seama_get_type_magic() {
 	get_image "$@" | dd bs=1 count=4 skip=53 2>/dev/null | hexdump -v -n 4 -e '1/1 "%02x"'
+}
+
+wrgg_get_image_magic() {
+	get_image "$@" | dd bs=4 count=1 skip=8 2>/dev/null | hexdump -v -n 4 -e '1/1 "%02x"'
 }
 
 cybertan_get_image_magic() {
@@ -149,7 +172,6 @@ alfa_check_image() {
 			return 1
 		}
 		;;
-
 	"68737173")
 		[ "$fw_part_size" != "7929856" ] && {
 			echo "Invalid image magic \"$magic_long\" for $fw_part_size bytes"
@@ -161,6 +183,15 @@ alfa_check_image() {
 	return 0
 }
 
+platform_nand_board_name() {
+	local board=$(ar71xx_board_name)
+
+	case "$board" in
+	rb*) echo "routerboard";;
+	*) echo "$board";;
+	esac
+}
+
 platform_check_image() {
 	local board=$(ar71xx_board_name)
 	local magic="$(get_magic_word "$1")"
@@ -169,241 +200,244 @@ platform_check_image() {
 	[ "$#" -gt 1 ] && return 1
 
 	case "$board" in
-	all0315n | \
-	all0258n | \
-	cap324 | \
-	cap4200ag | \
-	cr3000 |\
-	cr5000)
-		platform_check_image_allnet "$1" && return 0
-		return 1
+	airgatewaypro|\
+	airgateway|\
+	airrouter|\
+	ap132|\
+	ap90q|\
+	archer-c59-v1|\
+	archer-c60-v1|\
+	bullet-m|\
+	c-55|\
+	carambola2|\
+	cf-e316n-v2|\
+	cf-e320n-v2|\
+	cf-e380ac-v1|\
+	cf-e380ac-v2|\
+	cf-e520n|\
+	cf-e530n|\
+	cpe830|\
+	cpe870|\
+	dgl-5500-a1|\
+	dhp-1565-a1|\
+	dir-505-a1|\
+	dir-600-a1|\
+	dir-615-c1|\
+	dir-615-e1|\
+	dir-615-e4|\
+	dir-615-i1|\
+	dir-825-c1|\
+	dir-835-a1|\
+	dlan-hotspot|\
+	dlan-pro-1200-ac|\
+	dlan-pro-500-wp|\
+	dr531|\
+	dragino2|\
+	ebr-2310-c1|\
+	epg5000|\
+	esr1750|\
+	esr900|\
+	ew-dorin-router|\
+	ew-dorin|\
+	gl-ar150|\
+	gl-ar300m|\
+	gl-ar300|\
+	gl-domino|\
+	gl-mifi|\
+	hiwifi-hc6361|\
+	hornet-ub-x2|\
+	jwap230|\
+	lima|\
+	loco-m-xw|\
+	mzk-w04nu|\
+	mzk-w300nh|\
+	nanostation-m-xw|\
+	nanostation-m|\
+	nbg460n_550n_550nh|\
+	pqi-air-pen|\
+	rocket-m-ti|\
+	rocket-m-xw|\
+	rocket-m|\
+	rw2458n|\
+	sc1750|\
+	sc300m|\
+	sc450|\
+	sr3200|\
+	tew-632brp|\
+	tew-712br|\
+	tew-732br|\
+	tew-823dru|\
+	unifi-outdoor|\
+	unifiac-lite|\
+	unifiac-pro|\
+	unifi|\
+	weio|\
+	whr-g301n|\
+	whr-hp-g300n|\
+	whr-hp-gn|\
+	wlae-ag300n|\
+	wndap360|\
+	wpj342|\
+	wpj344|\
+	wpj531|\
+	wrt400n|\
+	wrtnode2q|\
+	wzr-450hp2|\
+	wzr-hp-ag300h|\
+	wzr-hp-g300nh2|\
+	wzr-hp-g300nh|\
+	wzr-hp-g450h|\
+	xd3200)
+		[ "$magic" != "2705" ] && {
+			echo "Invalid image type."
+			return 1
+		}
+
+		return 0
 		;;
-	alfa-ap96 | \
-	alfa-nx | \
-	arduino-yun | \
-	ap113 | \
-	ap121 | \
-	ap121-mini | \
-	ap136-010 | \
-	ap136-020 | \
-	ap135-020 | \
-	ap147-010 | \
-	ap152 | \
-	ap96 | \
-	bxu2000n-2-a1 | \
-	db120 | \
-	dr344 | \
-	f9k1115v2 |\
-	hornet-ub | \
-	mr12 | \
-	mr16 | \
-	wpj558 | \
-	zcn-1523h-2 | \
+	alfa-ap96|\
+	alfa-nx|\
+	ap121-mini|\
+	ap121|\
+	ap135-020|\
+	ap136-010|\
+	ap136-020|\
+	ap147-010|\
+	ap152|\
+	ap96|\
+	arduino-yun|\
+	bhr-4grv2|\
+	bxu2000n-2-a1|\
+	db120|\
+	dr344|\
+	dw33d|\
+	f9k1115v2|\
+	hornet-ub|\
+	mr12|\
+	mr16|\
+	wpj558|\
+	zbt-we1526|\
+	zcn-1523h-2|\
 	zcn-1523h-5)
 		[ "$magic_long" != "68737173" -a "$magic_long" != "19852003" ] && {
 			echo "Invalid image type."
 			return 1
 		}
+
 		return 0
 		;;
-	ap81 | \
-	ap83 | \
-	ap132 | \
-	c-55 | \
-	cf-e316n-v2 | \
-	dgl-5500-a1 |\
-	dhp-1565-a1 |\
-	dir-505-a1 | \
-	dir-600-a1 | \
-	dir-615-c1 | \
-	dir-615-e1 | \
-	dir-615-e4 | \
-	dir-615-i1 | \
-	dir-825-c1 | \
-	dir-835-a1 | \
-	dlan-hotspot | \
-	dlan-pro-500-wp | \
-	dlan-pro-1200-ac | \
-	dr531 | \
-	dragino2 | \
-	epg5000 | \
-	esr1750 | \
-	esr900 | \
-	ew-dorin | \
-	ew-dorin-router | \
-	gl-ar150 | \
-	gl-mifi | \
-	gl-ar300 | \
-	gl-ar300m | \
-	gl-domino | \
-	hiwifi-hc6361 | \
-	hornet-ub-x2 | \
-	jwap230 | \
-	mzk-w04nu | \
-	mzk-w300nh | \
-	tew-632brp | \
-	tew-712br | \
-	tew-732br | \
-	tew-823dru | \
-	wrt400n | \
-	airgateway | \
-	airgatewaypro | \
-	airrouter | \
-	bullet-m | \
-	loco-m-xw | \
-	nanostation-m | \
-	rocket-m | \
-	rocket-m-xw | \
-	rocket-m-ti | \
-	nanostation-m-xw | \
-	rw2458n | \
-	wpj531 | \
-	wndap360 | \
-	wpj342 | \
-	wpj344 | \
-	wzr-hp-g300nh2 | \
-	wzr-hp-g300nh | \
-	wzr-hp-g450h | \
-	wzr-hp-ag300h | \
-	wzr-450hp2 | \
-	whr-g301n | \
-	whr-hp-g300n | \
-	whr-hp-gn | \
-	wlae-ag300n | \
-	nbg460n_550n_550nh | \
-	unifi | \
-	unifiac-lite | \
-	unifiac-pro | \
-	unifi-outdoor | \
-	carambola2 | \
-	weio | \
-	wrtnode2q)
-		[ "$magic" != "2705" ] && {
-			echo "Invalid image type."
+	all0258n|\
+	all0315n|\
+	cap324|\
+	cap4200ag|\
+	cr3000|\
+	cr5000)
+		platform_check_image_allnet "$1" && return 0
+		return 1
+		;;
+	all0305|\
+	eap300v2|\
+	eap7660d|\
+	ja76pf2|\
+	ja76pf|\
+	jwap003|\
+	ls-sr71|\
+	pb42|\
+	pb44|\
+	routerstation-pro|\
+	routerstation|\
+	wp543|\
+	wpe72)
+		[ "$magic" != "4349" ] && {
+			echo "Invalid image. Use *-sysupgrade.bin files on this board"
 			return 1
 		}
+
+		local md5_img=$(dd if="$1" bs=2 skip=9 count=16 2>/dev/null)
+		local md5_chk=$(dd if="$1" bs=$CI_BLKSZ skip=1 2>/dev/null | md5sum -); md5_chk="${md5_chk%% *}"
+
+		if [ -n "$md5_img" -a -n "$md5_chk" ] && [ "$md5_img" = "$md5_chk" ]; then
+			return 0
+		else
+			echo "Invalid image. Contents do not match checksum (image:$md5_img calculated:$md5_chk)"
+			return 1
+		fi
+
 		return 0
 		;;
-
-	cpe210|\
-	cpe510)
-		tplink_pharos_check_image "$1" && return 0
-		return 1
-		;;
-
-	bsb | \
-	dir-825-b1 | \
-	tew-673gru)
-		dir825b_check_image "$1" && return 0
-		;;
-
-	mynet-rext|\
-	wrt160nl)
-		cybertan_check_image "$1" && return 0
-		return 1
-		;;
-
-	qihoo-c301 | \
-	mynet-n600 | \
-	mynet-n750)
-		[ "$magic_long" != "5ea3a417" ] && {
-			echo "Invalid image, bad magic: $magic_long"
-			return 1
-		}
-
-		local typemagic=$(seama_get_type_magic "$1")
-		[ "$typemagic" != "6669726d" ] && {
-			echo "Invalid image, bad type: $typemagic"
-			return 1
-		}
-
-		return 0;
-		;;
-	mr1750 | \
-	mr1750v2 | \
-	mr600 | \
-	mr600v2 | \
-	mr900 | \
-	mr900v2 | \
-	om2p | \
-	om2pv2 | \
-	om2p-hs | \
-	om2p-hsv2 | \
-	om2p-hsv3 | \
-	om2p-lc | \
-	om5p | \
-	om5p-an | \
-	om5p-ac | \
-	om5p-acv2)
-		platform_check_image_openmesh "$magic_long" "$1" && return 0
-		return 1
-		;;
-
-	antminer-s1 | \
-	antminer-s3 | \
-	antrouter-r1 | \
-	archer-c5 | \
-	archer-c7 | \
-	el-m150 | \
-	el-mini | \
-	gl-inet | \
-	mc-mac1200r | \
-	minibox-v1 |\
-	omy-g1 |\
-	omy-x1 |\
-	onion-omega | \
-	oolite | \
-	smart-300 | \
-	som9331 | \
-	tellstick-znet-lite | \
-	tl-mr10u | \
-	tl-mr11u | \
-	tl-mr12u | \
-	tl-mr13u | \
-	tl-mr3020 | \
-	tl-mr3040 | \
-	tl-mr3040-v2 | \
-	tl-mr3220 | \
-	tl-mr3220-v2 | \
-	tl-mr3420 | \
-	tl-mr3420-v2 | \
-	tl-wa701nd-v2 | \
-	tl-wa7210n-v2 | \
-	tl-wa7510n | \
-	tl-wa750re | \
-	tl-wa850re | \
-	tl-wa860re | \
-	tl-wa801nd-v2 | \
-	tl-wa901nd | \
-	tl-wa901nd-v2 | \
-	tl-wa901nd-v3 | \
-	tl-wa901nd-v4 | \
-	tl-wdr3320-v2 | \
-	tl-wdr3500 | \
-	tl-wdr4300 | \
-	tl-wdr4900-v2 | \
-	tl-wdr6500-v2 | \
-	tl-wr703n | \
-	tl-wr710n | \
-	tl-wr720n-v3 | \
-	tl-wr741nd | \
-	tl-wr741nd-v4 | \
-	tl-wr810n | \
-	tl-wr841n-v1 | \
-	tl-wa830re-v2 | \
-	tl-wr841n-v7 | \
-	tl-wr841n-v8 | \
-	tl-wr841n-v9 | \
-	tl-wr841n-v11 | \
-	tl-wr842n-v2 | \
-	tl-wr842n-v3 | \
-	tl-wr941nd | \
-	tl-wr941nd-v5 | \
-	tl-wr941nd-v6 | \
-	tl-wr1041n-v2 | \
-	tl-wr1043nd | \
-	tl-wr1043nd-v2 | \
-	tl-wr2543n)
+	antminer-s1|\
+	antminer-s3|\
+	antrouter-r1|\
+	archer-c5|\
+	archer-c7|\
+	el-m150|\
+	el-mini|\
+	gl-inet|\
+	mc-mac1200r|\
+	minibox-v1|\
+	omy-g1|\
+	omy-x1|\
+	onion-omega|\
+	oolite|\
+	re450|\
+	smart-300|\
+	som9331|\
+	tellstick-znet-lite|\
+	tl-mr10u|\
+	tl-mr11u|\
+	tl-mr12u|\
+	tl-mr13u|\
+	tl-mr3020|\
+	tl-mr3040-v2|\
+	tl-mr3040|\
+	tl-mr3220-v2|\
+	tl-mr3220|\
+	tl-mr3420-v2|\
+	tl-mr3420|\
+	tl-wa701nd-v2|\
+	tl-wa7210n-v2|\
+	tl-wa750re|\
+	tl-wa7510n|\
+	tl-wa801nd-v2|\
+	tl-wa801nd-v3|\
+	tl-wa830re-v2|\
+	tl-wa850re|\
+	tl-wa850re-v2|\
+	tl-wa860re|\
+	tl-wa901nd-v2|\
+	tl-wa901nd-v3|\
+	tl-wa901nd-v4|\
+	tl-wa901nd|\
+	tl-wdr3320-v2|\
+	tl-wdr3500|\
+	tl-wdr4300|\
+	tl-wdr4900-v2|\
+	tl-wdr6500-v2|\
+	tl-wpa8630|\
+	tl-wr1041n-v2|\
+	tl-wr1043nd-v2|\
+	tl-wr1043nd-v4|\
+	tl-wr1043nd|\
+	tl-wr2543n|\
+	tl-wr703n|\
+	tl-wr710n|\
+	tl-wr720n-v3|\
+	tl-wr741nd-v4|\
+	tl-wr741nd|\
+	tl-wr802n-v1|\
+	tl-wr802n-v2|\
+	tl-wr810n|\
+	tl-wr841n-v11|\
+	tl-wr841n-v1|\
+	tl-wr841n-v7|\
+	tl-wr841n-v8|\
+	tl-wr841n-v9|\
+	tl-wr842n-v2|\
+	tl-wr842n-v3|\
+	tl-wr941nd-v5|\
+	tl-wr941nd-v6|\
+	tl-wr940n-v4|\
+	tl-wr941nd)
 		local magic_ver="0100"
 
 		case "$board" in
@@ -442,25 +476,126 @@ platform_check_image() {
 
 		return 0
 		;;
-
-	tube2h)
-		alfa_check_image "$1" && return 0
+	bsb|\
+	dir-825-b1|\
+	tew-673gru)
+		dir825b_check_image "$1" && return 0
+		;;
+	rb-411|\
+	rb-411u|\
+	rb-433|\
+	rb-433u|\
+	rb-435g|\
+	rb-450|\
+	rb-450g|\
+	rb-493|\
+	rb-493g|\
+	rb-750|\
+	rb-750gl|\
+	rb-751|\
+	rb-751g|\
+	rb-911g-2hpnd|\
+	rb-911g-5hpnd|\
+	rb-911g-5hpacd|\
+	rb-912uag-2hpnd|\
+	rb-912uag-5hpnd|\
+	rb-951g-2hnd|\
+	rb-951ui-2hnd|\
+	rb-2011l|\
+	rb-2011uas|\
+	rb-2011uias|\
+	rb-2011uas-2hnd|\
+	rb-2011uias-2hnd|\
+	rb-sxt2n|\
+	rb-sxt5n)
+		nand_do_platform_check routerboard $1
+		return $?
+		;;
+	c-60|\
+	nbg6716|\
+	r6100|\
+	wndr3700v4|\
+	wndr4300)
+		nand_do_platform_check $board $1
+		return $?
+		;;
+	cpe210|\
+	cpe510|\
+	eap120|\
+	wbs210|\
+	wbs510)
+		tplink_pharos_check_image "$1" && return 0
 		return 1
 		;;
+	a40|\
+	a60|\
+	mr1750v2|\
+	mr1750|\
+	mr600v2|\
+	mr600|\
+	mr900v2|\
+	mr900|\
+	om2p-hsv2|\
+	om2p-hsv3|\
+	om2p-hsv4|\
+	om2p-hs|\
+	om2p-lc|\
+	om2pv2|\
+	om2pv4|\
+	om2p|\
+	om5p-acv2|\
+	om5p-ac|\
+	om5p-an|\
+	om5p)
+		platform_check_image_openmesh "$magic_long" "$1" && return 0
+		return 1
+		;;
+	mr18|\
+	z1)
+		merakinand_do_platform_check $board $1
+		return $?
+		;;
+	dir-869-a1|\
+	mynet-n600|\
+	mynet-n750|\
+	qihoo-c301)
+		[ "$magic_long" != "5ea3a417" ] && {
+			echo "Invalid image, bad magic: $magic_long"
+			return 1
+		}
 
-	nbg6616 | \
-	unifi-outdoor-plus | \
-	uap-pro)
+		local typemagic=$(seama_get_type_magic "$1")
+		[ "$typemagic" != "6669726d" ] && {
+			echo "Invalid image, bad type: $typemagic"
+			return 1
+		}
+
+		return 0
+		;;
+	e2100l|\
+	mynet-rext|\
+	wrt160nl)
+		cybertan_check_image "$1" && return 0
+		return 1
+		;;
+	nbg6616|\
+	uap-pro|\
+	unifi-outdoor-plus)
 		[ "$magic_long" != "19852003" ] && {
 			echo "Invalid image type."
 			return 1
 		}
+
 		return 0
 		;;
-	wndr3700 | \
-	wnr2000-v3 | \
-	wnr612-v2 | \
-	wnr1000-v2 | \
+	tube2h)
+		alfa_check_image "$1" && return 0
+		return 1
+		;;
+	wndr3700|\
+	wnr1000-v2|\
+	wnr2000-v3|\
+	wnr612-v2|\
 	wpn824n)
 		local hw_magic
 
@@ -469,46 +604,7 @@ platform_check_image() {
 			echo "Invalid image, hardware ID mismatch, hw:$hw_magic image:$magic_long."
 			return 1
 		}
-		return 0
-		;;
-	mr18)
-		merakinand_do_platform_check $board $1
-		return $?;
-		;;
-	nbg6716 | \
-	r6100 | \
-	wndr3700v4 | \
-	wndr4300 )
-		nand_do_platform_check $board $1
-		return $?;
-		;;
-	routerstation | \
-	routerstation-pro | \
-	ls-sr71 | \
-	pb42 | \
-	pb44 | \
-	all0305 | \
-	eap300v2 | \
-	eap7660d | \
-	ja76pf | \
-	ja76pf2 | \
-	jwap003 | \
-	wp543 | \
-	wpe72)
-		[ "$magic" != "4349" ] && {
-			echo "Invalid image. Use *-sysupgrade.bin files on this board"
-			return 1
-		}
 
-		local md5_img=$(dd if="$1" bs=2 skip=9 count=16 2>/dev/null)
-		local md5_chk=$(dd if="$1" bs=$CI_BLKSZ skip=1 2>/dev/null | md5sum -); md5_chk="${md5_chk%% *}"
-
-		if [ -n "$md5_img" -a -n "$md5_chk" ] && [ "$md5_img" = "$md5_chk" ]; then
-			return 0
-		else
-			echo "Invalid image. Contents do not match checksum (image:$md5_img calculated:$md5_chk)"
-			return 1
-		fi
 		return 0
 		;;
 	wnr2000-v4)
@@ -516,16 +612,34 @@ platform_check_image() {
 			echo "Invalid image type."
 			return 1
 		}
+
 		return 0
 		;;
 	wnr2200)
-                [ "$magic_long" != "32323030" ] && {
-                        echo "Invalid image type."
-                        return 1
-                }
-                return 0
-                ;;
+		[ "$magic_long" != "32323030" ] && {
+			echo "Invalid image type."
+			return 1
+		}
 
+		return 0
+		;;
+	dap-2695-a1)
+		local magic=$(wrgg_get_image_magic "$1")
+		[ "$magic" != "21030820" ] && {
+			echo "Invalid image, bad type: $magic"
+			return 1
+		}
+
+		return 0;
+		;;
+	# these boards use metadata images
+	rb-750-r2|\
+	rb-750up-r2|\
+	rb-941-2nd|\
+	rb-951ui-2nd|\
+	rb-mapl-2nd)
+		return 0
+		;;
 	esac
 
 	echo "Sysupgrade is not yet supported on $board."
@@ -536,14 +650,66 @@ platform_pre_upgrade() {
 	local board=$(ar71xx_board_name)
 
 	case "$board" in
-	nbg6716 | \
-	r6100 | \
-	wndr3700v4 | \
-	wndr4300 )
+	c-60|\
+	nbg6716|\
+	r6100|\
+	rb-411|\
+	rb-411u|\
+	rb-433|\
+	rb-433u|\
+	rb-435g|\
+	rb-450|\
+	rb-450g|\
+	rb-493|\
+	rb-493g|\
+	rb-750|\
+	rb-750gl|\
+	rb-751|\
+	rb-751g|\
+	rb-911g-2hpnd|\
+	rb-911g-5hpnd|\
+	rb-911g-5hpacd|\
+	rb-912uag-2hpnd|\
+	rb-912uag-5hpnd|\
+	rb-951g-2hnd|\
+	rb-951ui-2hnd|\
+	rb-2011l|\
+	rb-2011uas|\
+	rb-2011uias|\
+	rb-2011uas-2hnd|\
+	rb-2011uias-2hnd|\
+	rb-sxt2n|\
+	rb-sxt5n|\
+	wndr3700v4|\
+	wndr4300)
 		nand_do_upgrade "$1"
 		;;
-	mr18)
+	rb-750-r2|\
+	rb-750up-r2|\
+	rb-941-2nd|\
+	rb-951ui-2nd|\
+	rb-mapl-2nd)
+		# erase firmware if booted from initramfs
+		[ -z "$(rootfs_type)" ] && mtd erase firmware
+		;;
+	mr18|\
+	z1)
 		merakinand_do_upgrade "$1"
+		;;
+	esac
+}
+
+platform_nand_pre_upgrade() {
+	local board=$(ar71xx_board_name)
+
+	case "$board" in
+	rb*)
+		CI_KERNPART=none
+		local fw_mtd=$(find_mtd_part kernel)
+		fw_mtd="${fw_mtd/block/}"
+		[ -n "$fw_mtd" ] || return
+		mtd erase kernel
+		tar xf "$1" sysupgrade-routerboard/kernel -O | nandwrite -o "$fw_mtd" -
 		;;
 	esac
 }
@@ -552,58 +718,62 @@ platform_do_upgrade() {
 	local board=$(ar71xx_board_name)
 
 	case "$board" in
-	routerstation | \
-	routerstation-pro | \
-	ls-sr71 | \
-	all0305 | \
-	eap7660d | \
-	pb42 | \
-	pb44 | \
-	ja76pf | \
-	ja76pf2 | \
-	jwap003)
+	all0258n)
+		platform_do_upgrade_allnet "0x9f050000" "$ARGV"
+		;;
+	all0305|\
+	eap7660d|\
+	ja76pf2|\
+	ja76pf|\
+	jwap003|\
+	ls-sr71|\
+	pb42|\
+	pb44|\
+	routerstation-pro|\
+	routerstation)
 		platform_do_upgrade_combined "$ARGV"
+		;;
+	all0315n)
+		platform_do_upgrade_allnet "0x9f080000" "$ARGV"
+		;;
+	cap4200ag|\
+	eap300v2)
+		platform_do_upgrade_allnet "0xbf0a0000" "$ARGV"
+		;;
+	dir-825-b1|\
+	tew-673gru)
+		platform_do_upgrade_dir825b "$ARGV"
+		;;
+	a40|\
+	a60|\
+	mr1750v2|\
+	mr1750|\
+	mr600v2|\
+	mr600|\
+	mr900v2|\
+	mr900|\
+	om2p-hsv2|\
+	om2p-hsv3|\
+	om2p-hsv4|\
+	om2p-hs|\
+	om2p-lc|\
+	om2pv2|\
+	om2pv4|\
+	om2p|\
+	om5p-acv2|\
+	om5p-ac|\
+	om5p-an|\
+	om5p)
+		platform_do_upgrade_openmesh "$ARGV"
+		;;
+	uap-pro|\
+	unifi-outdoor-plus)
+		MTD_CONFIG_ARGS="-s 0x180000"
+		default_do_upgrade "$ARGV"
 		;;
 	wp543|\
 	wpe72)
 		platform_do_upgrade_compex "$ARGV"
-		;;
-	all0258n )
-		platform_do_upgrade_allnet "0x9f050000" "$ARGV"
-		;;
-	all0315n )
-		platform_do_upgrade_allnet "0x9f080000" "$ARGV"
-		;;
-	eap300v2 |\
-	cap4200ag)
-		platform_do_upgrade_allnet "0xbf0a0000" "$ARGV"
-		;;
-	dir-825-b1 |\
-	tew-673gru)
-		platform_do_upgrade_dir825b "$ARGV"
-		;;
-	mr1750 | \
-	mr1750v2 | \
-	mr600 | \
-	mr600v2 | \
-	mr900 | \
-	mr900v2 | \
-	om2p | \
-	om2pv2 | \
-	om2p-hs | \
-	om2p-hsv2 | \
-	om2p-hsv3 | \
-	om2p-lc | \
-	om5p | \
-	om5p-an | \
-	om5p-ac | \
-	om5p-acv2)
-		platform_do_upgrade_openmesh "$ARGV"
-		;;
-	unifi-outdoor-plus | \
-	uap-pro)
-		MTD_CONFIG_ARGS="-s 0x180000"
-		default_do_upgrade "$ARGV"
 		;;
 	*)
 		default_do_upgrade "$ARGV"

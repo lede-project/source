@@ -28,18 +28,18 @@ lantiq_board_name() {
 	echo "$name"
 }
 
-lantiq_is_dt_led_chosen() {
-	[ -f "/sys/firmware/devicetree/base/chosen/leds/$1" ] && echo "true"
-}
-
-lantiq_get_dt_led_chosen() {
+lantiq_get_dt_led() {
 	local label
-	local nodepath
+	local ledpath
 	local basepath="/sys/firmware/devicetree/base"
-	local chosenpath="$basepath/chosen/leds/$1"
+	local nodepath="$basepath/aliases/led-$1"
 
-	[ -f "$chosenpath" ] && nodepath=$(cat "$chosenpath")
-	[ -n "$nodepath" ] && label=$(cat "$basepath$nodepath/label")
+	[ -f "$nodepath" ] && ledpath=$(cat "$nodepath")
+	[ -n "$ledpath" ] && label=$(cat "$basepath$ledpath/label")
 
 	echo "$label"
+}
+
+lantiq_is_vdsl_system() {
+	grep -qE "system type.*: (VR9|xRX200)" /proc/cpuinfo
 }

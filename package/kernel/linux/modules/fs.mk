@@ -26,6 +26,25 @@ endef
 
 $(eval $(call KernelPackage,fs-fscache))
 
+define KernelPackage/fs-9p
+  SUBMENU:=$(FS_MENU)
+  TITLE:=Plan 9 Resource Sharing Support
+  DEPENDS:=+kmod-9pnet
+  KCONFIG:=\
+	CONFIG_9P_FS \
+	CONFIG_9P_FS_POSIX_ACL=n \
+	CONFIG_9P_FS_SECURITY=n \
+	CONFIG_9P_FSCACHE=n
+  FILES:=$(LINUX_DIR)/fs/9p/9p.ko
+  AUTOLOAD:=$(call AutoLoad,30,9p)
+endef
+
+define KernelPackage/fs-9p/description
+  Kernel module for Plan 9 Resource Sharing Support support
+endef
+
+$(eval $(call KernelPackage,fs-9p))
+
 define KernelPackage/fs-afs
   SUBMENU:=$(FS_MENU)
   TITLE:=Andrew FileSystem client
@@ -63,7 +82,7 @@ $(eval $(call KernelPackage,fs-autofs4))
 define KernelPackage/fs-btrfs
   SUBMENU:=$(FS_MENU)
   TITLE:=BTRFS filesystem support
-  DEPENDS:=+kmod-lib-crc32c +kmod-lib-lzo +kmod-lib-zlib +kmod-lib-raid6 +kmod-lib-xor
+  DEPENDS:=+kmod-lib-crc32c +kmod-lib-lzo +kmod-lib-zlib-inflate +kmod-lib-zlib-deflate +kmod-lib-raid6 +kmod-lib-xor
   KCONFIG:=\
 	CONFIG_BTRFS_FS \
 	CONFIG_BTRFS_FS_POSIX_ACL=n \
@@ -125,7 +144,7 @@ $(eval $(call KernelPackage,fs-configfs))
 define KernelPackage/fs-cramfs
   SUBMENU:=$(FS_MENU)
   TITLE:=Compressed RAM/ROM filesystem support
-  DEPENDS:=+kmod-lib-zlib
+  DEPENDS:=+kmod-lib-zlib-inflate
   KCONFIG:= \
 	CONFIG_CRAMFS
   FILES:=$(LINUX_DIR)/fs/cramfs/cramfs.ko
@@ -158,7 +177,8 @@ define KernelPackage/fs-ext4
   TITLE:=EXT4 filesystem support
   DEPENDS := \
     +kmod-lib-crc16 \
-    +kmod-crypto-hash
+    +kmod-crypto-hash \
+    +kmod-crypto-crc32c
   KCONFIG:= \
 	CONFIG_EXT4_FS \
 	CONFIG_EXT4_ENCRYPTION=n \
@@ -248,7 +268,7 @@ $(eval $(call KernelPackage,fs-hfsplus))
 define KernelPackage/fs-isofs
   SUBMENU:=$(FS_MENU)
   TITLE:=ISO9660 filesystem support
-  DEPENDS:=+kmod-lib-zlib
+  DEPENDS:=+kmod-lib-zlib-inflate
   KCONFIG:=CONFIG_ISO9660_FS CONFIG_JOLIET=y CONFIG_ZISOFS=n
   FILES:=$(LINUX_DIR)/fs/isofs/isofs.ko
   AUTOLOAD:=$(call AutoLoad,30,isofs)
@@ -401,6 +421,22 @@ endef
 $(eval $(call KernelPackage,fs-reiserfs))
 
 
+define KernelPackage/fs-squashfs
+  SUBMENU:=$(FS_MENU)
+  TITLE:=SquashFS 4.0 filesystem support
+  KCONFIG:=CONFIG_SQUASHFS \
+	CONFIG_SQUASHFS_XZ=y
+  FILES:=$(LINUX_DIR)/fs/squashfs/squashfs.ko
+  AUTOLOAD:=$(call AutoLoad,30,squashfs,1)
+endef
+
+define KernelPackage/fs-squashfs/description
+ Kernel module for SquashFS 4.0 support
+endef
+
+$(eval $(call KernelPackage,fs-squashfs))
+
+
 define KernelPackage/fs-udf
   SUBMENU:=$(FS_MENU)
   TITLE:=UDF filesystem support
@@ -428,7 +464,7 @@ define KernelPackage/fs-vfat
 	$(LINUX_DIR)/fs/fat/fat.ko \
 	$(LINUX_DIR)/fs/fat/vfat.ko
   AUTOLOAD:=$(call AutoLoad,30,fat vfat)
-  $(call AddDepends/nls)
+  $(call AddDepends/nls,cp437 iso8859-1 utf8)
 endef
 
 define KernelPackage/fs-vfat/description

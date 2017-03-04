@@ -14,14 +14,14 @@ CPU_TYPE:=mpcore
 CPU_SUBTYPE:=vfp
 MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
-KERNEL_PATCHVER:=4.4
-
-include $(INCLUDE_DIR)/target.mk
+KERNEL_PATCHVER:=4.9
 
 define Target/Description
 	Build images for Cavium Networks Econa CNS3xxx based boards,
 	eg. the Gateworks Laguna family
 endef
+
+include $(INCLUDE_DIR)/target.mk
 
 KERNELNAME:=zImage
 

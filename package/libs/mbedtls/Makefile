@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mbedtls
-PKG_VERSION:=2.3.0
+PKG_VERSION:=2.4.0
 PKG_RELEASE:=2
 PKG_USE_MIPS16:=0
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-gpl.tgz
 PKG_SOURCE_URL:=https://tls.mbed.org/download/
-PKG_MD5SUM:=21237014f779bde70b2d71399cc1ea53365eb7f10cdd74a13ee6329a1910cb49
+PKG_HASH:=80eff0e0028f969355d6e34ffdd3dbf4eb2a9367b07ff2f3f70e6d75beee9e3f
 
 PKG_BUILD_PARALLEL:=1
 PKG_LICENSE:=GPL-2.0+
@@ -48,6 +48,8 @@ endef
 
 PKG_INSTALL:=1
 
+TARGET_CFLAGS += -ffunction-sections -fdata-sections
+
 CMAKE_OPTIONS += \
 	-DCMAKE_BUILD_TYPE:String="Release" \
 	-DUSE_SHARED_MBEDTLS_LIBRARY:Bool=ON \
@@ -59,6 +61,7 @@ define Build/InstallDev
 	$(CP) $(PKG_INSTALL_DIR)/usr/include/mbedtls $(1)/usr/include/
 	$(INSTALL_DIR) $(1)/usr/lib
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/lib*.so* $(1)/usr/lib/
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/lib*.a $(1)/usr/lib/
 endef
 
 define Package/libmbedtls/install

@@ -10,10 +10,14 @@ curdir:=package
 include $(INCLUDE_DIR)/rootfs.mk
 
 -include $(TMP_DIR)/.packagedeps
+$(curdir)/autoremove:=1
 $(curdir)/builddirs:=$(sort $(package-) $(package-y) $(package-m))
-$(curdir)/builddirs-install:=.
 $(curdir)/builddirs-default:=. $(sort $(package-y) $(package-m))
 $(curdir)/builddirs-prereq:=. $(sort $(prereq-y) $(prereq-m))
+ifdef CHECK_ALL
+$(curdir)/builddirs-check:=$($(curdir)/builddirs)
+$(curdir)/builddirs-download:=$($(curdir)/builddirs)
+endif
 ifneq ($(IGNORE_ERRORS),)
   package-y-filter := $(package-y)
   package-m-filter := $(filter-out $(package-y),$(package-m))
@@ -52,9 +56,13 @@ $(curdir)/merge:
 $(curdir)/merge-index: $(curdir)/merge
 	(cd $(PACKAGE_DIR_ALL) && $(SCRIPT_DIR)/ipkg-make-index.sh . 2>&1 > Packages; )
 
-$(curdir)/install: $(TMP_DIR)/.build $(curdir)/system/opkg/host/install $(curdir)/merge $(if $(CONFIG_TARGET_PER_DEVICE_ROOTFS),$(curdir)/merge-index)
+ifndef SDK
+  $(curdir)/compile: $(curdir)/system/opkg/host/compile
+endif
+
+$(curdir)/install: $(TMP_DIR)/.build $(curdir)/merge $(if $(CONFIG_TARGET_PER_DEVICE_ROOTFS),$(curdir)/merge-index)
 	- find $(STAGING_DIR_ROOT) -type d | $(XARGS) chmod 0755
-	rm -rf $(TARGET_DIR)
+	rm -rf $(TARGET_DIR) $(TARGET_DIR_ORIG)
 	[ -d $(TARGET_DIR)/tmp ] || mkdir -p $(TARGET_DIR)/tmp
 	$(call opkg,$(TARGET_DIR)) install \
 		$(call opkg_package_files,$(shell cat $(PACKAGE_INSTALL_FILES) 2>/dev/null))
@@ -65,23 +73,18 @@ $(curdir)/install: $(TMP_DIR)/.build $(curdir)/system/opkg/host/install $(curdir
 		done; \
 	done || true
 	@-$(MAKE) package/preconfig
-	$(call prepare_rootfs,$(TARGET_DIR))
 
-PASSOPT=""
-PASSARG=""
-ifndef CONFIG_OPKGSMIME_PASSPHRASE
-  ifneq ($(call qstrip,$(CONFIG_OPKGSMIME_PASSFILE)),)
-    PASSOPT="-passin"
-    PASSARG="file:$(call qstrip,$(CONFIG_OPKGSMIME_PASSFILE))"
-  endif
-endif
+	$(CP) $(TARGET_DIR) $(TARGET_DIR_ORIG)
+
+	$(call prepare_rootfs,$(TARGET_DIR))
 
 $(curdir)/index: FORCE
 	@echo Generating package index...
 	@for d in $(PACKAGE_SUBDIRS); do ( \
 		mkdir -p $$d; \
 		cd $$d || continue; \
-		$(SCRIPT_DIR)/ipkg-make-index.sh . 2>&1 > Packages && \
+		$(SCRIPT_DIR)/ipkg-make-index.sh . 2>&1 > Packages.manifest; \
+		grep -vE '^(Maintainer|LicenseFiles|Source|Require)' Packages.manifest > Packages && \
 			gzip -9nc Packages > Packages.gz; \
 	); done
 ifdef CONFIG_SIGNED_PACKAGES
@@ -91,25 +94,6 @@ ifdef CONFIG_SIGNED_PACKAGES
 			cd $$d || continue; \
 		$(STAGING_DIR_HOST)/bin/usign -S -m Packages -s $(BUILD_KEY); \
 	); done
-else
-ifeq ($(call qstrip,$(CONFIG_OPKGSMIME_KEY)),)
-	@echo Signing key has not been configured
-else
-ifeq ($(call qstrip,$(CONFIG_OPKGSMIME_CERT)),)
-	@echo Certificate has not been configured
-else
-	@echo Signing package index...
-	@for d in $(PACKAGE_SUBDIRS); do ( \
-		[ -d $$d ] && \
-			cd $$d || continue; \
-		openssl smime -binary -in Packages.gz \
-			-out Packages.sig -outform PEM -sign \
-			-signer $(CONFIG_OPKGSMIME_CERT) \
-			-inkey $(CONFIG_OPKGSMIME_KEY) \
-			$(PASSOPT) $(PASSARG); \
-	); done
-endif
-endif
 endif
 
 $(curdir)/preconfig:
@@ -120,5 +104,6 @@ $(eval $(call stampfile,$(curdir),package,prereq,.config))
 $(eval $(call stampfile,$(curdir),package,cleanup,$(TMP_DIR)/.build))
 $(eval $(call stampfile,$(curdir),package,compile,$(TMP_DIR)/.build))
 $(eval $(call stampfile,$(curdir),package,install,$(TMP_DIR)/.build))
+$(eval $(call stampfile,$(curdir),package,check,$(TMP_DIR)/.build))
 
 $(eval $(call subdir,$(curdir)))

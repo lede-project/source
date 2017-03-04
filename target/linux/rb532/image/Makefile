@@ -13,11 +13,40 @@ RAMSIZE = 0x00100000		# 1MB
 IMAGE_COPY = 1
 
 LOADER_MAKEOPTS= \
+		CROSS_COMPILE="$(TARGET_CROSS)" \
+		PATH="$(TARGET_PATH)" \
+		CC="$(TARGET_CC)" \
 		KDIR=$(KDIR) \
 		LOADADDR=$(LOADADDR) \
 		KERNEL_ENTRY=$(KERNEL_ENTRY) \
 		RAMSIZE=$(RAMSIZE) \
 		IMAGE_COPY=$(IMAGE_COPY)
+
+
+LOADER_DIR = $(GENERIC_PLATFORM_DIR)/image/lzma-loader
+
+define Build/lzma-loader-elf
+	rm -rf $@.loader
+	mkdir -p $@.loader
+	$(CP) $(LOADER_DIR)/src/* $@.loader/
+	$(CP) $@ $@.loader/vmlinux.lzma
+	$(MAKE) -C $@.loader $(LOADER_MAKEOPTS)
+	cp $@.loader/lzma.elf $@
+	rm -rf $@.loader
+endef
+
+define Device/nand
+  CMDLINE := ubi.mtd=1 ubi.block=0,rootfs root=/dev/ubiblock0_1
+  BOARD_NAME := rb532
+  SUPPORTED_DEVICES := rb532
+  KERNEL_INITRAMFS := append-kernel | patch-cmdline | lzma | lzma-loader-elf
+  KERNEL := $$(KERNEL_INITRAMFS) | kernel2minor -s 2048 -i 0 -c
+  IMAGES := sysupgrade.bin
+  FILESYSTEMS := squashfs
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+
+TARGET_DEVICES := nand
 
 define Build/Clean
 	$(MAKE) -C $(GENERIC_PLATFORM_DIR)/image/lzma-loader $(LOADER_MAKEOPTS) clean
@@ -28,7 +57,7 @@ define Image/Prepare
 	$(MAKE) -C $(GENERIC_PLATFORM_DIR)/image/lzma-loader $(LOADER_MAKEOPTS) clean compile
 ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
 	$(STAGING_DIR_HOST)/bin/patch-cmdline $(KDIR)/vmlinux-initramfs '$(strip $(call Image/cmdline/yaffs2)) '
-	cat $(KDIR)/vmlinux-initramfs | $(STAGING_DIR_HOST)/bin/lzma e -si -so -eos -lc1 -lp2 -pb2 > $(KDIR)/vmlinux-initramfs.lzma
+	cat $(KDIR)/vmlinux-initramfs | $(STAGING_DIR_HOST)/bin/lzma e -si -so -eos -lc1 -lp2 -pb2 > $(KDIR)/vmlinux.lzma
 	$(MAKE) -C $(GENERIC_PLATFORM_DIR)/image/lzma-loader $(LOADER_MAKEOPTS) clean compile
 	$(CP) $(KDIR)/loader.elf $(KDIR)/loader-initramfs.elf
 endif
@@ -43,34 +72,18 @@ ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
 endif
 endef
 
-define Image/cmdline/jffs2-64k
-block2mtd.block2mtd=/dev/sda2,65536 root=/dev/mtdblock2 rootfstype=jffs2
-endef
-
-define Image/cmdline/jffs2-128k
-block2mtd.block2mtd=/dev/sda2,131072 root=/dev/mtdblock2 rootfstype=jffs2
-endef
-
-define Image/cmdline/ext4
-root=/dev/sda2 rootfstype=ext4
-endef
-
-define Image/cmdline/squashfs
-block2mtd.block2mtd=/dev/sda2,65536,rootfs root=/dev/mtdblock2 rootfstype=squashfs
-endef
-
 define Image/cmdline/yaffs2
 root=/dev/mtdblock1 rootfstype=yaffs2
 endef
 
 define Image/Build/squashfs
-	$(call prepare_generic_squashfs,$(KDIR)/root.squashfs)
+	dd if=/dev/zero bs=128k count=1 >> $(KDIR)/root.squashfs
 endef
 
 define Image/Build
 	$(call Image/Build/$(1),$(1))
 	$(CP) $(KDIR)/vmlinux.elf $(BIN_DIR)/$(IMG_PREFIX)-$(1).kernel
-	$(STAGING_DIR_HOST)/bin/patch-cmdline $(BIN_DIR)/$(IMG_PREFIX)-$(1).kernel '$(strip $(call Image/cmdline/$(1))) '
+	$(STAGING_DIR_HOST)/bin/patch-cmdline $(BIN_DIR)/$(IMG_PREFIX)-$(1).kernel 'root=/dev/sda2 '
 	./gen_image.sh $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).bin \
 		5 $(BIN_DIR)/$(IMG_PREFIX)-$(1).kernel \
 		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(KDIR)/root.$(1) \

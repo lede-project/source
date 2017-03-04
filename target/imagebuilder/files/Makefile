@@ -13,7 +13,7 @@ export TOPDIR LC_ALL LANG
 export OPENWRT_VERBOSE=s
 all: help
 
-include $(TOPDIR)/include/host.mk
+export PATH:=$(TOPDIR)/staging_dir/host/bin:$(PATH)
 
 ifneq ($(OPENWRT_BUILD),1)
   override OPENWRT_BUILD=1
@@ -74,7 +74,7 @@ include $(INCLUDE_DIR)/target.mk
 
 USER_PROFILE ?= $(firstword $(PROFILE_NAMES))
 PROFILE_LIST = $(foreach p,$(PROFILE_NAMES), \
-	echo '$(patsubst DEVICE_%,%,$(p)):'; $(if $($(p)_NAME),echo '    $($(p)_NAME)'; ) echo '    Packages: $($(p)_PACKAGES)'; \
+	echo '$(patsubst DEVICE_%,%,$(p)):'; $(if $($(p)_NAME),echo '    $(subst ','"'"',$($(p)_NAME))'; ) echo '    Packages: $($(p)_PACKAGES)'; \
 )
 
 .profiles.mk: .targetinfo
@@ -82,7 +82,6 @@ PROFILE_LIST = $(foreach p,$(PROFILE_NAMES), \
 
 staging_dir/host/.prereq-build: include/prereq-build.mk
 	mkdir -p tmp
-	rm -f tmp/.host.mk
 	@$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f $(TOPDIR)/include/prereq-build.mk prereq 2>/dev/null || { \
 		echo "Prerequisite check failed. Use FORCE=1 to override."; \
 		false; \
@@ -123,9 +122,9 @@ _call_image: staging_dir/host/.prereq-build
 ifneq ($(USER_FILES),)
 	$(MAKE) copy_files
 endif
-	$(MAKE) package_postinst
-	$(MAKE) build_image
-	$(MAKE) checksum
+	$(MAKE) -s package_postinst
+	$(MAKE) -s build_image
+	$(MAKE) -s checksum
 
 package_index: FORCE
 	@echo
@@ -194,7 +193,7 @@ ifneq ($(PROFILE),)
   endif
 endif
 	(unset PROFILE FILES PACKAGES MAKEFLAGS; \
-	$(MAKE) _call_image \
+	$(MAKE) -s _call_image \
 		$(if $(PROFILE),USER_PROFILE="$(PROFILE_FILTER)") \
 		$(if $(FILES),USER_FILES="$(FILES)") \
 		$(if $(PACKAGES),USER_PACKAGES="$(PACKAGES)") \

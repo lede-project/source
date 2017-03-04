@@ -1,5 +1,7 @@
 #include "mt7620a.dtsi"
 
+#include <dt-bindings/input/input.h>
+
 / {
 	chosen {
 		bootargs = "console=ttyS0,115200";
@@ -14,7 +16,7 @@
 		reset {
 			label = "reset";
 			gpios = <&gpio0 11 1>;
-			linux,code = <0x198>;
+			linux,code = <KEY_RESTART>;
 		};
 	};
 };
@@ -39,7 +41,6 @@
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		linux,modalias = "m25p80", "w25q128";
 		spi-max-frequency = <10000000>;
 
 		partition@0 {
@@ -83,7 +84,7 @@
 			reg = <0x0000 0 0 0 0>;
 			device_type = "pci";
 			mediatek,mtd-eeprom = <&factory 0x8000>;
-			mediatek,2ghz = <0>;
+			ieee80211-freq-limit = <5000000 6000000>;
 		};
 	};
 };

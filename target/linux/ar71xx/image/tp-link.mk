@@ -21,10 +21,10 @@ define Build/mktplinkfw
 		$(if $(findstring sysupgrade,$(word 1,$(1))),-s) && mv $@.new $@ || rm -f $@
 endef
 
-# mktplinkfw-initramfs <optional extra arguments to mktplinkfw binary>
+# mktplinkfw-combined
 #
 # -c combined image
-define Build/mktplinkfw-initramfs
+define Build/mktplinkfw-combined
 	$(STAGING_DIR_HOST)/bin/mktplinkfw \
 		-H $(TPLINK_HWID) -W $(TPLINK_HWREV) -F $(TPLINK_FLASHLAYOUT) -N OpenWrt -V $(REVISION) $(1) \
 		-m $(TPLINK_HEADER_VERSION) \
@@ -35,12 +35,31 @@ define Build/mktplinkfw-initramfs
 	@mv $@.new $@
 endef
 
+# add RE450 and similar header to the kernel image
+define Build/mktplinkfw-kernel
+	$(STAGING_DIR_HOST)/bin/mktplinkfw-kernel \
+		-H $(TPLINK_HWID) -N OpenWrt -V $(REVISION) \
+		-L $(KERNEL_LOADADDR) -E $(KERNEL_LOADADDR) \
+		-k $@ \
+		-o $@.new
+	@mv $@.new $@
+endef
+
+define Build/uImageArcher
+	mkimage -A $(LINUX_KARCH) \
+		-O linux -T kernel \
+		-C $(1) -a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
+		-n '$(call toupper,$(LINUX_KARCH)) LEDE Linux-$(LINUX_VERSION)' -d $@ $@.new
+	@mv $@.new $@
+endef
+
+
 define Device/tplink
   TPLINK_HWREV := 0x1
   TPLINK_HEADER_VERSION := 1
   LOADER_TYPE := gz
   KERNEL := kernel-bin | patch-cmdline | lzma
-  KERNEL_INITRAMFS := kernel-bin | patch-cmdline | lzma | mktplinkfw-initramfs
+  KERNEL_INITRAMFS := kernel-bin | patch-cmdline | lzma | mktplinkfw-combined
   IMAGES := sysupgrade.bin factory.bin
   IMAGE/sysupgrade.bin := append-rootfs | mktplinkfw sysupgrade
   IMAGE/factory.bin := append-rootfs | mktplinkfw factory
@@ -52,7 +71,7 @@ $(Device/tplink)
   COMPILE := loader-$(1).gz
   COMPILE/loader-$(1).gz := loader-okli-compile
   KERNEL := copy-file $(KDIR)/vmlinux.bin.lzma | uImage lzma -M 0x4f4b4c49 | loader-okli $(1)
-  KERNEL_INITRAMFS := copy-file $(KDIR)/vmlinux-initramfs.bin.lzma | loader-kernel-cmdline | mktplinkfw-initramfs
+  KERNEL_INITRAMFS := copy-file $(KDIR)/vmlinux-initramfs.bin.lzma | loader-kernel-cmdline | mktplinkfw-combined
 endef
 
 define Device/tplink-4m
@@ -85,6 +104,36 @@ $(Device/tplink)
   IMAGE_SIZE := 15872k
 endef
 
+define Device/archer-c59-v1
+  DEVICE_TITLE := TP-LINK Archer C59 v1
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k
+  BOARDNAME := ARCHER-C59-V1
+  TPLINK_BOARD_NAME := ARCHER-C59-V1
+  DEVICE_PROFILE := ARCHERC59V1
+  IMAGE_SIZE := 14528k
+  KERNEL := kernel-bin | patch-cmdline | lzma | uImageArcher lzma
+  IMAGES := sysupgrade.bin factory.bin
+  IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade
+  IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
+  MTDPARTS := spi0.0:64k(u-boot)ro,64k(mac)ro,1536k(kernel),12992k(rootfs),1664k(tplink)ro,64k(art)ro,14528k@0x20000(firmware)
+endef
+TARGET_DEVICES += archer-c59-v1
+
+define Device/archer-c60-v1
+  DEVICE_TITLE := TP-LINK Archer C60 v1
+  DEVICE_PACKAGES := kmod-ath10k
+  BOARDNAME := ARCHER-C60-V1
+  TPLINK_BOARD_NAME := ARCHER-C60-V1
+  DEVICE_PROFILE := ARCHERC60V1
+  IMAGE_SIZE := 7936k
+  KERNEL := kernel-bin | patch-cmdline | lzma | uImageArcher lzma
+  IMAGES := sysupgrade.bin factory.bin
+  IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade
+  IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
+  MTDPARTS := spi0.0:64k(u-boot)ro,64k(mac)ro,1344k(kernel),6592k(rootfs),64k(tplink)ro,64k(art)ro,7936k@0x20000(firmware)
+endef
+TARGET_DEVICES += archer-c60-v1
+
 define Device/cpe510-520
   DEVICE_TITLE := TP-LINK CPE510/520
   DEVICE_PACKAGES := rssileds
@@ -107,45 +156,105 @@ $(Device/cpe510-520)
   BOARDNAME := CPE210
   TPLINK_BOARD_NAME := CPE210
 endef
-TARGET_DEVICES += cpe210-220 cpe510-520
+
+define Device/wbs210
+$(Device/cpe510-520)
+  DEVICE_TITLE := TP-LINK WBS210
+  DEVICE_PACKAGES := rssileds
+  BOARDNAME := WBS210
+  TPLINK_BOARD_NAME := WBS210
+endef
+
+define Device/wbs510
+$(Device/cpe510-520)
+  DEVICE_TITLE := TP-LINK WBS510
+  DEVICE_PACKAGES := rssileds
+  BOARDNAME := WBS510
+  TPLINK_BOARD_NAME := WBS510
+endef
+TARGET_DEVICES += cpe210-220 cpe510-520 wbs210 wbs510
+
+define Device/re450
+  DEVICE_TITLE := TP-LINK RE450
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x
+  MTDPARTS := spi0.0:128k(u-boot)ro,1344k(kernel),4672k(rootfs),64k(pation-table)ro,64k(product-info)ro,1856k(config)ro,64k(art)ro,6016k@0x20000(firmware)
+  IMAGE_SIZE := 7936k
+  BOARDNAME := RE450
+  TPLINK_BOARD_NAME := RE450
+  DEVICE_PROFILE := RE450
+  LOADER_TYPE := elf
+  KERNEL := kernel-bin | patch-cmdline | lzma | mktplinkfw-kernel
+  IMAGES := sysupgrade.bin factory.bin
+  IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade
+  IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
+endef
+TARGET_DEVICES += re450
+
+define Device/eap120
+  DEVICE_TITLE := TP-LINK EAP120
+  MTDPARTS := spi0.0:128k(u-boot)ro,64k(pation-table)ro,64k(product-info)ro,1536k(kernel),14336k(rootfs),192k(config)ro,64k(ART)ro,15872k@0x40000(firmware)
+  IMAGE_SIZE := 15872k
+  BOARDNAME := EAP120
+  TPLINK_BOARD_NAME := EAP120
+  DEVICE_PROFILE := EAP120
+  LOADER_TYPE := elf
+  KERNEL := kernel-bin | patch-cmdline | lzma | loader-kernel
+  IMAGES := sysupgrade.bin factory.bin
+  IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade
+  IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
+endef
+TARGET_DEVICES += eap120
 
 define Device/tl-wdr4300-v1
 $(Device/tplink-8mlzma)
-  DEVICE_TITLE := TP-LINK TL-WDR4300
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
-  BOARDNAME = TL-WDR4300
-  DEVICE_PROFILE = TLWDR4300
+  DEVICE_TITLE := TP-LINK TL-WDR4300 v1
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME := TL-WDR4300
+  DEVICE_PROFILE := TLWDR4300
   TPLINK_HWID := 0x43000001
+  IMAGE/factory.bin := append-rootfs | mktplinkfw factory -C US
 endef
 
 define Device/tl-wdr3500-v1
-$(Device/tl-wdr4300-v1)
+$(Device/tplink-8mlzma)
   DEVICE_TITLE := TP-LINK TL-WDR3500 v1
-  BOARDNAME = TL-WDR3500
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME := TL-WDR3500
+  DEVICE_PROFILE := TLWDR4300
   TPLINK_HWID := 0x35000001
 endef
 
 define Device/tl-wdr3600-v1
-$(Device/tl-wdr4300-v1)
+$(Device/tplink-8mlzma)
   DEVICE_TITLE := TP-LINK TL-WDR3600 v1
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME := TL-WDR4300
+  DEVICE_PROFILE := TLWDR4300
   TPLINK_HWID := 0x36000001
+  IMAGE/factory.bin := append-rootfs | mktplinkfw factory -C US
 endef
 
 define Device/tl-wdr4300-v1-il
-$(Device/tl-wdr4300-v1)
+$(Device/tplink-8mlzma)
   DEVICE_TITLE := TP-LINK TL-WDR4300 v1 IL
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME := TL-WDR4300
+  DEVICE_PROFILE := TLWDR4300
   TPLINK_HWID := 0x43008001
 endef
 
 define Device/tl-wdr4310-v1
-$(Device/tl-wdr4300-v1)
+$(Device/tplink-8mlzma)
   DEVICE_TITLE := TP-LINK TL-WDR4310 v1
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME := TL-WDR4300
+  DEVICE_PROFILE = TLWDR4300
   TPLINK_HWID := 0x43100001
 endef
 
 define Device/mw4530r-v1
 $(Device/tl-wdr4300-v1)
-  DEVICE_TITLE := TP-LINK TL-WDR4530 v1
+  DEVICE_TITLE := Mercury MW4530R v1
   TPLINK_HWID := 0x45300001
 endef
 TARGET_DEVICES += tl-wdr3500-v1 tl-wdr3600-v1 tl-wdr4300-v1 tl-wdr4300-v1-il tl-wdr4310-v1 mw4530r-v1
@@ -153,9 +262,9 @@ TARGET_DEVICES += tl-wdr3500-v1 tl-wdr3600-v1 tl-wdr4300-v1 tl-wdr4300-v1-il tl-
 define Device/tl-wdr6500-v2
 $(Device/tplink-8mlzma)
   DEVICE_TITLE := TP-LINK TL-WDR6500v2
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev kmod-ath10k ath10k-firmware-qca988x
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k ath10k-firmware-qca988x
   KERNEL := kernel-bin | patch-cmdline | lzma | uImage lzma
-  KERNEL_INITRAMFS := kernel-bin | patch-cmdline | lzma | uImage lzma | mktplinkfw-initramfs
+  KERNEL_INITRAMFS := kernel-bin | patch-cmdline | lzma | uImage lzma | mktplinkfw-combined
   BOARDNAME = TL-WDR6500-v2
   DEVICE_PROFILE = TLWDR6500V2
   TPLINK_HWID := 0x65000002
@@ -166,7 +275,7 @@ TARGET_DEVICES += tl-wdr6500-v2
 define Device/tl-wdr3320-v2
 $(Device/tplink-4mlzma)
   DEVICE_TITLE := TP-LINK TL-WDR3320v2
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
   BOARDNAME = TL-WDR3320-v2
   DEVICE_PROFILE = TLWDR3320V2
   TPLINK_HWID := 0x33200002
@@ -177,7 +286,7 @@ TARGET_DEVICES += tl-wdr3320-v2
 define Device/archer-c5-v1
     $(Device/tplink-16mlzma)
     DEVICE_TITLE := TP-LINK Archer C5
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev kmod-ath10k ath10k-firmware-qca988x
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k ath10k-firmware-qca988x
     BOARDNAME := ARCHER-C5
     DEVICE_PROFILE := ARCHERC7
     TPLINK_HWID := 0xc5000001
@@ -186,7 +295,7 @@ endef
 define Device/archer-c7-v1
     $(Device/tplink-8mlzma)
     DEVICE_TITLE := TP-LINK Archer C7 v1
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev kmod-ath10k ath10k-firmware-qca988x
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k ath10k-firmware-qca988x
     BOARDNAME := ARCHER-C7
     DEVICE_PROFILE := ARCHERC7
     TPLINK_HWID := 0x75000001
@@ -195,22 +304,34 @@ endef
 define Device/archer-c7-v2
     $(Device/tplink-16mlzma)
     DEVICE_TITLE := TP-LINK Archer C7 v2
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev kmod-ath10k ath10k-firmware-qca988x
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k ath10k-firmware-qca988x
     BOARDNAME := ARCHER-C7-V2
     DEVICE_PROFILE := ARCHERC7
     TPLINK_HWID := 0xc7000002
-    IMAGE/factory.bin := append-rootfs | mktplinkfw factory -C US
+    IMAGES := sysupgrade.bin factory.bin factory-us.bin factory-eu.bin
+    IMAGE/factory-us.bin := append-rootfs | mktplinkfw factory -C US
+    IMAGE/factory-eu.bin := append-rootfs | mktplinkfw factory -C EU
+endef
+
+define Device/archer-c7-v2-il
+    $(Device/tplink-16mlzma)
+    DEVICE_TITLE := TP-LINK Archer C7 v2 IL
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k ath10k-firmware-qca988x
+    BOARDNAME := ARCHER-C7-V2
+    DEVICE_PROFILE := ARCHERC7
+    TPLINK_HWID := 0xc7000002
+    TPLINK_HWREV := 0x494c0001
 endef
 
 define Device/tl-wdr7500-v3
     $(Device/tplink-8mlzma)
     DEVICE_TITLE := TP-LINK Archer C7 v3
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev kmod-ath10k ath10k-firmware-qca988x
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k ath10k-firmware-qca988x
     BOARDNAME := ARCHER-C7
     DEVICE_PROFILE := ARCHERC7
     TPLINK_HWID := 0x75000003
 endef
-TARGET_DEVICES += archer-c5-v1 archer-c7-v1 archer-c7-v2 tl-wdr7500-v3
+TARGET_DEVICES += archer-c5-v1 archer-c7-v1 archer-c7-v2 archer-c7-v2-il tl-wdr7500-v3
 
 define Device/tl-mr10u-v1
     $(Device/tplink-4mlzma)
@@ -225,7 +346,7 @@ endef
 define Device/tl-mr11u-v1
     $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR11U
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR11U
     DEVICE_PROFILE := TLMR11U
     TPLINK_HWID := 0x00110101
@@ -235,7 +356,7 @@ endef
 define Device/tl-mr11u-v2
     $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR11U v2
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR11U
     DEVICE_PROFILE := TLMR11U
     TPLINK_HWID := 0x00110102
@@ -245,7 +366,7 @@ endef
 define Device/tl-mr12u-v1
     $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR12U
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR13U
     DEVICE_PROFILE := TLMR12U
     TPLINK_HWID := 0x00120101
@@ -255,7 +376,7 @@ endef
 define Device/tl-mr13u-v1
     $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR13U
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR13U
     DEVICE_PROFILE := TLMR13U
     TPLINK_HWID := 0x00130101
@@ -266,7 +387,7 @@ TARGET_DEVICES += tl-mr10u-v1 tl-mr11u-v1 tl-mr11u-v2 tl-mr12u-v1 tl-mr13u-v1
 define Device/tl-mr3020-v1
     $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR3020
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3020
     DEVICE_PROFILE := TLMR3020
     TPLINK_HWID := 0x30200001
@@ -276,7 +397,7 @@ endef
 define Device/tl-mr3040-v1
     $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR3040
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3040
     DEVICE_PROFILE := TLMR3040
     TPLINK_HWID := 0x30400001
@@ -286,7 +407,7 @@ endef
 define Device/tl-mr3040-v2
     $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR3040
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3040-v2
     DEVICE_PROFILE := TLMR3040
     TPLINK_HWID := 0x30400002
@@ -296,7 +417,7 @@ endef
 define Device/tl-mr3220-v1
     $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-MR3220
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3220
     DEVICE_PROFILE := TLMR3220
     TPLINK_HWID := 0x32200001
@@ -305,7 +426,7 @@ endef
 define Device/tl-mr3220-v2
     $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR3220 v2
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3220-v2
     DEVICE_PROFILE := TLMR3220
     TPLINK_HWID := 0x32200002
@@ -315,7 +436,7 @@ endef
 define Device/tl-mr3420-v1
     $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-MR3420
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3420
     DEVICE_PROFILE := TLMR3420
     TPLINK_HWID := 0x34200001
@@ -324,12 +445,22 @@ endef
 define Device/tl-mr3420-v2
     $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR3420 v2
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3420-v2
     DEVICE_PROFILE := TLMR3420
     TPLINK_HWID := 0x34200002
 endef
 TARGET_DEVICES += tl-mr3020-v1 tl-mr3040-v1 tl-mr3040-v2 tl-mr3220-v1 tl-mr3220-v2 tl-mr3420-v1 tl-mr3420-v2
+
+define Device/tl-wpa8630
+    $(Device/tplink-8mlzma)
+    DEVICE_TITLE := TP-LINK TL-WPA8630
+    DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x
+    BOARDNAME := TL-WPA8630
+    DEVICE_PROFILE := TL-WPA8630
+    TPLINK_HWID := 0x86300001
+endef
+TARGET_DEVICES += tl-wpa8630
 
 define Device/tl-wr703n-v1
     $(Device/tplink-4mlzma)
@@ -471,7 +602,7 @@ endef
 
 define Device/tl-wr810n
     $(Device/tplink-8mlzma)
-    DEVICE_TITLE := TP-Link TL-WR810N
+    DEVICE_TITLE := TP-LINK TL-WR810N
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2
     BOARDNAME := TL-WR810N
     DEVICE_PROFILE := TLWR810
@@ -496,6 +627,28 @@ define Device/tl-wr743nd-v2
     CONSOLE := ttyATH0,115200
 endef
 TARGET_DEVICES += tl-wr740n-v1 tl-wr740n-v3 tl-wr740n-v4 tl-wr740n-v5 tl-wr740n-v6 tl-wr741nd-v1 tl-wr741nd-v2 tl-wr741nd-v4 tl-wr741nd-v5 tl-wr743nd-v1 tl-wr743nd-v2
+
+define Device/tl-wr802n-v1
+    $(Device/tplink-4mlzma)
+    DEVICE_TITLE := TP-LINK TL-WR802N v1
+    BOARDNAME := TL-WR802N-v1
+    DEVICE_PROFILE := TLWR802
+    TPLINK_HWID := 0x08020001
+    TPLINK_HWREV := 1
+endef
+
+define Device/tl-wr802n-v2
+    $(Device/tplink-4mlzma)
+    DEVICE_TITLE := TP-LINK TL-WR802N v2
+    BOARDNAME := TL-WR802N-v2
+    DEVICE_PROFILE := TLWR802
+    TPLINK_HWID := 0x08020002
+    TPLINK_HWREV := 2
+    IMAGES += factory-us.bin factory-eu.bin
+    IMAGE/factory-us.bin := append-rootfs | mktplinkfw factory -C US
+    IMAGE/factory-eu.bin := append-rootfs | mktplinkfw factory -C EU
+endef
+TARGET_DEVICES += tl-wr802n-v1 tl-wr802n-v2
 
 define Device/tl-wr841-v1.5
     $(Device/tplink-4m)
@@ -561,12 +714,15 @@ define Device/tl-wr841-v11
    BOARDNAME := TL-WR841N-v11
    DEVICE_PROFILE := TLWR841
    TPLINK_HWID := 0x08410011
+   IMAGES += factory-us.bin factory-eu.bin
+   IMAGE/factory-us.bin := append-rootfs | mktplinkfw factory -C US
+   IMAGE/factory-eu.bin := append-rootfs | mktplinkfw factory -C EU
 endef
 
 define Device/tl-wr842n-v1
     $(Device/tplink-8m)
     DEVICE_TITLE := TP-LINK TL-WR842N/ND v1
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3420
     DEVICE_PROFILE := TLWR842
     TPLINK_HWID := 0x08420001
@@ -575,7 +731,7 @@ endef
 define Device/tl-wr842n-v2
     $(Device/tplink-8mlzma)
     DEVICE_TITLE := TP-LINK TL-WR842N/ND v2
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-WR842N-v2
     DEVICE_PROFILE := TLWR842
     TPLINK_HWID := 0x8420002
@@ -584,7 +740,7 @@ endef
 define Device/tl-wr842n-v3
     $(Device/tplink-16mlzma)
     DEVICE_TITLE := TP-LINK TL-WR842N/ND v3
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-WR842N-v3
     DEVICE_PROFILE := TLWR842
     TPLINK_HWID := 0x08420003
@@ -649,6 +805,17 @@ define Device/tl-wr941nd-v6
     TPLINK_HWID := 0x09410006
 endef
 
+define Device/tl-wr940n-v4
+    $(Device/tplink-4mlzma)
+    DEVICE_TITLE := TP-LINK TL-WR940N v4
+    BOARDNAME := TL-WR940N-v4
+    DEVICE_PROFILE := TLWR941
+    TPLINK_HWID := 0x09400004
+    IMAGES += factory-us.bin factory-eu.bin
+    IMAGE/factory-us.bin := append-rootfs | mktplinkfw factory -C US
+    IMAGE/factory-eu.bin := append-rootfs | mktplinkfw factory -C EU
+endef
+
 # Chinese version (unlike European) is similar to the TL-WDR3500
 define Device/tl-wr941nd-v6-cn
     $(Device/tplink-4mlzma)
@@ -657,7 +824,7 @@ define Device/tl-wr941nd-v6-cn
     DEVICE_PROFILE := TLWR941
     TPLINK_HWID := 0x09410006
 endef
-TARGET_DEVICES += tl-wr941nd-v2 tl-wr941nd-v3 tl-wr941nd-v4 tl-wr941nd-v5 tl-wr941nd-v6 tl-wr941nd-v6-cn
+TARGET_DEVICES += tl-wr941nd-v2 tl-wr941nd-v3 tl-wr941nd-v4 tl-wr941nd-v5 tl-wr941nd-v6 tl-wr941nd-v6-cn tl-wr940n-v4
 
 define Device/tl-wr1041n-v2
     $(Device/tplink-4mlzma)
@@ -671,7 +838,7 @@ TARGET_DEVICES += tl-wr1041n-v2
 define Device/tl-wr1043nd-v1
     $(Device/tplink-8m)
     DEVICE_TITLE := TP-LINK TL-WR1043N/ND v1
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-WR1043ND
     DEVICE_PROFILE := TLWR1043
     TPLINK_HWID := 0x10430001
@@ -680,7 +847,7 @@ endef
 define Device/tl-wr1043nd-v2
     $(Device/tplink-8mlzma)
     DEVICE_TITLE := TP-LINK TL-WR1043N/ND v2
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-WR1043ND-v2
     DEVICE_PROFILE := TLWR1043
     TPLINK_HWID := 0x10430002
@@ -689,17 +856,34 @@ endef
 define Device/tl-wr1043nd-v3
     $(Device/tplink-8mlzma)
     DEVICE_TITLE := TP-LINK TL-WR1043N/ND v3
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-WR1043ND-v2
     DEVICE_PROFILE := TLWR1043
     TPLINK_HWID := 0x10430003
 endef
-TARGET_DEVICES += tl-wr1043nd-v1 tl-wr1043nd-v2 tl-wr1043nd-v3
+
+define Device/tl-wr1043nd-v4
+    $(Device/tplink)
+    DEVICE_TITLE := TP-LINK TL-WR1043N/ND v4
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+    BOARDNAME := TL-WR1043ND-v4
+    DEVICE_PROFILE := TLWR1043
+    TPLINK_HWID :=  0x10430004
+    TPLINK_FLASHLAYOUT := 16Msafeloader
+    MTDPARTS := spi0.0:128k(u-boot)ro,1536k(kernel),14016k(rootfs),128k(product-info)ro,320k(config)ro,64k(partition-table)ro,128k(logs)ro,64k(ART)ro,15552k@0x20000(firmware)
+    IMAGE_SIZE := 15552k
+    TPLINK_BOARD_NAME := TLWR1043NDV4
+    KERNEL := kernel-bin | patch-cmdline | lzma | mktplinkfw-combined
+    IMAGES := sysupgrade.bin factory.bin
+    IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade
+    IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
+endef
+TARGET_DEVICES += tl-wr1043nd-v1 tl-wr1043nd-v2 tl-wr1043nd-v3 tl-wr1043nd-v4
 
 define Device/tl-wr2543-v1
     $(Device/tplink-8mlzma)
     DEVICE_TITLE := TP-LINK TL-WR2543N/ND
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-WR2543N
     DEVICE_PROFILE := TLWR2543
     TPLINK_HWID := 0x25430001
@@ -711,7 +895,7 @@ TARGET_DEVICES += tl-wr2543-v1
 define Device/tl-wdr4900-v2
     $(Device/tplink-8mlzma)
     DEVICE_TITLE := TP-LINK TL-WDR4900v2
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-WDR4900-v2
     DEVICE_PROFILE := TLWDR4900V2
     TPLINK_HWID := 0x49000002
@@ -809,6 +993,20 @@ define Device/tl-wa850re-v1
     TPLINK_HWID := 0x08500001
 endef
 
+define Device/tl-wa850re-v2
+    $(Device/tplink)
+    DEVICE_TITLE := TP-LINK TL-WA850RE v2
+    DEVICE_PACKAGES := rssileds
+    BOARDNAME := TL-WA850RE-V2
+    DEVICE_PROFILE := TLWA850
+    TPLINK_BOARD_NAME := TLWA850REV2
+    TPLINK_HWID := 0x08500002
+    KERNEL := kernel-bin | patch-cmdline | lzma | mktplinkfw-kernel
+    IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade
+    IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
+    MTDPARTS := spi0.0:128k(u-boot)ro,1344k(kernel),2304k(rootfs),256k(config)ro,64k(art)ro,3648k@0x20000(firmware)
+endef
+
 define Device/tl-wa860re-v1
     $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WA860RE
@@ -816,7 +1014,7 @@ define Device/tl-wa860re-v1
     DEVICE_PROFILE := TLWA860
     TPLINK_HWID := 0x08600001
 endef
-TARGET_DEVICES += tl-wa801nd-v1 tl-wa801nd-v2 tl-wa801nd-v3 tl-wa830re-v1 tl-wa830re-v2 tl-wa850re-v1 tl-wa860re-v1
+TARGET_DEVICES += tl-wa801nd-v1 tl-wa801nd-v2 tl-wa801nd-v3 tl-wa830re-v1 tl-wa830re-v2 tl-wa850re-v1 tl-wa850re-v2 tl-wa860re-v1
 
 define Device/tl-wa901nd-v1
     $(Device/tplink-4m)
@@ -848,6 +1046,7 @@ define Device/tl-wa901nd-v4
     BOARDNAME := TL-WA901ND-v4
     DEVICE_PROFILE := TLWA901
     TPLINK_HWID := 0x09010004
+    IMAGE/factory.bin := append-rootfs | mktplinkfw factory -C EU
 endef
 
 TARGET_DEVICES += tl-wa901nd-v1 tl-wa901nd-v2 tl-wa901nd-v3 tl-wa901nd-v4
@@ -862,4 +1061,3 @@ define Device/tl-wa7210n-v2
     CONSOLE := ttyATH0,115200
 endef
 TARGET_DEVICES += tl-wa7210n-v2
-

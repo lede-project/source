@@ -2,6 +2,8 @@
 
 #include "rt3050.dtsi"
 
+#include <dt-bindings/input/input.h>
+
 / {
 	compatible = "JHR-N805R", "ralink,rt3050-soc";
 	model = "JCG JHR-N805R";
@@ -24,7 +26,7 @@
                 reset {
                         label = "reset";
                         gpios = <&gpio0 10 1>;
-                        linux,code = <0x198>;
+                        linux,code = <KEY_RESTART>;
                 };
 	};
 };
@@ -46,7 +48,6 @@
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		linux,modalias = "m25p80", "mx25l3205d";
 		spi-max-frequency = <10000000>;
 
 		partition@0 {

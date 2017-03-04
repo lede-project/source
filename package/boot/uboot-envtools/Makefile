@@ -17,12 +17,14 @@ PKG_SOURCE:=$(PKG_DISTNAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=\
 	http://mirror2.openwrt.org/sources \
 	ftp://ftp.denx.de/pub/u-boot
-PKG_MD5SUM:=7c203b0fc3390a122d8e8b75f147eac5
+PKG_HASH:=bdc68d5f9455ad933b059c735d983f2c8b6b552dafb062e5ff1444f623021955
 
 PKG_BUILD_DEPENDS:=+fstools
 
 PKG_LICENSE:=GPL-2.0 GPL-2.0+
 PKG_LICENSE_FILES:=Licenses/README
+
+PKG_FLAGS:=nonshared
 
 PKG_BUILD_PARALLEL:=1
 
@@ -31,6 +33,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/uboot-envtools
   SECTION:=utils
   CATEGORY:=Utilities
+  SUBMENU:=Boot Loaders
   TITLE:=read/modify U-Boot bootloader environment
   URL:=http://www.denx.de/wiki/U-Boot
 endef
