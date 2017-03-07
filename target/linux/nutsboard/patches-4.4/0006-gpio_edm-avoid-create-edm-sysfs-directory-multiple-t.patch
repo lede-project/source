@@ -1,0 +1,75 @@
+From 5f3bc72020762138e33b7e7b18f36baf98013bc9 Mon Sep 17 00:00:00 2001
+From: Tapani Utriainen <tapani@technexion.com>
+Date: Wed, 18 May 2016 15:32:29 +0800
+Subject: [PATCH 06/33] gpio_edm : avoid create edm sysfs directory multiple
+ times
+
+---
+ drivers/input/keyboard/gpio_edm.c | 23 +++++++++++++++++------
+ 1 file changed, 17 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/input/keyboard/gpio_edm.c b/drivers/input/keyboard/gpio_edm.c
+index cd221a9..ec57689 100644
+--- a/drivers/input/keyboard/gpio_edm.c
++++ b/drivers/input/keyboard/gpio_edm.c
+@@ -30,6 +30,8 @@ static unsigned int gpio_num=0;
+ static unsigned int *gpio_location=NULL;
+ static DEFINE_MUTEX(gpio_lock);
+ 
++static struct class *edm_class = NULL;
++
+ static int gpio_edm_setup_key(struct platform_device *pdev,
+ 				const struct gpio_edm_data *edm_data)
+ {
+@@ -179,9 +181,8 @@ static void gpio_remove_gpio(unsigned int gpio_data)
+ static int gpio_edm_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+-	struct class *edm_class = class_create(THIS_MODULE, "edm");
+ 	const struct gpio_edm_data *pdata = dev_get_platdata(dev);
+-	int i, error;
++	int i, error = 0;
+ 
+ 	if (!pdata) {
+ 		pdata = gpio_edm_get_devtree_pdata(dev);
+@@ -189,16 +190,23 @@ static int gpio_edm_probe(struct platform_device *pdev)
+ 			return PTR_ERR(pdata);
+ 	}
+ 
+-	gpio_location=kzalloc(sizeof(unsigned int)*gpio_num,GFP_KERNEL);
++	gpio_location = kzalloc(sizeof(unsigned int)*gpio_num, GFP_KERNEL);
+ 	if (!gpio_location) {
+ 		error = -ENOMEM;
+ 		goto fail;
+ 	}
+ 
+-	if (IS_ERR(edm_class)) {
+-		pr_err("Failed to create sysfs class edm\n");
+-		return -ENOMEM;
++        if (edm_class == NULL) {
++                edm_class =  class_create(THIS_MODULE, "edm");
++                if (IS_ERR(edm_class)) {
++                        pr_err("Failed to create sysfs class edm\n");
++                        class_unregister(edm_class);
++                        edm_class = NULL;
++                        error = -ENOMEM;
++                        goto fail;
++                }
+ 	}
++
+ 	dev = device_create(edm_class, NULL, 0, NULL, "gpio");
+ 
+ 	for (i = 0; i < gpio_num; i++) {
+@@ -241,6 +249,9 @@ static int gpio_edm_remove(struct platform_device *pdev)
+ 
+ 	kfree(pdata);
+ 
++        if (edm_class != NULL)
++                class_unregister(edm_class);
++
+ 	return 0;
+ }
+ 
+-- 
+2.7.4
+

@@ -1,0 +1,276 @@
+From 1f3fad6178fd3ff9c603ecbb29a9313bbf0fbf90 Mon Sep 17 00:00:00 2001
+From: Wig C <onlywig@gmail.com>
+Date: Tue, 10 Jan 2017 19:06:09 +0800
+Subject: [PATCH 26/33] ti_st: fix kim driver crash issue.
+
+it's in order to CONFIG_OF compatible.
+---
+ drivers/misc/ti-st/st_kim.c  | 106 ++++++++++++++++++++++++++++++++++++++-----
+ drivers/misc/ti-st/st_ll.c   |  17 ++++++-
+ include/linux/ti_wilink_st.h |   1 +
+ 3 files changed, 110 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/misc/ti-st/st_kim.c b/drivers/misc/ti-st/st_kim.c
+index 71b6455..18e7a03 100644
+--- a/drivers/misc/ti-st/st_kim.c
++++ b/drivers/misc/ti-st/st_kim.c
+@@ -36,6 +36,8 @@
+ #include <linux/skbuff.h>
+ #include <linux/ti_wilink_st.h>
+ #include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
+ 
+ #define MAX_ST_DEVICES	3	/* Imagine 1 on each UART for now */
+ static struct platform_device *st_kim_devices[MAX_ST_DEVICES];
+@@ -43,6 +45,9 @@ static struct platform_device *st_kim_devices[MAX_ST_DEVICES];
+ /**********************************************************************/
+ /* internal functions */
+ 
++struct ti_st_plat_data	*dt_pdata;
++static struct ti_st_plat_data *get_platform_data(struct device *dev);
++
+ /**
+  * st_get_plat_device -
+  *	function which returns the reference to the platform device
+@@ -464,7 +469,12 @@ long st_kim_start(void *kim_data)
+ 	struct kim_data_s	*kim_gdata = (struct kim_data_s *)kim_data;
+ 
+ 	pr_info(" %s", __func__);
+-	pdata = kim_gdata->kim_pdev->dev.platform_data;
++	if (kim_gdata->kim_pdev->dev.of_node) {
++		pr_debug("use device tree data");
++		pdata = dt_pdata;
++	} else {
++		pdata = kim_gdata->kim_pdev->dev.platform_data;
++	}
+ 
+ 	do {
+ 		/* platform specific enabling code here */
+@@ -472,9 +482,9 @@ long st_kim_start(void *kim_data)
+ 			pdata->chip_enable(kim_gdata);
+ 
+ 		/* Configure BT nShutdown to HIGH state */
+-		gpio_set_value_cansleep(kim_gdata->nshutdown, GPIO_LOW);
++		gpio_set_value(kim_gdata->nshutdown, GPIO_LOW);
+ 		mdelay(5);	/* FIXME: a proper toggle */
+-		gpio_set_value_cansleep(kim_gdata->nshutdown, GPIO_HIGH);
++		gpio_set_value(kim_gdata->nshutdown, GPIO_HIGH);
+ 		mdelay(100);
+ 		/* re-initialize the completion */
+ 		reinit_completion(&kim_gdata->ldisc_installed);
+@@ -524,12 +534,18 @@ long st_kim_stop(void *kim_data)
+ {
+ 	long err = 0;
+ 	struct kim_data_s	*kim_gdata = (struct kim_data_s *)kim_data;
+-	struct ti_st_plat_data	*pdata =
+-		kim_gdata->kim_pdev->dev.platform_data;
++	struct ti_st_plat_data	*pdata;
+ 	struct tty_struct	*tty = kim_gdata->core_data->tty;
+ 
+ 	reinit_completion(&kim_gdata->ldisc_installed);
+ 
++	if (kim_gdata->kim_pdev->dev.of_node) {
++		pr_debug("use device tree data");
++		pdata = dt_pdata;
++	} else
++		pdata = kim_gdata->kim_pdev->dev.platform_data;
++
++
+ 	if (tty) {	/* can be called before ldisc is installed */
+ 		/* Flush any pending characters in the driver and discipline. */
+ 		tty_ldisc_flush(tty);
+@@ -550,11 +566,11 @@ long st_kim_stop(void *kim_data)
+ 	}
+ 
+ 	/* By default configure BT nShutdown to LOW state */
+-	gpio_set_value_cansleep(kim_gdata->nshutdown, GPIO_LOW);
++	gpio_set_value(kim_gdata->nshutdown, GPIO_LOW);
+ 	mdelay(1);
+-	gpio_set_value_cansleep(kim_gdata->nshutdown, GPIO_HIGH);
++	gpio_set_value(kim_gdata->nshutdown, GPIO_HIGH);
+ 	mdelay(1);
+-	gpio_set_value_cansleep(kim_gdata->nshutdown, GPIO_LOW);
++	gpio_set_value(kim_gdata->nshutdown, GPIO_LOW);
+ 
+ 	/* platform specific disable */
+ 	if (pdata->chip_disable)
+@@ -721,13 +737,53 @@ static const struct file_operations list_debugfs_fops = {
+  * board-*.c file
+  */
+ 
++static const struct of_device_id kim_of_match[] = {
++{
++	.compatible = "kim",
++	},
++	{}
++};
++MODULE_DEVICE_TABLE(of, kim_of_match);
++
++static struct ti_st_plat_data *get_platform_data(struct device *dev)
++{
++	struct device_node *np = dev->of_node;
++	const u32 *dt_property;
++	int len;
++
++	dt_pdata = kzalloc(sizeof(*dt_pdata), GFP_KERNEL);
++
++	if (!dt_pdata)
++		pr_err("Can't allocate device_tree platform data\n");
++
++	dt_property = of_get_property(np, "dev_name", &len);
++	if (dt_property)
++		memcpy(&dt_pdata->dev_name, dt_property, len);
++	of_property_read_u32(np, "nshutdown_gpio",
++			     &dt_pdata->nshutdown_gpio);
++	of_property_read_u32(np, "flow_cntrl", &dt_pdata->flow_cntrl);
++	of_property_read_u32(np, "baud_rate", &dt_pdata->baud_rate);
++
++	return dt_pdata;
++}
++
+ static struct dentry *kim_debugfs_dir;
+ static int kim_probe(struct platform_device *pdev)
+ {
+ 	struct kim_data_s	*kim_gdata;
+-	struct ti_st_plat_data	*pdata = pdev->dev.platform_data;
++	struct ti_st_plat_data	*pdata;
+ 	int err;
+ 
++	if (pdev->dev.of_node)
++		pdata = get_platform_data(&pdev->dev);
++	else
++		pdata = pdev->dev.platform_data;
++
++	if (pdata == NULL) {
++		dev_err(&pdev->dev, "Platform Data is missing\n");
++		return -ENXIO;
++	}
++
+ 	if ((pdev->id != -1) && (pdev->id < MAX_ST_DEVICES)) {
+ 		/* multiple devices could exist */
+ 		st_kim_devices[pdev->id] = pdev;
+@@ -808,9 +864,16 @@ err_core_init:
+ static int kim_remove(struct platform_device *pdev)
+ {
+ 	/* free the GPIOs requested */
+-	struct ti_st_plat_data	*pdata = pdev->dev.platform_data;
++	struct ti_st_plat_data	*pdata;
+ 	struct kim_data_s	*kim_gdata;
+ 
++	if (pdev->dev.of_node) {
++		pr_debug("use device tree data");
++		pdata = dt_pdata;
++	} else {
++		pdata = pdev->dev.platform_data;
++	}
++
+ 	kim_gdata = platform_get_drvdata(pdev);
+ 
+ 	/* Free the Bluetooth/FM/GPIO
+@@ -828,12 +891,22 @@ static int kim_remove(struct platform_device *pdev)
+ 
+ 	kfree(kim_gdata);
+ 	kim_gdata = NULL;
++	kfree(dt_pdata);
++	dt_pdata = NULL;
++
+ 	return 0;
+ }
+ 
+ static int kim_suspend(struct platform_device *pdev, pm_message_t state)
+ {
+-	struct ti_st_plat_data	*pdata = pdev->dev.platform_data;
++	struct ti_st_plat_data	*pdata;
++
++	if (pdev->dev.of_node) {
++		pr_debug("use device tree data");
++		pdata = dt_pdata;
++	} else {
++		pdata = pdev->dev.platform_data;
++	}
+ 
+ 	if (pdata->suspend)
+ 		return pdata->suspend(pdev, state);
+@@ -843,7 +916,14 @@ static int kim_suspend(struct platform_device *pdev, pm_message_t state)
+ 
+ static int kim_resume(struct platform_device *pdev)
+ {
+-	struct ti_st_plat_data	*pdata = pdev->dev.platform_data;
++	struct ti_st_plat_data	*pdata;
++
++	if (pdev->dev.of_node) {
++		pr_debug("use device tree data");
++		pdata = dt_pdata;
++	} else {
++		pdata = pdev->dev.platform_data;
++	}
+ 
+ 	if (pdata->resume)
+ 		return pdata->resume(pdev);
+@@ -860,6 +940,8 @@ static struct platform_driver kim_platform_driver = {
+ 	.resume = kim_resume,
+ 	.driver = {
+ 		.name = "kim",
++		.owner = THIS_MODULE,
++		.of_match_table = of_match_ptr(kim_of_match),
+ 	},
+ };
+ 
+diff --git a/drivers/misc/ti-st/st_ll.c b/drivers/misc/ti-st/st_ll.c
+index 93b4d67..518e1b7 100644
+--- a/drivers/misc/ti-st/st_ll.c
++++ b/drivers/misc/ti-st/st_ll.c
+@@ -26,6 +26,7 @@
+ #include <linux/ti_wilink_st.h>
+ 
+ /**********************************************************************/
++
+ /* internal functions */
+ static void send_ll_cmd(struct st_data_s *st_data,
+ 	unsigned char cmd)
+@@ -53,7 +54,13 @@ static void ll_device_want_to_sleep(struct st_data_s *st_data)
+ 
+ 	/* communicate to platform about chip asleep */
+ 	kim_data = st_data->kim_data;
+-	pdata = kim_data->kim_pdev->dev.platform_data;
++	if (kim_data->kim_pdev->dev.of_node) {
++		pr_debug("use device tree data");
++		pdata = dt_pdata;
++	} else {
++		pdata = kim_data->kim_pdev->dev.platform_data;
++	}
++
+ 	if (pdata->chip_asleep)
+ 		pdata->chip_asleep(NULL);
+ }
+@@ -86,7 +93,13 @@ static void ll_device_want_to_wakeup(struct st_data_s *st_data)
+ 
+ 	/* communicate to platform about chip wakeup */
+ 	kim_data = st_data->kim_data;
+-	pdata = kim_data->kim_pdev->dev.platform_data;
++	if (kim_data->kim_pdev->dev.of_node) {
++		pr_debug("use device tree data");
++		pdata = dt_pdata;
++	} else {
++		pdata = kim_data->kim_pdev->dev.platform_data;
++	}
++
+ 	if (pdata->chip_awake)
+ 		pdata->chip_awake(NULL);
+ }
+diff --git a/include/linux/ti_wilink_st.h b/include/linux/ti_wilink_st.h
+index 0a0d568..6555ce6 100644
+--- a/include/linux/ti_wilink_st.h
++++ b/include/linux/ti_wilink_st.h
+@@ -86,6 +86,7 @@ struct st_proto_s {
+ extern long st_register(struct st_proto_s *);
+ extern long st_unregister(struct st_proto_s *);
+ 
++extern struct ti_st_plat_data *dt_pdata;
+ 
+ /*
+  * header information used by st_core.c
+-- 
+2.7.4
+

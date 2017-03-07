@@ -1,0 +1,32 @@
+From 4c79a803b3a8022542a4112277268257a529851d Mon Sep 17 00:00:00 2001
+From: Wig C <wig.cheng@technexion.com>
+Date: Fri, 18 Dec 2015 14:44:02 +0800
+Subject: [PATCH 05/33] gpio: add reset function to gpio framework using
+ bcm43xx bluetooth power pin.
+
+---
+ drivers/input/keyboard/gpio_edm.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/input/keyboard/gpio_edm.c b/drivers/input/keyboard/gpio_edm.c
+index 2b2eb81..cd221a9 100644
+--- a/drivers/input/keyboard/gpio_edm.c
++++ b/drivers/input/keyboard/gpio_edm.c
+@@ -64,6 +64,14 @@ static int gpio_edm_setup_key(struct platform_device *pdev,
+ 	else
+ 		goto fail;
+ 
++	/* bcm43xx BT reset only*/
++	if(!strcmp(desc,"bluetooth-on")) {
++		gpio_direction_output(edm_data->gpio,0);
++		msleep(15);
++		gpio_direction_output(edm_data->gpio,1);
++	}
++
++
+ 	return 0;
+ 
+ fail:
+-- 
+2.7.4
+

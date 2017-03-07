@@ -1,0 +1,26 @@
+From eee51be47f1f63e712fff4714e3b7391177d699d Mon Sep 17 00:00:00 2001
+From: Wig C <wig.cheng@technexion.com>
+Date: Mon, 19 Oct 2015 11:41:18 +0800
+Subject: [PATCH 04/33] imx6: change the init level for gpio framework
+ driver(fs level).
+
+---
+ drivers/input/keyboard/gpio_edm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/input/keyboard/gpio_edm.c b/drivers/input/keyboard/gpio_edm.c
+index 893ac05..2b2eb81 100644
+--- a/drivers/input/keyboard/gpio_edm.c
++++ b/drivers/input/keyboard/gpio_edm.c
+@@ -257,7 +257,7 @@ static void __exit gpio_edm_exit(void)
+ 	platform_driver_unregister(&gpio_edm_device_driver);
+ }
+ 
+-late_initcall(gpio_edm_init);
++fs_initcall(gpio_edm_init);
+ module_exit(gpio_edm_exit);
+ 
+ MODULE_LICENSE("GPL");
+-- 
+2.7.4
+
