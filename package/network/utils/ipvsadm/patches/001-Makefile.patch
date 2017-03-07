@@ -1,0 +1,75 @@
+diff -Naur a/libipvs/Makefile b/libipvs/Makefile
+--- a/libipvs/Makefile	2015-02-09 05:26:39.000000000 +0000
++++ b/libipvs/Makefile	2016-03-06 13:37:43.689116242 +0000
+@@ -1,4 +1,7 @@
+ # Makefile for libipvs
++#
++#      ChangeLog
++#      M. Mozzarelli  :   Added CROSS_COMPILE parameter (supports wrt)
+ 
+ CC		= gcc
+ CFLAGS		= -Wall -Wunused -Wstrict-prototypes -g -fPIC
+@@ -23,6 +26,10 @@
+ 			 elif pkg-config --exists libnl-1; \
+ 			 then echo "-DFALLBACK_LIBNL1"; fi; fi)
+ 
++ifeq "${CROSS_COMPILE}" "wrt"
++	DEFINES += -fPIC -DLIBIPVS_USE_NL -D_GNU_SOURCE
++endif
++
+ .PHONY		= all clean install dist distclean rpm rpms
+ STATIC_LIB	= libipvs.a
+ SHARED_LIB	= libipvs.so
+diff -Naur a/Makefile b/Makefile
+--- a/Makefile	2015-02-09 05:26:39.000000000 +0000
++++ b/Makefile	2016-03-06 13:37:33.649230267 +0000
+@@ -10,7 +10,10 @@
+ #      This file:
+ #
+ #      ChangeLog
+-#
++# 
++#      M. Mozzarelli  :   Added support for DESTDIR for automated build
++#                     :   Added CROSS_COMPILE parameter (supports wrt)
++#                     :   Amended to use $(MAKE) for compatibility
+ #      Wensong        :   Modified the Makefile and the spec files so
+ #                     :   that rpms can be created with ipvsadm alone
+ #      P.Copeland     :   Modified the Makefile and the spec files so
+@@ -37,6 +40,9 @@
+ 
+ CC		= gcc
+ INCLUDE		=
++ifneq (0,$(DESTDIR))
++BUILD_ROOT  = $(DESTDIR)
++endif
+ SBIN		= $(BUILD_ROOT)/sbin
+ MANDIR		= usr/man
+ MAN		= $(BUILD_ROOT)/$(MANDIR)/man8
+@@ -77,14 +83,16 @@
+ 		  -DPE_LIST=\"$(PE_LIST)\" $(POPT_DEFINE)
+ DEFINES		+= $(shell if [ ! -f ../ip_vs.h ]; then	\
+ 		     echo "-DHAVE_NET_IP_VS_H"; fi;)
+-
++ifeq "${CROSS_COMPILE}" "wrt"
++	DEFINES += -fPIC -D_GNU_SOURCE
++endif
+ 
+ .PHONY	= all clean install dist distclean rpm rpms
+ 
+ all:            libs ipvsadm
+ 
+ libs:
+-		make -C libipvs
++		$(MAKE) -C libipvs
+ 
+ ipvsadm:	$(OBJS) $(STATIC_LIBS)
+ 		$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
+@@ -106,7 +114,7 @@
+ 		rm -rf debian/tmp
+ 		find . -name '*.[ao]' -o -name "*~" -o -name "*.orig" \
+ 		  -o -name "*.rej" -o -name core | xargs rm -f
+-		make -C libipvs clean
++		$(MAKE) -C libipvs clean
+ 
+ distclean:	clean
+ 
