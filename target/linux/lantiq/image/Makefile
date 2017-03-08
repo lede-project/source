@@ -474,6 +474,12 @@ define Device/ARV7519RW22
 endef
 TARGET_DEVICES += ARV7519RW22
 
+define Device/ASL56026
+  IMAGE_SIZE := 7488k
+  DEVICE_TITLE := BT OpenReach - ECI VDSL Modem V-2FUb/I
+endef
+TARGET_DEVICES += ASL56026
+
 define Device/BTHOMEHUBV5A
   $(Device/NAND)
   DEVICE_TITLE := BT Home Hub 5A
@@ -515,7 +521,7 @@ TARGET_DEVICES += FRITZ7360SL
 
 define Device/VG3503J
   IMAGE_SIZE := 8000k
-  DEVICE_TITLE := BT OpenReach - ECI VDSL Modem
+  DEVICE_TITLE := BT OpenReach - ECI VDSL Modem V-2FUb/R
 endef
 TARGET_DEVICES += VG3503J
 
