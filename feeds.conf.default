@@ -9,4 +9,4 @@ src-git management https://github.com/openwrt-management/packages.git
 #src-link custom /usr/src/openwrt/custom-feed
 src-git luci https://github.com/artynet/luci.git;lininonightly
 src-git other https://github.com/artynet/openwrt-old-feeds.git;master
-src-git alljoyn https://cgit.allseenalliance.org/core/openwrt_feed.git;feature/ajtcl
+src-git alljoyn https://git.allseenalliance.org/gerrit/core/openwrt_feed.git;feature/ajtcl
