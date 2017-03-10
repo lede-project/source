@@ -8,13 +8,13 @@ linksys_get_target_firmware() {
 	if [ "$cur_boot_part" = "1" ]
 	then
 		# current primary boot - update alt boot
-		target_firmware="kernel2"
+		target_firmware="alt_kernel"
 		fw_setenv boot_part 2
 		fw_setenv bootcmd "run altnandboot"
 	elif [ "$cur_boot_part" = "2" ]
 	then
 		# current alt boot - update primary boot
-		target_firmware="kernel1"
+		target_firmware="kernel"
 		fw_setenv boot_part 1
 		fw_setenv bootcmd "run nandboot"
 	fi
@@ -43,11 +43,11 @@ platform_do_upgrade_linksys() {
 
 	[ "$magic_long" = "73797375" ] && {
 		CI_KERNPART="$part_label"
-		if [ "$part_label" = "kernel1" ]
+		if [ "$part_label" = "kernel" ]
 		then
-			CI_UBIPART="rootfs1"
+			CI_UBIPART="rootfs"
 		else
-			CI_UBIPART="rootfs2"
+			CI_UBIPART="alt_rootfs"
 		fi
 
 		nand_upgrade_tar "$1"
