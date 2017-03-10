@@ -47,6 +47,7 @@ ar71xx_setup_interfaces()
 	tl-wr841n-v11|\
 	tl-wr841n-v9|\
 	tl-wr842n-v3|\
+	tl-wr886n-v5|\
 	whr-g301n|\
 	whr-hp-g300n|\
 	whr-hp-gn|\
