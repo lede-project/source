@@ -1,0 +1,14 @@
+diff --git a/arch/mips/ath79/Makefile b/arch/mips/ath79/Makefile
+index 72d3372..09bf7f6 100644
+--- a/arch/mips/ath79/Makefile
++++ b/arch/mips/ath79/Makefile
+@@ -8,7 +8,7 @@
+ # under the terms of the GNU General Public License version 2 as published
+ # by the Free Software Foundation.
+ 
+-obj-y	:= prom.o setup.o irq.o common.o clock.o gpio.o
++obj-y	:= prom.o setup.o irq.o common.o clock.o gpio.o tplink-wmac.o
+ 
+ obj-$(CONFIG_EARLY_PRINTK)		+= early_printk.o
+ obj-$(CONFIG_PCI)			+= pci.o
+

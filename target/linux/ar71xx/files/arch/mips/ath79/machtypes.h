@@ -4,6 +4,7 @@
  *  Copyright (C) 2008-2010 Gabor Juhos <juhosg@openwrt.org>
  *  Copyright (C) 2008 Imre Kaloz <kaloz@openwrt.org>
  *
+ 
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License version 2 as published
  *  by the Free Software Foundation.
@@ -224,6 +225,7 @@ enum ath79_mach_type {
 	ATH79_MACH_TL_WDR3500,			/* TP-LINK TL-WDR3500 */
 	ATH79_MACH_TL_WDR4300,			/* TP-LINK TL-WDR4300 */
 	ATH79_MACH_TL_WDR4900_V2,		/* TP-LINK TL-WDR4900 v2 */
+	ATH79_MACH_TL_WDR6300_V2,		/* TP-LINK TL-WDR6300 v2 */
 	ATH79_MACH_TL_WDR6500_V2,		/* TP-LINK TL-WDR6500 v2 */
 	ATH79_MACH_TL_WPA8630,			/* TP-Link TL-WPA8630 */
 	ATH79_MACH_TL_WR1041N_V2,		/* TP-LINK TL-WR1041N v2 */
@@ -246,9 +248,12 @@ enum ath79_mach_type {
 	ATH79_MACH_TL_WR841N_V9,		/* TP-LINK TL-WR841N/ND v9 */
 	ATH79_MACH_TL_WR842N_V2,		/* TP-LINK TL-WR842N/ND v2 */
 	ATH79_MACH_TL_WR842N_V3,		/* TP-LINK TL-WR842N/ND v3 */
+	ATH79_MACH_TL_WR882N_V1,		/* TP-LINK TL-WR882N v1 */
+	ATH79_MACH_TL_WR886N_V5,		/* TP-LINK TL-WR886N/ND v5 */
 	ATH79_MACH_TL_WR941ND,			/* TP-LINK TL-WR941ND */
 	ATH79_MACH_TL_WR941ND_V5,		/* TP-LINK TL-WR941ND v5 */
 	ATH79_MACH_TL_WR941ND_V6,		/* TP-LINK TL-WR941ND v6 */
+	ATH79_MACH_TL_WR941ND_V7,		/* TP-LINK TL-WR941ND v7 */
 	ATH79_MACH_TL_WR940N_V4,		/* TP-LINK TL-WR940N v4 */
 	ATH79_MACH_TUBE2H,			/* Alfa Network Tube2H */
 	ATH79_MACH_UBNT_AIRGW,			/* Ubiquiti AirGateway */

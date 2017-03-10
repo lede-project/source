@@ -3,6 +3,7 @@
 #
 # Copyright (C) 2008-2011 Gabor Juhos <juhosg@openwrt.org>
 # Copyright (C) 2008 Imre Kaloz <kaloz@openwrt.org>
+# Copyright (C) 2017 Xiang Wang <347006777@qq.com>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published
@@ -170,6 +171,7 @@ obj-$(CONFIG_ATH79_MACH_TEW_673GRU)		+= mach-tew-673gru.o
 obj-$(CONFIG_ATH79_MACH_TEW_712BR)		+= mach-tew-712br.o
 obj-$(CONFIG_ATH79_MACH_TEW_732BR)		+= mach-tew-732br.o
 obj-$(CONFIG_ATH79_MACH_TEW_823DRU)		+= mach-tew-823dru.o
+obj-$(CONFIG_ATH79_MACH_TL_CUS249)		+= mach-tl-cus249.o
 obj-$(CONFIG_ATH79_MACH_TL_MR11U)		+= mach-tl-mr11u.o
 obj-$(CONFIG_ATH79_MACH_TL_MR13U)		+= mach-tl-mr13u.o
 obj-$(CONFIG_ATH79_MACH_TL_MR3020)		+= mach-tl-mr3020.o
@@ -186,6 +188,7 @@ obj-$(CONFIG_ATH79_MACH_TL_WAX50RE)		+= mach-tl-wax50re.o
 obj-$(CONFIG_ATH79_MACH_TL_WDR3320_V2)		+= mach-tl-wdr3320-v2.o
 obj-$(CONFIG_ATH79_MACH_TL_WDR3500)		+= mach-tl-wdr3500.o
 obj-$(CONFIG_ATH79_MACH_TL_WDR4300)		+= mach-tl-wdr4300.o
+obj-$(CONFIG_ATH79_MACH_TL_WDR6300_V2)     	+= mach-tl-wdr6300-v2.o
 obj-$(CONFIG_ATH79_MACH_TL_WDR6500_V2)		+= mach-tl-wdr6500-v2.o
 obj-$(CONFIG_ATH79_MACH_TL_WPA8630)		+= mach-tl-wpa8630.o
 obj-$(CONFIG_ATH79_MACH_TL_WR1041N_V2)		+= mach-tl-wr1041n-v2.o
@@ -203,8 +206,10 @@ obj-$(CONFIG_ATH79_MACH_TL_WR810N)		+= mach-tl-wr810n.o
 obj-$(CONFIG_ATH79_MACH_TL_WR841N_V1)		+= mach-tl-wr841n.o
 obj-$(CONFIG_ATH79_MACH_TL_WR841N_V8)		+= mach-tl-wr841n-v8.o
 obj-$(CONFIG_ATH79_MACH_TL_WR841N_V9)		+= mach-tl-wr841n-v9.o
+obj-$(CONFIG_ATH79_MACH_TL_WR886N)		+= mach-tl-wr886n.o
 obj-$(CONFIG_ATH79_MACH_TL_WR941ND)		+= mach-tl-wr941nd.o
 obj-$(CONFIG_ATH79_MACH_TL_WR941ND_V6)		+= mach-tl-wr941nd-v6.o
+obj-$(CONFIG_ATH79_MACH_TL_WR941ND_V7)		+= mach-tl-wr941nd-v7.o
 obj-$(CONFIG_ATH79_MACH_TL_WR940N_V4)		+= mach-tl-wr940n-v4.o
 obj-$(CONFIG_ATH79_MACH_TUBE2H)			+= mach-tube2h.o
 obj-$(CONFIG_ATH79_MACH_UBNT)			+= mach-ubnt.o
