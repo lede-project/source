@@ -233,6 +233,7 @@ platform_check_image() {
 		# these boards use metadata images
 		return 0
 		;;
+	r6220|\
 	ubnt-erx)
 		nand_do_platform_check "$board" "$1"
 		return $?;
@@ -266,6 +267,7 @@ platform_pre_upgrade() {
 
 	case "$board" in
 	hc5962|\
+	r6220|\
     	ubnt-erx)
 		nand_do_upgrade "$ARGV"
 		;;
