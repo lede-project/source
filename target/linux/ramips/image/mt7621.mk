@@ -118,6 +118,24 @@ define Device/pbr-m1
 endef
 TARGET_DEVICES += pbr-m1
 
+define Device/r6220
+  DTS := R6220
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_SIZE := 4194304
+  KERNEL := $(KERNEL_DTB) | uImage lzma
+  IMAGE_SIZE := 33554432
+  UBINIZE_OPTS := -E 5
+  IMAGES := sysupgrade.tar kernel.bin rootfs.bin factory.bin
+  IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
+  IMAGE/kernel.bin := append-kernel
+  IMAGE/rootfs.bin := append-ubi
+  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | append-metadata | check-size $$$$(IMAGE_SIZE)
+  DEVICE_TITLE := Netgear R6220
+  DEVICE_PACKAGES := kmod-usb2 kmod-mt76
+endef
+TARGET_DEVICES += r6220
+
 define Device/rb750gr3
   DTS := RB750Gr3
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
