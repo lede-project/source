@@ -95,16 +95,7 @@ hostapd_prepare_device_config() {
 	for r in $rate_list; do
 		if [ "$require_mode" != "b" ]; then
 			case "$r" in
-				1000)
-					continue
-				;;
-				2000)
-					continue
-				;;
-				5500)
-					continue
-				;;
-				11000)
+				1000|2000|5500|11000)
 					continue
 				;;
 			esac
@@ -118,16 +109,7 @@ hostapd_prepare_device_config() {
 	for br in $basic_rate_list; do
 		if [ "$require_mode" != "b" ]; then
 			case "$br" in
-				1000)
-					continue
-				;;
-				2000)
-					continue
-				;;
-				5500)
-					continue
-				;;
-				11000)
+				1000|2000|5500|11000)
 					continue
 				;;
 			esac
