@@ -90,22 +90,79 @@ hostapd_prepare_device_config() {
 	}
 	[ -n "$hwmode" ] && append base_cfg "hw_mode=$hwmode" "$N"
 
-	local brlist= br
-	json_get_values basic_rate_list basic_rate
-	for br in $basic_rate_list; do
-		hostapd_add_rate brlist "$br"
-	done
-	case "$require_mode" in
-		g) brlist="60 120 240" ;;
-		n) append base_cfg "require_ht=1" "$N";;
-		ac) append base_cfg "require_vht=1" "$N";;
-	esac
-
 	local rlist= r
 	json_get_values rate_list supported_rates
 	for r in $rate_list; do
+		if [ "$require_mode" != "b" ]; then
+			case "$r" in
+				1000)
+					continue
+				;;
+				2000)
+					continue
+				;;
+				5500)
+					continue
+				;;
+				11000)
+					continue
+				;;
+			esac
+		fi
+
 		hostapd_add_rate rlist "$r"
 	done
+
+	local brlist= br
+	json_get_values basic_rate_list basic_rate
+	for br in $basic_rate_list; do
+		if [ "$require_mode" != "b" ]; then
+			case "$br" in
+				1000)
+					continue
+				;;
+				2000)
+					continue
+				;;
+				5500)
+					continue
+				;;
+				11000)
+					continue
+				;;
+			esac
+		fi
+
+		if [ -z $rate_list ]; then
+			hostapd_add_rate brlist "$br"
+		else
+			for r in $rate_list; do
+				if [ "$br" = "$r" ]; then
+					hostapd_add_rate brlist "$br"
+					break
+				fi
+			done
+		fi
+	done
+
+	if [ "$require_mode" != "b" ]; then
+		if [ -z "$rlist" ]; then
+			rlist="60 90 120 180 240 360 480 540"
+		fi
+
+		if [ -z "$brlist" ]; then
+			brlist="60 120 240"
+		fi
+
+		case "$require_mode" in
+			n)
+				append base_cfg "require_ht=1" "$N"
+			;;
+			ac)
+				append base_cfg "require_vht=1" "$N"
+			;;
+		esac
+	fi
 
 	[ -n "$rlist" ] && append base_cfg "supported_rates=$rlist" "$N"
 	[ -n "$brlist" ] && append base_cfg "basic_rates=$brlist" "$N"
