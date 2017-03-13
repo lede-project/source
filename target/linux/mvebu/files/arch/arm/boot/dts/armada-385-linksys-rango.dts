@@ -163,6 +163,16 @@
 				status = "okay";
 			};
 
+			sdhci@d8000 {
+				pinctrl-names = "default";
+				pinctrl-0 = <&sdhci_pins>;
+				no-1-8-v;
+				broken-cd;
+				wp-inverted;
+				bus-width = <8>;
+				status = "okay";
+			};
+
 			/* USB part of the eSATA/USB 2.0 port */
 			usb@58000 {
 				status = "okay";
@@ -326,6 +336,7 @@
 		sata {
 			label = "rango:white:sata";
 			gpios = <&gpio0 21 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "disk-activity";
 		};
 
 		wlan_2g {

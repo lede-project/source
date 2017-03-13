@@ -190,6 +190,9 @@ ramips_board_detect() {
 	*"EX2700")
 		name="ex2700";
 		;;
+	*"EX3700")
+		name="ex3700"
+		;;
 	*"F5D8235 v1")
 		name="f5d8235-v1"
 		;;
@@ -411,6 +414,9 @@ ramips_board_detect() {
 		;;
 	*"Q7")
 		name="zte-q7"
+		;;
+	*"R6220")
+		name="r6220"
 		;;
 	*"RB750Gr3")
 		name="rb750gr3"

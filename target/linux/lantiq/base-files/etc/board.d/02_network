@@ -61,6 +61,13 @@ ARV7519RW22)
 		"0:lan:5" "2:lan:3" "3:lan:4" "4:lan:1" "5:lan:2" "6t@eth0"
 	;;
 
+ASL56026)
+	lan_mac=$(mtd_get_mac_ascii uboot_env ethaddr)
+	wan_mac=$(mtd_get_mac_ascii uboot_env wanmac)
+	ucidef_add_switch "switch0"\
+		"2:lan" "3:lan" "6t@eth0"
+	;;
+
 BTHOMEHUBV2B)
 	lan_mac=$(mtd_get_mac_ascii uboot_env ethaddr)
 	wan_mac=$(macaddr_add "$lan_mac" 1)
@@ -78,7 +85,7 @@ BTHOMEHUBV5A)
 	lan_mac=$(mtd_get_mac_binary_ubi caldata 4364)
 	wan_mac=$(macaddr_add "$lan_mac" 1)
 	ucidef_add_switch "switch0" \
-		"0:lan:3" "1:lan:4" "2:lan:2" "4:lan:1" "6t@eth0"
+		"0:lan:3" "1:lan:4" "2:lan:2" "4:lan:1" "5:wan:5" "6t@eth0"
 	;;
 
 DGN3500*)
@@ -112,7 +119,7 @@ P2812HNUF*)
 	lan_mac=$(mtd_get_mac_ascii uboot-env ethaddr)
 	wan_mac=$(macaddr_add "$lan_mac" 1)
 	ucidef_add_switch "switch0" \
-		"0:lan" "1:lan" "2:lan" "4:lan" "5:lan" "6t@eth0"
+		"0:lan" "1:lan" "2:lan" "4:lan" "5:wan" "6t@eth0"
 	;;
 
 TDW8970|TDW8980)
@@ -137,13 +144,13 @@ VR200v)
 VGV7510KW22*)
 	wan_mac=$(macaddr_add "$(mtd_get_mac_binary board_config 22)" 2)
 	ucidef_add_switch "switch0" \
-		"2:lan:2" "3:lan:1" "4:lan:4" "5:lan:3" "6t@eth0"
+		"2:lan:2" "3:lan:1" "4:lan:4" "5:lan:3" "0:wan:5" "6t@eth0"
 	;;
 
 VGV7519*)
 	wan_mac=$(mtd_get_mac_binary board_config 22)
 	ucidef_add_switch "switch0" \
-		"0:lan:4" "1:lan:3" "2:lan:2" "4:lan:1" "6t@eth0"
+		"0:lan:4" "1:lan:3" "2:lan:2" "4:lan:1" "5:wan:5" "6t@eth0"
 	;;
 
 WBMR)

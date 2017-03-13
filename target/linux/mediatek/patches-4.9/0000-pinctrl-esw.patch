@@ -10,3 +10,17 @@
  #define MT7623_PIN_274_G2_RXDV_FUNC_GPIO274 (MTK_PIN_NO(274) | 0)
  #define MT7623_PIN_274_G2_RXDV_FUNC_G2_RXDV (MTK_PIN_NO(274) | 1)
  
+--- a/drivers/pinctrl/mediatek/pinctrl-mtk-mt7623.h
++++ b/drivers/pinctrl/mediatek/pinctrl-mtk-mt7623.h
+@@ -1894,8 +1894,9 @@ static const struct mtk_desc_pin mtk_pin
+ 	MTK_PIN(
+ 		PINCTRL_PIN(273, "GPIO273"),
+ 		NULL, "mt7623",
+-		MTK_EINT_FUNCTION(NO_EINT_SUPPORT, NO_EINT_SUPPORT),
+-		MTK_FUNCTION(0, "GPIO273")
++		MTK_EINT_FUNCTION(0, 168),
++		MTK_FUNCTION(0, "GPIO273"),
++		MTK_FUNCTION(1, "ESW_INT")
+ 	),
+ 	MTK_PIN(
+ 		PINCTRL_PIN(274, "G2_RXDV"),

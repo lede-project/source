@@ -93,11 +93,8 @@ ifneq ($(CONFIG_GRUB_IMAGES),)
 		-d "$(KDIR)/grub2" \
 		-r "hd0,msdos1" \
 		"$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img"
-	$(call Image/Build/grub/$(1))
   endef
 endif
-
-ROOTDELAY=10
 
 define Image/Build/squashfs
 	dd if=/dev/zero bs=128k count=1 >> $(KDIR)/root.squashfs
