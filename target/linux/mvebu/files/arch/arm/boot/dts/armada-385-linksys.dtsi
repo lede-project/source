@@ -1,7 +1,7 @@
 /*
- * Device Tree file for the Linksys WRT3200ACM (Rango)
+ * Device Tree include file for Armada 385 based Linksys boards
  *
- * Copyright (C) 2016 Imre Kaloz <kaloz@openwrt.org>
+ * Copyright (C) 2015 Imre Kaloz <kaloz@openwrt.org>
  *
  *
  * This file is dual-licensed: you can use it either under the terms
@@ -37,24 +37,27 @@
  *     OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/dts-v1/;
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 #include "armada-385.dtsi"
 
 / {
-	model = "Linksys WRT3200ACM";
-	compatible = "linksys,rango", "linksys,armada385", "marvell,armada385",
+	model = "Linksys boards based on Armada 385";
+	compatible = "linksys,armada385", "marvell,armada385",
 		     "marvell,armada380";
 
+	chosen {
+		stdout-path = "serial0:115200n8";
+	};
+
+	memory {
+		device_type = "memory";
+		reg = <0x00000000 0x20000000>; /* 512 MB */
+	};
+
 	soc {
-
+	
 		internal-regs {
-
-			spi@10600 {
-				status = "disabled";
-			};
-
 			i2c@11000 {
 				pinctrl-names = "default";
 				pinctrl-0 = <&i2c0_pins>;
@@ -70,79 +73,132 @@
 					#size-cells = <0>;
 					compatible = "nxp,pca9635";
 					reg = <0x68>;
-
-					wan_amber@0 {
-						label = "rango:amber:wan";
-						reg = <0x0>;
-					};
-
-					wan_white@1 {
-						label = "rango:white:wan";
-						reg = <0x1>;
-					};
-
-					usb2@5 {
-						label = "rango:white:usb2";
-						reg = <0x5>;
-					};
-
-					usb3_1@6 {
-						label = "rango:white:usb3_1";
-						reg = <0x6>;
-					};
-
-					usb3_2@7 {
-						label = "rango:white:usb3_2";
-						reg = <0x7>;
-					};
-
-					wps_white@8 {
-						label = "rango:white:wps";
-						reg = <0x8>;
-					};
-
-					wps_amber@9 {
-						label = "rango:amber:wps";
-						reg = <0x9>;
-					};
 				};
+			};
+
+			/* J10: VCC, NC, RX, NC, TX, GND  */
+			serial@12000 {
+				status = "okay";
+			};
+
+			ethernet@70000 {
+				status = "okay";
+				phy-mode = "rgmii-id";
+				fixed-link {
+					speed = <1000>;
+					full-duplex;
+				};
+			};
+
+			ethernet@34000 {
+				status = "okay";
+				phy-mode = "sgmii";
+				fixed-link {
+					speed = <1000>;
+					full-duplex;
+				};
+			};
+
+			mdio {
+				status = "okay";
+			};
+
+			sata@a8000 {
+				status = "okay";
+			};
+
+			/* USB part of the eSATA/USB 2.0 port */
+			usb@58000 {
+				status = "okay";
+			};
+
+			usb3@f8000 {
+				status = "okay";
+				usb-phy = <&usb3_phy>;
 			};
 
 		};
 
-
 	};
 
-	gpio-leds {
-		compatible = "gpio-leds";
-		pinctrl-0 = <&power_led_pin &sata_led_pin &wlan_2g_led_pin &wlan_5g_led_pin>;
+	usb3_phy: usb3_phy {
+		compatible = "usb-nop-xceiv";
+		vcc-supply = <&reg_xhci0_vbus>;
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		pinctrl-0 = <&keys_pin>;
 		pinctrl-names = "default";
 
-		sata {
-			label = "rango:white:sata";
-			gpios = <&gpio0 21 GPIO_ACTIVE_LOW>;
-			linux,default-trigger = "disk-activity";
+		button@1 {
+			label = "WPS";
+			linux,code = <KEY_WPS_BUTTON>;
+			gpios = <&gpio0 24 GPIO_ACTIVE_LOW>;
 		};
 
-		wlan_2g {
-			label = "rango:white:wlan_2g";
-			gpios = <&gpio1 13 GPIO_ACTIVE_LOW>;
-		};
-
-		wlan_5g {
-			label = "rango:white:wlan_5g";
-			gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;
-		};
-
-		power {
-			label = "rango:white:power";
-			gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
+		button@2 {
+			label = "Factory Reset Button";
+			linux,code = <KEY_RESTART>;
+			gpios = <&gpio0 29 GPIO_ACTIVE_LOW>;
 		};
 	};
 
 	dsa@0 {
-		status = "okay";
-	};
+		compatible = "marvell,dsa";
+		#address-cells = <2>;
+		#size-cells = <0>;
 
+		dsa,ethernet = <&eth2>;
+		dsa,mii-bus = <&mdio>;
+
+		switch@0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x0 0>;	/* MDIO address 0, switch 0 in tree */
+
+			port@0 {
+				reg = <0>;
+				label = "lan4";
+			};
+
+			port@1 {
+				reg = <1>;
+				label = "lan3";
+			};
+
+			port@2 {
+				reg = <2>;
+				label = "lan2";
+			};
+
+			port@3 {
+				reg = <3>;
+				label = "lan1";
+			};
+
+			port@4 {
+				reg = <4>;
+				label = "wan";
+			};
+
+			port@5 {
+				reg = <5>;
+				label = "cpu";
+			};
+		};
+	};
+};
+
+&pinctrl {
+	keys_pin: keys-pin {
+		marvell,pins = "mpp24", "mpp29";
+		marvell,function = "gpio";
+	};
+};
+
+&spi0 {
+	status = "disabled";
 };
