@@ -1,0 +1,58 @@
+--- a/zones.c
++++ b/zones.c
+@@ -75,6 +75,7 @@ const struct fw3_option fw3_zone_opts[]
+ 
+ 	FW3_OPT("mtu_fix",             bool,     zone,     mtu_fix),
+ 	FW3_OPT("custom_chains",       bool,     zone,     custom_chains),
++	FW3_OPT("ipsec_nat_pass",      bool,     zone,     ipsec_nat_pass),
+ 
+ 	FW3_OPT("log",                 bool,     zone,     log),
+ 	FW3_OPT("log_limit",           limit,    zone,     log_limit),
+@@ -558,6 +559,15 @@ print_zone_rule(struct fw3_ipt_handle *h
+ 		break;
+ 
+ 	case FW3_TABLE_NAT:
++		if (zone->ipsec_nat_pass)
++		{
++			r = fw3_ipt_rule_new(handle);
++			fw3_ipt_rule_extra(r, "-m policy --dir out --pol ipsec");
++			fw3_ipt_rule_comment(r, "Do not masquerade IPsec related traffic %s", zone->name);
++			fw3_ipt_rule_target(r, "ACCEPT");
++			fw3_ipt_rule_append(r, "zone_%s_postrouting", zone->name);
++		}
++
+ 		if (zone->masq && handle->family == FW3_FAMILY_V4)
+ 		{
+ 			/* for any negated masq_src ip, emit -s addr -j RETURN rules */
+--- a/options.h
++++ b/options.h
+@@ -83,6 +83,7 @@ enum fw3_flag
+ 	FW3_FLAG_MTU_FIX       = 19,
+ 	FW3_FLAG_DROP_INVALID  = 20,
+ 	FW3_FLAG_HOTPLUG       = 21,
++	FW3_FLAG_IPSEC_NAT_PASS= 22,
+ 
+ 	__FW3_FLAG_MAX
+ };
+@@ -308,6 +309,7 @@ struct fw3_zone
+ 	struct list_head masq_dest;
+ 
+ 	bool mtu_fix;
++	bool ipsec_nat_pass;
+ 
+ 	bool log;
+ 	struct fw3_limit log_limit;
+--- a/utils.c
++++ b/utils.c
+@@ -468,6 +468,11 @@ write_zone_uci(struct uci_context *ctx,
+ 	uci_set(ctx, &ptr);
+ 
+ 	ptr.o      = NULL;
++	ptr.option = "ipsec_nat_pass";
++	ptr.value  = z->ipsec_nat_pass ? "1" : "0";
++	uci_set(ctx, &ptr);
++
++	ptr.o      = NULL;
+ 	ptr.option = "custom_chains";
+ 	ptr.value  = z->custom_chains ? "1" : "0";
+ 	uci_set(ctx, &ptr);
