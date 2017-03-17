@@ -168,6 +168,7 @@ platform_check_image() {
 	wsr-600|\
 	wt1520|\
 	wt3020|\
++	u35wf |\
 	wzr-agl300nh|\
 	x5|\
 	x8|\

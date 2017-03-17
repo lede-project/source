@@ -174,6 +174,7 @@ ramips_setup_interfaces()
 			"1:lan" "2:lan" "3:lan" "4:lan" "0:wan" "9@eth0"
 		;;
 	cf-wr800n|\
+	u35wf | \
 	ex2700)
 		ucidef_add_switch "switch0" \
 			"4:lan" "6t@eth0"
@@ -293,6 +294,7 @@ ramips_setup_macs()
 
 	case $board in
 	a5-v11|\
+	u35wf | \
 	ht-tm02)
 		lan_mac=$(cat /sys/class/net/eth0/address)
 		;;
