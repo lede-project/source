@@ -51,14 +51,16 @@
 				};
 			};
 
-			i2c4_pins: i2c4_pinmux {
-				mux {
-					pins = "gpio12", "gpio13";
-					function = "gsbi4";
-					drive-strength = <12>;
-					bias-disable;
-				};
-			};
+			/*
+			 * i2c4_pins: i2c4_pinmux {
+			 * 	mux {
+			 * 		pins = "gpio12", "gpio13";
+			 * 		function = "gsbi4";
+			 * 		drive-strength = <12>;
+			 * 		bias-disable;
+			 * 	};
+			 * };
+			 */
 
 			led_pins: led_pins {
 				pins = "gpio7", "gpio8", "gpio9", "gpio22", "gpio23",
@@ -480,10 +482,12 @@
 			};
 		};
 
-		rpm@108000 {
-			pinctrl-0 = <&i2c4_pins>;
-			pinctrl-names = "default";
-		};
+		/*
+		 * rpm@108000 {
+		 * 	pinctrl-0 = <&i2c4_pins>;
+		 * 	pinctrl-names = "default";
+		 * };
+		 */
 	};
 
 	gpio-keys {
