@@ -101,12 +101,13 @@ define Device/u35wf
   IMAGES += factory.bin
   IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin)
   DEVICE_TITLE := Kimax U35WF
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ohci kmod-mt76 \
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ohci kmod-mt76 uboot-envtools \
   			kmod-usb-ledtrig-usbport kmod-ata-core kmod-scsi-core kmod-usb-storage  \
   			kmod-usb-storage-extras swap-utils wipefs mount-utils kmod-nls-utf8  \
   			kmod-nls-base kmod-fs-btrfs kmod-fs-ext4 kmod-fs-exfat kmod-fs-msdos  \
   			kmod-fs-ntfs kmod-fs-vfat mkdosfs ntfs-3g fdisk cfdisk hdparm e2fsprogs  \
-  			btrfs-progs block-mount blkid usbutils 
+  			btrfs-progs block-mount blkid usbutils dosfstools ntfsprogs_ntfs-3g gdisk
+  DEFAULT_PACKAGES += $(DEVICE_PACKAGES)
 endef
 TARGET_DEVICES += u35wf
 
