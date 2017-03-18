@@ -1,0 +1,38 @@
+#!/bin/sh
+set -x
+
+. /lib/functions.sh
+
+parameters=
+fstype=
+skiplast=false
+numargs=$#
+i=0
+
+val="$1"
+
+if [ "$numargs" -lt 1 ]; then
+	echo "Usage: $0 [options ] [-t fstype] device"
+	exit 1
+fi
+
+for i in $(seq 1 ${numargs}); do
+	if [ "$i" -eq "${numargs}" ] && [ "$skiplast" = "true" ]; then
+		break
+	fi
+	val="$1"
+	shift 2>/dev/null
+	if [ "$val" = "-t" ]; then
+		fstype="$1"
+		skiplast=true
+		shift
+	else
+		append parameters "'$val'"
+	fi
+done
+
+if [ -n "$fstype" ]; then
+	eval mkfs.$fstype $parameters
+else
+	eval mkfs.ext4 $parameters
+fi
