@@ -135,6 +135,7 @@ platform_check_image() {
 	tew-714tru|\
 	timecloud|\
 	tiny-ac|\
+	tl-wr840n-v4|\
 	ur-326n4g|\
 	ur-336un|\
 	v22rw-2x2|\

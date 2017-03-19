@@ -478,6 +478,9 @@ ramips_board_detect() {
 	*"Timecloud")
 		name="timecloud"
 		;;
+	"TP-LINK TL-WR840N v4")
+		name="tl-wr840n-v4"
+		;;
 	*"UBNT-ERX")
 		name="ubnt-erx"
 		;;
