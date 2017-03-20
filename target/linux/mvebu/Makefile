@@ -20,6 +20,8 @@ include $(INCLUDE_DIR)/target.mk
 
 KERNELNAME:=zImage dtbs
 
-DEFAULT_PACKAGES += uboot-envtools kmod-gpio-button-hotplug
+DEFAULT_PACKAGES += \
+        uboot-envtools kmod-gpio-button-hotplug kmod-usb-core \
+        kmod-usb-ohci kmod-usb-uhci kmod-usb2 kmod-usb3
 
 $(eval $(call BuildTarget))
