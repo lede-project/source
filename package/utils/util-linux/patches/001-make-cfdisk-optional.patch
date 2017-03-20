@@ -1,0 +1,18 @@
+diff --git a/configure.ac b/configure.ac
+index 730f17c..947529f 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1045,8 +1045,11 @@ UL_REQUIRES_BUILD([sfdisk], [libfdisk])
+ UL_REQUIRES_BUILD([sfdisk], [libsmartcols])
+ AM_CONDITIONAL([BUILD_SFDISK], [test "x$build_sfdisk" = xyes])
+ 
+-
+-UL_BUILD_INIT([cfdisk], [check])
++AC_ARG_ENABLE([cfdisk],
++  AS_HELP_STRING([--disable-cfdisk], [do not build cfdisk]),
++  [], [UL_DEFAULT_ENABLE([cfdisk], [check])]
++)
++UL_BUILD_INIT([cfdisk])
+ UL_REQUIRES_BUILD([cfdisk], [libfdisk])
+ UL_REQUIRES_BUILD([cfdisk], [libsmartcols])
+ UL_REQUIRES_HAVE([cfdisk], [open_memstream], [open_memstream function])
