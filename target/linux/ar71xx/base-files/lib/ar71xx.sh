@@ -1336,29 +1336,6 @@ ar71xx_board_detect() {
 	*"ZCN-1523H-5")
 		name="zcn-1523h-5"
 		;;
-<<<<<<< HEAD
-=======
-	*EmbWir-Dorin)
-		name="ew-dorin"
-		;;
-	*EmbWir-Dorin-Router)
-		name="ew-dorin-router"
-		;;
-	"8devices Carambola2"*)
-		name="carambola2"
-		;;
-	"8devices Lima"*)
-		name="lima"
-		;;
-	*"Sitecom WLR-8100")
-		name="wlr8100"
-		;;
-	*"BHU BXU2000n-2 rev. A1")
-		name="bxu2000n-2-a1"
-		;;
-	*"HiWiFi HC6361")
-		name="hiwifi-hc6361"
-		;;
 	*"Linino Chiwawa")
 		name="linino-chiwawa"
 		;;
@@ -1380,7 +1357,6 @@ ar71xx_board_detect() {
 	*"Linino Yun")
 		name="linino-yun"
 		;;
->>>>>>> adding preliminary files for linino build
 	esac
 
 	[ -z "$AR71XX_MODEL" ] && [ "${machine:0:8}" = 'TP-LINK ' ] && \
