@@ -218,7 +218,7 @@ static void __init common_setup(bool pcie_slot)
 	if (pcie_slot) {
 		ath79_register_pci();
 	} else {
-		ath79_init_mac(tmpmac, mac, -1);
+		ath79_init_mac(tmpmac, mac, -2);
 		ap9x_pci_setup_wmac_led_pin(0, 0);
 		ap91_pci_init(art + ARCHER_C7_PCIE_CALDATA_OFFSET, tmpmac);
 	}
