@@ -8,14 +8,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libmnl
-PKG_VERSION:=1.0.4
+PKG_VERSION:=1.0.4.git-2016-08-08
 PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:= \
-	http://www.netfilter.org/projects/libmnl/files \
-	ftp://ftp.netfilter.org/pub/libmnl
-PKG_HASH:=171f89699f286a5854b72b91d06e8f8e3683064c5901fb09d954a9ab6f551f81
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=https://git.netfilter.org/libmnl
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
+PKG_SOURCE_VERSION:=fbe0f33b45abd585eb9f52cb56d751a750667dc6
+PKG_MIRROR_HASH:=8c1f13ec95ba13b8df6757242c88c6519c75520a88f8edbdf1dbed67caa0b409
 
 PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 
