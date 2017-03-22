@@ -89,7 +89,7 @@ build a shared library.
  pcap.o: pcap_version.h
  
  grammar.c: $(srcdir)/grammar.y
-@@ -472,9 +494,16 @@ grammar.o: grammar.c
+@@ -472,9 +494,16 @@ grammar.o: grammar.c scanner.h
  gencode.o: $(srcdir)/gencode.c grammar.h scanner.h
  	$(CC) $(FULL_CFLAGS) -c $(srcdir)/gencode.c
  

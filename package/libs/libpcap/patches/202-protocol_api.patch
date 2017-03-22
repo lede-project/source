@@ -59,7 +59,7 @@ This API extension is used by ead (Emergency Access Daemon)
  		    	close(sock_fd);
  			if (err < 0)
  				return err;
-@@ -5271,7 +5274,7 @@ iface_get_id(int fd, const char *device,
+@@ -5291,7 +5294,7 @@ iface_get_id(int fd, const char *device,
   *  or a PCAP_ERROR_ value on a hard error.
   */
  static int
@@ -68,7 +68,7 @@ This API extension is used by ead (Emergency Access Daemon)
  {
  	struct sockaddr_ll	sll;
  	int			err;
-@@ -5280,7 +5283,7 @@ iface_bind(int fd, int ifindex, char *eb
+@@ -5300,7 +5303,7 @@ iface_bind(int fd, int ifindex, char *eb
  	memset(&sll, 0, sizeof(sll));
  	sll.sll_family		= AF_PACKET;
  	sll.sll_ifindex		= ifindex;
@@ -77,7 +77,7 @@ This API extension is used by ead (Emergency Access Daemon)
  
  	if (bind(fd, (struct sockaddr *) &sll, sizeof(sll)) == -1) {
  		if (errno == ENETDOWN) {
-@@ -6325,7 +6328,7 @@ activate_old(pcap_t *handle)
+@@ -6345,7 +6348,7 @@ activate_old(pcap_t *handle)
  
  	/* Open the socket */
  
@@ -88,7 +88,7 @@ This API extension is used by ead (Emergency Access Daemon)
  			 "socket: %s", pcap_strerror(errno));
 --- a/pcap.c
 +++ b/pcap.c
-@@ -578,6 +578,7 @@ pcap_create_common(char *ebuf, size_t si
+@@ -1329,6 +1329,7 @@ pcap_create_common(char *ebuf, size_t si
  	p->opt.promisc = 0;
  	p->opt.rfmon = 0;
  	p->opt.immediate = 0;
@@ -96,7 +96,7 @@ This API extension is used by ead (Emergency Access Daemon)
  	p->opt.tstamp_type = -1;	/* default to not setting time stamp type */
  	p->opt.tstamp_precision = PCAP_TSTAMP_PRECISION_MICRO;
  
-@@ -771,6 +772,15 @@ pcap_get_tstamp_precision(pcap_t *p)
+@@ -1522,6 +1523,15 @@ pcap_get_tstamp_precision(pcap_t *p)
  }
  
  int
