@@ -8,15 +8,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=conntrack-tools
-PKG_VERSION:=1.4.4
+PKG_VERSION:=1.4.4.git-2017-03-17
 PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:= \
-	http://www.netfilter.org/projects/conntrack-tools/files \
-	ftp://ftp.netfilter.org/pub/conntrack-tools \
-	http://mirrors.evolva.ro/netfilter.org/conntrack-tools
-PKG_HASH:=b7caf4fcc4c03575df57d25e5216584d597fd916c891f191dac616ce68bdba6c
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=https://git.netfilter.org/conntrack-tools
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
+PKG_SOURCE_VERSION:=29b390a2122143997a651e6b25d7496e62ead2a1
+PKG_MIRROR_HASH:=c9d312c758c90b1ad7eaa63438f89d35691260a20066a6c82092528af25067ae
 
 PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=GPL-2.0
