@@ -41,7 +41,7 @@ endef
 
 # NODEJS:=node-$(PKG_VERSION)-linux-x86.tar.gz
 
-CPUHOST:=$(subst x86_64-linux-gnu,x64,$(subst i686-linux-gnu,x86,$(GNU_HOST_NAME)))
+CPUHOST:=$(subst x86_64-linux-gnu,x64,$(subst x86_64-pc-linux-gnu,x64,$(subst i686-linux-gnu,x86,$(GNU_HOST_NAME))))
 
 NODEJS:=node-$(PKG_VERSION)-linux-$(CPUHOST).tar.gz
 
