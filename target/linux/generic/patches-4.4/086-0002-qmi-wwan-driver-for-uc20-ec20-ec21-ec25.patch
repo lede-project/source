@@ -1,0 +1,75 @@
+--- a/drivers/net/usb/qmi_wwan.c
++++ b/drivers/net/usb/qmi_wwan.c
+@@ -58,6 +58,23 @@ static const u8 default_modem_addr[ETH_A
+ 
+ static const u8 buggy_fw_addr[ETH_ALEN] = {0x00, 0xa0, 0xc6, 0x00, 0x00, 0x00};
+ 
++#include <linux/etherdevice.h>
++struct sk_buff *qmi_wwan_tx_fixup(struct usbnet *dev, struct sk_buff *skb, gfp_t flags)
++{
++	if (dev->udev->descriptor.idVendor != cpu_to_le16(0x2C7C))
++		return skb;
++	// Skip Ethernet header from message
++	if (skb_pull(skb, ETH_HLEN)) {
++		return skb;
++	} else {
++		dev_err(&dev->intf->dev, "Packet Dropped ");
++	}
++	// Filter the packet out, release it
++	dev_kfree_skb_any(skb);
++	return NULL;
++}
++
++
+ /* Make up an ethernet header if the packet doesn't have one.
+  *
+  * A firmware bug common among several devices cause them to send raw
+@@ -294,6 +311,20 @@ static int qmi_wwan_bind(struct usbnet *
+ 		dev->net->dev_addr[0] &= 0xbf;	/* clear "IP" bit */
+ 	}
+ 	dev->net->netdev_ops = &qmi_wwan_netdev_ops;
++
++	if (dev->udev->descriptor.idVendor == cpu_to_le16(0x2C7C)) {
++		dev_info(&intf->dev, "Quectel EC21&EC25 work on RawIP mode\n");
++		dev->net->flags |= IFF_NOARP;
++		usb_control_msg(
++		    interface_to_usbdev(intf),
++		    usb_sndctrlpipe(interface_to_usbdev(intf), 0),
++		    0x22, //USB_CDC_REQ_SET_CONTROL_LINE_STATE
++		    0x21, //USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE
++		    1, //active CDC DTR
++		    intf->cur_altsetting->desc.bInterfaceNumber,
++		    NULL, 0, 100);
++	}
++
+ err:
+ 	return status;
+ }
+@@ -378,6 +409,7 @@ static const struct driver_info	qmi_wwan
+ 	.bind		= qmi_wwan_bind,
+ 	.unbind		= qmi_wwan_unbind,
+ 	.manage_power	= qmi_wwan_manage_power,
++	.tx_fixup       = qmi_wwan_tx_fixup,
+ 	.rx_fixup       = qmi_wwan_rx_fixup,
+ };
+ 
+@@ -755,6 +787,11 @@ static const struct usb_device_id produc
+ 	{QMI_FIXED_INTF(0x03f0, 0x4e1d, 8)},	/* HP lt4111 LTE/EV-DO/HSPA+ Gobi 4G Module */
+ 	{QMI_FIXED_INTF(0x22de, 0x9061, 3)},	/* WeTelecom WPD-600N */
+ 
++	{ QMI_FIXED_INTF(0x05C6, 0x9003, 4) }, /* Quectel UC20 */
++	{ QMI_FIXED_INTF(0x05C6, 0x9215, 4) }, /* Quectel EC20 */
++	{ QMI_FIXED_INTF(0x2C7C, 0x0125, 4) }, /* Quectel EC25 */
++	{ QMI_FIXED_INTF(0x2C7C, 0x0121, 4) }, /* Quectel EC21 */
++
+ 	/* 4. Gobi 1000 devices */
+ 	{QMI_GOBI1K_DEVICE(0x05c6, 0x9212)},	/* Acer Gobi Modem Device */
+ 	{QMI_GOBI1K_DEVICE(0x03f0, 0x1f1d)},	/* HP un2400 Gobi Modem Device */
+@@ -783,7 +820,6 @@ static const struct usb_device_id produc
+ 	{QMI_GOBI_DEVICE(0x05c6, 0x9225)},	/* Sony Gobi 2000 Modem device (N0279, VU730) */
+ 	{QMI_GOBI_DEVICE(0x05c6, 0x9245)},	/* Samsung Gobi 2000 Modem device (VL176) */
+ 	{QMI_GOBI_DEVICE(0x03f0, 0x251d)},	/* HP Gobi 2000 Modem device (VP412) */
+-	{QMI_FIXED_INTF(0x05c6, 0x9215, 4)},	/* Quectel EC20 Mini PCIe */
+ 	{QMI_GOBI_DEVICE(0x05c6, 0x9265)},	/* Asus Gobi 2000 Modem device (VR305) */
+ 	{QMI_GOBI_DEVICE(0x05c6, 0x9235)},	/* Top Global Gobi 2000 Modem device (VR306) */
+ 	{QMI_GOBI_DEVICE(0x05c6, 0x9275)},	/* iRex Technologies Gobi 2000 Modem device (VR307) */
