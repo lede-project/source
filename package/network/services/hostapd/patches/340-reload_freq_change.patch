@@ -1,6 +1,56 @@
+From 359b11bacffdaa7ae0b636f0ece67c0a314f8bda Mon Sep 17 00:00:00 2001
+From: Abhilash Tuse <Abhilash.Tuse@imgtec.com>
+Date: Mon, 20 Mar 2017 14:33:23 +0530
+Subject: [PATCH] hostapd: fix reload frequency change patch
+
+When sta is configured, hostapd receives 'stop' and 'update' command from
+wpa_supplicant. In the update command, hostapd gets sta parameters with
+which it configures ap.
+
+Problem is, with the default wireless configuration:
+mode:11g freq:2.4GHz channel:1
+If sta is connected to 5GHz network, then ap does not work. Ideally with
+340-reload_freq_change.patch hostapd should reload the frequency changes
+and start ap in 5GHz, but ap becomes invisible in the network.
+
+This issue can be reproduced with following /etc/config/wireless:
+config wifi-device  radio0
+        option type     mac80211
+        option channel  1
+        option hwmode   11g
+        option path     'virtual/uccp420/uccwlan'
+        option htmode   'none'
+
+config wifi-iface 'ap'
+        option device 'radio0'
+        option encryption 'none'
+        option mode 'ap'
+        option network 'ap'
+        option ssid 'MyTestNet'
+        option encryption none
+
+config wifi-iface 'sta'
+       option device radio0
+       option network sta
+       option mode sta
+       option ssid TestNet-5G
+       option encryption psk2
+       option key 12345
+
+This change updates current_mode structure based on configured hw_mode
+received from wpa_supplicant. Also prepare rates table after frequency
+selection.
+
+Signed-off-by: Abhilash Tuse <Abhilash.Tuse@imgtec.com>
+---
+ src/ap/hostapd.c | 43 +++++++++++++++++++++++++++++++------------
+ 1 file changed, 31 insertions(+), 12 deletions(-)
+
+diff --git a/src/ap/hostapd.c b/src/ap/hostapd.c
+index 29c17bf..128416b 100644
 --- a/src/ap/hostapd.c
 +++ b/src/ap/hostapd.c
-@@ -80,6 +80,16 @@ static void hostapd_reload_bss(struct ho
+@@ -80,6 +80,25 @@ static void hostapd_reload_bss(struct hostapd_data *hapd)
  #endif /* CONFIG_NO_RADIUS */
  
  	ssid = &hapd->conf->ssid;
@@ -14,13 +64,38 @@
 +			 hapd->iconf->vht_oper_centr_freq_seg0_idx,
 +			 hapd->iconf->vht_oper_centr_freq_seg1_idx);
 +
++	if (hapd->iface->current_mode) {
++		if (hostapd_prepare_rates(hapd->iface, hapd->iface->current_mode)) {
++			wpa_printf(MSG_ERROR, "Failed to prepare rates table.");
++			hostapd_logger(hapd, NULL, HOSTAPD_MODULE_IEEE80211,
++				       HOSTAPD_LEVEL_WARNING,
++				       "Failed to prepare rates table.");
++		}
++	}
++
  	if (!ssid->wpa_psk_set && ssid->wpa_psk && !ssid->wpa_psk->next &&
  	    ssid->wpa_passphrase_set && ssid->wpa_passphrase) {
  		/*
-@@ -179,21 +189,12 @@ int hostapd_reload_config(struct hostapd
+@@ -158,6 +177,7 @@ int hostapd_reload_config(struct hostapd_iface *iface)
+ 	struct hostapd_data *hapd = iface->bss[0];
+ 	struct hostapd_config *newconf, *oldconf;
+ 	size_t j;
++	int i;
+ 
+ 	if (iface->config_fname == NULL) {
+ 		/* Only in-memory config in use - assume it has been updated */
+@@ -179,21 +199,20 @@ int hostapd_reload_config(struct hostapd_iface *iface)
  	oldconf = hapd->iconf;
  	iface->conf = newconf;
  
++	for (i = 0; i < iface->num_hw_features; i++) {
++		struct hostapd_hw_modes *mode = &iface->hw_features[i];
++		if (mode->mode == iface->conf->hw_mode) {
++			iface->current_mode = mode;
++			break;
++		}
++	}
++
 +	if (iface->conf->channel)
 +		iface->freq = hostapd_hw_get_freq(hapd, iface->conf->channel);
 +
@@ -42,3 +117,6 @@
  		hapd->conf = newconf->bss[j];
  		hostapd_reload_bss(hapd);
  	}
+-- 
+2.7.4
+
