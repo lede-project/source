@@ -1,6 +1,6 @@
 --- a/arch/arm/boot/dts/armada-xp-linksys-mamba.dts
 +++ b/arch/arm/boot/dts/armada-xp-linksys-mamba.dts
-@@ -455,6 +455,16 @@
+@@ -367,6 +367,16 @@
  			};
  		};
  	};
