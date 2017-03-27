@@ -65,6 +65,8 @@ hostapd_common_add_device_config() {
 	config_add_boolean country_ie doth
 	config_add_string require_mode
 
+	config_add_string chanlist
+
 	hostapd_add_log_config
 }
 
@@ -75,9 +77,9 @@ hostapd_prepare_device_config() {
 	local base="${config%%.conf}"
 	local base_cfg=
 
-	json_get_vars country country_ie beacon_int doth require_mode
+	json_get_vars country country_ie beacon_int doth require_mode chanlist
 
-	hostapd_set_log_options base_cfg
+	hostapd_set_log_options base_cfg chanlist
 
 	set_default country_ie 1
 	set_default doth 1
@@ -89,6 +91,7 @@ hostapd_prepare_device_config() {
 		[ "$hwmode" = "a" -a "$doth" -gt 0 ] && append base_cfg "ieee80211h=1" "$N"
 	}
 	[ -n "$hwmode" ] && append base_cfg "hw_mode=$hwmode" "$N"
+	[ -n "$chanlist" ] && append base_cfg "chanlist=$chanlist" "$N"
 
 	local brlist= br
 	json_get_values basic_rate_list basic_rate
