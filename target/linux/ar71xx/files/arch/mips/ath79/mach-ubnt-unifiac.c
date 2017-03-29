@@ -108,7 +108,7 @@ static void __init ubnt_unifiac_lite_setup(void)
 	                                ubnt_unifiac_gpio_keys);
 }
 
-MIPS_MACHINE(ATH79_MACH_UBNT_UNIFIAC_LITE, "UBNT-UF-AC-LITE", "Ubiquiti UniFi-AC-LITE",
+MIPS_MACHINE(ATH79_MACH_UBNT_UNIFIAC_LITE, "UBNT-UF-AC-LITE", "Ubiquiti UniFi-AC-LITE/MESH",
 	     ubnt_unifiac_lite_setup);
 
 static struct ar8327_pad_cfg ubnt_unifiac_pro_ar8327_pad0_cfg = {
