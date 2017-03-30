@@ -3,7 +3,6 @@ PPP_IPPARAM="$6"
 
 . /lib/netifd/netifd-proto.sh
 proto_init_update "$IFNAME" 1 1
-proto_set_keep 1
 [ -n "$PPP_IPPARAM" ] && {
 	[ -n "$IPLOCAL" ] && proto_add_ipv4_address "$IPLOCAL" 32 "" "${IPREMOTE:-2.2.2.2}"
 	[ -n "$IPREMOTE" ] && proto_add_ipv4_route 0.0.0.0 0 "$IPREMOTE"
