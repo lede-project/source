@@ -90,4 +90,3 @@ linksys_preupgrade() {
 }
 
 append sysupgrade_pre_upgrade linksys_preupgrade
-
