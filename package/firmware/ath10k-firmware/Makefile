@@ -199,6 +199,7 @@ $(Package/ath10k-firmware-default)
   CATEGORY:=Firmware
 endef
 
+
 QCA99X0_BOARD_REV:=ddcec9efd245da9365c474f513a855a55f3ac7fe
 QCA99X0_BOARD_FILE:=board-2.bin.$(QCA99X0_BOARD_REV)
 
