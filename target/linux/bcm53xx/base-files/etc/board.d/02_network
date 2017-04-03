@@ -88,6 +88,10 @@ elif echo "$vlan1ports" | egrep -q "^0 1 2 3 5 7 8" && \
      echo "$vlan2ports" | egrep -q "^4 8"; then
 	ucidef_add_switch "switch0" \
 		"0:lan" "1:lan" "2:lan" "3:lan" "5:lan" "7:lan" "4:wan" "8t@$ifname"
+elif echo "$vlan1ports" | egrep -q "^0 1 2 5" && \
+     echo "$vlan2ports" | egrep -q "^3 5"; then
+	ucidef_add_switch "switch0" \
+		"0:lan" "1:lan" "2:lan" "3:wan" "5t@$ifname"
 else
 	ucidef_add_switch "switch0" \
 		"0:lan" "1:lan" "2:lan" "3:lan" "4:wan" "5t@$ifname"
