@@ -1,5 +1,3 @@
-diff --git a/tests/fs-tests/integrity/integck.c b/tests/fs-tests/integrity/integck.c
-index 8badd1f..9e63e53 100644
 --- a/tests/fs-tests/integrity/integck.c
 +++ b/tests/fs-tests/integrity/integck.c
 @@ -31,7 +31,6 @@
@@ -10,7 +8,7 @@ index 8badd1f..9e63e53 100644
  #include <bits/stdio_lim.h>
  #include <sys/mman.h>
  #include <sys/vfs.h>
-@@ -262,8 +261,6 @@ static void check_failed(const char *cond, const char *func, const char *file,
+@@ -262,8 +261,6 @@ static void check_failed(const char *con
  	 * 2. Compile with -rdynamic and -g gcc options
  	 * 3. Preferrably compile with -O0 to avoid inlining
  	 */

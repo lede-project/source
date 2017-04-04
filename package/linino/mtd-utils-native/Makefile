@@ -8,18 +8,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mtd-utils
+PKG_REV:=aea36417067dade75192bafa03af70b6eb2677b1
 PKG_VERSION:=1.5.2
 PKG_RELEASE:=3
-PKG_MD5SUM:=596bc7b20a6d4fb86d63fc9b8af674d6
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=http://download.linino.org/sources/
-
-# PKG_REV:=aea36417067dade75192bafa03af70b6eb2677b1
-# PKG_SOURCE_URL:=git://git.infradead.org/mtd-utils.git
-# PKG_SOURCE_PROTO:=git
-# PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-# PKG_SOURCE_VERSION:=$(PKG_REV)
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=git://git.infradead.org/mtd-utils.git
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_VERSION:=$(PKG_REV)
 
 PKG_INSTALL:=1
 
