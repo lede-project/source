@@ -1,8 +1,8 @@
-# overlay-only.sh : A simple node.js installation script
-# Copyright (C) 2015 Dog Hunter AG
+# overlay-only.sh : A simple Pivot Overlay installation script
+# Copyright (C) 2017 Arduino Srl
 #
 # Author : Arturo Rinaldi
-# E-mail : arturo@doghunter.org
+# E-mail : arturo@arduino.org
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -243,7 +243,173 @@ formatvfatoverlay () {
 
 		sleep 10
 
-		mkfs.msdos -F 32 /dev/sda1
+		mkfs.fat -F 32 /dev/sda1
+
+		sleep 10
+
+		mount /dev/sda1 /mnt/sda1
+
+	elif `grep -qs '/dev/sda1 /overlay' /proc/mounts` && `grep -qs '/dev/sda2' /proc/swaps`
+	then
+
+		echo ""
+		echo "Pivot Overlay is still enabled, please first disable it with choice number 2 !"
+		echo ""
+
+	else
+
+		echo ""
+		echo "ERROR ! System not reverted !"
+		echo ""
+
+	fi
+
+
+}
+
+formatext3 () {
+
+	if `grep -qs '/dev/sda1 /mnt/sda1' /proc/mounts`
+	then
+
+		sleep 5
+
+		lsof | grep sda1 | grep -v sh | awk {'print $2'} | xargs kill -9 > /dev/null 2>&1
+
+		lsof | grep sda2 | grep -v sh | awk {'print $2'} | xargs kill -9 > /dev/null 2>&1
+
+		# Unmounting all /dev/sdX partitions
+		# umount /overlay
+		# umount /overlay-boot
+		umountallsda
+
+		sleep 5
+
+		#Disable all swap partitions
+		swapoff -a
+
+		sleep 5
+
+		echo ""
+		echo "Low level formatting the SDCard..."
+		echo ""
+
+		#Low level formatting
+		dd if=/dev/zero of=/dev/sda bs=512 count=1
+
+		#Creation of the primary partition
+		# Feeding inputs to fdisk in non-interactive mode
+
+		sleep 5
+
+		# Unmounting all /dev/sdX partitions
+		umountallsda
+
+		lsof | grep sda1 | grep -v sh | awk {'print $2'} | xargs kill -9 > /dev/null 2>&1
+
+		sleep 10
+
+		echo ""
+		echo "Partitioning SDCard..."
+		echo ""
+
+		(echo n; echo p; echo 1; echo ;echo ; echo w) | fdisk /dev/sda
+		# (echo n; echo p; echo 1; echo ; echo ; echo t; echo c; echo w) | fdisk /dev/sda
+
+		sleep 7
+
+		umountallsda
+
+		echo ""
+		echo "Formatting disk to EXT3..."
+		echo ""
+
+		sleep 10
+
+		mkfs.ext3 -L EXT3FLASH -F /dev/sda1
+
+		sleep 10
+
+		mount /dev/sda1 /mnt/sda1
+
+	elif `grep -qs '/dev/sda1 /overlay' /proc/mounts` && `grep -qs '/dev/sda2' /proc/swaps`
+	then
+
+		echo ""
+		echo "Pivot Overlay is still enabled, please first disable it with choice number 2 !"
+		echo ""
+
+	else
+
+		echo ""
+		echo "ERROR ! System not reverted !"
+		echo ""
+
+	fi
+
+
+}
+
+formatext4 () {
+
+	if `grep -qs '/dev/sda1 /mnt/sda1' /proc/mounts`
+	then
+
+		sleep 5
+
+		lsof | grep sda1 | grep -v sh | awk {'print $2'} | xargs kill -9 > /dev/null 2>&1
+
+		lsof | grep sda2 | grep -v sh | awk {'print $2'} | xargs kill -9 > /dev/null 2>&1
+
+		# Unmounting all /dev/sdX partitions
+		# umount /overlay
+		# umount /overlay-boot
+		umountallsda
+
+		sleep 5
+
+		#Disable all swap partitions
+		swapoff -a
+
+		sleep 5
+
+		echo ""
+		echo "Low level formatting the SDCard..."
+		echo ""
+
+		#Low level formatting
+		dd if=/dev/zero of=/dev/sda bs=512 count=1
+
+		#Creation of the primary partition
+		# Feeding inputs to fdisk in non-interactive mode
+
+		sleep 5
+
+		# Unmounting all /dev/sdX partitions
+		umountallsda
+
+		lsof | grep sda1 | grep -v sh | awk {'print $2'} | xargs kill -9 > /dev/null 2>&1
+
+		sleep 10
+
+		echo ""
+		echo "Partitioning SDCard..."
+		echo ""
+
+		(echo n; echo p; echo 1; echo ;echo ; echo w) | fdisk /dev/sda
+		# (echo n; echo p; echo 1; echo ; echo ; echo t; echo c; echo w) | fdisk /dev/sda
+
+		sleep 7
+
+		umountallsda
+
+		echo ""
+		echo "Formatting disk to EXT4..."
+		echo ""
+
+		sleep 10
+
+		mkfs.ext4 -L EXT4FLASH -F /dev/sda1
 
 		sleep 10
 
@@ -324,14 +490,14 @@ EOF
 prereqs () {
 
 	opkg update
-	opkg install fdisk e2fsprogs swap-utils mkdosfs lsof openssh-sftp-server mtd-utils psmisc
+	opkg install fdisk e2fsprogs swap-utils dosfstools lsof openssh-sftp-server mtd-utils psmisc
 
 }
 
 removeprereqs () {
 
 	opkg update
-	opkg remove fdisk e2fsprogs swap-utils mkdosfs lsof mtd-utils psmisc
+	opkg remove fdisk e2fsprogs swap-utils dosfstools lsof mtd-utils psmisc
 	# openssh-sftp-server
 
 }
@@ -440,8 +606,10 @@ then
       echo ""
 	  echo "1. Pivot Overlay on SDCard (Experimental)"
 	  echo "2. Revert Pivot Overlay on SDCard (Experimental)"
-	  echo "3. Format SDCard"
-      echo "4. Exit and reboot"
+	  echo "3. Format SDCard (FAT32)"
+	  echo "4. Format SDCard (EXT3)"
+	  echo "5. Format SDCard (EXT4)"
+	  echo "6. Exit and reboot"
       echo "0. Exit"
 
 
@@ -449,9 +617,9 @@ then
       echo "Choose : "
       echo " "
 
-      read scelta
+      read menuchoice
 
-			case $scelta in
+			case $menuchoice in
 
 
 
@@ -569,8 +737,7 @@ then
 
 					sleep 2
 
-					# Removes node.js
-					opkg update
+					# Refreshing repositories
 
 					sleep 3
 
@@ -609,7 +776,7 @@ then
 				;;
 
 				#----------------- Choice-3---------------------
-				# Format SDCard
+				# Format SDCard (FAT32)
 				3)
 				if [ -d '/mnt/sda1' ] && `grep -qs '/mnt/sda1' /proc/mounts`
 				then
@@ -620,7 +787,7 @@ then
 
 					sleep 2
 
-					#Removes node.js
+					#Refreshing repositories
 					opkg update && prereqs
 
 					sleep 3
@@ -640,16 +807,94 @@ then
 				else
 
 					echo ""
-					echo "ERROR ! Node.Js is not installed in the system !"
+					echo "ERROR ! The SDCard is not mounted !"
 					echo ""
 
 				fi
 
 				;;
 
-				#------------------Choice-4----------------------
-				# System reboot
+				#----------------- Choice-4---------------------
+				# Format SDCard (EXT3)
 				4)
+				if [ -d '/mnt/sda1' ] && `grep -qs '/mnt/sda1' /proc/mounts`
+				then
+
+					echo ""
+					echo "Reverting to defaults..."
+					echo ""
+
+					sleep 2
+
+					#Refreshing repositories
+					opkg update && prereqs
+
+					sleep 3
+
+					#Formats the SDcard to its original state with EXT3 filesystem
+					formatext3
+
+					sleep 5
+
+					#Removes the prerequisites
+					removeprereqs
+
+					echo ""
+					echo "Reverting complete !"
+					echo ""
+
+				else
+
+					echo ""
+					echo "ERROR ! The SDcard is not mounted !"
+					echo ""
+
+				fi
+
+				;;
+
+				#----------------- Choice-5---------------------
+				# Format SDCard (EXT4)
+				5)
+				if [ -d '/mnt/sda1' ] && `grep -qs '/mnt/sda1' /proc/mounts`
+				then
+
+					echo ""
+					echo "Reverting to defaults..."
+					echo ""
+
+					sleep 2
+
+					#Refreshing repositories
+					opkg update && prereqs
+
+					sleep 3
+
+					#Formats the SDcard to its original state with EXT3 filesystem
+					formatext4
+
+					sleep 5
+
+					#Removes the prerequisites
+					removeprereqs
+
+					echo ""
+					echo "Reverting complete !"
+					echo ""
+
+				else
+
+					echo ""
+					echo "ERROR ! The SDcard is not mounted !"
+					echo ""
+
+				fi
+
+				;;
+
+				#------------------Choice-6----------------------
+				# System reboot
+				6)
 
 				echo ""
 				echo "Your system will be rebooted in 10 seconds !"
