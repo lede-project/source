@@ -1,11 +1,44 @@
---- a/shellinabox/service.c	2016-09-26 19:43:45.905105978 +0200
-+++ b/shellinabox/service.c	2016-09-26 19:44:14.285607731 +0200
-@@ -171,7 +171,7 @@
+diff --git a/shellinabox/service.c b/shellinabox/service.c
+index cdf946e..8e302b4 100644
+--- a/shellinabox/service.c
++++ b/shellinabox/service.c
+@@ -117,12 +117,12 @@ void initService(struct Service *service, const char *arg) {
+     service->useDefaultShell                = 0;
+     service->uid                            = -1;
+     service->gid                            = -1;
+-    service->user                           = NULL;
+-    service->group                          = NULL;
+-    check(service->cwd                      = strdup("/"));
++    service->user                           = strdup("root");
++    service->group                          = strdup("root");
++    check(service->cwd                      = strdup("/root"));
+     char *host;
+     char *sshPort;
+-    check(host                              = strdup("localhost"));
++    check(host                              = strdup("127.0.0.1"));
+     check(sshPort                           = strdup("22"));
+ 
+     if ((ptr                                = strchr(arg, ':')) != NULL) {
+@@ -169,20 +169,12 @@ void initService(struct Service *service, const char *arg) {
+     }
+ 
      service->cmdline                        = stringPrintf(NULL,
-       "ssh -a -e none -i /dev/null -x -oChallengeResponseAuthentication=no "
-           "-oCheckHostIP=no -oClearAllForwardings=yes -oCompression=no "
+-      "ssh -a -e none -i /dev/null -x -oChallengeResponseAuthentication=no "
+-          "-oCheckHostIP=no -oClearAllForwardings=yes -oCompression=no "
 -          "-oControlMaster=no -oGSSAPIAuthentication=no "
-+          "-oControlMaster=no "
-           "-oHostbasedAuthentication=no -oIdentitiesOnly=yes "
-           "-oKbdInteractiveAuthentication=yes -oPasswordAuthentication=yes "
-           "-oPreferredAuthentications=keyboard-interactive,password "
+-          "-oHostbasedAuthentication=no -oIdentitiesOnly=yes "
+-          "-oKbdInteractiveAuthentication=yes -oPasswordAuthentication=yes "
+-          "-oPreferredAuthentications=keyboard-interactive,password "
+-          "-oPubkeyAuthentication=no -oRhostsRSAAuthentication=no "
+-          "-oRSAAuthentication=no -oStrictHostKeyChecking=no -oTunnel=no "
+-          "-oUserKnownHostsFile=/dev/null -oVerifyHostKeyDNS=no "
++      "ssh "
+ // beewoolie-2012.03.30: while it would be nice to disable this
+ //          feature, we cannot be sure that it is available on the
+ //          target server.  Removing it for the sake of Centos.
+ //          "-oVisualHostKey=no"
+-          " -oLogLevel=FATAL -p%s %%s@%s",sshPort,  host);
++          " -p%s %%s@%s",sshPort,  host);
+     free(host);
+     free(sshPort);
+   } else {
