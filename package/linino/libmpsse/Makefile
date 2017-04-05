@@ -40,7 +40,7 @@ define Package/libmpsse/description
   it is written in C and includes a Python wrapper courtesy of swig.
 endef
 
-TARGET_CFLAGS += $(FPIC)
+TARGET_CFLAGS += $(FPIC) -I$(STAGING_DIR)/usr/include/libftdi1
 CONFIGURE_ARGS += --disable-python
 
 define Build/Prepare
