@@ -9,28 +9,27 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=iptables
-PKG_VERSION:=1.4.21
-PKG_RELEASE:=2
+PKG_VERSION:=1.6.1
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=http://www.netfilter.org/projects/iptables/files \
-	ftp://ftp.be.netfilter.org/pub/netfilter/iptables/ \
-	ftp://ftp.de.netfilter.org/pub/netfilter/iptables/ \
-	ftp://ftp.no.netfilter.org/pub/netfilter/iptables/
-PKG_HASH:=52004c68021da9a599feed27f65defcfb22128f7da2c0531c0f75de0f479d3e0
+PKG_SOURCE_URL:= http://www.hu.netfilter.org/projects/iptables/files/ \
+	http://www.netfilter.org/projects/iptables/files/
+PKG_HASH:=0fc2d7bd5d7be11311726466789d4c65fb4c8e096c9182b56ce97440864f0cf5
 
 PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
 PKG_BUILD_PARALLEL:=1
 PKG_LICENSE:=GPL-2.0
 
-include $(INCLUDE_DIR)/package.mk
-ifeq ($(DUMP),)
-  -include $(LINUX_DIR)/.config
-  include $(INCLUDE_DIR)/netfilter.mk
-  STAMP_CONFIGURED:=$(strip $(STAMP_CONFIGURED))_$(shell grep 'NETFILTER' $(LINUX_DIR)/.config | mkhash md5)
-endif
+PKG_INSTALL:=1
+PKG_CONFIG_DEPENDS:= \
+	CONFIG_IPTABLES_IPV4 \
+	CONFIG_IPTABLES_IPV6 \
+	CONFIG_IPTABLES_ARPTABLES \
+	CONFIG_IPTABLES_EBTABLES
 
+include $(INCLUDE_DIR)/package.mk
 
 define Package/iptables/Default
   SECTION:=net
@@ -39,16 +38,21 @@ define Package/iptables/Default
   URL:=http://netfilter.org/
 endef
 
-define Package/iptables/Module
-$(call Package/iptables/Default)
-  DEPENDS:=iptables $(1)
-endef
-
 define Package/iptables
 $(call Package/iptables/Default)
   TITLE:=IP firewall administration tool
   MENU:=1
-  DEPENDS+= +kmod-ipt-core +libip4tc +IPV6:libip6tc +libxtables
+  DEPENDS:= \
+	+libxtables \
+	+IPTABLES_IPV4:libip4tc \
+	+kmod-ipt-core \
+	+IPTABLES_IPV6:libip6tc \
+	+IPTABLES_IPV6:kmod-ip6tables
+  PROVIDES:= ip6tables
+endef
+
+define Package/iptables/config
+source "$(SOURCE)/Config.in"
 endef
 
 define Package/iptables/description
@@ -90,302 +94,57 @@ IP firewall administration tool.
 
 endef
 
-define Package/iptables-mod-conntrack-extra
-$(call Package/iptables/Module, +kmod-ipt-conntrack-extra)
-  TITLE:=Extra connection tracking extensions
+define Package/iptables-mod-xtables
+  $(call Package/iptables/Default)
+  TITLE:= Extra xtables extensions
+  DEPENDS:= +libxtables
+  PROVIDES:= \
+	iptables-mod-checksum \
+	iptables-mod-cluster \
+	iptables-mod-conntrack-extra \
+	iptables-mod-extra \
+	iptables-mod-filter \
+	iptables-mod-hashlimit \
+	iptables-mod-iprange \
+	iptables-mod-led \
+	iptables-mod-nflog \
+	iptables-mod-nfqueue \
+	iptables-mod-tee \
+	iptables-mod-tproxy \
+	iptables-mod-u32
 endef
 
-define Package/iptables-mod-conntrack-extra/description
-Extra iptables extensions for connection tracking.
-
- Matches:
-  - connbytes
-  - connlimit
-  - connmark
-  - recent
-  - helper
-
- Targets:
-  - CONNMARK
-
+define Package/iptables-mod-ipv4
+  $(call Package/iptables/Default)
+  TITLE:= IPv4 iptables extensions
+  DEPENDS:= +libxtables +@IPTABLES_IPV4
+  PROVIDES:= \
+	iptables-mod-clusterip \
+	iptables-mod-ipopt \
+	iptables-mod-ipsec \
+	iptables-mod-nat-extra \
+	iptables-mod-ulog
 endef
 
-define Package/iptables-mod-filter
-$(call Package/iptables/Module, +kmod-ipt-filter)
-  TITLE:=Content inspection extensions
+define Package/iptables-mod-ipv4/description
+  TODO
 endef
 
-define Package/iptables-mod-filter/description
-iptables extensions for packet content inspection.
-Includes support for:
-
- Matches:
-  - string
-
+define Package/iptables-mod-ipv6
+  $(call Package/iptables/Default)
+  TITLE:= IPv6 iptables extensions
+  DEPENDS:= +libxtables +@IPTABLES_IPV6
+  PROVIDES:= \
+	ip6tables-extra \
+	ip6tables-mod-nat
 endef
 
-define Package/iptables-mod-ipopt
-$(call Package/iptables/Module, +kmod-ipt-ipopt)
-  TITLE:=IP/Packet option extensions
-endef
-
-define Package/iptables-mod-ipopt/description
-iptables extensions for matching/changing IP packet options.
-
- Matches:
-  - dscp
-  - ecn
-  - length
-  - statistic
-  - tcpmss
-  - unclean
-  - hl
-
- Targets:
-  - DSCP
-  - CLASSIFY
-  - ECN
-  - HL
-
-endef
-
-define Package/iptables-mod-ipsec
-$(call Package/iptables/Module, +kmod-ipt-ipsec)
-  TITLE:=IPsec extensions
-endef
-
-define Package/iptables-mod-ipsec/description
-iptables extensions for matching ipsec traffic.
-
- Matches:
-  - ah
-  - esp
-  - policy
-
-endef
-
-define Package/iptables-mod-nat-extra
-$(call Package/iptables/Module, +kmod-ipt-nat-extra)
-  TITLE:=Extra NAT extensions
-endef
-
-define Package/iptables-mod-nat-extra/description
-iptables extensions for extra NAT targets.
-
- Targets:
-  - MIRROR
-  - NETMAP
-endef
-
-define Package/iptables-mod-ulog
-$(call Package/iptables/Module, +kmod-ipt-ulog)
-  TITLE:=user-space packet logging
-endef
-
-define Package/iptables-mod-ulog/description
-iptables extensions for user-space packet logging.
-
- Targets:
-  - ULOG
-
-endef
-
-define Package/iptables-mod-nflog
-$(call Package/iptables/Module, +kmod-nfnetlink-log +kmod-ipt-nflog)
-  TITLE:=Netfilter NFLOG target
-endef
-
-define Package/iptables-mod-nflog/description
- iptables extension for user-space logging via NFNETLINK.
-
- Includes:
-  - libxt_NFLOG
-
-endef
-
-define Package/iptables-mod-nfqueue
-$(call Package/iptables/Module, +kmod-nfnetlink-queue +kmod-ipt-nfqueue)
-  TITLE:=Netfilter NFQUEUE target
-endef
-
-define Package/iptables-mod-nfqueue/description
- iptables extension for user-space queuing via NFNETLINK.
-
- Includes:
-  - libxt_NFQUEUE
-
-endef
-
-define Package/iptables-mod-hashlimit
-$(call Package/iptables/Module, +kmod-ipt-hashlimit)
-  TITLE:=hashlimit matching
-endef
-
-define Package/iptables-mod-hashlimit/description
-iptables extensions for hashlimit matching
-
- Matches:
-  - hashlimit
-
-endef
-
-define Package/iptables-mod-iprange
-$(call Package/iptables/Module, +kmod-ipt-iprange)
-  TITLE:=IP range extension
-endef
-
-define Package/iptables-mod-iprange/description
-iptables extensions for matching ip ranges.
-
- Matches:
-  - iprange
-
-endef
-
-define Package/iptables-mod-cluster
-$(call Package/iptables/Module, +kmod-ipt-cluster)
-  TITLE:=Match cluster extension
-endef
-
-define Package/iptables-mod-cluster/description
-iptables extensions for matching cluster.
-
- Netfilter (IPv4/IPv6) module for matching cluster
- This option allows you to build work-load-sharing clusters of
- network servers/stateful firewalls without having a dedicated
- load-balancing router/server/switch. Basically, this match returns
- true when the packet must be handled by this cluster node. Thus,
- all nodes see all packets and this match decides which node handles
- what packets. The work-load sharing algorithm is based on source
- address hashing.
-
- This module is usable for ipv4 and ipv6.
-
- If you select it, it enables kmod-ipt-cluster.
-
- see `iptables -m cluster --help` for more information.
-endef
-
-define Package/iptables-mod-clusterip
-$(call Package/iptables/Module, +kmod-ipt-clusterip)
-  TITLE:=Clusterip extension
-endef
-
-define Package/iptables-mod-clusterip/description
-iptables extensions for CLUSTERIP.
- The CLUSTERIP target allows you to build load-balancing clusters of
- network servers without having a dedicated load-balancing
- router/server/switch.
-
- If you select it, it enables kmod-ipt-clusterip.
-
- see `iptables -j CLUSTERIP --help` for more information.
-endef
-
-define Package/iptables-mod-extra
-$(call Package/iptables/Module, +kmod-ipt-extra)
-  TITLE:=Other extra iptables extensions
-endef
-
-define Package/iptables-mod-extra/description
-Other extra iptables extensions.
-
- Matches:
-  - addrtype
-  - condition
-  - owner
-  - physdev (if ebtables is enabled)
-  - pkttype
-  - quota
-
-endef
-
-define Package/iptables-mod-led
-$(call Package/iptables/Module, +kmod-ipt-led)
-  TITLE:=LED trigger iptables extension
-endef
-
-define Package/iptables-mod-led/description
-iptables extension for triggering a LED.
-
- Targets:
-  - LED
-
-endef
-
-define Package/iptables-mod-tproxy
-$(call Package/iptables/Module, +kmod-ipt-tproxy)
-  TITLE:=Transparent proxy iptables extensions
-endef
-
-define Package/iptables-mod-tproxy/description
-Transparent proxy iptables extensions.
-
- Matches:
-  - socket
-
- Targets:
-  - TPROXY
-
-endef
-
-define Package/iptables-mod-tee
-$(call Package/iptables/Module, +kmod-ipt-tee)
-  TITLE:=TEE iptables extensions
-endef
-
-define Package/iptables-mod-tee/description
-TEE iptables extensions.
-
- Targets:
-  - TEE
-
-endef
-
-define Package/iptables-mod-u32
-$(call Package/iptables/Module, +kmod-ipt-u32)
-  TITLE:=U32 iptables extensions
-endef
-
-define Package/iptables-mod-u32/description
-U32 iptables extensions.
-
- Matches:
-  - u32
-
-endef
-
-define Package/ip6tables
-$(call Package/iptables/Default)
-  DEPENDS:=@IPV6 +kmod-ip6tables +iptables
-  CATEGORY:=Network
-  TITLE:=IPv6 firewall administration tool
-  MENU:=1
-endef
-
-
-define Package/ip6tables-extra
-$(call Package/iptables/Default)
-  DEPENDS:=ip6tables +kmod-ip6tables-extra
-  TITLE:=IPv6 header matching modules
-endef
-
-define Package/ip6tables-mod-extra/description
-iptables header matching modules for IPv6
-endef
-
-define Package/ip6tables-mod-nat
-$(call Package/iptables/Default)
-  DEPENDS:=ip6tables +kmod-ipt-nat6
-  TITLE:=IPv6 NAT extensions
-endef
-
-define Package/ip6tables-mod-nat/description
-iptables extensions for IPv6-NAT targets.
+define Package/iptables-mod-ipv6/description
+  TODO
 endef
 
 define Package/libiptc
-$(call Package/iptables/Default)
+  $(call Package/iptables/Default)
   SECTION:=libs
   CATEGORY:=Libraries
   DEPENDS:=+libip4tc +libip6tc +libxtables
@@ -393,7 +152,7 @@ $(call Package/iptables/Default)
 endef
 
 define Package/libip4tc
-$(call Package/iptables/Default)
+  $(call Package/iptables/Default)
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=IPv4 firewall - shared libiptc library
@@ -401,7 +160,7 @@ $(call Package/iptables/Default)
 endef
 
 define Package/libip6tc
-$(call Package/iptables/Default)
+  $(call Package/iptables/Default)
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=IPv6 firewall - shared libiptc library
@@ -409,89 +168,117 @@ $(call Package/iptables/Default)
 endef
 
 define Package/libxtables
- $(call Package/iptables/Default)
- SECTION:=libs
- CATEGORY:=Libraries
- TITLE:=IPv4/IPv6 firewall - shared xtables library
+  $(call Package/iptables/Default)
+  SECTION:=libs
+  CATEGORY:=Libraries
+  TITLE:=IPv4/IPv6 firewall - shared xtables library
+  DEPENDS:= +libnfnetlink +libnetfilter-conntrack
 endef
 
-TARGET_CPPFLAGS := \
-	-I$(PKG_BUILD_DIR)/include \
-	-I$(LINUX_DIR)/user_headers/include \
-	$(TARGET_CPPFLAGS)
+IPTABLES_XTLIBDIR:=/usr/lib/iptables
+
+define Iptables/InstallExtensions
+	$(INSTALL_DIR) $(1)/$(IPTABLES_XTLIBDIR)
+	for m in $(2) ; do \
+		$(CP) $(PKG_INSTALL_DIR)/$(IPTABLES_XTLIBDIR)/lib$$$${m}.so $(1)/$(IPTABLES_XTLIBDIR)/ ; \
+	done
+endef
 
 TARGET_CFLAGS += \
-	-I$(PKG_BUILD_DIR)/include \
-	-I$(LINUX_DIR)/user_headers/include \
-	-ffunction-sections -fdata-sections \
-	-DNO_LEGACY
+	-ffunction-sections -fdata-sections
 
 TARGET_LDFLAGS += \
 	-Wl,--gc-sections
 
 CONFIGURE_ARGS += \
 	--enable-shared \
+	--disable-static \
 	--enable-devel \
-	--with-kernel="$(LINUX_DIR)/user_headers" \
-	--with-xtlibdir=/usr/lib/iptables \
-	--enable-static \
-	$(if $(CONFIG_IPV6),,--disable-ipv6)
-
-MAKE_FLAGS := \
-	$(TARGET_CONFIGURE_OPTS) \
-	COPT_FLAGS="$(TARGET_CFLAGS)" \
-	KERNEL_DIR="$(LINUX_DIR)/user_headers/" PREFIX=/usr \
-	KBUILD_OUTPUT="$(LINUX_DIR)" \
-	BUILTIN_MODULES="$(patsubst ip6t_%,%,$(patsubst ipt_%,%,$(patsubst xt_%,%,$(IPT_BUILTIN) $(IPT_CONNTRACK-m) $(IPT_NAT-m))))"
-
-ifneq ($(wildcard $(PKG_BUILD_DIR)/.config_*),$(subst .configured_,.config_,$(STAMP_CONFIGURED)))
-  define Build/Configure/rebuild
-	$(FIND) $(PKG_BUILD_DIR) -name \*.o -or -name \*.\?o -or -name \*.a | $(XARGS) rm -f
-	rm -f $(PKG_BUILD_DIR)/.config_*
-	rm -f $(PKG_BUILD_DIR)/.configured_*
-	touch $(subst .configured_,.config_,$(STAMP_CONFIGURED))
-  endef
-endif
-
-define Build/Configure
-$(Build/Configure/rebuild)
-$(Build/Configure/Default)
-endef
+	--disable-nftables \
+	--prefix=/usr \
+	--with-xtlibdir=$(IPTABLES_XTLIBDIR) \
+	$(if $(CONFIG_IPTABLES_IPV4),--enable-ipv4,--disable-ipv4) \
+	$(if $(CONFIG_IPTABLES_IPV6),--enable-ipv6,--disable-ipv6)
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include
-	$(INSTALL_DIR) $(1)/usr/include/iptables
-	$(INSTALL_DIR) $(1)/usr/include/net/netfilter
-
-	# XXX: iptables header fixup, some headers are not installed by iptables anymore
-	$(CP) $(PKG_BUILD_DIR)/include/iptables/*.h $(1)/usr/include/iptables/
-	$(CP) $(PKG_BUILD_DIR)/include/iptables.h $(1)/usr/include/
-	$(CP) $(PKG_BUILD_DIR)/include/ip6tables.h $(1)/usr/include/
-	$(CP) $(PKG_BUILD_DIR)/include/libipulog $(1)/usr/include/
-	$(CP) $(PKG_BUILD_DIR)/include/libiptc $(1)/usr/include/
 
 	$(CP) $(PKG_INSTALL_DIR)/usr/include/* $(1)/usr/include/
+	
 	$(INSTALL_DIR) $(1)/usr/lib
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libxtables.so* $(1)/usr/lib/
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libip*tc.so* $(1)/usr/lib/
+
 	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/pkgconfig/xtables.pc $(1)/usr/lib/pkgconfig/
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/pkgconfig/libip*tc.pc $(1)/usr/lib/pkgconfig/
+	
 
-	# XXX: needed by firewall3
-	$(CP) $(PKG_BUILD_DIR)/extensions/libiptext*.so $(1)/usr/lib/
 endef
 
 define Package/iptables/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/xtables-multi $(1)/usr/sbin/
-	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/iptables{,-restore,-save} $(1)/usr/sbin/
-	$(INSTALL_DIR) $(1)/usr/lib/iptables
-endef
+	$(call Iptables/InstallExtensions,$(1), \
+		xt_CT xt_MARK xt_SET xt_TCPMSS xt_comment xt_conntrack \
+		xt_limit xt_mac xt_mark xt_multiport xt_set xt_standard \
+		xt_state xt_tcp xt_time xt_udp)
 
-define Package/ip6tables/install
+  ifdef CONFIG_IPTABLES_IPV4
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/iptables{,-restore,-save} $(1)/usr/sbin/
+	$(call Iptables/InstallExtensions,$(1), \
+		ipt_LOG ipt_REJECT ipt_icmp \
+		ipt_DNAT ipt_MASQUERADE ipt_REDIRECT ipt_SNAT)
+  endif
+
+  ifdef CONFIG_IPTABLES_IPV6
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/ip6tables{,-restore,-save} $(1)/usr/sbin/
+	$(call Iptables/InstallExtensions,$(1), \
+		ip6t_LOG ip6t_REJECT ip6t_icmp6)
+  endif
+
+  ifdef CONFIG_IPTABLES_ARPTABLES
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/arptables-compat $(1)/usr/sbin/
+	$(call Iptables/InstallExtensions,$(1), \
+		arpt_mangle)
+  endif
+
+  ifdef CONFIG_IPTABLES_EBTABLE
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/ebtables-compat $(1)/usr/sbin/
+	$(call Iptables/InstallExtensions,$(1), \
+		ebt_802_3 ebt_ip ebt_limit ebt_mark ebt_mark_m ebt_log ebt_nflog)
+  endif
+endef
+
+define Package/iptables-mod-xtables/install
+	$(call Iptables/InstallExtensions,$(1), \
+		xt_AUDIT xt_CHECKSUM xt_CLASSIFY xt_CONNMARK xt_CONNSECMARK \
+		xt_DSCP xt_HMARK xt_IDLETIMER xt_LED xt_NFLOG xt_NFQUEUE \
+		xt_NOTRACK xt_RATEEST xt_SECMARK xt_SYNPROXY xt_TCPOPTSTRIP \
+		xt_TEE xt_TOS xt_TPROXY xt_TRACE xt_addrtype xt_bpf xt_cgroup \
+		xt_cluster xt_connbytes xt_connlabel xt_connlimit xt_connmark \
+		xt_cpu xt_dccp xt_devgroup xt_dscp xt_ecn xt_esp xt_hashlimit \
+		xt_helper xt_ipcomp xt_iprange xt_ipvs xt_length xt_mangle \
+		xt_nfacct xt_osf xt_owner xt_physdev xt_pkttype xt_policy \
+		xt_quota xt_rateest xt_recent xt_rpfilter xt_sctp xt_socket \
+		xt_statistic xt_string xt_tcpmss xt_tos xt_u32)
+endef
+
+define Package/iptables-mod-ipv4/install
+	$(call Iptables/InstallExtensions,$(1), \
+		ipt_CLUSTERIP ipt_ECN ipt_NETMAP ipt_TTL ipt_ULOG \
+		ipt_ah ipt_realm ipt_ttl)
+endef
+
+define Package/iptables-mod-ipv6/install
+	$(call Iptables/InstallExtensions,$(1), \
+		ip6t_DNAT ip6t_MASQUERADE ip6t_REDIRECT ip6t_SNAT DNPT ip6t_HL \
+		ip6t_ip6t_NETMAP ip6t_SNPT ip6t_ah ip6t_dst ip6t_eui64 frag ip6t_hbh \
+		ip6t_ip6t_hl ip6t_ipv6header ip6t_mh ip6t_rt)
 endef
 
 define Package/libiptc/install
@@ -517,41 +304,10 @@ define Package/libxtables/install
 	$(CP) $(PKG_BUILD_DIR)/extensions/libiptext.so $(1)/usr/lib/
 endef
 
-define BuildPlugin
-  define Package/$(1)/install
-	$(INSTALL_DIR) $$(1)/usr/lib/iptables
-	for m in $(patsubst xt_%,ipt_%,$(2)) $(patsubst ipt_%,xt_%,$(2)) $(patsubst xt_%,ip6t_%,$(2)) $(patsubst ip6t_%,xt_%,$(2)); do \
-		if [ -f $(PKG_INSTALL_DIR)/usr/lib/iptables/lib$$$$$$$${m}.so ]; then \
-			$(CP) $(PKG_INSTALL_DIR)/usr/lib/iptables/lib$$$$$$$${m}.so $$(1)/usr/lib/iptables/ ; \
-		fi; \
-	done
-	$(3)
-  endef
-
-  $$(eval $$(call BuildPackage,$(1)))
-endef
-
 $(eval $(call BuildPackage,iptables))
-$(eval $(call BuildPlugin,iptables-mod-conntrack-extra,$(IPT_CONNTRACK_EXTRA-m)))
-$(eval $(call BuildPlugin,iptables-mod-extra,$(IPT_EXTRA-m)))
-$(eval $(call BuildPlugin,iptables-mod-filter,$(IPT_FILTER-m)))
-$(eval $(call BuildPlugin,iptables-mod-ipopt,$(IPT_IPOPT-m)))
-$(eval $(call BuildPlugin,iptables-mod-ipsec,$(IPT_IPSEC-m)))
-$(eval $(call BuildPlugin,iptables-mod-nat-extra,$(IPT_NAT_EXTRA-m)))
-$(eval $(call BuildPlugin,iptables-mod-iprange,$(IPT_IPRANGE-m)))
-$(eval $(call BuildPlugin,iptables-mod-cluster,$(IPT_CLUSTER-m)))
-$(eval $(call BuildPlugin,iptables-mod-clusterip,$(IPT_CLUSTERIP-m)))
-$(eval $(call BuildPlugin,iptables-mod-ulog,$(IPT_ULOG-m)))
-$(eval $(call BuildPlugin,iptables-mod-hashlimit,$(IPT_HASHLIMIT-m)))
-$(eval $(call BuildPlugin,iptables-mod-led,$(IPT_LED-m)))
-$(eval $(call BuildPlugin,iptables-mod-tproxy,$(IPT_TPROXY-m)))
-$(eval $(call BuildPlugin,iptables-mod-tee,$(IPT_TEE-m)))
-$(eval $(call BuildPlugin,iptables-mod-u32,$(IPT_U32-m)))
-$(eval $(call BuildPlugin,iptables-mod-nflog,$(IPT_NFLOG-m)))
-$(eval $(call BuildPlugin,iptables-mod-nfqueue,$(IPT_NFQUEUE-m)))
-$(eval $(call BuildPackage,ip6tables))
-$(eval $(call BuildPlugin,ip6tables-extra,$(IPT_IPV6_EXTRA-m)))
-$(eval $(call BuildPlugin,ip6tables-mod-nat,$(IPT_NAT6-m)))
+$(eval $(call BuildPackage,iptables-mod-xtables))
+$(eval $(call BuildPackage,iptables-mod-ipv4))
+$(eval $(call BuildPackage,iptables-mod-ipv6))
 $(eval $(call BuildPackage,libiptc))
 $(eval $(call BuildPackage,libip4tc))
 $(eval $(call BuildPackage,libip6tc))
