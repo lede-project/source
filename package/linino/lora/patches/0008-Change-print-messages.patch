@@ -1,7 +1,7 @@
 From 5343b2effefcd15ebf52b0ea308f367b436b7ed1 Mon Sep 17 00:00:00 2001
 From: mimmoLinino <mimmo@linino.org>
 Date: Wed, 21 Dec 2016 16:39:23 +0100
-Subject: [PATCH 08/13] Change print messages
+Subject: [PATCH 08/21] Change print messages
 
 ---
  libloragw/Makefile               |  18 ++---

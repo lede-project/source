@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lora-gateway
 PKG_VERSION:=4.1.3
-PKG_RELEASE:=16
+PKG_RELEASE:=21
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/Lora-net/lora_gateway.git
@@ -18,6 +18,8 @@ PKG_SOURCE_VERSION:=v4.1.3
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_SOURCE_VERSION).tar.gz
 
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+
+# PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/package.mk
@@ -29,8 +31,8 @@ endef
 
 define Package/lora-gateway
 $(call Package/lora-gateway/Default)
-	SECTION:=utils
-	CATEGORY:=Utilities
+	SECTION:=net
+	CATEGORY:=Network
 	DEPENDS:=+libc +librt
 	SUBMENU:=LoRa
 endef
@@ -40,7 +42,9 @@ define Package/lora-gateway/description
 	a Semtech LoRa multi-channel RF receiver (a.k.a. concentrator).
 endef
 
-TARGET_CFLAGS += $(FPIC) -O2 -Wall -Wextra -Iinc -I. -lm
+# TARGET_CFLAGS += $(FPIC) -O2 -Wall -Wextra -std=c99 -Iinc -I. -lm
+
+TARGET_CFLAGS:=$(FPIC) -O2 -Wall -Wextra -Iinc -I. -lm
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include/lora-gateway
@@ -63,7 +67,7 @@ define Package/lora-gateway/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/util_spectral_scan/util_spectral_scan $(1)/usr/bin
 
 	$(INSTALL_DIR) $(1)/usr/lib
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/libloragw/libloragw.{a,so} $(1)/usr/lib
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/libloragw/libloragw.a $(1)/usr/lib
 endef
 
 define Package/lora-gateway/postinst

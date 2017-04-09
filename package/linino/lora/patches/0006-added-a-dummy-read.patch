@@ -1,7 +1,7 @@
 From 9b6582c8b6b01afa10c96854c53f308c0fa0e2cc Mon Sep 17 00:00:00 2001
 From: mimmoLinino <mimmo@linino.org>
 Date: Mon, 5 Dec 2016 14:31:31 +0100
-Subject: [PATCH 06/13] added a dummy read
+Subject: [PATCH 06/21] added a dummy read
 
 ---
  libloragw/src/loragw_spi-stm32.c | 22 ++++++++++++++++------

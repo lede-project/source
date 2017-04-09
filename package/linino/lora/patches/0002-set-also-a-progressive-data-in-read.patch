@@ -1,7 +1,7 @@
 From d7fd23507f2122df5816b8de9a82a8c3c3dae728 Mon Sep 17 00:00:00 2001
 From: mimmoLinino <mimmo@linino.org>
 Date: Fri, 2 Dec 2016 18:04:44 +0100
-Subject: [PATCH 02/13] set also a progressive data in read
+Subject: [PATCH 02/21] set also a progressive data in read
 
 ---
  libloragw/tst/test_loragw_spi.c | 5 +++--

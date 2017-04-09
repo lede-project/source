@@ -1,7 +1,7 @@
 From 53467b60aaf4bece77a07319e5eece83f0422ee2 Mon Sep 17 00:00:00 2001
 From: mimmoLinino <mimmo@linino.org>
 Date: Tue, 6 Dec 2016 10:55:49 +0100
-Subject: [PATCH 07/13] reduce chunk to 32
+Subject: [PATCH 07/21] reduce chunk to 32
 
 ---
  libloragw/inc/loragw_spi.h       |  2 +-

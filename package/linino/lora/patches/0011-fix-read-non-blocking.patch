@@ -1,7 +1,7 @@
 From 81ce37d6c90e79f2c6810bed8216d6215c9a6734 Mon Sep 17 00:00:00 2001
 From: mimmoLinino <mimmo@linino.org>
 Date: Fri, 23 Dec 2016 15:44:30 +0100
-Subject: [PATCH 11/13] fix read non-blocking
+Subject: [PATCH 11/21] fix read non-blocking
 
 ---
  libloragw/src/loragw_spi-stm32.c | 35 ++++++++---------------------------

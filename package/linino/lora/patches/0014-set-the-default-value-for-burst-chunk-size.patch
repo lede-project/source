@@ -1,22 +1,22 @@
-From c34c09096fcc73e0f83ac98a02ca66b9d487d6f2 Mon Sep 17 00:00:00 2001
+From 121b17298ff3f30dc3dbba6a4ffa3874b3b15845 Mon Sep 17 00:00:00 2001
 From: mimmoLinino <mimmo@linino.org>
-Date: Fri, 2 Dec 2016 18:05:01 +0100
-Subject: [PATCH 03/21] Reducded temporarly the chunk size
+Date: Fri, 3 Feb 2017 11:40:21 +0100
+Subject: [PATCH 14/21] set the default value for burst chunk size
 
 ---
  libloragw/inc/loragw_spi.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/libloragw/inc/loragw_spi.h b/libloragw/inc/loragw_spi.h
-index fef1f48..46f5304 100644
+index 20afb9a..fef1f48 100644
 --- a/libloragw/inc/loragw_spi.h
 +++ b/libloragw/inc/loragw_spi.h
 @@ -33,7 +33,7 @@ Maintainer: Sylvain Miermont
  
  #define LGW_SPI_SUCCESS     0
  #define LGW_SPI_ERROR       -1
--#define LGW_BURST_CHUNK     1024
-+#define LGW_BURST_CHUNK     64
+-#define LGW_BURST_CHUNK     255
++#define LGW_BURST_CHUNK     1024
  
  #define LGW_SPI_MUX_MODE0   0x0     /* No FPGA */
  #define LGW_SPI_MUX_MODE1   0x1     /* FPGA, with spi mux header */

@@ -1,0 +1,397 @@
+From 0e72b281c86c26bee250d780540936c6ceeebeec Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Fri, 3 Mar 2017 12:49:55 +0100
+Subject: [PATCH 17/21] fix blocking read issue
+
+---
+ libloragw/Makefile               |   2 +-
+ libloragw/src/loragw_spi-stm32.c | 236 +++++++++++++++++++++++++++++++--------
+ 2 files changed, 192 insertions(+), 46 deletions(-)
+
+diff --git a/libloragw/Makefile b/libloragw/Makefile
+index 2d0eb1a..48200a3 100644
+--- a/libloragw/Makefile
++++ b/libloragw/Makefile
+@@ -17,7 +17,7 @@ INCLUDES = $(wildcard inc/*.h)
+ 
+ ### linking options
+ 
+-LIBS := -lloragw -lrt -lm
++LIBS := -lloragw -lrt -lm -lpthread
+ 
+ ### general build targets
+ 
+diff --git a/libloragw/src/loragw_spi-stm32.c b/libloragw/src/loragw_spi-stm32.c
+index 49f9156..e256f2d 100644
+--- a/libloragw/src/loragw_spi-stm32.c
++++ b/libloragw/src/loragw_spi-stm32.c
+@@ -33,6 +33,10 @@ Maintainer: Sylvain Miermont
+ #include <sys/ioctl.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#include <pthread.h>
++#include <errno.h>
++
++extern int errno;
+ 
+ 
+ #include "loragw_spi.h"
+@@ -67,9 +71,39 @@ Maintainer: Sylvain Miermont
+ // If enabled during the read block the write buffer will be filled by incremental values 0-255 and during the read will be verified. 
+ // Need to add a hardware loop between MISO and MOSI. The test pass if the read buffer is equal to the sent buffer
+ //#define TEST_BUFFER_LOOP
+-//#define READ_BLOCK
++#define READ_BLOCK
+ #define READ_TIMEOUT 100
+ 
++#define MAX_BUF_SIZE 128
++
++typedef struct read_ctx_s {
++  int fd;
++  unsigned char buf[MAX_BUF_SIZE];
++  int nr;
++  int ntor;
++} read_ctx_t;
++
++void *read_function(void *arg)
++{
++  read_ctx_t *ctx = (read_ctx_t *)arg;
++  int num_bytes;
++  int offset = 0;
++
++  do
++  {
++    offset = ctx->nr;
++
++    num_bytes = read( ctx->fd, &ctx->buf[offset], (MAX_BUF_SIZE - offset) ); /* there was data to read */
++ 
++    if(num_bytes > 0) {
++      ctx->nr += num_bytes;
++    }
++    num_bytes = 0;  
++  }while(ctx->nr < ctx->ntor);
++
++  return NULL;
++}
++
+ #ifdef READ_BLOCK	
+ ssize_t read_spi(int fd, void *buf, size_t count)
+ {
+@@ -161,7 +195,7 @@ int lgw_spi_open(void **spi_target_ptr) {
+     }
+     
+      /* open SPI device */
+-	dev = open(SPI_DEV_PATH, O_RDWR | O_NOCTTY );
++	dev = open(SPI_DEV_PATH, O_RDWR | O_NOCTTY);
+     if (dev < 0) {
+         DEBUG_PRINTF("ERROR: failed to open SPI device %s\n", SPI_DEV_PATH);
+         return LGW_SPI_ERROR;
+@@ -182,11 +216,11 @@ int lgw_spi_open(void **spi_target_ptr) {
+     options.c_cflag |=  CS8;                // Select 8 data bits
+     options.c_cflag &= ~CRTSCTS;            // Disable hardware flow control  
+ #ifdef READ_BLOCK
+-    options.c_cc[VMIN]   =  0;              // read doesn't block
+-	options.c_cc[VTIME]  =  0;              // 0.5 seconds read timeout
++    options.c_cc[VMIN]   =  0;              // read blocks
++    options.c_cc[VTIME]  =  5;              // 0.5 seconds read timeout
+ #else
+     options.c_cc[VMIN]   =  1;              // read doesn't block
+-	options.c_cc[VTIME]  =  5;              // 0.5 seconds read timeout
++    options.c_cc[VTIME]  =  5;              // 0.5 seconds read timeout
+ #endif
+     // Enable data to be processed as raw input
+     options.c_lflag &= ~(ICANON | ECHO | ISIG);
+@@ -246,6 +280,8 @@ int lgw_spi_w(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+     uint8_t out_buf[3];
+     uint8_t command_size;
+     int nw, nr;
++    pthread_t read_thread;
++    read_ctx_t *r_ctx = NULL;
+ 
+     //DEBUG_MSG("\n**SIMPLE WRITE ** - ");
+     /* check input variables */
+@@ -268,10 +304,33 @@ int lgw_spi_w(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+         command_size = 2;
+     }
+ 
+-	enable_CS(spi_device);
+-	nw = write(spi_device, &out_buf[0], command_size);
+-	nr = read_spi(spi_device, &dummy[0], command_size);
+-	disable_CS(spi_device);
++    r_ctx = (read_ctx_t *)calloc(1, sizeof(read_ctx_t));
++
++    if(r_ctx == NULL) {
++        DEBUG_MSG("ERROR: failed to create r_ctx\n");
++        return LGW_SPI_ERROR;
++    }
++
++    r_ctx->fd = spi_device;
++    r_ctx->ntor = command_size;
++
++    /* create read thread */
++    if(pthread_create(&read_thread, NULL, read_function, r_ctx) != 0) {
++        DEBUG_MSG("ERROR: failed to create thread\n");
++        free(r_ctx);
++        return LGW_SPI_ERROR;
++    }
++
++    enable_CS(spi_device);
++    nw = write(spi_device, &out_buf[0], command_size);
++
++    pthread_join(read_thread, NULL);
++
++    nr = r_ctx->nr;
++
++    free(r_ctx);
++
++    disable_CS(spi_device);
+ 	
+     /* determine return code */
+     if ((nw != command_size)||(nr != command_size)) {
+@@ -293,8 +352,10 @@ int lgw_spi_r(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+     int spi_device;
+     uint8_t out_buf[3];
+     uint8_t command_size;
+-    uint8_t in_buf[ARRAY_SIZE(out_buf)];
++    uint8_t in_buf[3];
+     int nw, nr;
++    pthread_t read_thread;
++    read_ctx_t *r_ctx = NULL;
+ 
+ 	//DEBUG_MSG("\n**SIMPLE READ ** - ");
+     /* check input variables */
+@@ -317,12 +378,35 @@ int lgw_spi_r(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+         out_buf[1] = 0x00;
+         command_size = 2;
+     }
++
++    r_ctx = (read_ctx_t *)calloc(1, sizeof(read_ctx_t));
++
++    if(r_ctx == NULL) {
++        DEBUG_MSG("ERROR: failed to create r_ctx\n");
++        return LGW_SPI_ERROR;
++    }
++
++    r_ctx->fd = spi_device;
++    r_ctx->ntor = command_size;
++
++    /* create read thread */
++    if(pthread_create(&read_thread, NULL, read_function, r_ctx) != 0) {
++        DEBUG_MSG("ERROR: failed to create thread\n");
++        free(r_ctx);
++        return LGW_SPI_ERROR;
++    }
+     
+     enable_CS(spi_device);
+     nw = write(spi_device, &out_buf[0], command_size);
+-    nr = read_spi(spi_device, &in_buf[0], command_size);
+-    
+-	disable_CS(spi_device);
++
++    pthread_join(read_thread, NULL);
++
++    nr = r_ctx->nr;
++    memcpy(in_buf, r_ctx->buf, r_ctx->nr);
++
++    free(r_ctx); 
++
++    disable_CS(spi_device);
+ 
+     /* determine return code */
+     if ((nw != (int)command_size) || (nr != (int)command_size)) {
+@@ -349,6 +433,8 @@ int lgw_spi_wb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+     int size_to_do, chunk_size, offset;
+     int byte_transfered = 0;
+     int i, nw, nr;
++    pthread_t read_thread;
++    read_ctx_t *r_ctx = NULL;
+ 
+ 	//DEBUG_MSG("\n**BURST MULTIPLE WRITE ** - ");
+     /* check input parameters */
+@@ -373,32 +459,69 @@ int lgw_spi_wb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+         command[0] = WRITE_ACCESS | (address & 0x7F);
+         command_size = 1;
+     }
+-    
+-	enable_CS(spi_device);
++
++    r_ctx = (read_ctx_t *)calloc(1, sizeof(read_ctx_t));
++
++    if(r_ctx == NULL) {
++        DEBUG_MSG("ERROR: failed to create r_ctx\n");
++        return LGW_SPI_ERROR;
++    }
++
++    r_ctx->fd = spi_device;
++    r_ctx->ntor = command_size;
++
++    /* create read thread */
++    if(pthread_create(&read_thread, NULL, read_function, r_ctx) != 0) {
++        DEBUG_MSG("ERROR: failed to create thread\n");
++        free(r_ctx);
++        return LGW_SPI_ERROR;
++    }
++
++    enable_CS(spi_device);
++
+     nw = write(spi_device, &command[0], command_size);
+-    nr = read_spi(spi_device, &dummy[0], command_size);
+ 
++    pthread_join(read_thread, NULL);
++
++    nr = r_ctx->nr;
+     
+-     /* determine return code */
+-     if ((nw != command_size)||(nr != command_size))  {
+-		DUMP_STATS(nw, nr);
++    /* determine return code */
++    if ((nw != command_size)||(nr != command_size))  {
++        DUMP_STATS(nw, nr);
+         ERROR_MSG("ERROR: SPI BURST WRITE FAILURE\n");
+         return LGW_SPI_ERROR;
+-	}
++    }
+ 
+     size_to_do = size;
+     
+     for (i=0; size_to_do > 0; ++i) {
+         chunk_size = (size_to_do < LGW_BURST_CHUNK) ? size_to_do : LGW_BURST_CHUNK;
+         offset = i * LGW_BURST_CHUNK;
++
++        r_ctx->nr = 0;
++        r_ctx->ntor = chunk_size;
++
++        /* create read thread */
++        if(pthread_create(&read_thread, NULL, read_function, r_ctx) != 0) {
++             DEBUG_MSG("ERROR: failed to create thread\n");
++             free(r_ctx);
++             return LGW_SPI_ERROR;
++        }
++
+         nw = write(spi_device, &data[offset], chunk_size);
+         byte_transfered += nw;
+-		nr = read_spi(spi_device, &dummy[0], chunk_size);
++
++        pthread_join(read_thread, NULL);
++
++        nr = r_ctx->nr;
+ 
+ 	if (( nr != chunk_size)||(nw != chunk_size)) { ERROR_PRINTF("\n--WARNING -- %d %d --", i, offset); DUMP_STATS(nw, nr); }
+         //DEBUG_PRINTF("BURST WRITE: to trans %d # chunk %d # transferred %d \n", size_to_do, chunk_size, byte_transfered);
+         size_to_do -= chunk_size; /* subtract the quantity of data already transferred */
+     }
++
++    free(r_ctx);
++
+     disable_CS(spi_device);
+ 
+     /* determine return code */
+@@ -423,6 +546,8 @@ int lgw_spi_rb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+     int size_to_do, chunk_size, offset;
+     int byte_transfered = 0;
+     int i, nw, nr;
++    pthread_t read_thread;
++    read_ctx_t *r_ctx = NULL;
+ 
+ 	//DEBUG_MSG("\n**BURST MULTIPLE READ ** - ");
+     /* check input parameters */
+@@ -448,16 +573,36 @@ int lgw_spi_rb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+         command_size = 1;
+     }
+ 
+-	enable_CS(spi_device);
++    r_ctx = (read_ctx_t *)calloc(1, sizeof(read_ctx_t));
++
++    if(r_ctx == NULL) {
++        DEBUG_MSG("ERROR: failed to create r_ctx\n");
++        return LGW_SPI_ERROR;
++    }
++
++    r_ctx->fd = spi_device;
++    r_ctx->ntor = command_size;
++
++    /* create read thread */
++    if(pthread_create(&read_thread, NULL, read_function, r_ctx) != 0) {
++        DEBUG_MSG("ERROR: failed to create thread\n");
++        free(r_ctx);
++        return LGW_SPI_ERROR;
++    }
++
++    enable_CS(spi_device);
+     nw = write(spi_device, &command[0], command_size);
+-    nr = read_spi(spi_device, &dummy[0], command_size);
++
++    pthread_join(read_thread, NULL);
++
++    nr = r_ctx->nr;
+ 
+     /* determine return code */
+      if ((nw != command_size)||(nr != command_size))  {
+ 		        DUMP_STATS(nw, nr);
+         ERROR_MSG("ERROR: SPI BURST WRITE FAILURE\n");
+         return LGW_SPI_ERROR;
+-	}
++    }
+ 
+ 
+     size_to_do = size;
+@@ -466,34 +611,35 @@ int lgw_spi_rb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+     for (i=0; size_to_do > 0; ++i) {
+         chunk_size = (size_to_do < LGW_BURST_CHUNK) ? size_to_do : LGW_BURST_CHUNK;
+         offset = i * LGW_BURST_CHUNK;
+-#ifdef TEST_BUFFER_LOOP
+-		int ii=0;
+-		nw = 0;
+-        do
+-        {
+-			int n =  write(spi_device, &ii, 1);
+-			nw += n;
+-			++ii;
+-		}while(ii<chunk_size) ;
+-#else
++
++        r_ctx->nr = 0;
++        r_ctx->ntor = chunk_size;
++
++        /* create read thread */
++        if(pthread_create(&read_thread, NULL, read_function, r_ctx) != 0) {
++             DEBUG_MSG("ERROR: failed to create thread\n");
++             free(r_ctx);
++             return LGW_SPI_ERROR;
++        }
++
++
+         nw = write(spi_device, &dummy[0], chunk_size);
+-#endif
+-		nr = read_spi(spi_device, &data[offset], chunk_size);
++
++        pthread_join(read_thread, NULL);
++
++        nr = r_ctx->nr;
++        memcpy(&data[offset], r_ctx->buf, r_ctx->nr);
+         byte_transfered += nr;
+         
+-#ifdef TEST_BUFFER_LOOP
+-		for (int ii=0; ii<chunk_size; ++ii) 
+-        {
+-			if (data[offset+ii] != ii)
+-				DEBUG_PRINTF("**MISMATCH** %d] %d - %d\n", offset, ii, data[offset+ii]);
+-		}
+-#endif
+-        
+ 	if (( nr != chunk_size)||(nw != chunk_size)) { ERROR_PRINTF("\n--WARNING -- %d %d --", i, offset); DUMP_STATS(nw, nr); }
+         //DEBUG_PRINTF("BURST READ: to trans %d # chunk %d # transferred %d \n", size_to_do, chunk_size, byte_transfered);
+         size_to_do -= chunk_size; /* subtract the quantity of data already transferred */
+     }
+-	disable_CS(spi_device);
++
++    free(r_ctx);
++
++    disable_CS(spi_device);
++
+     /* determine return code */
+     if (byte_transfered != size) {
+ 
+-- 
+2.11.0
+

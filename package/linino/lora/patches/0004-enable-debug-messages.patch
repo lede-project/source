@@ -1,7 +1,7 @@
 From cfc4e4a2cadbff042a65732aecf01f424a2bdb9a Mon Sep 17 00:00:00 2001
 From: mimmoLinino <mimmo@linino.org>
 Date: Fri, 2 Dec 2016 18:05:10 +0100
-Subject: [PATCH 04/13] enable debug messages
+Subject: [PATCH 04/21] enable debug messages
 
 ---
  libloragw/library.cfg | 6 +++---

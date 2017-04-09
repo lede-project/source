@@ -1,0 +1,25 @@
+From 6c912221496643351be879aa15e771c36294b24c Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Fri, 3 Mar 2017 16:39:04 +0100
+Subject: [PATCH 20/21] fix debug function used
+
+---
+ libloragw/src/loragw_spi-stm32.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libloragw/src/loragw_spi-stm32.c b/libloragw/src/loragw_spi-stm32.c
+index 5db085c..4f2de2d 100644
+--- a/libloragw/src/loragw_spi-stm32.c
++++ b/libloragw/src/loragw_spi-stm32.c
+@@ -105,7 +105,7 @@ void *read_function(void *arg)
+       ctx->nr += num_bytes;
+     }else
+     {
+-    	DEBUG_MSG("ctx->nr=%d, errno=%d\n", ctx->nr, errno);
++    	DEBUG_PRINTF("ctx->nr=%d, errno=%d\n", ctx->nr, errno);
+     }
+     num_bytes = 0;  
+   }while(ctx->nr < ctx->ntor);
+-- 
+2.11.0
+

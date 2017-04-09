@@ -1,7 +1,7 @@
 From 689b11ccd83e5bad9f96460fa870a92e53703935 Mon Sep 17 00:00:00 2001
 From: mimmoLinino <mimmo@linino.org>
 Date: Thu, 22 Dec 2016 07:21:24 +0100
-Subject: [PATCH 09/13] Changed blocking read with non-blocking read
+Subject: [PATCH 09/21] Changed blocking read with non-blocking read
 
 ---
  libloragw/src/loragw_spi-stm32.c | 101 ++++++++++++++++++++++++++++-----------

@@ -1,7 +1,7 @@
 From 5dea11e2dc3276a9364e1d7823a4fd08474d9ec9 Mon Sep 17 00:00:00 2001
 From: mimmoLinino <mimmo@linino.org>
 Date: Fri, 2 Dec 2016 18:04:21 +0100
-Subject: [PATCH 01/13] Added stm32 spi interface
+Subject: [PATCH 01/21] Added stm32 spi interface
 
 ---
  libloragw/Makefile               |  31 ++--

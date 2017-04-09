@@ -1,7 +1,7 @@
 From cb9b71d23d2f07f9d1397f52ea6858af9226b381 Mon Sep 17 00:00:00 2001
 From: mimmoLinino <mimmo@linino.org>
 Date: Fri, 23 Dec 2016 11:41:25 +0100
-Subject: [PATCH 10/13] added enable-disable cs
+Subject: [PATCH 10/21] added enable-disable cs
 
 ---
  libloragw/src/loragw_spi-stm32.c | 89 +++++++++++++++++++++++++++++-----------

@@ -1,0 +1,31 @@
+From fecfaf8cfaf37680919c8a367355fb3b1e60cef3 Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Wed, 8 Mar 2017 16:31:16 +0100
+Subject: [PATCH 2/3] Set Mode 0 for output gpio. GPIOs table will be then as
+ follow (refer to GPIO Table, SELECT_OUTPUT mode = 0):
+
+    GPIO[4] -> TX_ON        (Tx packet is sent)
+    GPIO[3] -> FSK_PKT      (Rx packet received on IF9 FSK channel)
+    GPIO[2] -> BH_PKT       (Rx packet received on IF8 backhaul LoRa channel)
+    GPIO[1] -> SENSOR_PKT            (Rx packet received on any IF0 to IF7 LoRa 125kHz channel)
+    GPIO[0] -> RX_BUFFER_NOT_EMPTY      (Rx packet received from any LoRa/FSK channel and present in the Rx FIFO buffer)
+---
+ libloragw/src/loragw_hal.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libloragw/src/loragw_hal.c b/libloragw/src/loragw_hal.c
+index e5770df..24b8662 100644
+--- a/libloragw/src/loragw_hal.c
++++ b/libloragw/src/loragw_hal.c
+@@ -716,7 +716,7 @@ int lgw_start(void) {
+ 
+     /* gives AGC control of GPIOs to enable Tx external digital filter */
+     lgw_reg_w(LGW_GPIO_MODE,31); /* Set all GPIOs as output */
+-    lgw_reg_w(LGW_GPIO_SELECT_OUTPUT,2);
++    lgw_reg_w(LGW_GPIO_SELECT_OUTPUT,0);
+ 
+     /* Configure LBT */
+     if (lbt_is_enabled() == true) {
+-- 
+2.11.0
+
