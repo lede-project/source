@@ -18,7 +18,7 @@ start() {
 	if [ "x$oi" == "x" ]; then
 		stty -F /dev/ttyLRA 600
 		echo "Start lora_pkt_fwd" > /dev/kmsg
-		/usr/bin/lora_pkt_fwd 2>&1 >> /var/log/lora_pkt_fwd.log
+		/usr/bin/lora_pkt_fwd 2>&1 >> /var/log/lora_pkt_fwd.log &
 	else
 		echo "lora_pkt_fwd is already running ($oi)"
 	fi
