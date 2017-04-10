@@ -39,6 +39,10 @@ menu "Global build settings"
 		bool "Show packages that require graphics support (local or remote)"
 		default n
 
+	config RTC_SUPPORT
+		bool "Enable RTC support"
+		default n
+
 	config BUILD_PATENTED
 		default y
 		bool "Compile with support for patented functionality"
