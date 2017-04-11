@@ -8,20 +8,20 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lora-packet-forwarder
-PKG_VERSION:=3.1.0
-PKG_RELEASE:=21
+PKG_VERSION:=4.0.1
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/Lora-net/packet_forwarder.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=v3.1.0
+PKG_SOURCE_VERSION:=v4.0.1
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
 
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 
 PKG_BUILD_DEPENDS:=+lora-gateway
 
-LORAV4_VERSION:=$(wildcard $(BUILD_DIR)/lora-gateway-4*)
+LORA_VERSION:=$(wildcard $(BUILD_DIR)/lora-gateway-5*)
 
 # PKG_INSTALL:=1
 
@@ -90,22 +90,22 @@ define Build/Compile
 	$(MAKE) CROSS_COMPILE=$(REAL_GNU_TARGET_NAME)- \
 		LIBS="-lloragw -lrt -lpthread -lm" \
 		CFLAGS+="-I$(PKG_BUILD_DIR)/lora_pkt_fwd/inc" \
-		LGW_PATH=$(LORAV4_VERSION)/libloragw -C $(PKG_BUILD_DIR)/lora_pkt_fwd
+		LGW_PATH=$(LORA_VERSION)/libloragw -C $(PKG_BUILD_DIR)/lora_pkt_fwd
 	#
 	$(MAKE) CROSS_COMPILE=$(REAL_GNU_TARGET_NAME)- \
 		LIBS="-lloragw -lrt -lpthread -lm" \
 		CFLAGS+="-I$(PKG_BUILD_DIR)/util_ack/inc" \
-		LGW_PATH=$(LORAV4_VERSION)/libloragw -C $(PKG_BUILD_DIR)/util_ack
+		LGW_PATH=$(LORA_VERSION)/libloragw -C $(PKG_BUILD_DIR)/util_ack
 	#
 	$(MAKE) CROSS_COMPILE=$(REAL_GNU_TARGET_NAME)- \
 		LIBS="-lloragw -lrt -lpthread -lm" \
 		CFLAGS+="-I$(PKG_BUILD_DIR)/util_sink/inc" \
-		LGW_PATH=$(LORAV4_VERSION)/libloragw -C $(PKG_BUILD_DIR)/util_sink
+		LGW_PATH=$(LORA_VERSION)/libloragw -C $(PKG_BUILD_DIR)/util_sink
 	#
 	$(MAKE) CROSS_COMPILE=$(REAL_GNU_TARGET_NAME)- \
 		LIBS="-lloragw -lrt -lpthread -lm" \
 		CFLAGS+="-I$(PKG_BUILD_DIR)/util_tx_test/inc" \
-		LGW_PATH=$(LORAV4_VERSION)/libloragw -C $(PKG_BUILD_DIR)/util_tx_test
+		LGW_PATH=$(LORA_VERSION)/libloragw -C $(PKG_BUILD_DIR)/util_tx_test
 endef
 
 # pkg install
