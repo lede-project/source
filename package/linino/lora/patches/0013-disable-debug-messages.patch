@@ -28,7 +28,7 @@ diff --git a/libloragw/src/loragw_reg.c b/libloragw/src/loragw_reg.c
 index 5af28ff..7e396bc 100644
 --- a/libloragw/src/loragw_reg.c
 +++ b/libloragw/src/loragw_reg.c
-@@ -509,7 +505,6 @@ int lgw_connect(bool spi_only, uint32_t tx_notch_freq) {
+@@ -513,7 +509,6 @@ int lgw_connect(bool spi_only, uint32_t tx_notch_freq) {
      }
  
      /* open the SPI link */
@@ -38,4 +38,3 @@ index 5af28ff..7e396bc 100644
          DEBUG_MSG("ERROR CONNECTING CONCENTRATOR\n");
 -- 
 2.11.0
-

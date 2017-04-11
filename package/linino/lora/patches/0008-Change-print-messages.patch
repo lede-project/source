@@ -88,7 +88,7 @@ diff --git a/libloragw/src/loragw_reg.c b/libloragw/src/loragw_reg.c
 index 99a658e..c2a7aad 100644
 --- a/libloragw/src/loragw_reg.c
 +++ b/libloragw/src/loragw_reg.c
-@@ -506,6 +506,7 @@ int lgw_connect(void) {
+@@ -513,6 +513,7 @@ int lgw_connect(void) {
          lgw_spi_close(lgw_spi_target);
      }
      /* open the SPI link */
@@ -473,4 +473,3 @@ index 553a2a3..18e576f 100644
  
 -- 
 2.11.0
-

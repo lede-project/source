@@ -17,7 +17,7 @@ diff --git a/libloragw/src/loragw_hal.c b/libloragw/src/loragw_hal.c
 index e5770df..24b8662 100644
 --- a/libloragw/src/loragw_hal.c
 +++ b/libloragw/src/loragw_hal.c
-@@ -716,7 +716,7 @@ int lgw_start(void) {
+@@ -746,7 +746,7 @@ int lgw_start(void) {
  
      /* gives AGC control of GPIOs to enable Tx external digital filter */
      lgw_reg_w(LGW_GPIO_MODE,31); /* Set all GPIOs as output */
@@ -28,4 +28,3 @@ index e5770df..24b8662 100644
      if (lbt_is_enabled() == true) {
 -- 
 2.11.0
-
