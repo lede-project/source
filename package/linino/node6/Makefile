@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=node6
-PKG_VERSION:=v6.9.1
+PKG_VERSION:=v6.10.2
 PKG_RELEASE:=1
 
 PKG_SOURCE:=node-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=http://nodejs.org/dist/${PKG_VERSION}
-PKG_MD5SUM:=19f6d668194f37037ecfd585bea9a61f
+# PKG_MD5SUM:=19f6d668194f37037ecfd585bea9a61f
 
 PKG_BUILD_DEPENDS:=python/host
 PKG_INSTALL:=1
@@ -32,7 +32,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/node6
   SECTION:=lang
   CATEGORY:=Languages
-  SUBMENU:=Node.js
+  SUBMENU:=Node.js-v6
   TITLE:=Node.js is a platform built on Chrome's JavaScript runtime
   URL:=http://nodejs.org/
   DEPENDS:=+libstdcpp +libopenssl +zlib +USE_UCLIBC:libpthread +USE_UCLIBC:librt +NODEJS_ICU:icu
