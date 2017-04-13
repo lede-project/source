@@ -257,6 +257,7 @@ define Download/default
   VERSION:=$(PKG_SOURCE_VERSION)
   $(if $(PKG_MD5SUM),MD5SUM:=$(PKG_MD5SUM))
   $(if $(PKG_HASH),HASH:=$(PKG_HASH))
+  $(if $(PKG_SOURCE_OPTS),OPTS:=$(PKG_SOURCE_OPTS))
 endef
 
 define Download
