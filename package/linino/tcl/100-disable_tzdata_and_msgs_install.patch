@@ -1,9 +1,0 @@
---- a/unix/Makefile.in    2015-03-11 14:59:56.000000000 +0100
-+++ b/unix/Makefile.in        2016-09-28 19:05:37.866812053 +0200
-@@ -2122,7 +2122,6 @@
- .PHONY: shell gdb valgrind valgrindshell dist alldist rpm
- .PHONY: tclLibObjs tcltest-real test-tcl gdb-test ro-test trace-test xttest
- .PHONY: topDirName gendate gentommath_h trace-shell checkdoc
--.PHONY: install-tzdata install-msgs
- .PHONY: packages configure-packages test-packages clean-packages
- .PHONY: dist-packages distclean-packages install-packages
