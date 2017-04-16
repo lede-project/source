@@ -843,7 +843,7 @@ index 8d00c599e47a..201b12ed90c6 100644
 -	if (rt2x00_rt(rt2x00dev, RT5592)) {
 +	if (rt2x00_rt(rt2x00dev, RT5592) || rt2x00_rt(rt2x00dev, RT6352)) {
  		rt2800_bbp_write(rt2x00dev, 195, 141);
- 		rt2800_bbp_write(rt2x00dev, 196, conf_is_ht40(conf) ? 0x10 : 0x1a);
+ 		rt2800_bbp_write(rt2x00dev, 196, conf_is_ht40(conf) ? 0x10 : 0x15);
  
 @@ -4182,6 +4492,128 @@ static void rt2800_config_txpower_rt3593(struct rt2x00_dev *rt2x00dev,
  			   (unsigned long) regs[i]);
