@@ -136,6 +136,9 @@ static struct flash_layout layouts[] = {
 		.id		= "8M",
 		.fw_max_len	= 0x7c0000,
 	}, {
+		.id		= "16M",
+		.fw_max_len	= 0xfc0000,
+	}, {
 		/* terminating entry */
 	}
 };
@@ -230,6 +233,11 @@ static struct board_info boards[] = {
                 .id             = "WT3020",
                 .hw_id          = HWID_NEXX_WT3020,
                 .layout_id      = "8M",
+                .key            = KEY_NEXX_2,
+        }, {
+                .id             = "WT3020",
+                .hw_id          = HWID_NEXX_WT3020,
+                .layout_id      = "16M",
                 .key            = KEY_NEXX_2,
         }, {
 
