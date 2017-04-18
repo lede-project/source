@@ -8,19 +8,19 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=curaengine
-PKG_VERSION:=2.3.1
+PKG_VERSION:=2.4.0
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/Ultimaker/CuraEngine.git
 PKG_SOURCE_SUBDIR:=CuraEngine-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=2.3.1
+PKG_SOURCE_VERSION:=2.4.0
 PKG_SOURCE:=CuraEngine-$(PKG_SOURCE_VERSION).tar.gz
 PKG_BUILD_DIR:=$(BUILD_DIR)/CuraEngine-$(PKG_VERSION)
 
 PKG_INSTALL:=1
 
-PKG_BUILD_DEPENDS:=python3/host +protobuf/host +libprotobuf +libArcus +libstdcpp +libc
+PKG_BUILD_DEPENDS:=python3/host libprotobuf libArcus
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
@@ -35,10 +35,6 @@ define Package/curaengine
   MDEPENDS:=@!USE_UCLIBC
 endef
 
-#CMAKE_OPTIONS = \
-        -DCMAKE_PREFIX=/usr \
-		-DCMAKE_CXX_FLAGS="-std=c++11"
-
 define package/curaengine/Description
 	CuraEngine is a powerful, fast and robust engine for processing 3D models into 3D printing 
 	instruction for Ultimaker and other GCode based 3D printers. It is part of the larger open 
@@ -48,9 +44,7 @@ endef
 define Package/curaengine/install
 	$(INSTALL_DIR) $(1)/usr/bin
 
-	$(CP) $(PKG_INSTALL_DIR)/usr/bin/CuraEngine $(1)/usr/bin
-	$(CP) $(PKG_BUILD_DIR)/command_line_settings.def.json $(1)/usr/bin
-	# $(CP) $(PKG_BUILD_DIR)/fdmprinter.json $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/CuraEngine $(1)/usr/bin
 endef
 
 $(eval $(call BuildPackage,curaengine))
