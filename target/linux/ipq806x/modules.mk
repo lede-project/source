@@ -29,3 +29,21 @@ define KernelPackage/usb-phy-qcom-dwc3/description
 endef
 
 $(eval $(call KernelPackage,usb-phy-qcom-dwc3))
+
+define KernelPackage/usb-phy-dwc3-ipq40xx
+  TITLE:=DWC3 USB IPQ40xx PHY driver
+  DEPENDS:=@TARGET_ipq806x
+  KCONFIG:=CONFIG_USB_IPQ4019_PHY
+  FILES:= \
+	$(LINUX_DIR)/drivers/usb/phy/phy-qca-baldur.ko \
+	$(LINUX_DIR)/drivers/usb/phy/phy-qca-uniphy.ko
+  AUTOLOAD:=$(call AutoLoad,45,phy-qca-baldur phy-qca-uniphy,1)
+  $(call AddDepends/usb)
+endef
+
+define KernelPackage/usb-phy-dwc3-ipq40xx/description
+ This driver provides support for the integrated DesignWare
+ USB3 IP Core within the IPQ40xx SoCs.
+endef
+
+$(eval $(call KernelPackage,usb-phy-dwc3-ipq40xx))

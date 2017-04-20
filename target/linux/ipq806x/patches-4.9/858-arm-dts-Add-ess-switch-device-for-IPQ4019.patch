@@ -1,0 +1,355 @@
+From 4842020af3b39ce8c7c9a92de106d8fffd92b7c0 Mon Sep 17 00:00:00 2001
+From: Ram Chandra Jangir <rjangir@codeaurora.org>
+Date: Tue, 28 Mar 2017 14:00:00 +0530
+Subject: [PATCH] arm: dts: Add ess switch device for IPQ4019
+
+- Update ipq4019 dts nodes for mdio interface, ess-switch
+   and edma driver.
+- Update dt documentation for qca-ess ethernet subsystem
+- This change also enables wifi
+
+Signed-off-by: xiaofeis <xiaofeis@codeaurora.org>
+Signed-off-by: Ram Chandra Jangir <rjangir@codeaurora.org>
+---
+ Documentation/devicetree/bindings/net/qca-ess.txt | 107 ++++++++++++++++++
+ arch/arm/boot/dts/qcom-ipq4019-ap.dk01.1-c1.dts   |  10 +-
+ arch/arm/boot/dts/qcom-ipq4019-ap.dk01.1.dtsi     |  29 +++++
+ arch/arm/boot/dts/qcom-ipq4019-ap.dk04.1.dtsi     |  72 +++++++++++++
+ arch/arm/boot/dts/qcom-ipq4019.dtsi               | 125 ++++++++++++----------
+ 5 files changed, 283 insertions(+), 60 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/net/qca-ess.txt
+
+diff --git a/Documentation/devicetree/bindings/net/qca-ess.txt b/Documentation/devicetree/bindings/net/qca-ess.txt
+new file mode 100644
+index 0000000..7f16d6b
+--- /dev/null
++++ b/Documentation/devicetree/bindings/net/qca-ess.txt
+@@ -0,0 +1,110 @@
++QCA Ethernet Subsystem
++----------------------
++
++This driver adds support for the Ethernet subsystem
++
++1. QCA Ethernet DMA
++----------------------
++
++Required properties:
++  - compatible = "qcom,ess-edma";
++
++Optional properties:
++
++Example:
++    edma@c080000 {
++	compatible = "qcom,ess-edma";
++	reg = <0xc080000 0x8000>;
++	qcom,page-mode = <0>;
++	qcom,rx_head_buf_size = <1540>;
++	qcom,mdio_supported;
++	qcom,poll_required = <1>;
++	qcom,num_gmac = <2>;
++	interrupts = <0  65 IRQ_TYPE_EDGE_RISING
++		      0  66 IRQ_TYPE_EDGE_RISING
++		      0  67 IRQ_TYPE_EDGE_RISING
++		      0  68 IRQ_TYPE_EDGE_RISING
++		      0  69 IRQ_TYPE_EDGE_RISING
++		      0  70 IRQ_TYPE_EDGE_RISING
++		      0  71 IRQ_TYPE_EDGE_RISING
++		      0  72 IRQ_TYPE_EDGE_RISING
++		      0  73 IRQ_TYPE_EDGE_RISING
++		      0  74 IRQ_TYPE_EDGE_RISING
++		      0  75 IRQ_TYPE_EDGE_RISING
++		      0  76 IRQ_TYPE_EDGE_RISING
++		      0  77 IRQ_TYPE_EDGE_RISING
++		      0  78 IRQ_TYPE_EDGE_RISING
++		      0  79 IRQ_TYPE_EDGE_RISING
++		      0  80 IRQ_TYPE_EDGE_RISING
++		      0 240 IRQ_TYPE_EDGE_RISING
++		      0 241 IRQ_TYPE_EDGE_RISING
++		      0 242 IRQ_TYPE_EDGE_RISING
++		      0 243 IRQ_TYPE_EDGE_RISING
++		      0 244 IRQ_TYPE_EDGE_RISING
++		      0 245 IRQ_TYPE_EDGE_RISING
++		      0 246 IRQ_TYPE_EDGE_RISING
++		      0 247 IRQ_TYPE_EDGE_RISING
++		      0 248 IRQ_TYPE_EDGE_RISING
++		      0 249 IRQ_TYPE_EDGE_RISING
++		      0 250 IRQ_TYPE_EDGE_RISING
++		      0 251 IRQ_TYPE_EDGE_RISING
++		      0 252 IRQ_TYPE_EDGE_RISING
++		      0 253 IRQ_TYPE_EDGE_RISING
++		      0 254 IRQ_TYPE_EDGE_RISING
++		      0 255 IRQ_TYPE_EDGE_RISING>;
++   };
++
++2. QCA Ethernet Switch
++----------------------
++
++Required properties:
++  - compatible = "qcom,ess-switch";
++
++Optional properties:
++
++Example:
++
++	ess-switch@c000000 {
++		compatible = "qcom,ess-switch";
++		reg = <0xc000000 0x80000>; /* 512KB */
++		switch_access_mode = "local bus";
++		resets = <&gcc ESS_RESET>;
++		switch_cpu_bmp = <0x1>;  /* cpu port bitmap */
++		switch_lan_bmp = <0x1e>; /* lan port bitmap */
++		switch_wan_bmp = <0x20>; /* wan port bitmap */
++		switch_initvlas = <0x7c 0x54>;
++	};
++
++3. QCA Ethernet PHY mode
++-------------------------
++
++Required properties:
++  - compatible = "qcom,ess-psgmii";
++
++Optional properties:
++
++Example:
++
++	ess-psgmii@98000 {
++		compatible = "qcom,ess-psgmii";
++		reg = <0x98000 0x800>; /* 2k */
++		psgmii_access_mode = "local bus";
++		resets = <&gcc ESS_PSGMII_ARES>;
++	};
++
++4. MDIO Interface
++----------------------
++
++Required properties:
++  - compatible = "qcom,ipq4019-mdio";
++
++Optional properties:
++
++Example:
++
++	mdio@90000 {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		compatible = "qcom,ipq4019-mdio";
++		reg = <0x90000 0x64>;
++	};
+diff --git a/arch/arm/boot/dts/qcom-ipq4019-ap.dk01.1-c1.dts b/arch/arm/boot/dts/qcom-ipq4019-ap.dk01.1-c1.dts
+index 0d92f1b..2a8cf8d 100644
+--- a/arch/arm/boot/dts/qcom-ipq4019-ap.dk01.1-c1.dts
++++ b/arch/arm/boot/dts/qcom-ipq4019-ap.dk01.1-c1.dts
+@@ -19,4 +19,13 @@
+ / {
+	model = "Qualcomm Technologies, Inc. IPQ40xx/AP-DK01.1-C1";
+
++	soc {
++		mdio@90000 {
++			status = "ok";
++			pinctrl-0 = <&mdio_pins>;
++			pinctrl-names = "default";
++			bias-disable;
++			phy-reset-gpio = <&tlmm 59 0>;
++		};
++        };
+ };
+diff --git a/arch/arm/boot/dts/qcom-ipq4019-ap.dk01.1.dtsi b/arch/arm/boot/dts/qcom-ipq4019-ap.dk01.1.dtsi
+index 2a5cc5e..bf4fde6 100644
+--- a/arch/arm/boot/dts/qcom-ipq4019-ap.dk01.1.dtsi
++++ b/arch/arm/boot/dts/qcom-ipq4019-ap.dk01.1.dtsi
+@@ -41,6 +41,19 @@
+		};
+
+		pinctrl@0x01000000 {
++			mdio_pins: mdio_pinmux {
++				mux_1 {
++					pins = "gpio53";
++					function = "mdio1";
++					bias-bus-hold;
++				};
++				mux_2 {
++					pins = "gpio52";
++					function = "mdc";
++					bias-bus-hold;
++				};
++			};
++
+			serial_pins: serial_pinmux {
+				mux {
+					pins = "gpio60", "gpio61";
+@@ -128,5 +141,29 @@
+		usb2: usb2@60f8800 {
+			status = "ok";
+		};
++
++		ess-switch@c000000 {
++			status = "ok";
++			switch_mac_mode = <0x0>; /* mac mode for RGMII RMII */
++			switch_initvlas = <
++				0x0007c 0x54 /* PORT0_STATUS */
++			>;
++		};
++
++		ess-psgmii@98000 {
++			status = "ok";
++		};
++
++		edma@c080000 {
++			status = "ok";
++		};
++
++		wifi@a000000 {
++			status = "ok";
++		};
++
++		wifi@a800000 {
++			status = "ok";
++		};
+	};
+ };
+diff --git a/arch/arm/boot/dts/qcom-ipq4019-ap.dk04.1.dtsi b/arch/arm/boot/dts/qcom-ipq4019-ap.dk04.1.dtsi
+index b68fc1a..a46afdf 100644
+--- a/arch/arm/boot/dts/qcom-ipq4019-ap.dk04.1.dtsi
++++ b/arch/arm/boot/dts/qcom-ipq4019-ap.dk04.1.dtsi
+@@ -88,6 +88,19 @@
+					bias-disable;
+				};
+			};
++
++			mdio_pins: mdio_pinmux {
++				mux_1 {
++					pins = "gpio6";
++					function = "mdio0";
++					bias-bus-hold;
++				};
++				mux_2 {
++					pins = "gpio7";
++					function = "mdc";
++					bias-bus-hold;
++				};
++			};
+		};
+
+		blsp_dma: dma@7884000 {
+@@ -159,5 +172,37 @@
+		watchdog@b017000 {
+			status = "ok";
+		};
++
++		mdio@90000 {
++			status = "ok";
++			pinctrl-0 = <&mdio_pins>;
++			pinctrl-names = "default";
++			phy-reset-gpio = <&tlmm 47 0>;
++			bias-disable;
++		};
++
++		ess-switch@c000000 {
++			status = "ok";
++			switch_mac_mode = <0x0>; /* mac mode for RGMII RMII */
++			switch_initvlas = <
++				0x0007c 0x54 /* PORT0_STATUS */
++			>;
++		};
++
++		ess-psgmii@98000 {
++			status = "ok";
++		};
++
++		edma@c080000 {
++			status = "ok";
++		};
++
++		wifi@a000000 {
++			status = "ok";
++		};
++
++		wifi@a800000 {
++			status = "ok";
++		};
+	};
+ };
+diff --git a/arch/arm/boot/dts/qcom-ipq4019.dtsi b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+index be5b6f7..c5f5cf6 100644
+--- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
++++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+@@ -330,23 +330,23 @@
+			reg = <0x90000 0x64>;
+			status = "disabled";
+
+-			ethernet-phy@0 {
++			phy0: ethernet-phy@0 {
+				reg = <0>;
+			};
+
+-			ethernet-phy@1 {
++			phy1: ethernet-phy@1 {
+				reg = <1>;
+			};
+
+-			ethernet-phy@2 {
++			phy2: ethernet-phy@2 {
+				reg = <2>;
+			};
+
+-			ethernet-phy@3 {
++			phy3: ethernet-phy@3 {
+				reg = <3>;
+			};
+
+-			ethernet-phy@4 {
++			phy4: ethernet-phy@4 {
+				reg = <4>;
+			};
+		};
+@@ -355,8 +355,12 @@
+			compatible = "qcom,ess-switch";
+			reg = <0xc000000 0x80000>;
+			switch_access_mode = "local bus";
+-			resets = <&gcc ESS_RESET>;
+-			reset-names = "ess_rst";
++			resets = <&gcc ESS_RESET>, <&gcc ESS_MAC1_CLK_DIS>, \
++				<&gcc ESS_MAC2_CLK_DIS>, <&gcc ESS_MAC3_CLK_DIS>, \
++				<&gcc ESS_MAC4_CLK_DIS>, <&gcc ESS_MAC5_CLK_DIS>;
++			reset-names = "ess_rst","ess_mac1_clk_dis", \
++				"ess_mac2_clk_dis","ess_mac3_clk_dis", \
++				"ess_mac4_clk_dis", "ess_mac5_clk_dis";
+			clocks = <&gcc GCC_ESS_CLK>;
+			clock-names = "ess_clk";
+			switch_cpu_bmp = <0x1>;
+@@ -371,6 +375,8 @@
+			compatible = "qcom,ess-psgmii";
+			reg = <0x98000 0x800>;
+			psgmii_access_mode = "local bus";
++			resets = <&gcc ESS_PSGMII_ARES>;
++			reset-names = "psgmii_rst";
+			status = "disabled";
+		};
+
+@@ -419,18 +424,19 @@
+			status = "disabled";
+
+			gmac0: gmac0 {
+				local-mac-address = [00 00 00 00 00 00];
+-				vlan_tag = <1 0x1f>;
+-			};
+-
+-			gmac1: gmac1 {
+-				local-mac-address = [00 00 00 00 00 00];
+				qcom,phy_mdio_addr = <4>;
+				qcom,poll_required = <1>;
+				qcom,forced_speed = <1000>;
+				qcom,forced_duplex = <1>;
+				vlan_tag = <2 0x20>;
+			};
++
++			gmac1: gmac1 {
++				local-mac-address = [00 00 00 00 00 00];
++				qcom,poll_required_dynamic = <1>;
++				vlan_tag = <1 0x1e>;
++			};
+		};
+
+		usb3_ss_phy: ssphy@9a000 {
+--
+2.7.2
