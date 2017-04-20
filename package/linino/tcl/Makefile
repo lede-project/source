@@ -19,10 +19,12 @@ PKG_LICENSE:=TCL
 PKG_LICENSE_FILES:=license.terms
 PKG_MAINTAINER:=Joe Mistachkin <joe@mistachkin.com>
 
+HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/$(PKG_NAME)$(PKG_VERSION)
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)$(PKG_VERSION)
 
 # PKG_INSTALL:=1
 
+include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/package.mk
 
 define Package/tcl
@@ -43,9 +45,33 @@ define Package/tcl/description
   programming jobs.
 endef
 
-#CONFIGURE_PATH := unix
+# CONFIGURE_PATH := unix
 
 # MAKE_PATH := unix
+
+# host build
+
+define Host/Configure
+    (cd $(HOST_BUILD_DIR)/unix; \
+    autoconf configure.in > configure; \
+    sed -i.bak "s/relid'/relid/" configure; \
+    ./configure \
+        --prefix=$(STAGING_DIR_HOSTPKG) \
+        --disable-threads \
+        --enable-shared \
+    )
+endef
+
+define Host/Compile
+	$(MAKE) -C $(HOST_BUILD_DIR)/unix \
+		all install
+endef
+
+define Host/Install
+	# NOOP
+endef
+
+# cross build
 
 define Build/Configure
 	(cd $(PKG_BUILD_DIR)/unix; \
@@ -58,11 +84,7 @@ define Build/Configure
 		--target=$(REAL_GNU_TARGET_NAME) \
 		--prefix=/usr \
 		--disable-threads \
-		--disable-shared \
-		--disable-threads \
-		--disable-symbols \
-		--disable-langinfo \
-		--disable-framework \
+		--enable-shared \
 	)
 endef
 
@@ -104,4 +126,5 @@ done
 exit 0
 endef
 
+$(eval $(call HostBuild))
 $(eval $(call BuildPackage,tcl))
