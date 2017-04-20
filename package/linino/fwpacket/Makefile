@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lora-packet-forwarder
 PKG_VERSION:=4.0.1
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/Lora-net/packet_forwarder.git
@@ -35,10 +35,20 @@ define Package/lora-packet-forwarder/Default
 	DEPENDS:=+libc +librt +lora-gateway
 endef
 
-# define Package/lora-packet-forwarder/conffiles
-# /etc/pkt_fwd/global_conf.json
-# /etc/pkt_fwd/local_conf.json
-# endef
+define Package/lora-packet-forwarder-eu/conffiles
+/etc/pkt_fwd/global_conf.json
+/etc/pkt_fwd/local_conf.json
+endef
+
+define Package/lora-packet-forwarder-au/conffiles
+/etc/pkt_fwd/global_conf.json
+/etc/pkt_fwd/local_conf.json
+endef
+
+define Package/lora-packet-forwarder-us/conffiles
+/etc/pkt_fwd/global_conf.json
+/etc/pkt_fwd/local_conf.json
+endef
 
 # EU
 
@@ -155,6 +165,40 @@ define Package/lora-packet-forwarder-us/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/util_tx_test/util_tx_test $(1)/usr/bin
 endef
 
+# AU routines
+
+define Package/lora-packet-forwarder-au/preinst
+#!/bin/sh
+# check if we are on real system
+if [ -f "$${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json" ]; then
+	echo -e "\nBacking up GLOBAL settings files...\n"
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json.tmp
+fi
+
+if [ -f "$${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json" ]; then
+	echo -e "\nBacking up LOCAL settings files...\n"
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json.tmp
+fi
+
+exit 0
+endef
+
+define Package/lora-packet-forwarder-au/postinst
+#!/bin/sh
+# check if we are on real system
+if [ -f "$${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json.tmp" ]; then
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json.new
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json.tmp $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json
+fi
+
+if [ -f "$${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json.tmp" ]; then
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json.new
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json.tmp $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json
+fi
+
+exit 0
+endef
+
 define Package/lora-packet-forwarder-au/prerm
 #!/bin/sh
 # check if we are on real system
@@ -165,6 +209,40 @@ fi
 exit 0
 endef
 
+# EU routines
+
+define Package/lora-packet-forwarder-eu/preinst
+#!/bin/sh
+# check if we are on real system
+if [ -f "$${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json" ]; then
+	echo -e "\nBacking up GLOBAL settings files...\n"
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json.tmp
+fi
+
+if [ -f "$${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json" ]; then
+	echo -e "\nBacking up LOCAL settings files...\n"
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json.tmp
+fi
+
+exit 0
+endef
+
+define Package/lora-packet-forwarder-eu/postinst
+#!/bin/sh
+# check if we are on real system
+if [ -f "$${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json.tmp" ]; then
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json.new
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json.tmp $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json
+fi
+
+if [ -f "$${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json.tmp" ]; then
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json.new
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json.tmp $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json
+fi
+
+exit 0
+endef
+
 define Package/lora-packet-forwarder-eu/prerm
 #!/bin/sh
 # check if we are on real system
@@ -172,6 +250,40 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
         echo "Removing rc.d symlink for lora service"
         /etc/init.d/lora disable
 fi
+exit 0
+endef
+
+# US routines
+
+define Package/lora-packet-forwarder-us/preinst
+#!/bin/sh
+# check if we are on real system
+if [ -f "$${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json" ]; then
+	echo -e "\nBacking up GLOBAL settings files...\n"
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json.tmp
+fi
+
+if [ -f "$${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json" ]; then
+	echo -e "\nBacking up LOCAL settings files...\n"
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json.tmp
+fi
+
+exit 0
+endef
+
+define Package/lora-packet-forwarder-us/postinst
+#!/bin/sh
+# check if we are on real system
+if [ -f "$${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json.tmp" ]; then
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json.new
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json.tmp $${IPKG_INSTROOT}/etc/pkt_fwd/global_conf.json
+fi
+
+if [ -f "$${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json.tmp" ]; then
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json.new
+	mv $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json.tmp $${IPKG_INSTROOT}/etc/pkt_fwd/local_conf.json
+fi
+
 exit 0
 endef
 
