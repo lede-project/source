@@ -7,17 +7,17 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_VERSION:=2014.04
+PKG_VERSION:=2017.03
 PKG_RELEASE:=1
 
-PKG_HASH:=7b6444bd23eb61068c43bd1d44ec7e7bfdbce5cadeca20c833eee186b4d3fd31
+PKG_HASH:=f54baf3f9325bf444c7905f3a5b6f83680edb1e6e1a4d5f8a5ad80abe885113f
 
 include $(INCLUDE_DIR)/u-boot.mk
 include $(INCLUDE_DIR)/package.mk
 
 define U-Boot/Default
   BUILD_TARGET:=imx6
-  UBOOT_IMAGE:=u-boot.imx
+  UBOOT_IMAGE:=u-boot.img
 endef
 
 define U-Boot/mx6qsabresd
@@ -63,6 +63,11 @@ define U-Boot/wandboard_solo
   BUILD_DEVICES:=wandboard
 endef
 
+define U-Boot/liteboard
+  NAME:= GRINN Liteboard
+  BUILD_DEVICES:=liteboard
+endef
+
 UBOOT_TARGETS := \
 	mx6qsabresd \
 	nitrogen6dl \
@@ -73,6 +78,7 @@ UBOOT_TARGETS := \
 	nitrogen6s1g \
 	wandboard_dl \
 	wandboard_quad \
-	wandboard_solo
+	wandboard_solo \
+	liteboard
 
 $(eval $(call BuildPackage/U-Boot))

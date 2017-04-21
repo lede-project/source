@@ -55,7 +55,7 @@ endef
 # Devices
 #################################################
 
-KERNEL_LOADADDR=0x10008000
+KERNEL_LOADADDR=0x80800000
 
 define Device/Default
   PROFILES := Generic
@@ -120,8 +120,14 @@ define Device/wandboard
   DEVICE_DTS := imx6dl-wandboard
 endef
 
+define Device/liteboard
+ DEVICE_TITLE := GRINN liteboard
+ DEVICE_DTS := imx6ul-liteboard
+endef
+
 TARGET_DEVICES += \
 	ventana ventana-large \
-	wandboard
+	wandboard \
+	liteboard
 
 $(eval $(call BuildImage))
