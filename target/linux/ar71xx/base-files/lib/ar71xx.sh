@@ -646,6 +646,9 @@ ar71xx_board_detect() {
 	*"EmbWir-Dorin-Router")
 		name="ew-dorin-router"
 		;;
+	*"ENS200")
+		name="ens200"
+		;;
 	*"ENS202EXT")
 		name="ens202ext"
 		;;
