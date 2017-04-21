@@ -546,11 +546,16 @@ dhcp_option_add() {
 
 	[ "$force" = "0" ] && force=
 
-	config_get dhcp_option "$cfg" dhcp_option
-	for o in $dhcp_option; do
-		xappend "--dhcp-option${force:+-force}=${networkid:+$networkid,}$o"
-	done
+	config_list_foreach "$cfg" dhcp_option dhcp_option_add_one "$networkid" "$force"
+}
 
+dhcp_option_add_one() {
+	local networkid="$2"
+	local force="$3"
+
+	[ "$force" = "0" ] && force=
+
+	xappend "--dhcp-option${force:+-force}=${networkid:+$networkid,}$1"
 }
 
 dhcp_domain_add() {
