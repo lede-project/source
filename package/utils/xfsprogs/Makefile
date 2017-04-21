@@ -5,6 +5,9 @@
 # See /LICENSE for more information.
 #
 
+# 3.2.X and newer uses a new on-disk format, disable (hide) xfsprogs until
+# it's updated to avoid unnecessary (bad) surprises.
+
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=xfsprogs
@@ -26,6 +29,7 @@ define Package/xfsprogs/default
   SUBMENU:=Filesystem
   DEPENDS:=+libuuid +libpthread +librt
   URL:=http://oss.sgi.com/projects/xfs
+  HIDDEN:=1
 endef
 
 define Package/xfs-mkfs
