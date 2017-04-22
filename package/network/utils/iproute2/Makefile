@@ -8,12 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=iproute2
-PKG_VERSION:=4.4.0
-PKG_RELEASE:=10
+PKG_VERSION:=4.10.0
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/utils/net/iproute2
-PKG_HASH:=bc91c367288a19f78ef800cd6840363be1f22da8436fbae88e1a7250490d6514
+PKG_HASH:=22b1e1c1fc704ad35837e5a66103739727b8b48ac90b48c13f79b7367ff0a9a8
+
 PKG_BUILD_PARALLEL:=1
 PKG_LICENSE:=GPL-2.0
 
@@ -27,7 +28,7 @@ define Package/iproute2/Default
   URL:=http://www.linuxfoundation.org/collaborate/workgroups/networking/iproute2
   SUBMENU:=Routing and Redirection
   MAINTAINER:=Russell Senior <russell@personaltelco.net>
-  DEPENDS:= +libnl-tiny
+  DEPENDS:= +libnl-tiny +libxtables
 endef
 
 define Package/ip-tiny
