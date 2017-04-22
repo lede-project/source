@@ -21,6 +21,8 @@ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_REVISION).tar.gz
 
 PKG_BUILD_DEPENDS:=+swig/host +node
 
+PKG_USE_MIPS16:=0
+
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
 
