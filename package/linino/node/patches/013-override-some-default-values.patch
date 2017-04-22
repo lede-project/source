@@ -1,0 +1,20 @@
+--- a/deps/npm/lib/config/defaults.js	2017-01-04 18:41:49.000000000 +0100
++++ b/deps/npm/lib/config/defaults.js	2017-01-31 21:05:54.000000000 +0100
+@@ -162,7 +162,7 @@
+     'legacy-bundling': false,
+     link: false,
+     'local-address': undefined,
+-    loglevel: 'warn',
++    loglevel: 'info',
+     logstream: process.stderr,
+     long: false,
+     maxsockets: 50,
+@@ -199,7 +199,7 @@
+     shell: osenv.shell(),
+     shrinkwrap: true,
+     'sign-git-tag': false,
+-    'strict-ssl': true,
++    'strict-ssl': false,
+     tag: 'latest',
+     'tag-version-prefix': 'v',
+     tmp: temp,
