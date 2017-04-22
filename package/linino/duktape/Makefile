@@ -8,18 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=duktape
-PKG_VERSION:=1.2.4
+PKG_VERSION:=2.1.0
 PKG_RELEASE:=1
-PKG_MD5SUM:=a103ddfd626b928001c2d383d7b30cdb
+PKG_MD5SUM:=60dd720d070026079b443f54c86d52ae
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-# PKG_SOURCE:=$(PKG_NAME)-master.tar.xz
 PKG_SOURCE_URL:=http://duktape.org/
-# PKG_SOURCE_URL:=http://duktape.org/snapshots/
 
-PKG_FILE:="$(STAGING_DIR)/pkginfo/libc.provides"
-PKG_CAT=`cat $(PKG_FILE) | grep libm.so.6` 
-
+include $(INCLUDE_DIR)/uclibc++.mk
 include $(INCLUDE_DIR)/package.mk
 
 define Package/duktape
@@ -38,7 +34,6 @@ define Package/duktape/description
 endef
 
 define Build/Prepare
-	(if [ ! $(PKG_CAT) ];then echo "libm.so.6" >> $(PKG_FILE); fi)
 	/bin/tar xvf $(DL_DIR)/$(PKG_SOURCE) -C $(PKG_BUILD_DIR) --strip-components=1
 	$(Build/Patch)
 	mv $(PKG_BUILD_DIR)/Makefile.cmdline $(PKG_BUILD_DIR)/Makefile
