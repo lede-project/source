@@ -134,6 +134,7 @@ ar71xx_setup_interfaces()
 	alfa-ap96|\
 	alfa-nx|\
 	dr344|\
+	archer-c25-v1|\
 	gl-ar150|\
 	gl-ar300m|\
 	gl-domino|\
