@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=bluez
-PKG_VERSION:=5.43
+PKG_VERSION:=5.44
 PKG_RELEASE:=7
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/bluetooth/
-PKG_MD5SUM:=698def88df96840dfbb0858bb6d73350
+PKG_MD5SUM:=94273617129ced06612fcb9f5273d14c
 
 PKG_LICENSE:=GPL-2.0+
 PKG_LICENSE_FILES:=COPYING
@@ -109,6 +109,7 @@ CONFIGURE_ARGS += \
 	--disable-systemd \
 	--disable-test \
 	--disable-udev \
+	--enable-deprecated
 
 TARGET_CPPFLAGS += \
 	-D_GNU_SOURCE
