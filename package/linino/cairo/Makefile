@@ -25,7 +25,7 @@ define Package/cairo
   CATEGORY:=Xorg
   SUBMENU:=libraries
   TITLE:=Multi-platform 2D graphics library
-  DEPENDS:=+fontconfig +libpng +libexpat +pixman +liblzo \
+  DEPENDS:=+fontconfig +libpng +libexpat +pixman +liblzo +glib2 \
   +FEATURE_drawing-backend_DirectFB:directfb \
   +FEATURE_drawing-backend_libX11:libX11
   URL:=http://cairographics.org/
