@@ -17,7 +17,7 @@ PKG_SOURCE_URL:=http://registry.npmjs.org/$(PKG_NPM_NAME)/-/
 # PKG_MD5SUM:=fa4034f98a2fbee4a48f0ff36b8c25dd
 
 PKG_BUILD_DEPENDS:=node libpam
-PKG_NODE_VERSION:=0.10.46
+PKG_NODE_VERSION:=6.10.2
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -54,7 +54,7 @@ define Build/Compile
 	npm_config_arch=mips \
 	npm_config_nodedir=$(BUILD_DIR)/node-v$(PKG_NODE_VERSION)/ \
 	PREFIX="$(PKG_INSTALL_DIR)/usr/" \
-	$(STAGING_DIR_HOST)/bin/npm install --build-from-source --target_arch=mips -g $(PKG_BUILD_DIR)
+	$(STAGING_DIR_HOSTPKG)/bin/npm install --build-from-source --target_arch=mips -g $(PKG_BUILD_DIR)
 endef
 
 define Package/node-authenticate-pam/install

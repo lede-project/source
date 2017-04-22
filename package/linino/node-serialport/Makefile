@@ -17,7 +17,7 @@ PKG_SOURCE_URL:=http://registry.npmjs.org/$(PKG_NPM_NAME)/-/
 # PKG_MD5SUM:=54cc3fa9dfc7a44b5153e45b8cae9fdb
 
 PKG_BUILD_DEPENDS:=node
-PKG_NODE_VERSION:=0.10.46
+PKG_NODE_VERSION:=6.10.2
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -48,7 +48,7 @@ define Build/Compile
 	LDFLAGS="-L$(TOOLCHAIN_DIR)/lib/ -Wl,-rpath-link $(TOOLCHAIN_DIR)/lib/" \
 	GYPFLAGS="-Dv8_use_mips_abi_hardfloat=false -Dv8_can_use_fpu_instructions=false" \
 	PREFIX="$(PKG_INSTALL_DIR)/usr/" \
-	$(STAGING_DIR_HOST)/bin/npm install --build-from-source --target_arch=mips -g $(PKG_BUILD_DIR)
+	$(STAGING_DIR_HOSTPKGPKG)/bin/npm install --build-from-source --target_arch=mips -g $(PKG_BUILD_DIR)
 endef
 
 define Package/node-serialport/install
