@@ -112,7 +112,6 @@ ramips_setup_interfaces()
 	youku-yk1|\
 	zbt-ape522ii|\
 	zbt-we826|\
-	zbt-wg2626|\
 	zbt-wg3526|\
 	zbt-wr8305rt)
 		ucidef_add_switch "switch0" \
