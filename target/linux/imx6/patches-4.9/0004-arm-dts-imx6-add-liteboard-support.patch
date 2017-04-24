@@ -1,0 +1,12 @@
+--- a/arch/arm/boot/dts/Makefile 
++++ b/arch/arm/boot/dts/Makefile 
+@@ -425,7 +425,8 @@
+ 	imx6ul-pico-hobbit.dtb \
+ 	imx6ul-tx6ul-0010.dtb \
+ 	imx6ul-tx6ul-0011.dtb \
+-	imx6ul-tx6ul-mainboard.dtb
++	imx6ul-tx6ul-mainboard.dtb \
++   imx6ul-liteboard.dtb
+ dtb-$(CONFIG_SOC_IMX7D) += \
+ 	imx7d-cl-som-imx7.dtb \
+ 	imx7d-colibri-eval-v3.dtb \
