@@ -48,7 +48,7 @@ define Build/Compile
 	LDFLAGS="-L$(TOOLCHAIN_DIR)/lib/ -Wl,-rpath-link $(TOOLCHAIN_DIR)/lib/" \
 	GYPFLAGS="-Dv8_use_mips_abi_hardfloat=false -Dv8_can_use_fpu_instructions=false" \
 	PREFIX="$(PKG_INSTALL_DIR)/usr/" \
-	$(STAGING_DIR_HOSTPKGPKG)/bin/npm install --build-from-source --target_arch=mips -g $(PKG_BUILD_DIR)
+	$(STAGING_DIR_HOSTPKG)/bin/npm install --build-from-source --target_arch=mips -g $(PKG_BUILD_DIR)
 endef
 
 define Package/node-serialport/install

@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NPM_NAME:=noble
 PKG_NAME:=node-$(PKG_NPM_NAME)
-PKG_VERSION:=1.6.0
+PKG_VERSION:=1.8.1
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NPM_NAME)-$(PKG_VERSION).tgz
@@ -47,9 +47,8 @@ define Build/Compile
 	LDFLAGS="-L$(TOOLCHAIN_DIR)/lib/ -Wl,-rpath-link $(TOOLCHAIN_DIR)/lib/ -L$(STAGING_DIR)/lib" \
 	npm_config_arch=mips \
 	npm_config_nodedir=$(BUILD_DIR)/node-v$(PKG_NODE_VERSION)/ \
-	PATH="/usr/bin/:$(PATH)" \
 	PREFIX="$(PKG_INSTALL_DIR)/usr/" \
-	$(STAGING_DIR_HOSTPKG)/bin/npm install -g $(PKG_BUILD_DIR)
+	$(STAGING_DIR_HOSTPKG)/bin/npm install --target_arch=mips --build-from-source -g $(PKG_BUILD_DIR)
 endef
 
 define Package/node-$(PKG_NPM_NAME)/install

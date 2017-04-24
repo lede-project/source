@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NPM_NAME:=bluetooth-hci-socket
 PKG_NAME:=node-$(PKG_NPM_NAME)
-PKG_VERSION:=0.5.0
+PKG_VERSION:=0.5.1
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NPM_NAME)-$(PKG_VERSION).tgz
