@@ -686,7 +686,7 @@ CONFIG_TARGET_INIT_SUPPRESS_STDERR=y
 CONFIG_VERSIONOPT=y
 CONFIG_VERSION_DIST="LininoOS"
 CONFIG_VERSION_NICK="lede_trunk"
-CONFIG_VERSION_NUMBER="0170036"
+CONFIG_VERSION_NUMBER="2.0"
 CONFIG_VERSION_CODE=""
 CONFIG_VERSION_REPO="http://download.linino.org/linino_distro/linino-2.0/nightly-lede/latest/packages"
 CONFIG_VERSION_MANUFACTURER="Linino.org"
@@ -3596,14 +3596,14 @@ CONFIG_PACKAGE_node-gm=m
 CONFIG_PACKAGE_node-hid=m
 CONFIG_PACKAGE_node-ideino-linino-lib=m
 CONFIG_PACKAGE_node-johnny-five=m
-# CONFIG_PACKAGE_node-level is not set
-# CONFIG_PACKAGE_node-leveldown is not set
+CONFIG_PACKAGE_node-level=m
+CONFIG_PACKAGE_node-leveldown=m
 CONFIG_PACKAGE_node-libwyliodrin=m
 CONFIG_PACKAGE_node-modbus=m
 CONFIG_PACKAGE_node-muzzley-client=m
-# CONFIG_PACKAGE_node-nitrogen is not set
-# CONFIG_PACKAGE_node-nitrogen-cli is not set
-# CONFIG_PACKAGE_node-nitrogen-leveldb-store is not set
+CONFIG_PACKAGE_node-nitrogen=m
+CONFIG_PACKAGE_node-nitrogen-cli=m
+CONFIG_PACKAGE_node-nitrogen-leveldb-store=m
 CONFIG_PACKAGE_node-noble=m
 CONFIG_PACKAGE_node-opencv=m
 # CONFIG_PACKAGE_node-red-wylio is not set
@@ -5555,7 +5555,8 @@ CONFIG_PACKAGE_6to4=m
 # CONFIG_PACKAGE_aiccu is not set
 # CONFIG_PACKAGE_aiccu-gnutls is not set
 CONFIG_PACKAGE_ajtcl=m
-# CONFIG_PACKAGE_ajtcl-alljoynjs is not set
+CONFIG_PACKAGE_ajtcl-alljoynjs=m
+CONFIG_PACKAGE_ajtcl-alljoynjs-samples=m
 CONFIG_PACKAGE_ajtcl-samples=m
 CONFIG_PACKAGE_ajtcl-services=m
 # CONFIG_PACKAGE_alfred is not set
