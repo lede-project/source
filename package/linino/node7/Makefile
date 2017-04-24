@@ -127,7 +127,7 @@ define Build/Prepare
 	$(SED) "s#<(mkpeephole_exec)#$(MKTOOL)#g" $(FILE_V8_GYP)
 endef
 
-define Host/install
+define Host/Install
 	# NOOP
 endef
 
