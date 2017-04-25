@@ -36,7 +36,7 @@
 #include <osreldate.h>
 #endif
 
-#if !defined(__linux__) && !defined(__OpenBSD__) && !(defined(__APPLE__) && __DARWIN_C_LEVEL >= 200809L) && !(defined(__FreeBSD__) && __FreeBSD_version >= 800000)
+#if !defined(__linux__) && !defined(__CYGWIN__) && !defined(__OpenBSD__) && !(defined(__APPLE__) && __DARWIN_C_LEVEL >= 200809L) && !(defined(__FreeBSD__) && __FreeBSD_version >= 800000)
 /*
  * Emulate glibc getline() via BSD fgetln().
  * Note that outsize is not changed unless memory is allocated.
@@ -45,15 +45,8 @@ static inline ssize_t
 getline(char **outbuf, size_t *outsize, FILE *fp)
 {
 	size_t len;
-
-#ifndef __CYGWIN__
 	char *buf;
 	buf = fgetln(fp, &len);
-#else
-	char buf[512];
-	fgets(buf, sizeof(buf), fp);	
-	len = strlen(buf);
-#endif
 	if (buf == NULL)
 		return (-1);
 
