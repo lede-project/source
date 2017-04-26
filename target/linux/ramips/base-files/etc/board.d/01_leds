@@ -413,6 +413,10 @@ youku-yk1)
 	set_wifi_led "$board:blue:air"
 	set_usb_led "$board:blue:usb"
 	;;
+atel-u270)
+	ucidef_set_led_default "power" "power" "$board:orange:power" "0"
+	set_wifi_led "$board:orange:wifi"
+	;;
 esac
 
 board_config_flush

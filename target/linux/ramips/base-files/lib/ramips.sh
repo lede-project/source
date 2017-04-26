@@ -682,6 +682,9 @@ ramips_board_detect() {
 	*"YK1")
 		name="youku-yk1"
 		;;
+	*"ATEL U270")
+		name="atel-u270"
+		;;
 	*)
 		name="generic"
 		;;
