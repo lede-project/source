@@ -85,6 +85,7 @@ ramips_setup_interfaces()
 	hc5661a|\
 	hc5962|\
 	hlk-rm04|\
+	kn|\
 	mac1200rv2|\
 	miwifi-mini|\
 	miwifi-nano|\
