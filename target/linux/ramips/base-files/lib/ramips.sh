@@ -130,9 +130,6 @@ ramips_board_detect() {
 	*"DCS-930L B1")
 		name="dcs-930l-b1"
 		;;
-	*"Digineo AC1200 Pro")
-		name="ac1200pro"
-		;;
 	*"DIR-300 B1")
 		name="dir-300-b1"
 		;;
@@ -649,17 +646,26 @@ ramips_board_detect() {
 	*"ZBT-WA05")
 		name="zbt-wa05"
 		;;
+	*"ZBT-WE1326")
+		name="zbt-we1326"
+		;;
 	*"ZBT-WE2026")
 		name="zbt-we2026"
 		;;
-	*"ZBT-WE826")
-		name="zbt-we826"
+	*"ZBT-WE826 (16M)")
+		name="zbt-we826-16M"
+		;;
+	*"ZBT-WE826 (32M)")
+		name="zbt-we826-32M"
 		;;
 	*"ZBT-WG2626")
 		name="zbt-wg2626"
 		;;
-	*"ZBT-WG3526")
-		name="zbt-wg3526"
+	*"ZBT-WG3526 (16M)")
+		name="zbt-wg3526-16M"
+		;;
+	*"ZBT-WG3526 (32M)")
+		name="zbt-wg3526-32M"
 		;;
 	*"ZBT-WR8305RT")
 		name="zbt-wr8305rt"

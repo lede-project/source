@@ -59,7 +59,10 @@ get_status_led() {
 	wn3000rpv3)
 		status_led="$board:red:power"
 		;;
-	ac1200pro|\
+	ai-br100|\
+	ht-tm02)
+		status_led="$board:blue:wlan"
+		;;
 	all0239-3g|\
 	dcs-930|\
 	dir-300-b1|\
@@ -80,13 +83,8 @@ get_status_led() {
 	rut5xx|\
 	v11st-fe|\
 	wmr-300|\
-	zbt-wg2626|\
-	zbt-wg3526)
+	zbt-wg2626)
 		status_led="$board:green:status"
-		;;
-	ai-br100|\
-	ht-tm02)
-		status_led="$board:blue:wlan"
 		;;
 	asl26555-8M|\
 	asl26555-16M)
@@ -192,8 +190,7 @@ get_status_led() {
 		status_led="$board:amber:system"
 		;;
 	oy-0001|\
-	sl-r7205|\
-	zbt-we826)
+	sl-r7205)
 		status_led="$board:green:wifi"
 		;;
 	psr-680w)
@@ -275,6 +272,14 @@ get_status_led() {
 		;;
 	zbt-cpe102)
 		status_led="$board:green:4g-0"
+		;;
+	zbt-we826-16M|\
+	zbt-we826-32M)
+		status_led="zbt-we826:green:power"
+		;;
+	zbt-wg3526-16M|\
+	zbt-wg3526-32M)
+		status_led="zbt-wg3526:green:status"
 		;;
 	esac
 }

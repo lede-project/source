@@ -34,14 +34,6 @@ define Device/11acnas
 endef
 TARGET_DEVICES += 11acnas
 
-define Device/ac1200pro
-  DTS := AC1200pro
-  IMAGE_SIZE := $(ralink_default_fw_size_32M)
-  DEVICE_TITLE := Digineo AC1200 Pro
-  DEVICE_PACKAGES := kmod-usb3 kmod-ata-core kmod-ata-ahci
-endef
-TARGET_DEVICES += ac1200pro
-
 define Device/dir-860l-b1
   DTS := DIR-860L-B1
   BLOCKSIZE := 64k
@@ -245,6 +237,14 @@ define Device/wsr-600
 endef
 TARGET_DEVICES += wsr-600
 
+define Device/zbt-we1326
+  DTS := ZBT-WE1326
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := ZBT WE1326
+  DEVICE_PACKAGES := kmod-usb3 kmod-sdhci-mt7620
+endef
+TARGET_DEVICES += zbt-we1326
+
 define Device/zbt-wg2626
   DTS := ZBT-WG2626
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
@@ -253,13 +253,23 @@ define Device/zbt-wg2626
 endef
 TARGET_DEVICES += zbt-wg2626
 
-define Device/zbt-wg3526
-  DTS := ZBT-WG3526
+define Device/zbt-wg3526-16M
+  DTS := ZBT-WG3526-16M
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
-  DEVICE_TITLE := ZBT WG3526
+  SUPPORTED_DEVICES += zbt-wg3526
+  DEVICE_TITLE := ZBT WG3526 (16MB flash)
   DEVICE_PACKAGES := kmod-usb3 kmod-usb-ledtrig-usbport kmod-ata-core kmod-ata-ahci kmod-sdhci-mt7620
 endef
-TARGET_DEVICES += zbt-wg3526
+TARGET_DEVICES += zbt-wg3526-16M
+
+define Device/zbt-wg3526-32M
+  DTS := ZBT-WG3526-32M
+  IMAGE_SIZE := $(ralink_default_fw_size_32M)
+  SUPPORTED_DEVICES += ac1200pro
+  DEVICE_TITLE := ZBT WG3526 (32MB flash)
+  DEVICE_PACKAGES := kmod-usb3 kmod-usb-ledtrig-usbport kmod-ata-core kmod-ata-ahci kmod-sdhci-mt7620
+endef
+TARGET_DEVICES += zbt-wg3526-32M
 
 # FIXME: is this still needed?
 define Image/Prepare

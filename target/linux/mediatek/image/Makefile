@@ -25,6 +25,9 @@ endif
 	)
 endef
 
+COMPAT_NAND:=mediatek,mt7623-rfb-nand
+COMPAT_NAND_EPHY:=mediatek,mt7623-rfb-nand-ephy
+
 define Image/Build/squashfs
 	$(call prepare_generic_squashfs,$(KDIR)/root.squashfs)
 	$(CP) $(KDIR)/root.squashfs $(BIN_DIR)/$(IMG_PREFIX)-root.squashfs
@@ -32,11 +35,15 @@ define Image/Build/squashfs
 	$(call Image/Build/SysupgradeCombined,eMMC,squashfs)
 
 	$(call Image/BuilduImage,NAND)
+	$(call Image/BuilduImage,NAND-ePHY)
 ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
 	$(call Image/BuilduImage,NAND,-initramfs)
+	$(call Image/BuilduImage,NAND-ePHY,-initramfs)
 	$(CP) $(KDIR)/uImage-NAND-initramfs $(BIN_DIR)/$(IMG_PREFIX)-uImage-NAND-initramfs
+	$(CP) $(KDIR)/uImage-NAND-ePHY-initramfs $(BIN_DIR)/$(IMG_PREFIX)-uImage-NAND-ePHY-initramfs
 endif
-	$(call Image/Build/SysupgradeNAND,NAND,$(1),$(KDIR)/uImage-NAND)
+	$(call Image/Build/SysupgradeNAND,NAND,$(1),$(KDIR)/uImage-NAND,$$(COMPAT_NAND))
+	$(call Image/Build/SysupgradeNAND,NAND-ePHY,$(1),$(KDIR)/uImage-NAND-ePHY,$$(COMPAT_NAND_EPHY))
 endef
 
 define Image/Build
