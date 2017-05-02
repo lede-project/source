@@ -429,6 +429,13 @@ mac80211_iw_interface_add() {
 		rc="$?"
 	}
 
+	# Ignore "Too many open files in system" - this is expected when default radio interface
+	# cannot be removed, for e.g. brcmfmac
+	if [ "$rc" == 233 ]; then
+		logger "Ignoring -EMFILE from iw interface add"
+		return 0
+	fi
+
 	[ "$rc" != 0 ] && wireless_setup_failed INTERFACE_CREATION_FAILED
 	return $rc
 }
