@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=curaengine
-PKG_VERSION:=2.4.0
+PKG_VERSION:=2.5.0
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/Ultimaker/CuraEngine.git
 PKG_SOURCE_SUBDIR:=CuraEngine-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=2.4.0
+PKG_SOURCE_VERSION:=2.5.0
 PKG_SOURCE:=CuraEngine-$(PKG_SOURCE_VERSION).tar.gz
 PKG_BUILD_DIR:=$(BUILD_DIR)/CuraEngine-$(PKG_VERSION)
 
