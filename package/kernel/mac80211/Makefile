@@ -1560,7 +1560,7 @@ config-$(call config_package,brcmfmac) += BRCMFMAC
 config-$(CONFIG_BRCMFMAC_SDIO) += BRCMFMAC_SDIO
 config-$(CONFIG_BRCMFMAC_USB) += BRCMFMAC_USB
 config-$(CONFIG_BRCMFMAC_PCIE) += BRCMFMAC_PCIE
-config-$(CONFIG_PACKAGE_BRCM80211_DEBUG) += BRCMDBG
+config-$(CONFIG_PACKAGE_BRCM80211_DEBUG) += BRCMDBG BRCM_TRACING
 
 config-$(call config_package,mac80211-hwsim) += MAC80211_HWSIM
 config-$(call config_package,mt7601u) += MT7601U
