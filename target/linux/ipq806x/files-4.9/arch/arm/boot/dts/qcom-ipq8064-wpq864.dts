@@ -85,6 +85,16 @@
 					bias-disable;
 				};
 			};
+
+			pcie3_pins: pcie3_pinmux {
+				mux {
+					pins = "gpio16";
+					function = "pcie3_rst";
+					drive-strength = <2>;
+					bias-disable;
+				};
+			};
+
 		};
 
 		gsbi@16300000 {
@@ -167,6 +177,13 @@
 		pcie1: pci@1b700000 {
 			status = "ok";
 			phy-tx0-term-offset = <7>;
+		};
+
+		pcie2: pci@1b900000 {
+			status = "ok";
+			phy-tx0-term-offset = <7>;
+			pinctrl-0 = <&pcie3_pins>;
+			perst-gpios = <&qcom_pinmux 16 GPIO_ACTIVE_LOW>;
 		};
 
 		nand@1ac00000 {
