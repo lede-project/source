@@ -54,7 +54,19 @@ network_get_subnet() {
 # 1: destination variable
 # 2: interface
 network_get_subnet6() {
-	__network_ifstatus "$1" "$2" "['ipv6-address'][0]['address','mask']" "/"
+	local __addr
+
+	if __network_ifstatus "__addr" "$2" "['ipv6-address','ipv6-prefix-assignment'][0]['address','mask']" "/ "; then
+		case "$__addr" in
+			*/128*) export "$1=${__addr%/*}/64" ;;
+			*:/*) export "$1=${__addr%/*}1/${__addr##*/}" ;;
+			*)    export "$1=${__addr}"                   ;;
+		esac
+		return 0
+	fi
+
+	unset "$1"
+	return 1
 }
 
 # determine first IPv6 prefix of given logical interface
