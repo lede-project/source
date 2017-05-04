@@ -6,7 +6,7 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/updateing/k3-screen-ctrl.git
-PKG_SOURCE_VERSION:=ec46b841998d936836630a2e9be460c787528936
+PKG_SOURCE_VERSION:=fe3f9798d8c352fbe2f00c80d8269ec3e2a02b7f
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_SOURCE_VERSION)
 PKG_SOURCE:=$(PKG_SOURCE_SUBDIR).tar.xz
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_SOURCE_SUBDIR)
@@ -25,7 +25,8 @@ define Package/k3screenctrl
 endef
 
 define Package/k3screenctrl/description
- K3 Screen Controller (k3screenctrl) is a program utilizing the LCD screen on PHICOMM K3 to display some stats.
+ K3 Screen Controller (k3screenctrl) is a program utilizing
+the LCD screen on PHICOMM K3 to display some stats.
 endef
 
 define Package/k3screenctrl/install
