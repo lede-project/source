@@ -120,6 +120,28 @@ define Device/AP148-legacy
 	DEVICE_PACKAGES := ath10k-firmware-qca99x0
 endef
 
+define Device/WPQ864-legacy-1g
+	$(call Device/LegacyImage)
+	$(call Device/UbiFit)
+	DEVICE_DTS := qcom-ipq8064-wpq864-1g
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	BOARD_NAME := wpq864
+	DEVICE_TITLE := Compex WPQ864 (legacy) RAM 1G
+	DEVICE_PACKAGES := ath10k-firmware-qca99x0
+endef
+
+define Device/WPQ864-legacy
+	$(call Device/LegacyImage)
+	$(call Device/UbiFit)
+	DEVICE_DTS := qcom-ipq8064-wpq864
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	BOARD_NAME := wpq864
+	DEVICE_TITLE := Compex WPQ864 (legacy) RAM 512M
+	DEVICE_PACKAGES := ath10k-firmware-qca99x0
+endef
+
 define Device/C2600
 	$(call Device/TpSafeImage)
 	DEVICE_DTS := qcom-ipq8064-c2600
@@ -250,7 +272,7 @@ define Device/VR2600v
 	IMAGE/sysupgrade.bin := pad-extra 512 | append-kernel | pad-to $$$${KERNEL_SIZE} | append-rootfs | pad-rootfs | append-metadata
 endef
 
-TARGET_DEVICES += AP148 AP148-legacy C2600 D7800 DB149 EA8500 FRITZ4040 R7500 \
+TARGET_DEVICES += AP148 AP148-legacy WPQ864-legacy WPQ864-legacy-1g C2600 D7800 DB149 EA8500 FRITZ4040 R7500 \
 		  R7500v2 R7800 NBG6817 VR2600v
 
 $(eval $(call BuildImage))
