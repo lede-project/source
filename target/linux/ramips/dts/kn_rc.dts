@@ -10,22 +10,18 @@
 
 	gpio-leds {
 		compatible = "gpio-leds";
-
 		wan {
 			label = "kn_rc:green:wan";
 			gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;
 		};
-
 		usb {
 			label = "kn_rc:green:usb";
 			gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
 		};
-
 		wifi {
 			label = "kn_rc:green:wifi";
 			gpios = <&gpio3 0 GPIO_ACTIVE_LOW>;
 		};
-
 		power {
 			label = "kn_rc:green:power";
 			gpios = <&gpio0 20 GPIO_ACTIVE_LOW>;
