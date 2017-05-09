@@ -19,6 +19,14 @@ define Device/pbr-d1
 endef
 TARGET_DEVICES += pbr-d1
 
+define Device/vocore2lite
+  DTS := VOCORE2L
+  IMAGE_SIZE := $(ralink_default_fw_size_8M)
+  DEVICE_TITLE := VoCore VoCore2 Lite
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += vocore2lite
+
 define Device/wrtnode2r
   DTS := WRTNODE2R
   IMAGE_SIZE := $(ralink_default_fw_size_16M)

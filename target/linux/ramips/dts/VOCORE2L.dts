@@ -1,0 +1,21 @@
+/dts-v1/;
+
+#include "VOCORE2.dtsi"
+
+/ {
+	compatible = "vocore,VoCore2lite", "mediatek,mt7688an-soc";
+	model = "VoCore2 Lite";
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x4000000>;
+	};
+};
+
+&firmware {
+	reg = <0x50000 0x7b0000>;
+};
+
+&wifi_led {
+	label = "vocore2lite:green:wifi";
+};

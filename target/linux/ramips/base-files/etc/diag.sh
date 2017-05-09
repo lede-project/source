@@ -228,7 +228,10 @@ get_status_led() {
 		status_led="vocore:green:status"
 		;;
 	vocore2)
-		status_led="$board:fuchsia:status"
+		status_led="$board:fuchsia:wifi"
+		;;
+	vocore2lite)
+		status_led="$board:green:wifi"
 		;;
 	w306r-v20|\
 	witi|\

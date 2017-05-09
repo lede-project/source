@@ -1,0 +1,117 @@
+#include "mt7628an.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	chosen {
+		bootargs = "console=ttyS2,115200";
+	};
+
+	gpio-leds {
+		compatible = "gpio-leds";
+
+		wifi_led: wifi {
+		gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+
+		};
+	};
+};
+
+&esw {
+	mediatek,portmap = <0x7>;
+	mediatek,portdisable = <0x3a>;
+};
+
+&gdma {
+	status = "okay";
+};
+
+&i2s {
+	status = "okay";
+};
+
+&pinctrl {
+	state_default: pinctrl0 {
+		gpio {
+			ralink,group = "gpio";
+			ralink,function = "gpio";
+		};
+
+		refclk {
+			ralink,group = "refclk";
+			ralink,function = "gpio";
+		};
+
+		agpio {
+			ralink,group = "agpio";
+			ralink,function = "uart2";
+		};
+
+		uart1 {
+			ralink,group = "uart1";
+			ralink,function = "uart1";
+		};
+
+		uart2 {
+			ralink,group = "spis";
+			ralink,function = "pwm";
+		};
+	};
+};
+
+&pwm {
+	status = "okay";
+};
+
+&sdhci {
+	status = "okay";
+	mediatek,cd-low;
+};
+
+&spi0 {
+	status = "okay";
+
+	m25p80@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <10000000>;
+		m25p,chunked-io = <32>;
+
+		partition@0 {
+			label = "u-boot";
+			reg = <0x0 0x30000>;
+			read-only;
+		};
+
+		partition@30000 {
+			label = "u-boot-env";
+			reg = <0x30000 0x10000>;
+		};
+
+		factory: partition@40000 {
+			label = "factory";
+			reg = <0x40000 0x10000>;
+			read-only;
+		};
+
+		firmware: partition@50000 {
+			label = "firmware";
+		};
+	};
+};
+
+&uart1 {
+	status = "okay";
+};
+
+&uart2 {
+	status = "okay";
+};
+
+&wmac {
+	status = "okay";
+	ralink,mtd-eeprom = <&factory 0x4>;
+};
