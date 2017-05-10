@@ -507,14 +507,6 @@ ar8327_hw_config_pdata(struct ar8xxx_priv *priv,
 	ar8xxx_write(priv, AR8327_REG_PAD0_MODE, t);
 
 	t = ar8327_get_pad_cfg(pdata->pad5_cfg);
-	if (chip_is_ar8337(priv)) {
-		/*
-		 * Workaround: RGMII RX delay setting needs to be
-		 * always specified for AR8337 to avoid port 5
-		 * RX hang on high traffic / flood conditions
-		 */
-		t |= AR8327_PAD_RGMII_RXCLK_DELAY_EN;
-	}
 	ar8xxx_write(priv, AR8327_REG_PAD5_MODE, t);
 	t = ar8327_get_pad_cfg(pdata->pad6_cfg);
 	ar8xxx_write(priv, AR8327_REG_PAD6_MODE, t);
@@ -681,6 +673,15 @@ ar8327_init_globals(struct ar8xxx_priv *priv)
 		data->eee[i] = false;
 
 	if (chip_is_ar8337(priv)) {
+
+		/*
+		 * Workaround: RGMII RX delay setting needs to be
+		 * always specified for AR8337 to avoid port 5
+		 * RX hang on high traffic / flood conditions
+		 */
+		ar8xxx_write(priv, AR8327_REG_PAD5_MODE,
+			AR8327_PAD_RGMII_RXCLK_DELAY_EN);
+
 		/* Update HOL registers with values suggested by QCA switch team */
 		for (i = 0; i < AR8327_NUM_PORTS; i++) {
 			if (i == AR8216_PORT_CPU || i == 5 || i == 6) {
