@@ -53,6 +53,7 @@
 #define RB2011_FLAG_SFP		BIT(0)
 #define RB2011_FLAG_USB		BIT(1)
 #define RB2011_FLAG_WLAN	BIT(2)
+#define RB2011_FLAG_2011R5_FIX	BIT(3)
 
 static struct mtd_partition rb2011_spi_partitions[] = {
 	{
@@ -269,8 +270,12 @@ static int __init rb2011_setup(u32 flags)
 	ath79_register_m25p80(&rb2011_spi_flash_data);
 	rb2011_nand_init();
 
-	ath79_setup_ar934x_eth_cfg(AR934X_ETH_CFG_RGMII_GMAC0 |
-				   AR934X_ETH_CFG_SW_ONLY_MODE);
+	u32 eth_cfg_mask = AR934X_ETH_CFG_RGMII_GMAC0 | AR934X_ETH_CFG_SW_ONLY_MODE;
+
+	if(flags & RB2011_FLAG_2011R5_FIX)
+		eth_cfg_mask |= AR934X_ETH_CFG_RXD_DELAY;
+
+	ath79_setup_ar934x_eth_cfg(eth_cfg_mask);
 
 	ath79_register_mdio(1, 0x0);
 	ath79_register_mdio(0, 0x0);
@@ -283,7 +288,10 @@ static int __init rb2011_setup(u32 flags)
 	ath79_eth0_data.phy_if_mode = PHY_INTERFACE_MODE_RGMII;
 	ath79_eth0_data.phy_mask = BIT(0);
 	ath79_eth0_data.mii_bus_dev = &ath79_mdio0_device.dev;
-	ath79_eth0_pll_data.pll_1000 = 0x06000000;
+	if(flags & RB2011_FLAG_2011R5_FIX)
+		ath79_eth0_pll_data.pll_1000 = 0x6f000000;
+	else
+		ath79_eth0_pll_data.pll_1000 = 0x06000000;
 
 	ath79_register_eth(0);
 
@@ -323,7 +331,7 @@ MIPS_MACHINE_NONAME(ATH79_MACH_RB_2011US, "2011US", rb2011us_setup);
 
 static void __init rb2011r5_setup(void)
 {
-	rb2011_setup(RB2011_FLAG_SFP | RB2011_FLAG_USB | RB2011_FLAG_WLAN);
+	rb2011_setup(RB2011_FLAG_SFP | RB2011_FLAG_USB | RB2011_FLAG_WLAN | RB2011_FLAG_2011R5_FIX);
 }
 
 MIPS_MACHINE_NONAME(ATH79_MACH_RB_2011R5, "2011r5", rb2011r5_setup);
