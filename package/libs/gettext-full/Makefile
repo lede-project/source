@@ -33,6 +33,7 @@ define Package/libintl-full
   CATEGORY:=Libraries
   TITLE:=GNU Internationalization library
   URL:=http://www.gnu.org/software/gettext/
+  DEPENDS:=+libiconv-full
 endef
 
 TARGET_CFLAGS += $(FPIC)
@@ -42,6 +43,8 @@ endif
 ifdef CONFIG_USE_MUSL
   TARGET_CFLAGS += -D__UCLIBC__
 endif
+
+TARGET_LDFLAGS += -L$(STAGING_DIR)/usr/lib/libconv-full
 
 CONFIGURE_ARGS += \
 	--enable-shared \
