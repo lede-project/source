@@ -261,10 +261,10 @@ endef
 
 define Image/Manifest
 	$(STAGING_DIR_HOST)/bin/opkg \
-		--offline-root $(TARGET_DIR) \
+		--offline-root $(2) \
 		--add-arch all:100 \
 		--add-arch $(if $(ARCH_PACKAGES),$(ARCH_PACKAGES),$(BOARD)):200 list-installed > \
-		$(BIN_DIR)/$(IMG_PREFIX)$(if $(PROFILE_SANITIZED),-$(PROFILE_SANITIZED)).manifest
+		$(1).manifest
 endef
 
 ifdef CONFIG_TARGET_ROOTFS_TARGZ
@@ -325,6 +325,7 @@ define Device/Init
 
   IMAGES :=
   IMAGE_PREFIX := $(IMG_PREFIX)-$(1)
+  IMAGE_NAME_PREFIX = $$(IMAGE_PREFIX)
   IMAGE_NAME = $$(IMAGE_PREFIX)-$$(1)-$$(2)
   KERNEL_PREFIX = $$(IMAGE_PREFIX)
   KERNEL_SUFFIX := -kernel.bin
@@ -476,6 +477,7 @@ define Device/Build/image
 
   $(BIN_DIR)/$(call IMAGE_NAME,$(1),$(2)): $(KDIR)/tmp/$(call IMAGE_NAME,$(1),$(2))
 	cp $$^ $$@
+	$(if $(TARGET_PER_DEVICE_ROOTFS),$$(call Image/Manifest,$(call IMAGE_NAME_PREFIX),$$@))
 
 endef
 
@@ -571,6 +573,6 @@ define BuildImage
 	$(MAKE) legacy-images
 
   install: install-images
-	$(call Image/Manifest)
+	$(call Image/Manifest,$(BIN_DIR)/$(IMG_PREFIX)$(if $(PROFILE_SANITIZED),-$(PROFILE_SANITIZED)),$(TARGET_DIR))
 
 endef
