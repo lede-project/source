@@ -23,6 +23,21 @@ define Device/domywifi-dw33d
 endef
 TARGET_DEVICES += domywifi-dw33d
 
+define Device/hiveap-121
+  DEVICE_TITLE := Aerohive HiveAP-121
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-i2c-gpio-custom kmod-spi-gpio kmod-ath9k kmod-tpm-i2c-atmel
+  BOARDNAME = HiveAP-121
+  BLOCKSIZE := 64k
+  CONSOLE = ttyS0,9600
+  MTDPARTS = spi0.0:512k(u-boot)ro,64k(u-boot-env),64k(hw-info),64k(boot-info),64k(boot-sinfo)ro;ar934x-nfc:4096k(u-boot-1),4096k(u-boot-env-1),5m(kernel),5m(kernel-1),25m(rootfs-unused),25m(rootfs-1),56m(ubi),4096k(wifi-info)
+  IMAGES := sysupgrade.tar
+  KERNEL := kernel-bin | patch-cmdline | lzma | uImage lzma
+  KERNEL_INITRAMFS := kernel-bin | patch-cmdline | lzma | uImage lzma
+  IMAGE/sysupgrade.tar := sysupgrade-tar
+endef
+
+TARGET_DEVICES += hiveap-121
+
 define Build/MerakiNAND
 	-$(STAGING_DIR_HOST)/bin/mkmerakifw \
 		-B $(BOARDNAME) -s \

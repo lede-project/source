@@ -371,6 +371,9 @@ ar71xx_board_detect() {
 	*"AC1750DB")
 		name="f9k1115v2"
 		;;
+	*"Aerohive HiveAP-121")
+		name="hiveap-121"
+		;;
 	*"AirGateway")
 		name="airgateway"
 		;;

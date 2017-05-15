@@ -519,6 +519,7 @@ platform_check_image() {
 		return $?
 		;;
 	c-60|\
+	hiveap-121|\
 	nbg6716|\
 	r6100|\
 	wndr3700v4|\
@@ -661,6 +662,7 @@ platform_pre_upgrade() {
 
 	case "$board" in
 	c-60|\
+	hiveap-121|\
 	nbg6716|\
 	r6100|\
 	rb-411|\

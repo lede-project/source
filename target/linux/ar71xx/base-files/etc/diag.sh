@@ -248,6 +248,7 @@ get_status_led() {
 	nbg460n_550n_550nh)
 		status_led="nbg460n:green:power"
 		;;
+	hiveap-121|\
 	nbg6716)
 		status_led="$board:white:power"
 		;;
