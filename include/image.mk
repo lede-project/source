@@ -39,11 +39,7 @@ KDIR=$(KERNEL_BUILD_DIR)
 KDIR_TMP=$(KDIR)/tmp
 DTS_DIR:=$(LINUX_DIR)/arch/$(LINUX_KARCH)/boot/dts
 
-IMG_PREFIX_EXTRA:=$(if $(EXTRA_IMAGE_NAME),$(call sanitize,$(EXTRA_IMAGE_NAME))-)
-IMG_PREFIX_VERNUM:=$(if $(CONFIG_VERSION_FILENAMES),$(call sanitize,$(VERSION_NUMBER))-)
-IMG_PREFIX_VERCODE:=$(if $(CONFIG_VERSION_CODE_FILENAMES),$(call sanitize,$(VERSION_CODE))-)
-
-IMG_PREFIX:=$(VERSION_DIST_SANITIZED)-$(IMG_PREFIX_VERNUM)$(IMG_PREFIX_VERCODE)$(IMG_PREFIX_EXTRA)$(BOARD)$(if $(SUBTARGET),-$(SUBTARGET))
+IMG_PREFIX:=$(call NAME_PREFIX,$(EXTRA_IMAGE_NAME))
 
 MKFS_DEVTABLE_OPT := -D $(INCLUDE_DIR)/device_table.txt
 
@@ -261,10 +257,10 @@ endef
 
 define Image/Manifest
 	$(STAGING_DIR_HOST)/bin/opkg \
-		--offline-root $(TARGET_DIR) \
+		--offline-root $(2) \
 		--add-arch all:100 \
 		--add-arch $(if $(ARCH_PACKAGES),$(ARCH_PACKAGES),$(BOARD)):200 list-installed > \
-		$(BIN_DIR)/$(IMG_PREFIX)$(if $(PROFILE_SANITIZED),-$(PROFILE_SANITIZED)).manifest
+		$(BIN_DIR)/$(1).manifest
 endef
 
 ifdef CONFIG_TARGET_ROOTFS_TARGZ
@@ -325,6 +321,7 @@ define Device/Init
 
   IMAGES :=
   IMAGE_PREFIX := $(IMG_PREFIX)-$(1)
+  IMAGE_NAME_PREFIX = $$(IMAGE_PREFIX)
   IMAGE_NAME = $$(IMAGE_PREFIX)-$$(1)-$$(2)
   KERNEL_PREFIX = $$(IMAGE_PREFIX)
   KERNEL_SUFFIX := -kernel.bin
@@ -476,6 +473,7 @@ define Device/Build/image
 
   $(BIN_DIR)/$(call IMAGE_NAME,$(1),$(2)): $(KDIR)/tmp/$(call IMAGE_NAME,$(1),$(2))
 	cp $$^ $$@
+	$(if $(TARGET_PER_DEVICE_ROOTFS),$$(call Image/Manifest,$(call IMAGE_NAME_PREFIX),$(KDIR)/target-dir-$$(ROOTFS_ID/$(3))))
 
 endef
 
@@ -571,6 +569,6 @@ define BuildImage
 	$(MAKE) legacy-images
 
   install: install-images
-	$(call Image/Manifest)
+	$(call Image/Manifest,$(IMG_PREFIX)$(if $(PROFILE_SANITIZED),-$(PROFILE_SANITIZED)),$(TARGET_DIR))
 
 endef
