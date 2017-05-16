@@ -8,15 +8,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libnfnetlink
-PKG_VERSION:=1.0.1
+PKG_VERSION:=1.0.1.git-2015-05-28
 PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:= \
-	http://www.netfilter.org/projects/libnfnetlink/files/ \
-	ftp://ftp.netfilter.org/pub/libnfnetlink/ \
-	http://mirrors.evolva.ro/netfilter.org/libnfnetlink/
-PKG_HASH:=f270e19de9127642d2a11589ef2ec97ef90a649a74f56cf9a96306b04817b51a
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=https://git.netfilter.org/libnfnetlink
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
+PKG_SOURCE_VERSION:=62ca426c2cfbca9be47c778e09990e9412b68bac
+PKG_MIRROR_HASH:=18bcf3ddc3f4ec31498d4506a90fcc7f3717d519a66ad450b3ac2d8f01cc4cf8
+
 PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=GPL-2.0+
 
