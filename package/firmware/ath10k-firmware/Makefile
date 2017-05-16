@@ -104,6 +104,14 @@ define Download/ath10k-firmware-qca9984-ct
 endef
 $(eval $(call Download,ath10k-firmware-qca9984-ct))
 
+QCA9888_FIRMWARE_FILE_CT:=firmware-5-ct-full-community-8.bin
+define Download/ath10k-firmware-qca9888-ct
+  $(call Download/ct-firmware,QCA9888,ath10k-9888-10-4)
+  FILE:=$(QCA9888_FIRMWARE_FILE_CT)
+  HASH:=4f1d46c98ece780cfc3b8bdc24664b37adeb81c6c56fa0d1ac927339e865baac
+endef
+$(eval $(call Download,ath10k-firmware-qca9888-ct))
+
 define Package/ath10k-firmware-qca99x0
 $(Package/ath10k-firmware-default)
   TITLE:=ath10k firmware for QCA99x0 devices
@@ -158,6 +166,14 @@ This firmware conflicts with the standard 9984 firmware, so select only
 one.
 endef
 
+define Package/ath10k-firmware-qca9888-ct/description
+Alternative ath10k firmware for QCA9888 from Candela Technologies.
+Enables IBSS and other features.  See:
+http://www.candelatech.com/ath10k-10.4.php
+This firmware conflicts with the standard 9888 firmware, so select only
+one.
+endef
+
 define Package/ath10k-firmware-qca99x0/description
 Standard ath10k firmware for QCA99x0 from QCA
 This firmware conflicts with the CT 99x0 firmware, so select only
@@ -174,6 +190,13 @@ endef
 define Package/ath10k-firmware-qca9984-ct
 $(Package/ath10k-firmware-default)
   TITLE:=ath10k CT 10.4.3 firmware for QCA9984 devices
+  SECTION:=firmware
+  CATEGORY:=Firmware
+endef
+
+define Package/ath10k-firmware-qca9888-ct
+$(Package/ath10k-firmware-default)
+  TITLE:=ath10k CT 10.4.3 firmware for QCA9888 devices
   SECTION:=firmware
   CATEGORY:=Firmware
 endef
@@ -321,6 +344,16 @@ define Package/ath10k-firmware-qca9984-ct/install
 		$(1)/lib/firmware/ath10k/QCA9984/hw1.0/firmware-5.bin
 endef
 
+define Package/ath10k-firmware-qca9888-ct/install
+	$(INSTALL_DIR) $(1)/lib/firmware/ath10k/QCA9888/hw2.0
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/QCA9888/hw2.0/board-2.bin \
+		$(1)/lib/firmware/ath10k/QCA9888/hw2.0/board-2.bin
+	$(INSTALL_DATA) \
+		$(DL_DIR)/$(QCA9888_FIRMWARE_FILE_CT) \
+		$(1)/lib/firmware/ath10k/QCA9888/hw2.0/firmware-5.bin
+endef
+
 $(eval $(call BuildPackage,ath10k-firmware-qca9887))
 $(eval $(call BuildPackage,ath10k-firmware-qca988x))
 $(eval $(call BuildPackage,ath10k-firmware-qca99x0))
@@ -330,5 +363,6 @@ $(eval $(call BuildPackage,ath10k-firmware-qca4019))
 
 $(eval $(call BuildPackage,ath10k-firmware-qca9887-ct))
 $(eval $(call BuildPackage,ath10k-firmware-qca988x-ct))
+$(eval $(call BuildPackage,ath10k-firmware-qca9888-ct))
 $(eval $(call BuildPackage,ath10k-firmware-qca99x0-ct))
 $(eval $(call BuildPackage,ath10k-firmware-qca9984-ct))
