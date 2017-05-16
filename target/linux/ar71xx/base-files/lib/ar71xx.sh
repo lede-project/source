@@ -1267,6 +1267,9 @@ ar71xx_board_detect() {
 	*"WZR-450HP2")
 		name="wzr-450hp2"
 		;;
+	*"WZR-450HP2D")
+		name="wzr-450hp2d"
+		;;
 	*"WZR-HP-AG300H/WZR-600DHP")
 		name="wzr-hp-ag300h"
 		;;
