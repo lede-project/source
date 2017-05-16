@@ -447,6 +447,9 @@ get_status_led() {
 	wzr-hp-g300nh)
 		status_led="buffalo:green:router"
 		;;
+	wzr-450hp2d)
+		status_led="buffalo:green:diag"
+		;;
 	wlae-ag300n)
 		status_led="buffalo:green:status"
 		;;
