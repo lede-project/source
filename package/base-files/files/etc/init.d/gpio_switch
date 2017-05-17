@@ -33,6 +33,11 @@ service_triggers()
 	procd_add_reload_trigger "system"
 }
 
+service_running()
+{
+	return 0
+}
+
 start_service()
 {
 	[ -e /sys/class/gpio/ ] && {

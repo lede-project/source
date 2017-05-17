@@ -45,6 +45,10 @@ service_triggers()
 	procd_add_validation validate_system_section
 }
 
+service_running() {
+	return 0
+}
+
 start_service() {
 	reload_service
 }

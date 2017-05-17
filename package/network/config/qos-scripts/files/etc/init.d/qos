@@ -19,6 +19,10 @@ service_triggers()
 	qos-start
 }
 
+service_running() {
+	return 0
+}
+
 start_service() {
 	qos-start
 }
