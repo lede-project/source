@@ -25,20 +25,18 @@ smb_header() {
 		done
 	)
 
-	local name workgroup description charset
+	local name workgroup description
 	local hostname="$(uci_get system.@system[0].hostname)"
 
 	config_get name        $1 name        "${hostname:-Lede}"
 	config_get workgroup   $1 workgroup   "${hostname:-Lede}"
 	config_get description $1 description "Samba on ${hostname:-Lede}"
-	config_get charset     $1 charset     "UTF-8"
 
 	mkdir -p /var/etc
 	sed -e "s#|NAME|#$name#g" \
 	    -e "s#|WORKGROUP|#$workgroup#g" \
 	    -e "s#|DESCRIPTION|#$description#g" \
 	    -e "s#|INTERFACES|#$interfaces#g" \
-	    -e "s#|CHARSET|#$charset#g" \
 	    /etc/samba/smb.conf.template > /var/etc/smb.conf
 
 	local homes
