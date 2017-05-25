@@ -12,6 +12,17 @@ platform_check_image() {
 	return 0
 }
 
+platform_pre_upgrade() {
+    local board=$(mvebu_board_name)
+
+    case "$board" in
+    armada-370-rtnasv3)
+        nand_do_upgrade $1
+        ;;
+    esac
+}
+
+
 platform_do_upgrade() {
 	local board=$(mvebu_board_name)
 

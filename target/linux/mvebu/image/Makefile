@@ -90,6 +90,19 @@ define Device/NAND-512K
   PAGESIZE := 4096
 endef
 
+define Device/NAND-1024K
+  $(Device/UBI)
+  BLOCKSIZE := 1024KiB
+  PAGESIZE := 4096
+  SUBPAGESIZE := 4096
+  VID_HDR_OFFSET := 4096
+endef
+
+define Device/marvell-nand-rtnasv3
+  $(Device/NAND-1024K)
+  DEVICE_TITLE := Marvell Armada $(1)
+endef
+
 define Device/linksys
   DEVICE_TITLE := Linksys $(1)
   DEVICE_PACKAGES := kmod-mwlwifi wpad-mini swconfig
@@ -168,6 +181,18 @@ Device/armada-370-rd = $(call Device/marvell-nand,370 RD (RD-88F6710-A1))
 Device/armada-xp-db = $(call Device/marvell-nand,XP DB (DB-78460-BP))
 Device/armada-xp-gp = $(call Device/marvell-nand,XP GP (DB-MV784MP-GP))
 TARGET_DEVICES += armada-370-db armada-370-rd armada-xp-db armada-xp-gp
+
+UBI_OPTS = -m 4096 -p 1024KiB -s 4096
+UBIFS_OPTS = -m 4096 -e 1016KiB -c 990
+
+define Device/armada-370-rtnasv3
+  $(call Device/marvell-nand-rtnasv3,370 RTNAS V3 (RD-88F6710-A1))
+  DEVICE_DTS := armada-370-rtnasv3
+  $(Device/NAND-1024K)
+  $(Device/UBI-factory)
+  KERNEL_SIZE := 4096k
+endef
+TARGET_DEVICES += armada-370-rtnasv3
 
 define Device/armada-388-rd
   DEVICE_TITLE := Marvell Armada 388 RD (RD-88F6820-AP)

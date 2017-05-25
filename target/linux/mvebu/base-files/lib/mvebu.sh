@@ -23,6 +23,9 @@ mvebu_board_detect() {
 	*"Marvell Armada 370 Reference Design")
 		name="armada-370-rd"
 		;;
+	*"RTNAS V3")
+		name="armada-370-rtnasv3"
+		;;
 	*"Marvell Armada XP Evaluation Board")
 		name="armada-xp-db"
 		;;
