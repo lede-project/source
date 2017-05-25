@@ -196,6 +196,10 @@ get_status_led() {
 	esr900)
 		status_led="engenius:amber:power"
 		;;
+	hiveap-121|\
+	nbg6716)
+		status_led="$board:white:power"
+		;;
 	hiwifi-hc6361)
 		status_led="hiwifi:blue:system"
 		;;
@@ -247,9 +251,6 @@ get_status_led() {
 		;;
 	nbg460n_550n_550nh)
 		status_led="nbg460n:green:power"
-		;;
-	nbg6716)
-		status_led="$board:white:power"
 		;;
 	om2p|\
 	om2pv2|\
@@ -445,6 +446,9 @@ get_status_led() {
 	whr-hp-gn|\
 	wzr-hp-g300nh)
 		status_led="buffalo:green:router"
+		;;
+	wzr-450hp2d)
+		status_led="buffalo:green:diag"
 		;;
 	wlae-ag300n)
 		status_led="buffalo:green:status"

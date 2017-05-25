@@ -109,6 +109,7 @@ enum ath79_mach_type {
 	ATH79_MACH_GL_MIFI,			/* GL-MIFI support */
 	ATH79_MACH_GS_MINIBOX_V1,		/* Gainstrong MiniBox V1.0 */
 	ATH79_MACH_GS_OOLITE,			/* GS OOLITE V1.0 */
+	ATH79_MACH_HIVEAP_121,			/* Aerohive HiveAP-121*/
 	ATH79_MACH_HIWIFI_HC6361,		/* HiWiFi HC6361 */
 	ATH79_MACH_HORNET_UB,			/* ALFA Networks Hornet-UB */
 	ATH79_MACH_JA76PF,			/* jjPlus JA76PF */
@@ -155,6 +156,7 @@ enum ath79_mach_type {
 	ATH79_MACH_QIHOO_C301,			/* Qihoo 360 C301 */
 	ATH79_MACH_R602N,			/* P&W R602N */
 	ATH79_MACH_R6100,			/* NETGEAR R6100 */
+	ATH79_MACH_RAMBUTAN,			/* 8devices Rambutan */
 	ATH79_MACH_RB_2011G,			/* Mikrotik RouterBOARD 2011UAS-2HnD */
 	ATH79_MACH_RB_2011L,			/* Mikrotik RouterBOARD 2011L */
 	ATH79_MACH_RB_2011R5,			/* Mikrotik RouterBOARD 2011UiAS(-2Hnd) */
@@ -274,7 +276,7 @@ enum ath79_mach_type {
 	ATH79_MACH_UBNT_RSPRO,			/* Ubiquiti RouterStation Pro */
 	ATH79_MACH_UBNT_UAP_PRO,		/* Ubiquiti UniFi AP Pro */
 	ATH79_MACH_UBNT_UNIFI,			/* Ubiquiti Unifi */
-	ATH79_MACH_UBNT_UNIFIAC_LITE,		/* Ubiquiti Unifi AC LITE/LR */
+	ATH79_MACH_UBNT_UNIFIAC_LITE,		/* Ubiquiti Unifi AC LITE/LR/MESH */
 	ATH79_MACH_UBNT_UNIFIAC_PRO,		/* Ubiquiti Unifi AC PRO */
 	ATH79_MACH_UBNT_UNIFI_OUTDOOR,		/* Ubiquiti UnifiAP Outdoor */
 	ATH79_MACH_UBNT_UNIFI_OUTDOOR_PLUS,	/* Ubiquiti UnifiAP Outdoor+ */
@@ -309,6 +311,7 @@ enum ath79_mach_type {
 	ATH79_MACH_WRT400N,			/* Linksys WRT400N */
 	ATH79_MACH_WRTNODE2Q,			/* WRTnode2Q */
 	ATH79_MACH_WZR_450HP2,			/* Buffalo WZR-450HP2 */
+	ATH79_MACH_WZR_450HP2D,			/* Buffalo WZR-450HP2D */
 	ATH79_MACH_WZR_HP_AG300H,		/* Buffalo WZR-HP-AG300H */
 	ATH79_MACH_WZR_HP_G300NH,		/* Buffalo WZR-HP-G300NH */
 	ATH79_MACH_WZR_HP_G300NH2,		/* Buffalo WZR-HP-G300NH2 */
