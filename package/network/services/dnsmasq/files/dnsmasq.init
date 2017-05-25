@@ -18,6 +18,7 @@ TRUSTANCHORSFILE="/usr/share/dnsmasq/trust-anchors.conf"
 TIMEVALIDFILE="/var/state/dnsmasqsec"
 BASEDHCPSTAMPFILE="/var/run/dnsmasq"
 RFC6761FILE="/usr/share/dnsmasq/rfc6761.conf"
+BASESCRIPTFILE="/var/etc/dnsmasq.dhcp-script"
 
 DNSMASQ_DHCP_VER=4
 
@@ -694,6 +695,18 @@ dhcp_relay_add() {
 	fi
 }
 
+dhcp_create_script() {
+	local cfg="$1"
+	SCRIPTFILE="${BASESCRIPTFILE}.${cfg}"
+	{	echo "#!/bin/sh"
+		echo "export DNSMASQ_CONFIG=${cfg}"
+		echo "USERSCRIPT=\$(uci -q get dhcp.\${DNSMASQ_CONFIG}.dhcpscript)"
+		echo "[ -n \"\$USERSCRIPT\" ] && ( . \"\$USERSCRIPT\" \"\$@\" )"
+		echo "( . \"/usr/lib/dnsmasq/dhcp-script.sh\" \"\$@\" )"
+	} > "${SCRIPTFILE}"
+	chmod 755 "${SCRIPTFILE}"
+}
+
 dnsmasq_start()
 {
 	local cfg="$1" disabled resolvfile
@@ -709,11 +722,13 @@ dnsmasq_start()
 	HOSTFILE="${BASEHOSTFILE}.${cfg}"
 	TIMESTAMPFILE="${BASETIMESTAMPFILE}.${cfg}"
 	BASEDHCPSTAMPFILE_CFG="${BASEDHCPSTAMPFILE}.${cfg}"
+	SCRIPTFILE="${BASESCRIPTFILE}.${cfg}"
 
 	# before we can call xappend
 	mkdir -p /var/run/dnsmasq/
 	mkdir -p $(dirname $CONFIGFILE)
 	mkdir -p $(dirname $HOSTFILE)
+	mkdir -p $(dirname $SCRIPTFILE)
 	mkdir -p /var/lib/misc
 	chown dnsmasq:dnsmasq /var/run/dnsmasq
 
@@ -791,7 +806,7 @@ dnsmasq_start()
 	append_bool "$cfg" noping "--no-ping"
 
 	append_parm "$cfg" logfacility "--log-facility"
-	append_parm "$cfg" dhcpscript "--dhcp-script"
+	xappend "--dhcp-script=${SCRIPTFILE}"
 	append_parm "$cfg" cachesize "--cache-size"
 	append_parm "$cfg" dnsforwardmax "--dns-forward-max"
 	append_parm "$cfg" port "--port"
@@ -968,6 +983,8 @@ dnsmasq_start()
 		done
 	}
 
+	dhcp_create_script $cfg
+
 	procd_open_instance $cfg
 	procd_set_param command $PROG -C $CONFIGFILE -k -x /var/run/dnsmasq/dnsmasq."${cfg}".pid
 	procd_set_param file $CONFIGFILE
@@ -979,7 +996,7 @@ dnsmasq_start()
 	fi
 
 	procd_add_jail dnsmasq ubus log
-	procd_add_jail_mount $CONFIGFILE $TRUSTANCHORSFILE $HOSTFILE $RFC6761FILE /etc/passwd /etc/group /etc/TZ /dev/null /dev/urandom $dnsmasqconffile $dnsmasqconfdir $resolvfile $dhcpscript /etc/hosts /etc/ethers $EXTRA_MOUNT
+	procd_add_jail_mount $CONFIGFILE $TRUSTANCHORSFILE $HOSTFILE $RFC6761FILE $SCRIPTFILE /etc/passwd /etc/group /etc/TZ /dev/null /dev/urandom $dnsmasqconffile $dnsmasqconfdir $resolvfile $dhcpscript /etc/hosts /etc/ethers /etc/hotplug.d /sbin/hotplug-call /usr/lib/dnsmasq $EXTRA_MOUNT
 	procd_add_jail_mount_rw /var/run/dnsmasq/ $leasefile
 
 	procd_close_instance
