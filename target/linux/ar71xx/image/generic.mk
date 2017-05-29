@@ -790,6 +790,19 @@ define Device/bhr-4grv2
 endef
 TARGET_DEVICES += bhr-4grv2
 
+define Device/yun
+  DEVICE_TITLE := Arduino Yun
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-storage kmod-spi-gpio kmod-serial-8250 kmod-ath9k
+  BOARDNAME := Yun
+  KERNEL_SIZE = 1280k
+  IMAGE_SIZE = 16000k
+  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,14656k(rootfs),1280k(kernel),64k(nvram),64k(art)ro,15936k@0x50000(firmware)
+  IMAGE/sysupgrade.bin = append-kernel | pad-to $$$$(KERNEL_SIZE) | append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE)
+  CONSOLE := ttyATH0,250000
+endef
+
+TARGET_DEVICES += yun
+
 define Device/wpj342
   DEVICE_TITLE := Compex WPJ342 (16MB flash)
   DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport
