@@ -1,0 +1,22 @@
+--- a/arch/mips/include/asm/mach-lantiq/xway/lantiq_soc.h
++++ b/arch/mips/include/asm/mach-lantiq/xway/lantiq_soc.h
+@@ -104,6 +104,9 @@ int xrx200_gphy_boot(struct device *dev,
+ extern void ltq_pmu_enable(unsigned int module);
+ extern void ltq_pmu_disable(unsigned int module);
+ 
++/* allow drivers to reset clock domains and ip cores */
++extern void ltq_reset_once(unsigned int module, ulong u);
++
+ /* allow the ethernet driver to load a flash mapped mac addr */
+ const u8* ltq_get_eth_mac(void);
+ 
+--- a/arch/mips/lantiq/xway/reset.c
++++ b/arch/mips/lantiq/xway/reset.c
+@@ -224,6 +224,7 @@ void ltq_reset_once(unsigned int module,
+ 	udelay(u);
+ 	ltq_rcu_w32(ltq_rcu_r32(RCU_RST_REQ) & ~module, RCU_RST_REQ);
+ }
++EXPORT_SYMBOL_GPL(ltq_reset_once);
+ 
+ static int ltq_assert_device(struct reset_controller_dev *rcdev,
+ 				unsigned long id)
