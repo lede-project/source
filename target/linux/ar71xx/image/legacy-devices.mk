@@ -178,6 +178,12 @@ define LegacyDevice/WRTNODE2Q
 endef
 LEGACY_DEVICES += WRTNODE2Q
 
+define LegacyDevice/YUN_8M
+  DEVICE_TITLE := Arduino Yun based on Atheros AR9331 (8MB flash)
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
+endef
+LEGACY_DEVICES += YUN_8M
+
 define LegacyDevice/F9K1115V2
   DEVICE_TITLE := Belkin AC1750DB (F9K1115V2)
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb3 kmod-usb-ledtrig-usbport \
