@@ -20,6 +20,9 @@ ib62x0|\
 linksys-viper|\
 nsa310b|\
 nsa325|\
+on100)
+	ubootenv_add_uci_config "/dev/mtd1" "0x0" "0x20000" "0x20000"
+	;;
 pogo_e02|\
 sheevaplug|\
 sheevaplug-esata)
