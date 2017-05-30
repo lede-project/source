@@ -672,6 +672,10 @@ ar8327_init_globals(struct ar8xxx_priv *priv)
 	for (i = 0; i < AR8XXX_NUM_PHYS; i++)
 		data->eee[i] = false;
 
+	if (chip_is_ar8327(priv))
+		ar8xxx_write(priv, AR8327_REG_GLOBAL_FC_THRESH,
+				AR8327_GLOBAL_FC_THRESH_DFLT_VAL);
+
 	if (chip_is_ar8337(priv)) {
 
 		/*
