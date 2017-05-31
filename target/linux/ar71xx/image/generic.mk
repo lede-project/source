@@ -1,3 +1,5 @@
+DEVICE_VARS += NETGEAR_KERNEL_MAGIC NETGEAR_BOARD_ID NETGEAR_HW_ID
+
 define Build/mkbuffaloimg
 	$(STAGING_DIR_HOST)/bin/mkbuffaloimg -B $(BOARDNAME) \
 		-R $$(($(subst k, * 1024,$(ROOTFS_SIZE)))) \
@@ -14,6 +16,29 @@ define Build/mkwrggimg
 	mv $@.imghdr $@
 endef
 
+define Build/netgear-squashfs
+	rm -rf $@.fs $@.squashfs
+	mkdir -p $@.fs/image
+	cp $@ $@.fs/image/uImage
+	$(STAGING_DIR_HOST)/bin/mksquashfs-lzma \
+		$@.fs $@.squashfs \
+		-noappend -root-owned -be -b 65536 \
+		$(if $(SOURCE_DATE_EPOCH),-fixed-time $(SOURCE_DATE_EPOCH))
+
+	dd if=/dev/zero bs=1k count=1 >> $@.squashfs
+	mkimage \
+		-A mips -O linux -T filesystem -C none \
+		-M $(NETGEAR_KERNEL_MAGIC) \
+		-a 0xbf070000 -e 0xbf070000 \
+		-n 'MIPS OpenWrt Linux-$(LINUX_VERSION)' \
+		-d $@.squashfs $@
+	rm -rf $@.squashfs $@.fs
+endef
+
+define Build/netgear-uImage
+	$(call Build/uImage,$(1) -M $(NETGEAR_KERNEL_MAGIC))
+endef
+
 define Build/seama
 	$(STAGING_DIR_HOST)/bin/seama -i $@ $(if $(1),$(1),-m "dev=/dev/mtdblock/1" -m "type=firmware")
 	mv $@.seama $@
@@ -21,6 +46,19 @@ endef
 
 define Build/seama-seal
 	$(call Build/seama,-s $@.seama $(1))
+endef
+
+define Build/relocate-kernel
+	rm -rf $@.relocate
+	$(CP) ../../generic/image/relocate $@.relocate
+	$(MAKE) -j1 -C $@.relocate KERNEL_ADDR=$(KERNEL_LOADADDR) CROSS_COMPILE=$(TARGET_CROSS)
+	( \
+		dd if=$@.relocate/loader.bin bs=32 conv=sync && \
+		perl -e '@s = stat("$@"); print pack("N", @s[7])' && \
+		cat "$@" \
+	) > "$@.new"
+	mv "$@.new" "$@"
+	rm -rf $@.relocate
 endef
 
 define Build/uImageHiWiFi
