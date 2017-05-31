@@ -1,4 +1,4 @@
-DEVICE_VARS += NETGEAR_KERNEL_MAGIC NETGEAR_BOARD_ID NETGEAR_HW_ID ROOTFS_SIZE
+DEVICE_VARS += NETGEAR_KERNEL_MAGIC NETGEAR_BOARD_ID NETGEAR_HW_ID ROOTFS_SIZE SEAMA_SIGNATURE DAP_SIGNATURE
 
 define Build/mkbuffaloimg
 	$(STAGING_DIR_HOST)/bin/mkbuffaloimg -B $(BOARDNAME) \
@@ -759,7 +759,6 @@ define Device/seama
 	seama-seal -m "signature=$$$$(SEAMA_SIGNATURE)" | \
 	check-size $$$$(IMAGE_SIZE)
   SEAMA_SIGNATURE :=
-  DEVICE_VARS += SEAMA_SIGNATURE
 endef
 
 define Device/dir-869-a1
@@ -820,7 +819,6 @@ define Device/dap-2695-a1
   KERNEL_INITRAMFS := $$(KERNEL) | mkwrggimg
   MTDPARTS = spi0.0:256k(bootloader)ro,64k(bdcfg)ro,64k(rgdb)ro,64k(langpack)ro,15360k(firmware),448k(captival)ro,64k(certificate)ro,64k(radiocfg)ro
   DAP_SIGNATURE := wapac02_dkbs_dap2695
-  DEVICE_VARS += DAP_SIGNATURE
 endef
 
 TARGET_DEVICES += dap-2695-a1
