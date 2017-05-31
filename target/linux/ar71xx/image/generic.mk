@@ -1,3 +1,42 @@
+define Build/mkbuffaloimg
+	$(STAGING_DIR_HOST)/bin/mkbuffaloimg -B $(BOARDNAME) \
+		-R $$(($(subst k, * 1024,$(ROOTFS_SIZE)))) \
+		-K $$(($(subst k, * 1024,$(KERNEL_SIZE)))) \
+		-i $@ -o $@.new
+	mv $@.new $@
+endef
+
+define Build/mkwrggimg
+	$(STAGING_DIR_HOST)/bin/mkwrggimg -b \
+		-i $@ -o $@.imghdr -d /dev/mtdblock/1 \
+		-m $(BOARDNAME) -s $(DAP_SIGNATURE) \
+		-v LEDE -B $(REVISION)
+	mv $@.imghdr $@
+endef
+
+define Build/seama
+	$(STAGING_DIR_HOST)/bin/seama -i $@ $(if $(1),$(1),-m "dev=/dev/mtdblock/1" -m "type=firmware")
+	mv $@.seama $@
+endef
+
+define Build/seama-seal
+	$(call Build/seama,-s $@.seama $(1))
+endef
+
+define Build/uImageHiWiFi
+	# Field ih_name needs to start with "tw150v1"
+	mkimage -A $(LINUX_KARCH) \
+		-O linux -T kernel \
+		-C $(1) -a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
+		-n 'tw150v1 $(call toupper,$(LINUX_KARCH)) LEDE Linux-$(LINUX_VERSION)' -d $@ $@.new
+	@mv $@.new $@
+endef
+
+define Build/wrgg-pad-rootfs
+	$(STAGING_DIR_HOST)/bin/padjffs2 $(IMAGE_ROOTFS) -c 64 >>$@
+endef
+
+
 define Device/ap531b0
   DEVICE_TITLE := Rockeetech AP531B0
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2
@@ -645,15 +684,6 @@ endef
 TARGET_DEVICES += c-55
 
 
-define Build/uImageHiWiFi
-	# Field ih_name needs to start with "tw150v1"
-	mkimage -A $(LINUX_KARCH) \
-		-O linux -T kernel \
-		-C $(1) -a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
-		-n 'tw150v1 $(call toupper,$(LINUX_KARCH)) LEDE Linux-$(LINUX_VERSION)' -d $@ $@.new
-	@mv $@.new $@
-endef
-
 define Device/hiwifi-hc6361
   DEVICE_TITLE := HiWiFi HC6361
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage \
@@ -667,15 +697,6 @@ define Device/hiwifi-hc6361
 endef
 TARGET_DEVICES += hiwifi-hc6361
 
-
-define Build/seama
-	$(STAGING_DIR_HOST)/bin/seama -i $@ $(if $(1),$(1),-m "dev=/dev/mtdblock/1" -m "type=firmware")
-	mv $@.seama $@
-endef
-
-define Build/seama-seal
-	$(call Build/seama,-s $@.seama $(1))
-endef
 
 define Device/seama
   LOADER_TYPE := bin
@@ -746,18 +767,6 @@ endef
 
 TARGET_DEVICES += dir-869-a1 mynet-n600 mynet-n750 qihoo-c301
 
-define Build/mkwrggimg
-	$(STAGING_DIR_HOST)/bin/mkwrggimg -b \
-		-i $@ -o $@.imghdr -d /dev/mtdblock/1 \
-		-m $(BOARDNAME) -s $(DAP_SIGNATURE) \
-		-v LEDE -B $(REVISION)
-	mv $@.imghdr $@
-endef
-
-define Build/wrgg-pad-rootfs
-	$(STAGING_DIR_HOST)/bin/padjffs2 $(IMAGE_ROOTFS) -c 64 >>$@
-endef
-
 define Device/dap-2695-a1
   DEVICE_TITLE := D-Link DAP-2695 rev. A1
   DEVICE_PACKAGES := ath10k-firmware-qca988x kmod-ath10k
@@ -774,14 +783,6 @@ define Device/dap-2695-a1
 endef
 
 TARGET_DEVICES += dap-2695-a1
-
-define Build/mkbuffaloimg
-	$(STAGING_DIR_HOST)/bin/mkbuffaloimg -B $(BOARDNAME) \
-		-R $$(($(subst k, * 1024,$(ROOTFS_SIZE)))) \
-		-K $$(($(subst k, * 1024,$(KERNEL_SIZE)))) \
-		-i $@ -o $@.new
-	mv $@.new $@
-endef
 
 define Device/bhr-4grv2
   DEVICE_TITLE := Buffalo BHR-4GRV2
