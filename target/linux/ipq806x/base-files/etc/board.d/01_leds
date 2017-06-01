@@ -14,8 +14,8 @@ case "$board" in
 c2600)
 	ucidef_set_led_usbport "usb1" "USB 1" "${board}:white:usb_2" "usb1-port1" "usb2-port1"
 	ucidef_set_led_usbport "usb2" "USB 2" "${board}:white:usb_4" "usb3-port1" "usb4-port1"
-	ucidef_set_led_switch "wan" "wan" "${board}:white:wan" "switch0" "0x20"
-	ucidef_set_led_switch "lan" "lan" "${board}:white:lan" "switch0" "0x1e"
+	ucidef_set_led_netdev "wan" "wan" "${board}:white:wan" "wan"
+	ucidef_set_led_netdev "lan" "lan" "${board}:white:lan" "eth1"
 	;;
 d7800 |\
 r7500 |\
@@ -23,7 +23,7 @@ r7500v2 |\
 r7800)
 	ucidef_set_led_usbport "usb1" "USB 1" "${board}:white:usb1" "usb1-port1" "usb2-port1"
 	ucidef_set_led_usbport "usb2" "USB 2" "${board}:white:usb2" "usb3-port1" "usb4-port1"
-	ucidef_set_led_netdev "wan" "WAN" "${board}:white:wan" "eth0"
+	ucidef_set_led_netdev "wan" "WAN" "${board}:white:wan" "wan"
 	ucidef_set_led_ide "esata" "eSATA" "${board}:white:esata"
 	ucidef_set_led_wlan "wlan2g" "WLAN 2G" "${board}:white:wifi" "phy1tpt"
 	ucidef_set_led_wlan "wlan5g" "WLAN 5G" "${board}:white:wps" "phy0tpt"
@@ -36,14 +36,14 @@ fritz4040)
 nbg6817)
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "$board:amber:wifi2g" "phy1tpt"
 	ucidef_set_led_wlan "wlan5g" "WLAN5G" "$board:amber:wifi5g" "phy0tpt"
-	ucidef_set_led_netdev "wan" "WAN" "$board:white:internet" "eth1"
+	ucidef_set_led_netdev "wan" "WAN" "$board:white:internet" "wan"
 	;;
 vr2600v)
 	ucidef_set_led_usbport "usb" "USB" "${board}:white:usb" "usb1-port1" "usb2-port1" "usb3-port1" "usb4-port1"
-	ucidef_set_led_switch "lan" "lan" "${board}:white:lan" "switch0" "0x1e"
+	ucidef_set_led_netdev "lan" "lan" "${board}:white:lan" "eth1"
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "${board}:white:wlan2g" "phy0tpt"
 	ucidef_set_led_wlan "wlan5g" "WLAN5G" "${board}:white:wlan5g" "phy1tpt"
-	ucidef_set_led_switch "wan" "wan" "${board}:white:wan" "switch0" "0x20"
+	ucidef_set_led_netdev "wan" "wan" "${board}:white:wan" "wan"
 	;;
 *)
 	;;
