@@ -185,6 +185,15 @@ menu "Target Images"
 		select PACKAGE_grub2
 		default y
 
+	config GRUB_EFI
+		bool "Install GRUB EFI bootloader (x86_64 and i386 only)"
+		depends on TARGET_x86_64_efi || TARGET_x86_efi
+		depends on GRUB_IMAGES
+		select PACKAGE_grub2-efi-amd64 if TARGET_x86_64_efi
+		default y
+		select PACKAGE_grub2-efi-i386 if TARGET_x86_efi
+		default y
+
 	config GRUB_CONSOLE
 		bool "Use Console Terminal (in addition to Serial)"
 		depends on GRUB_IMAGES
