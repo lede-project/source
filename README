@@ -4,7 +4,7 @@ Please use "make menuconfig" to choose your preferred
 configuration for the toolchain and firmware.
 
 You need to have installed gcc, binutils, bzip2, flex, python, perl, make,
-find, grep, diff, unzip, gawk, getopt, subversion, libz-dev and libc headers.
+find, grep, diff, unzip, gawk, getopt, libz-dev and libc headers.
 
 Run "./scripts/feeds update -a" to get all the latest package definitions
 defined in feeds.conf / feeds.conf.default respectively
