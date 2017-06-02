@@ -29,3 +29,7 @@ config MODULES
 
 source "Config-build.in"
 source "tmp/.config-package.in"
+
+menu "Configure feeds"
+source "tmp/.config-feeds.in"
+endmenu
