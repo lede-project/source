@@ -36,6 +36,7 @@ define Package/uboot-envtools
   SUBMENU:=Boot Loaders
   TITLE:=read/modify U-Boot bootloader environment
   URL:=http://www.denx.de/wiki/U-Boot
+  DEPENDS:= @!TARGET_x86_64
 endef
 
 define Package/uboot-envtools/description
