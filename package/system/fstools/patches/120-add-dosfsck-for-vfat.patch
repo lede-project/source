@@ -1,0 +1,15 @@
+Index: fstools-2016-04-25/block.c
+===================================================================
+--- fstools-2016-04-25.orig/block.c	2016-04-28 21:45:33.000000000 -0400
++++ fstools-2016-04-25/block.c	2016-04-28 22:40:26.904518000 -0400
+@@ -633,7 +633,9 @@
+ 	if (!strncmp(pr->id->name, "ubifs", 5))
+ 		return;
+ 
+-	if (strncmp(pr->id->name, "ext", 3)) {
++	if (!strncmp(pr->id->name, "vfat", 4)) {
++		e2fsck = "/sbin/dosfsck";
++	} else if (strncmp(pr->id->name, "ext", 3)) {
+ 		ULOG_ERR("check_filesystem: %s is not supported\n", pr->id->name);
+ 		return;
+ 	}
