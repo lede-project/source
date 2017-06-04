@@ -36,6 +36,9 @@ boot() {
 	grep -q debugfs /proc/filesystems && /bin/mount -o noatime -t debugfs debugfs /sys/kernel/debug
 	[ "$FAILSAFE" = "true" ] && touch /tmp/.failsafe
 
+	[ ! -x /sbin/modprobe -a -x /usr/sbin/modprobe ] && \
+		echo /usr/sbin/modprobe > /proc/sys/kernel/modprobe
+
 	/sbin/kmodloader
 
 	[ ! -f /etc/config/wireless ] && {
