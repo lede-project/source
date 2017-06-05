@@ -17,6 +17,7 @@ include ./tp-link.mk
 include ./ubnt.mk
 include ./generic.mk
 include ./legacy-devices.mk
+include ./legacy-linino.mk
 include ./senao.mk
 endif
 ifeq ($(SUBTARGET),nand)
