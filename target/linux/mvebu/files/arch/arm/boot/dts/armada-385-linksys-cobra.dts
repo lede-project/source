@@ -1,5 +1,5 @@
 /*
- * Device Tree file for the Linksys WRT1900ACS (Shelby)
+ * Device Tree file for the Linksys WRT1900ACv2 (Cobra)
  *
  * Copyright (C) 2015 Imre Kaloz <kaloz@openwrt.org>
  *
@@ -41,8 +41,8 @@
 #include "armada-385-linksys-caiman-cobra-shelby.dtsi"
 
 / {
-	model = "Linksys WRT1900ACS";
-	compatible = "linksys,shelby", "linksys,armada385", "marvell,armada385",
+	model = "Linksys WRT1900ACv2";
+	compatible = "linksys,cobra", "linksys,armada385", "marvell,armada385",
 		     "marvell,armada380";
 
 	soc {
@@ -54,47 +54,47 @@
 				#size-cells = <0>;
 
 					wan_amber@0 {
-						label = "shelby:amber:wan";
+						label = "cobra:amber:wan";
 						reg = <0x0>;
 					};
 
 					wan_white@1 {
-						label = "shelby:white:wan";
+						label = "cobra:white:wan";
 						reg = <0x1>;
 					};
 
 					wlan_2g@2 {
-						label = "shelby:white:wlan_2g";
+						label = "cobra:white:wlan_2g";
 						reg = <0x2>;
 					};
 
 					wlan_5g@3 {
-						label = "shelby:white:wlan_5g";
+						label = "cobra:white:wlan_5g";
 						reg = <0x3>;
 					};
 
 					usb2@5 {
-						label = "shelby:white:usb2";
+						label = "cobra:white:usb2";
 						reg = <0x5>;
 					};
 
 					usb3_1@6 {
-						label = "shelby:white:usb3_1";
+						label = "cobra:white:usb3_1";
 						reg = <0x6>;
 					};
 
 					usb3_2@7 {
-						label = "shelby:white:usb3_2";
+						label = "cobra:white:usb3_2";
 						reg = <0x7>;
 					};
 
 					wps_white@8 {
-						label = "shelby:white:wps";
+						label = "cobra:white:wps";
 						reg = <0x8>;
 					};
 
 					wps_amber@9 {
-						label = "shelby:amber:wps";
+						label = "cobra:amber:wps";
 						reg = <0x9>;
 					};
 				};
@@ -310,11 +310,11 @@
 
 	gpio-leds {
 		power {
-			label = "shelby:white:power";
+			label = "cobra:white:power";
 		};
 
 		sata {
-			label = "shelby:white:sata";
+			label = "cobra:white:sata";
 			linux,default-trigger = "disk-activity";
 		};
 	};
