@@ -12,6 +12,7 @@ platform_pre_upgrade() {
 
 	case "$board" in
 	ap148 |\
+	wpq864 |\
 	d7800 |\
 	nbg6817 |\
 	r7500 |\
