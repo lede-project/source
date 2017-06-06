@@ -832,7 +832,8 @@ dnsmasq_start()
 	config_get_bool readethers "$cfg" readethers
 	[ "$readethers" = "1" -a \! -e "/etc/ethers" ] && touch /etc/ethers
 
-	xappend "--dhcp-script=$DHCPSCRIPT"
+	config_get_bool enable_dhcpscript "$cfg" enable_dhcpscript 0
+	[ "$enable_dhcpscript" -gt 0 ] && xappend "--dhcp-script=$DHCPSCRIPT"
 	config_get user_dhcpscript $cfg dhcpscript
 
 	config_get leasefile $cfg leasefile "/tmp/dhcp.leases"
