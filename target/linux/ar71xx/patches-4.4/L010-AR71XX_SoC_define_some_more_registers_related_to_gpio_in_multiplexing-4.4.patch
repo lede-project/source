@@ -1,6 +1,6 @@
 --- a/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2015-12-18 18:27:37.452784740 +0100
 +++ b/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2015-12-18 18:46:29.713790460 +0100
-@@ -868,6 +868,12 @@
+@@ -875,6 +875,12 @@
  #define AR934X_GPIO_REG_OUT_FUNC3	0x38
  #define AR934X_GPIO_REG_OUT_FUNC4	0x3c
  #define AR934X_GPIO_REG_OUT_FUNC5	0x40

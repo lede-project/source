@@ -1,6 +1,6 @@
 --- a/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2015-11-28 17:36:31.000000000 +0100
 +++ b/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2015-11-28 18:14:46.603010624 +0100
-@@ -984,6 +984,9 @@
+@@ -991,6 +991,9 @@
  #define AR724X_GPIO_FUNC_JTAG_DISABLE		BIT(0)
 
  #define AR933X_GPIO_FUNC2_JUMPSTART_DISABLE 	BIT(9)
