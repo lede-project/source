@@ -553,6 +553,9 @@ ramips_board_detect() {
 	*"WLR-6000")
 		name="wlr-6000"
 		;;
+	*"R6220 (SPI Flash)")
+		name="r6220-spi"
+		;;
 	*"WMR-300")
 		name="wmr-300"
 		;;

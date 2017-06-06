@@ -289,6 +289,13 @@ px-4885)
 	set_wifi_led "$board:orange:wifi"
 	set_usb_led "$board:blue:storage"
 	;;
+r6220-spi)
+	ucidef_set_led_default "power" "power" "$board:green:power" "1"
+	ucidef_set_led_default "wps" "wps" "$board:green:wps" "0"
+	ucidef_set_led_netdev "wan" "wan" "$board:green:internet" eth0.2
+	set_usb_led "$board:green:usb"
+	set_wifi_led "$board:green:wifi"
+	;;
 re6500)
 	ucidef_set_led_default "power" "power" "$board:white:power" "1"
 	ucidef_set_led_default "wifi" "wifi" "$board:orange:wifi" "1"
