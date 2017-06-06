@@ -250,7 +250,46 @@ define Device/VR2600v
 	IMAGE/sysupgrade.bin := pad-extra 512 | append-kernel | pad-to $$$${KERNEL_SIZE} | append-rootfs | pad-rootfs | append-metadata
 endef
 
+define Device/AP-DK01.1-C1
+	$(call Device/FitImage)
+	DEVICE_DTS := qcom-ipq4019-ap.dk01.1-c1
+	KERNEL_LOADADDR := 0x80208000
+	KERNEL_INSTALL := 1
+	KERNEL_SIZE := 4048k
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	BOARD_NAME := ap-dk01.1-c1
+	DEVICE_TITLE := QCA AP-DK01.1-C1
+endef
+
+define Device/AP-DK04.1-C1
+	$(call Device/FitImage)
+	DEVICE_DTS := qcom-ipq4019-ap.dk04.1-c1
+	KERNEL_LOADADDR := 0x80208000
+	KERNEL_INSTALL := 1
+	KERNEL_SIZE := 4048k
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	BOARD_NAME := ap-dk04.1-c1
+	DEVICE_TITLE := QCA AP-DK04.1-C1
+endef
+
+define Device/WPJ428
+    $(call Device/FitImage)
+    DEVICE_DTS := qcom-ipq4019-wpj428
+    BLOCKSIZE := 4k
+    PAGESIZE := 256
+    BOARD_NAME := wpj428
+    DEVICE_TITLE := Compex WPJ428
+    KERNEL_LOADADDR := 0x80208000
+    IMAGE_SIZE := 27262976
+    KERNEL_SIZE := 4194304
+    IMAGES = sysupgrade.bin
+    IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-rootfs | pad-rootfs  | append-metadata
+    DEVICE_PACKAGES := kmod-gpio-beeper kmod-usb-phy-qcom-ipq4019
+endef
+
 TARGET_DEVICES += AP148 AP148-legacy C2600 D7800 DB149 EA8500 FRITZ4040 R7500 \
-		  R7500v2 R7800 NBG6817 VR2600v
+		  R7500v2 R7800 NBG6817 VR2600v AP-DK01.1-C1 AP-DK04.1-C1 WPJ428
 
 $(eval $(call BuildImage))

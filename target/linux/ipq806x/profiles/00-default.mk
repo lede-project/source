@@ -1,7 +1,9 @@
+
 define Profile/Default
   NAME:=Default Profile
   PRIORITY:=1
-  PACKAGES:=ath10k-firmware-qca99x0 ath10k-firmware-qca988x ath10k-firmware-qca9984
+  PACKAGES:=ath10k-firmware-qca99x0 ath10k-firmware-qca988x ath10k-firmware-qca9984 \
+	    ath10k-firmware-qca4019
 endef
 
 define Profile/Default/Description

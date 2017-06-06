@@ -47,6 +47,15 @@ ipq806x_board_detect() {
 	*"VR2600v")
 		name="vr2600v"
 		;;
+	*"AP-DK01.1-C1")
+		name="ap-dk01.1-c1"
+		;;
+	*"AP-DK04.1-C1")
+		name="ap-dk04.1-c1"
+		;;
+	*"Compex WPJ428")
+		name="wpj428"
+		;;
 	esac
 
 	[ -z "$name" ] && name="unknown"
