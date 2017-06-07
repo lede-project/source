@@ -21,6 +21,12 @@ led_off() {
 	led_set_attr $1 "brightness" 0
 }
 
+led_netdev() {
+	led_set_attr $1 "trigger" "netdev"
+	led_set_attr $1 "device_name" "$2"
+	led_set_attr $1 "mode" "$3"
+}
+
 status_led_set_timer() {
 	led_timer $status_led "$1" "$2"
 	[ -n "$status_led2" ] && led_timer $status_led2 "$1" "$2"
@@ -28,6 +34,11 @@ status_led_set_timer() {
 
 status_led_set_heartbeat() {
 	led_set_attr $status_led "trigger" "heartbeat"
+}
+
+status_led_set_netdev() {
+	led_netdev $status_led "$1" "$2"
+	[ -n "$status_led2" ] && led_netdev $status_led2 "$1" "$2"
 }
 
 status_led_on() {
