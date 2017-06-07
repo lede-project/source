@@ -470,6 +470,13 @@ define Device/youku-yk1
 endef
 TARGET_DEVICES += youku-yk1
 
+define Device/atel-u270
+  DTS := ATEL-U270
+  IMAGE_SIZE := $(ralink_default_fw_size_8M)
+  DEVICE_TITLE := ATEL U270
+endef
+TARGET_DEVICES += atel-u270
+
 define Device/zbt-ape522ii
   DTS := ZBT-APE522II
   DEVICE_TITLE := Zbtlink ZBT-APE522II
