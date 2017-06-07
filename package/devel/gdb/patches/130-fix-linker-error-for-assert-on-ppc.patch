@@ -1,0 +1,13 @@
+diff --git a/sim/ppc/debug.h b/sim/ppc/debug.h
+index 6f19624..d823352 100644
+--- a/sim/ppc/debug.h
++++ b/sim/ppc/debug.h
+@@ -155,7 +155,7 @@ do { \
+ do { \
+   if (WITH_ASSERT) { \
+     if (!(EXPRESSION)) { \
+-      error("%s:%d: assertion failed - %s\n", \
++      sim_io_error("%s:%d: assertion failed - %s\n", \
+ 	    filter_filename(__FILE__), __LINE__, #EXPRESSION); \
+     } \
+   } \
