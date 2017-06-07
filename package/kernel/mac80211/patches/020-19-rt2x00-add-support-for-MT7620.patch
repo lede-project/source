@@ -11,6 +11,7 @@ Signed-off-by: Roman Yeryomin <roman@advem.lv>
 Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 Acked-by: Stanislaw Gruszka <sgruszka@redhat.com>
 Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+Signed-off-by: Tomislav Požega <pozega.tomislav@gmail.com>
 ---
  drivers/net/wireless/ralink/rt2x00/Kconfig     |    2 +-
  drivers/net/wireless/ralink/rt2x00/rt2800.h    |  177 +++
@@ -1850,9 +1851,11 @@ index 8d00c599e47a..201b12ed90c6 100644
 +	rt2800_rfcsr_write_chanreg(rt2x00dev, 44, 0xB3);
 +	rt2800_rfcsr_write_chanreg(rt2x00dev, 45, 0xD5);
 +	rt2800_rfcsr_write_chanreg(rt2x00dev, 46, 0x27);
-+	rt2800_rfcsr_write_chanreg(rt2x00dev, 47, 0x69);
++	rt2800_rfcsr_write_bank(rt2x00dev, 4, 47, 0x67);
++	rt2800_rfcsr_write_bank(rt2x00dev, 6, 47, 0x69);
 +	rt2800_rfcsr_write_chanreg(rt2x00dev, 48, 0xFF);
-+	rt2800_rfcsr_write_chanreg(rt2x00dev, 54, 0x20);
++	rt2800_rfcsr_write_bank(rt2x00dev, 4, 54, 0x27);
++	rt2800_rfcsr_write_bank(rt2x00dev, 6, 54, 0x20);
 +	rt2800_rfcsr_write_chanreg(rt2x00dev, 55, 0x66);
 +	rt2800_rfcsr_write_chanreg(rt2x00dev, 56, 0xFF);
 +	rt2800_rfcsr_write_chanreg(rt2x00dev, 57, 0x1C);
