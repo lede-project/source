@@ -348,6 +348,10 @@ wndr3700v5)
 wt3020)
 	ucidef_set_led_default "power" "power" "$board:blue:power" "0"
 	;;
+u35wf)
+ 	set_wifi_led "$board:blue:wifi"
+ 	ucidef_set_led_netdev "eth" "eth" "$board:green:eth" "eth"
+ 	;;
 y1)
 	set_usb_led "$board:blue:usb"
 	ucidef_set_led_netdev "wifi" "WIFI" "$board:blue:wifi" "wlan1"
