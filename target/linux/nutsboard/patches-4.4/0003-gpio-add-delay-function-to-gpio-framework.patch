@@ -1,0 +1,32 @@
+From b36439b611c7e7f1a58571beacbf914c3a7f8778 Mon Sep 17 00:00:00 2001
+From: Wig C <wig.cheng@technexion.com>
+Date: Fri, 18 Dec 2015 14:41:18 +0800
+Subject: [PATCH 03/33] gpio: add delay function to gpio framework.
+
+---
+ drivers/input/keyboard/gpio_edm.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/input/keyboard/gpio_edm.c b/drivers/input/keyboard/gpio_edm.c
+index ef05020..893ac05 100644
+--- a/drivers/input/keyboard/gpio_edm.c
++++ b/drivers/input/keyboard/gpio_edm.c
+@@ -17,6 +17,7 @@
+ #include <linux/of_platform.h>
+ #include <linux/of_gpio.h>
+ #include <linux/mutex.h>
++#include <linux/delay.h>
+ 
+ struct gpio_edm_data {
+ 		unsigned int gpio;
+@@ -195,6 +196,7 @@ static int gpio_edm_probe(struct platform_device *pdev)
+ 	for (i = 0; i < gpio_num; i++) {
+ 		gpio_location[i]=pdata[i].gpio;
+ 		error = gpio_edm_setup_key(pdev, &pdata[i]);
++		msleep(15);
+ 		if (error)
+ 			goto fail;
+ 
+-- 
+2.7.4
+

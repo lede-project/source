@@ -1,0 +1,4 @@
+#!/bin/sh
+
+sleep 10
+create_ap wlan0 eth1 nutsboard-ap qwerty0987 &

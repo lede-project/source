@@ -1,0 +1,17 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2017 NutsBoard.org Wig Cheng,<onlywig@gmail.com>
+START=100
+STOP=100
+start() {
+
+        insmod /lib/modules/$(uname -r)/kernel/net/wireless/cfg80211.ko
+        insmod /lib/modules/$(uname -r)/kernel/net/mac80211/mac80211.ko
+        insmod /lib/modules/$(uname -r)/kernel/drivers/net/wireless/ti/wlcore/wlcore_sdio.ko
+        insmod /lib/modules/$(uname -r)/kernel/drivers/net/wireless/ti/wlcore/wlcore.ko
+        insmod /lib/modules/$(uname -r)/kernel/drivers/net/wireless/ti/wl18xx/wl18xx.ko
+        eth1_nat.sh
+        system_init &
+}
+stop() {
+        echo "service close"
+}
