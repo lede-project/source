@@ -32,7 +32,7 @@ EXCLUDE_DIRS:=*/ccache/* \
 	*/doc \
 	*/share/locale
 
-SDK_DIRS = \
+SDK_DIRS = 	$(STAGING_SUBDIR_TARGET)\
 		$(STAGING_SUBDIR_HOST) \
 		$(STAGING_SUBDIR_TOOLCHAIN)
 
