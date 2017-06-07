@@ -468,6 +468,16 @@ define Device/tl-mr3420-v2
 endef
 TARGET_DEVICES += tl-mr3020-v1 tl-mr3040-v1 tl-mr3040-v2 tl-mr3220-v1 tl-mr3220-v2 tl-mr3420-v1 tl-mr3420-v2
 
+define Device/tl-mr6400-v1
+  $(Device/tplink-8mlzma)
+  DEVICE_TITLE := TP-LINK TL-MR6400 v1
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-net kmod-usb-net-rndis kmod-usb-serial kmod-usb-serial-option adb-enablemodem
+  BOARDNAME := TL-MR6400
+  DEVICE_PROFILE := TLMR6400
+  TPLINK_HWID := 0x64000001
+endef
+TARGET_DEVICES += tl-mr6400-v1
+
 define Device/tl-wpa8630-v1
   $(Device/tplink-8mlzma)
   DEVICE_TITLE := TP-LINK TL-WPA8630 v1
@@ -577,7 +587,7 @@ endef
 define Device/tl-wr740n-v6
   $(Device/tplink-4mlzma)
   DEVICE_TITLE := TP-LINK TL-WR740N/ND v6
-  BOARDNAME := TL-WR841N-v9
+  BOARDNAME := TL-WR740N-v6
   DEVICE_PROFILE := TLWR740
   TPLINK_HWID := 0x07400006
 endef

@@ -767,6 +767,15 @@ config ATH79_MACH_EAP120
 	select ATH79_DEV_M25P80
 	select ATH79_DEV_WMAC
 
+config ATH79_MACH_ENS202EXT
+	bool "EnGenius ENS202EXT support"
+	select SOC_AR934X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_WMAC
+
 config ATH79_MACH_EAP300V2
 	bool "EnGenius EAP300 v2 support"
 	select SOC_AR934X
@@ -793,6 +802,18 @@ config ATH79_MACH_GS_OOLITE
 	select ARH79_DEV_GPIO_BUTTONS
 	select ATH79_DEV_LEDS_GPIO
 	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
+config ATH79_MACH_HIVEAP_121
+	bool "Aerohive HiveAP-121 support"
+	select SOC_AR934X
+	select ATH79_DEV_AP9X_PCI if PCI
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_NFC
 	select ATH79_DEV_USB
 	select ATH79_DEV_WMAC
 
@@ -1415,6 +1436,16 @@ config ATH79_MACH_TL_MR3X20
 	select ATH79_DEV_M25P80
 	select ATH79_DEV_USB
 
+config ATH79_MACH_TL_MR6400
+	bool "TP-LINK TL-MR6400 support"
+	select SOC_QCA953X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
 config ATH79_MACH_TL_WAX50RE
 	bool "TP-LINK TL-WA750/850RE support"
 	select SOC_AR934X
@@ -1637,7 +1668,7 @@ config ATH79_MACH_TL_WR841N_V8
 	select ATH79_DEV_WMAC
 
 config ATH79_MACH_TL_WR841N_V9
-	bool "TP-LINK TL-WR841N/ND v9/TL-WR842N/ND v3 support"
+	bool "TP-LINK TL-WR841N/ND v9/TL-WR842N/ND v3/TL-WR740N/ND v6 support"
 	select SOC_QCA953X
 	select ATH79_DEV_ETH
 	select ATH79_DEV_GPIO_BUTTONS
@@ -1784,7 +1815,7 @@ config ATH79_MACH_UBNT
 	select ATH79_DEV_USB
 
 config ATH79_MACH_UBNT_UNIFIAC
-	bool "Ubiquiti UniFi AC (LITE/LR/PRO) support"
+	bool "Ubiquiti UniFi AC (LITE/LR/MESH/PRO) support"
 	select SOC_QCA956X
 	select ATH79_DEV_AP9X_PCI if PCI
 	select ATH79_DEV_ETH
@@ -1906,6 +1937,16 @@ config ATH79_MACH_LIMA
 	select ATH79_DEV_USB
 	select ATH79_DEV_WMAC
 	select ATH79_DEV_ETH
+
+config ATH79_MACH_RAMBUTAN
+	bool "8devices Rambutan board"
+	select SOC_QCA955X
+	select ATH79_DEV_AP9X_PCI if PCI
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_NFC
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
 
 config ATH79_MACH_CF_E316N_V2
 	bool "COMFAST CF-E316N v2 support"

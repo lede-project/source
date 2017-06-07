@@ -268,7 +268,7 @@ mac80211_hostapd_setup_base() {
 			vht_max_mpdu_hw=11454
 		[ "$vht_max_mpdu_hw" != 3895 ] && \
 			vht_capab="$vht_capab[MAX-MPDU-$vht_max_mpdu_hw]"
-			
+
 		# maximum A-MPDU length exponent
 		vht_max_a_mpdu_len_exp_hw=0
 		[ "$(($vht_cap & 58720256))" -ge 8388608 -a 1 -le "$vht_max_a_mpdu_len_exp" ] && \
@@ -427,6 +427,12 @@ mac80211_iw_interface_add() {
 
 		iw phy "$phy" interface add "$ifname" type "$type" $wdsflag
 		rc="$?"
+	}
+
+	[ "$rc" = 233 ] && {
+		# Device might not support virtual interfaces, so the interface never got deleted in the first place.
+		# Check if the interface already exists, and avoid failing in this case.
+		ip link show dev "$ifname" >/dev/null 2>/dev/null && rc=0
 	}
 
 	[ "$rc" != 0 ] && wireless_setup_failed INTERFACE_CREATION_FAILED
@@ -588,7 +594,7 @@ mac80211_setup_adhoc() {
 	[ -n "$mcast_rate" ] && wpa_supplicant_add_rate mcval "$mcast_rate"
 
 	iw dev "$ifname" ibss join "$ssid" $freq $ibss_htmode fixed-freq $bssid \
-		${beacon_int:+beacon-interval $beacon_int} \
+		beacon-interval $beacon_int \
 		${brstr:+basic-rates $brstr} \
 		${mcval:+mcast-rate $mcval} \
 		${keyspec:+keys $keyspec}
@@ -668,7 +674,9 @@ mac80211_setup_vif() {
 				esac
 
 				freq="$(get_freq "$phy" "$channel")"
-				iw dev "$ifname" mesh join "$mesh_id" freq $freq $mesh_htmode ${mcval:+mcast-rate $mcval}
+				iw dev "$ifname" mesh join "$mesh_id" freq $freq $mesh_htmode \
+					${mcval:+mcast-rate $mcval} \
+					beacon-interval $beacon_int
 			fi
 
 			for var in $MP_CONFIG_INT $MP_CONFIG_BOOL $MP_CONFIG_STRING; do
@@ -720,7 +728,7 @@ drv_mac80211_setup() {
 		country chanbw distance \
 		txpower antenna_gain \
 		rxantenna txantenna \
-		frag rts beacon_int htmode
+		frag rts beacon_int:100 htmode
 	json_get_values basic_rate_list basic_rate
 	json_select ..
 

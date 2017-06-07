@@ -58,7 +58,7 @@ define Device/ArcherMR200
   KERNEL := $(KERNEL_DTB)
   KERNEL_INITRAMFS := $(KERNEL_DTB) | tplink-header ArcherMR200 -c
   IMAGE/sysupgrade.bin := append-kernel | tplink-header ArcherMR200 -j -s | append-metadata
-  DEVICE_PACKAGES := kmod-usb2 kmod-usb-net kmod-usb-net-rndis kmod-usb-serial kmod-usb-serial-option adb
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-net kmod-usb-net-rndis kmod-usb-serial kmod-usb-serial-option adb-enablemodem
   DEVICE_TITLE := TP-Link ArcherMR200
 endef
 TARGET_DEVICES += ArcherMR200
@@ -353,6 +353,14 @@ define Device/rt-n14u
   DEVICE_TITLE := Asus RT-N14u
 endef
 TARGET_DEVICES += rt-n14u
+
+define Device/rt-ac51u
+  DTS := RT-AC51U
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := Asus RT-AC51U
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ehci kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += rt-ac51u
 
 define Device/tiny-ac
   DTS := TINY-AC

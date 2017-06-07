@@ -19,10 +19,11 @@
  *
  */
 
+#include <linux/gpio.h>
 #include <linux/phy.h>
 #include <linux/platform_device.h>
 #include <linux/ath9k_platform.h>
-#include <linux/ar8216_platform.h>
+#include <linux/platform_data/phy-at803x.h>
 
 #include <asm/mach-ath79/ar71xx_regs.h>
 
@@ -38,15 +39,16 @@
 #include "dev-wmac.h"
 #include "machtypes.h"
 
-#define DR344_GPIO_LED_SIG1	15
-#define DR344_GPIO_LED_SIG2	11
-#define DR344_GPIO_LED_SIG3	12
-#define DR344_GPIO_LED_SIG4	13
-#define DR344_GPIO_EXTERNAL_LNA0       18
-#define DR344_GPIO_EXTERNAL_LNA1       19
-#define DR344_GPIO_LED_STATUS	14
+#define DR344_GPIO_LED_SIG1		12
+#define DR344_GPIO_LED_SIG2		13
+#define DR344_GPIO_LED_SIG3		14
+#define DR344_GPIO_LED_SIG4		15
+#define DR344_GPIO_LED_STATUS		11
+#define DR344_GPIO_LED_LAN		17
+#define DR344_GPIO_EXTERNAL_LNA0	18
+#define DR344_GPIO_EXTERNAL_LNA1	19
 
-#define DR344_GPIO_BTN_RESET	12
+#define DR344_GPIO_BTN_RESET		16
 
 #define DR344_KEYS_POLL_INTERVAL	20	/* msecs */
 #define DR344_KEYS_DEBOUNCE_INTERVAL	(3 * DR344_KEYS_POLL_INTERVAL)
@@ -58,17 +60,22 @@
 
 static struct gpio_led dr344_leds_gpio[] __initdata = {
 	{
+		.name		= "dr344:green:lan",
+		.gpio		= DR344_GPIO_LED_LAN,
+		.active_low	= 1,
+	},
+	{
 		.name		= "dr344:green:status",
 		.gpio		= DR344_GPIO_LED_STATUS,
 		.active_low	= 1,
 	},
 	{
-		.name		= "dr344:red:sig1",
+		.name		= "dr344:green:sig1",
 		.gpio		= DR344_GPIO_LED_SIG1,
 		.active_low	= 1,
 	},
 	{
-		.name		= "dr344:yellow:sig2",
+		.name		= "dr344:green:sig2",
 		.gpio		= DR344_GPIO_LED_SIG2,
 		.active_low	= 1,
 	},
@@ -95,39 +102,17 @@ static struct gpio_keys_button dr344_gpio_keys[] __initdata = {
 	},
 };
 
-static struct ar8327_pad_cfg dr344_ar8327_pad0_cfg = {
-	.mode = AR8327_PAD_MAC_RGMII,
-	.txclk_delay_en = true,
-	.rxclk_delay_en = true,
-	.txclk_delay_sel = AR8327_CLK_DELAY_SEL1,
-	.rxclk_delay_sel = AR8327_CLK_DELAY_SEL2,
-};
-
-static struct ar8327_led_cfg dr344_ar8327_led_cfg = {
-	.led_ctrl0 = 0x00000000,
-	.led_ctrl1 = 0xc737c737,
-	.led_ctrl2 = 0x00000000,
-	.led_ctrl3 = 0x00c30c00,
-	.open_drain = true,
-};
-
-static struct ar8327_platform_data dr344_ar8327_data = {
-	.pad0_cfg = &dr344_ar8327_pad0_cfg,
-	.port0_cfg = {
-		.force_link = 1,
-		.speed = AR8327_PORT_SPEED_1000,
-		.duplex = 1,
-		.txpause = 1,
-		.rxpause = 1,
-	},
-	.led_cfg = &dr344_ar8327_led_cfg,
+static struct at803x_platform_data dr344_at803x_data = {
+	.disable_smarteee = 1,
+	.enable_rgmii_rx_delay = 1,
+	.enable_rgmii_tx_delay = 1,
 };
 
 static struct mdio_board_info dr344_mdio0_info[] = {
 	{
 		.bus_id = "ag71xx-mdio.0",
 		.phy_addr = 0,
-		.platform_data = &dr344_ar8327_data,
+		.platform_data = &dr344_at803x_data,
 	},
 };
 
@@ -137,6 +122,15 @@ static void __init dr344_setup(void)
 	u8 *mac = (u8 *) KSEG1ADDR(0x1f03f810);
 
 	ath79_register_m25p80(NULL);
+
+	ath79_gpio_direction_select(DR344_GPIO_LED_STATUS, true);
+	gpio_set_value(DR344_GPIO_LED_STATUS, 1);
+	ath79_gpio_output_select(DR344_GPIO_LED_STATUS, 0);
+
+	ath79_gpio_direction_select(DR344_GPIO_LED_LAN, true);
+	gpio_set_value(DR344_GPIO_LED_LAN, 1);
+	ath79_gpio_output_select(DR344_GPIO_LED_LAN, 0);
+
 	ath79_register_leds_gpio(-1, ARRAY_SIZE(dr344_leds_gpio),
 				 dr344_leds_gpio);
 	ath79_register_gpio_keys_polled(-1, DR344_KEYS_POLL_INTERVAL,
@@ -165,11 +159,11 @@ static void __init dr344_setup(void)
 	ath79_setup_ar934x_eth_cfg(AR934X_ETH_CFG_RGMII_GMAC0 |
 				   AR934X_ETH_CFG_SW_ONLY_MODE);
 
-	/* GMAC0 is connected to an AR8327 switch */
+	/* GMAC0 is connected to an AR8035 Gbps PHY */
 	ath79_eth0_data.phy_if_mode = PHY_INTERFACE_MODE_RGMII;
 	ath79_eth0_data.phy_mask = BIT(0);
 	ath79_eth0_data.mii_bus_dev = &ath79_mdio0_device.dev;
-	ath79_eth0_pll_data.pll_1000 = 0x0e000000;
+	ath79_eth0_pll_data.pll_1000 = 0x02000000;
 	ath79_eth0_pll_data.pll_100 = 0x0101;
 	ath79_eth0_pll_data.pll_10 = 0x1313;
 
