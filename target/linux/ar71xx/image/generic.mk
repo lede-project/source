@@ -845,6 +845,15 @@ define Device/wpj563
 endef
 TARGET_DEVICES += wpj563
 
+define Device/yun-16m
+  BOARDNAME := Yun
+  DEVICE_TITLE := Arduino Yun (16MB flash)
+  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,15936k(firmware),64k(nvram)ro,64k(art)ro
+  CONSOLE = ttyATH0,250000
+  IMAGE_SIZE := 15936k
+endef
+TARGET_DEVICES += yun-16m
+
 define Device/zbt-we1526
   DEVICE_TITLE := Zbtlink ZBT-WE1526
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2
