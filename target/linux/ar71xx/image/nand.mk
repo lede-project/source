@@ -1,3 +1,20 @@
+define Build/MerakiNAND
+	-$(STAGING_DIR_HOST)/bin/mkmerakifw \
+		-B $(BOARDNAME) -s \
+		-i $@ \
+		-o $@.new
+	@mv $@.new $@
+endef
+
+define Build/MerakiNAND-old
+	-$(STAGING_DIR_HOST)/bin/mkmerakifw-old \
+		-B $(BOARDNAME) -s \
+		-i $@ \
+		-o $@.new
+	@mv $@.new $@
+endef
+
+
 define Device/c-60
   DEVICE_TITLE := AirTight C-60
   DEVICE_PACKAGES := kmod-spi-gpio kmod-usb-core kmod-usb2 kmod-ath9k
@@ -10,7 +27,6 @@ define Device/c-60
   KERNEL := kernel-bin | patch-cmdline | lzma | uImage lzma
   IMAGE/sysupgrade.tar := sysupgrade-tar
 endef
-
 TARGET_DEVICES += c-60
 
 define Device/domywifi-dw33d
@@ -41,14 +57,6 @@ define Device/hiveap-121
 endef
 TARGET_DEVICES += hiveap-121
 
-define Build/MerakiNAND
-	-$(STAGING_DIR_HOST)/bin/mkmerakifw \
-		-B $(BOARDNAME) -s \
-		-i $@ \
-		-o $@.new
-	@mv $@.new $@
-endef
-
 define Device/mr18
   DEVICE_TITLE := Meraki MR18
   DEVICE_PACKAGES := kmod-spi-gpio kmod-ath9k
@@ -61,14 +69,6 @@ define Device/mr18
   IMAGE/sysupgrade.tar := sysupgrade-tar
 endef
 TARGET_DEVICES += mr18
-
-define Build/MerakiNAND-old
-	-$(STAGING_DIR_HOST)/bin/mkmerakifw-old \
-		-B $(BOARDNAME) -s \
-		-i $@ \
-		-o $@.new
-	@mv $@.new $@
-endef
 
 define Device/rambutan
   DEVICE_TITLE := 8devices Rambutan
@@ -95,24 +95,23 @@ define Device/z1
   KERNEL_INITRAMFS := kernel-bin | patch-cmdline | MerakiNAND-old
   IMAGE/sysupgrade.tar := sysupgrade-tar
 endef
-
 TARGET_DEVICES += z1
 
 define LegacyDevice/R6100
   DEVICE_TITLE := NETGEAR R6100
-  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
 endef
 LEGACY_DEVICES += R6100
 
 define LegacyDevice/WNDR3700V4
   DEVICE_TITLE := NETGEAR WNDR3700v4
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
 endef
 LEGACY_DEVICES += WNDR3700V4
 
 define LegacyDevice/WNDR4300V1
   DEVICE_TITLE := NETGEAR WNDR4300v1
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
 endef
 LEGACY_DEVICES += WNDR4300V1
 

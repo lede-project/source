@@ -1,4 +1,18 @@
-DEVICE_VARS += TPLINK_HWID TPLINK_HWREV TPLINK_FLASHLAYOUT TPLINK_HEADER_VERSION TPLINK_BOARD_NAME
+DEVICE_VARS += TPLINK_HWID TPLINK_HWREV TPLINK_FLASHLAYOUT TPLINK_HEADER_VERSION TPLINK_BOARD_NAME LOADER_FLASH_OFFS
+
+define Build/copy-file
+	cat "$(1)" > "$@"
+endef
+
+define Build/loader-okli
+	dd if=$(KDIR)/loader-$(1).gz bs=7680 conv=sync of="$@.new"
+	cat "$@" >> "$@.new"
+	mv "$@.new" "$@"
+endef
+
+define Build/loader-okli-compile
+	$(call Build/loader-common,FLASH_OFFS=$(LOADER_FLASH_OFFS) FLASH_MAX=0 KERNEL_CMDLINE="$(CMDLINE)")
+endef
 
 # combine kernel and rootfs into one image
 # mktplinkfw <type> <optional extra arguments to mktplinkfw binary>
@@ -103,6 +117,22 @@ define Device/tplink-16mlzma
   TPLINK_FLASHLAYOUT := 16Mlzma
   IMAGE_SIZE := 15872k
 endef
+
+define Device/archer-c25-v1
+  DEVICE_TITLE := TP-LINK Archer C25 v1
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca9887
+  BOARDNAME := ARCHER-C25-V1
+  TPLINK_BOARD_NAME := ARCHER-C25-V1
+  DEVICE_PROFILE := ARCHERC25V1
+  IMAGE_SIZE := 7808k
+  LOADER_TYPE := elf
+  KERNEL := kernel-bin | patch-cmdline | lzma | uImageArcher lzma
+  IMAGES := sysupgrade.bin factory.bin
+  IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade
+  IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
+  MTDPARTS := spi0.0:128k(factory-uboot)ro,64k(u-boot)ro,1536k(kernel),6272k(rootfs),128k(config)ro,64k(art)ro,7808k@0x30000(firmware)
+endef
+TARGET_DEVICES += archer-c25-v1
 
 define Device/archer-c59-v1
   DEVICE_TITLE := TP-LINK Archer C59 v1
@@ -859,6 +889,21 @@ define Device/tl-wr941nd-v6-cn
 endef
 TARGET_DEVICES += tl-wr941nd-v2 tl-wr941nd-v3 tl-wr941nd-v4 tl-wr941nd-v5 tl-wr941nd-v6 tl-wr941nd-v6-cn tl-wr940n-v4
 
+define Device/tl-wr942n-v1
+  DEVICE_TITLE := TP-LINK TL-WR942N v1
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME := TL-WR942N-V1
+  TPLINK_BOARD_NAME := TLWR942NV1
+  DEVICE_PROFILE := TLWR942
+  IMAGE_SIZE := 14464k
+  KERNEL := kernel-bin | patch-cmdline | lzma | uImageArcher lzma
+  IMAGES := sysupgrade.bin factory.bin
+  IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade
+  IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
+  MTDPARTS := spi0.0:128k(u-boot)ro,1344k(kernel),13120k(rootfs),64k(product-info)ro,64k(partition-table)ro,256k(oem-config)ro,1344k(oem-vars)ro,64k(ART)ro,14464k@0x20000(firmware)
+endef
+TARGET_DEVICES += tl-wr942n-v1
+
 define Device/tl-wr1041n-v2
   $(Device/tplink-4mlzma)
   DEVICE_TITLE := TP-LINK TL-WR1041N v2
@@ -1081,7 +1126,6 @@ define Device/tl-wa901nd-v4
   TPLINK_HWID := 0x09010004
   IMAGE/factory.bin := append-rootfs | mktplinkfw factory -C EU
 endef
-
 TARGET_DEVICES += tl-wa901nd-v1 tl-wa901nd-v2 tl-wa901nd-v3 tl-wa901nd-v4
 
 define Device/tl-wa7210n-v2

@@ -206,6 +206,7 @@ platform_check_image() {
 	ap132|\
 	ap531b0|\
 	ap90q|\
+	archer-c25-v1|\
 	archer-c59-v1|\
 	archer-c60-v1|\
 	bullet-m|\
@@ -271,6 +272,7 @@ platform_check_image() {
 	tew-712br|\
 	tew-732br|\
 	tew-823dru|\
+	tl-wr942n-v1|\
 	unifi-outdoor|\
 	unifiac-lite|\
 	unifiac-pro|\

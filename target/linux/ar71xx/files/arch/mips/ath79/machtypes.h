@@ -40,6 +40,7 @@ enum ath79_mach_type {
 	ATH79_MACH_AP531B0,			/* Rockeetech AP531B0 */
 	ATH79_MACH_AP90Q,			/* YunCore AP90Q */
 	ATH79_MACH_AP96,			/* Atheros AP96 */
+	ATH79_MACH_ARCHER_C25_V1,		/* TP-LINK Archer C25 V1 board */
 	ATH79_MACH_ARCHER_C5,			/* TP-LINK Archer C5 board */
 	ATH79_MACH_ARCHER_C59_V1,		/* TP-LINK Archer C59 V1 board */
 	ATH79_MACH_ARCHER_C60_V1,		/* TP-LINK Archer C60 V1 board */
@@ -262,6 +263,7 @@ enum ath79_mach_type {
 	ATH79_MACH_TL_WR941ND_V5,		/* TP-LINK TL-WR941ND v5 */
 	ATH79_MACH_TL_WR941ND_V6,		/* TP-LINK TL-WR941ND v6 */
 	ATH79_MACH_TL_WR940N_V4,		/* TP-LINK TL-WR940N v4 */
+	ATH79_MACH_TL_WR942N_V1,		/* TP-LINK TL-WR942N v1 */
 	ATH79_MACH_TUBE2H,			/* Alfa Network Tube2H */
 	ATH79_MACH_UBNT_AIRGW,			/* Ubiquiti AirGateway */
 	ATH79_MACH_UBNT_AIRGWP,			/* Ubiquiti AirGateway Pro */

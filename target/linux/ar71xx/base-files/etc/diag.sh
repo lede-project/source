@@ -36,6 +36,7 @@ get_status_led() {
 	db120|\
 	dr344|\
 	tew-632brp|\
+	tl-wr942n-v1|\
 	wpj344|\
 	zbt-we1526)
 		status_led="$board:green:status"
@@ -50,6 +51,7 @@ get_status_led() {
 	ap135-020)
 		status_led="ap135:green:status"
 		;;
+	archer-c25-v1|\
 	archer-c59-v1|\
 	archer-c60-v1|\
 	mr12|\

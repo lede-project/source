@@ -1,6 +1,4 @@
-# UBNT_BOARD e.g. one of (XS2, XS5, RS, XM)
-# UBNT_TYPE e.g. one of (BZ, XM, XW)
-# UBNT_CHIP e.g. one of (ar7240, ar933x, ar934x)
+DEVICE_VARS += UBNT_BOARD UBNT_CHIP UBNT_TYPE
 
 # mkubntimage is using the kernel image direct
 # routerboard creates partitions out of the ubnt header
@@ -34,7 +32,6 @@ define Build/mkubntimage2
 	@mv $@.new $@
 endef
 
-DEVICE_VARS += UBNT_BOARD UBNT_CHIP UBNT_TYPE
 
 # UBNT_BOARD e.g. one of (XS2, XS5, RS, XM)
 # UBNT_TYPE e.g. one of (BZ, XM, XW)
@@ -53,7 +50,7 @@ define Device/ubnt-xm
 endef
 
 define Device/ubnt-xw
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
   DEVICE_PROFILE := UBNT
   IMAGE_SIZE := 7552k
   MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,7552k(firmware),256k(cfg)ro,64k(EEPROM)ro
@@ -66,7 +63,7 @@ define Device/ubnt-xw
 endef
 
 define Device/ubnt-bz
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
   DEVICE_PROFILE := UBNT
   IMAGE_SIZE := 7552k
   MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,7552k(firmware),256k(cfg)ro,64k(EEPROM)ro
@@ -79,7 +76,7 @@ define Device/ubnt-bz
 endef
 
 define Device/ubnt-unifiac
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
   DEVICE_PROFILE := UBNT
   IMAGE_SIZE := 7744k
   MTDPARTS = spi0.0:384k(u-boot)ro,64k(u-boot-env)ro,7744k(firmware),7744k(ubnt-airos)ro,128k(bs)ro,256k(cfg)ro,64k(EEPROM)ro
@@ -141,7 +138,7 @@ endef
 define Device/ubnt-unifiac-pro
   $(Device/ubnt-unifiac)
   DEVICE_TITLE := Ubiquiti UniFi AC-Pro
-  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x kmod-usb-core kmod-usb-ohci kmod-usb2
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x kmod-usb-core kmod-usb2
   DEVICE_PROFILE := UBNT UBNTUNIFIACPRO
   BOARDNAME := UBNT-UF-AC-PRO
 endef
@@ -210,7 +207,6 @@ define Device/ubdev01
   UBNT_TYPE := XM
   UBNT_CHIP := ar7240
 endef
-
 TARGET_DEVICES += ubdev01
 
 define Device/ubnt-routerstation
@@ -252,7 +248,6 @@ define Device/ubnt-ls-sr71
   UBNT_TYPE := LS-SR71
   UBNT_CHIP := ar7100
 endef
-
 TARGET_DEVICES += ubnt-rs ubnt-rspro ubnt-ls-sr71
 
 define Device/ubnt-uap-pro
@@ -277,5 +272,4 @@ define Device/ubnt-unifi-outdoor-plus
   BOARDNAME := UBNT-UOP
   DEVICE_PROFILE := UBNT
 endef
-
 TARGET_DEVICES += ubnt-uap-pro ubnt-unifi-outdoor-plus
