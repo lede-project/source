@@ -288,6 +288,7 @@ platform_check_image() {
 	wrt400n|\
 	wrtnode2q|\
 	wzr-450hp2|\
+	wzr-450hp2d|\
 	wzr-hp-ag300h|\
 	wzr-hp-g300nh2|\
 	wzr-hp-g300nh|\

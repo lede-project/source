@@ -399,6 +399,16 @@ config ATH79_MACH_WZR_450HP2
 	select ATH79_DEV_USB
 	select ATH79_DEV_WMAC
 
+config ATH79_MACH_WZR_450HP2D
+	bool "Buffalo WZR-450HP2D board support"
+	select SOC_QCA955X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
 config ATH79_MACH_WP543
 	bool "Compex WP543/WPJ543 board support"
 	select SOC_AR71XX

@@ -878,6 +878,10 @@ wzr-hp-g300nh2|\
 wzr-hp-g450h)
 	ucidef_set_led_wlan "wlan" "Wireless" "buffalo:green:wireless" "phy0tpt"
 	;;
+wzr-450hp2d)
+	ucidef_set_led_netdev "wan" "WAN" "buffalo:green:internet" "eth0.2" "link tx rx"
+	ucidef_set_led_wlan "wlan" "WLAN" "buffalo:green:wlan" "phy0tpt"
+	;;
 xd3200)
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "$board:blue:wlan2g" "phy1tpt"
 	;;
