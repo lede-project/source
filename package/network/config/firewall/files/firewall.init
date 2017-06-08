@@ -41,6 +41,10 @@ restart() {
 	fw3 restart
 }
 
+service_running() {
+	return 0
+}
+
 start_service() {
 	fw3 ${QUIET} start
 }
