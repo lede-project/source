@@ -88,10 +88,6 @@ service_triggers() {
 	return 0
 }
 
-service_running() {
-	return 0
-}
-
 ${INIT_TRACE:+set -x}
 
 . "$initscript"
@@ -127,6 +123,10 @@ ${INIT_TRACE:+set -x}
 	}
 
 	reload() {
+		if ! running ; then
+			start
+			return
+		fi
 		if eval "type reload_service" 2>/dev/null >/dev/null; then
 			reload_service "$@"
 		else
@@ -135,7 +135,11 @@ ${INIT_TRACE:+set -x}
 	}
 
 	running() {
-		service_running "$@"
+		if eval "type service_running" 2>/dev/null >/dev/null; then
+			service_running "$@"
+		else
+			procd_service_running "$(basename ${basescript:-$initscript})"
+		fi
 	}
 }
 

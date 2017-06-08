@@ -413,6 +413,33 @@ _procd_set_config_changed() {
 	ubus call service event "$(json_dump)"
 }
 
+procd_service_running() {
+	local service="$1"
+
+	[ -n "$service" ] || return 1
+
+	json_init
+	json_add_string name "$service"
+	local result="$(ubus call service list "$(json_dump)")"
+
+	# load & process result
+	json_load "$result"
+
+	# silence warnings from here on
+	local _json_no_warning=1
+	result=1
+	json_select "$service" && \
+		json_select "instances" && \
+		json_select "instance1" && \
+		json_get_var result running && \
+		[ "$result" == "1" ] && \
+		result=0
+
+	json_cleanup
+
+	return $result
+}
+
 procd_add_mdns_service() {
 	local service proto port
 	service=$1; shift
