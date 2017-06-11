@@ -104,6 +104,22 @@ define Device/tplink-16mlzma
   IMAGE_SIZE := 15872k
 endef
 
+define Device/archer-c58-v1
+  DEVICE_TITLE := TP-LINK Archer C58 v1
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x
+  BOARDNAME := ARCHER-C58-V1
+  TPLINK_BOARD_NAME := ARCHER-C58-V1
+  DEVICE_PROFILE := ARCHERC58V1
+  IMAGE_SIZE := 7936k
+  KERNEL := kernel-bin | patch-cmdline | lzma | uImageArcher lzma
+  IMAGES := sysupgrade.bin factory.bin
+  IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade
+  IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
+  MTDPARTS := spi0.0:64k(u-boot)ro,64k(mac)ro,1344k(kernel),6592k(rootfs),64k(tplink)ro,64k(art)ro,7936k@0x20000(firmware)
+endef
+TARGET_DEVICES += archer-c58-v1
+
+
 define Device/archer-c59-v1
   DEVICE_TITLE := TP-LINK Archer C59 v1
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k ath10k-firmware-qca988x

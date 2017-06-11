@@ -54,6 +54,7 @@ sc1750|\
 sc450)
 	ucidef_set_led_wlan "wlan" "WLAN" "$board:green:wlan" "phy0tpt"
 	;;
+archer-c58-v1|\
 archer-c59-v1|\
 archer-c60-v1)
 	ucidef_set_led_switch "lan" "LAN" "$board:green:lan" "switch0" "0x1E"
