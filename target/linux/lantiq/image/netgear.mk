@@ -10,10 +10,18 @@ include $(INCLUDE_DIR)/image.mk
 
 DEVICE_VARS += NETGEAR_BOARD_ID NETGEAR_REGION NETGEAR_HW_ID
 
+define Build/append-hdr-rootfs
+  mkimage -A mips -O linux -C lzma -T filesystem -a 0x00 -e 0x00 \
+          -n 'LEDE RootFS' \
+          -d $(IMAGE_ROOTFS) $@.tmp
+  cat $@.tmp >> $@
+  rm $@.tmp
+endef
+
 define Device/lantiqNetgear
-  KERNEL := kernel-bin | append-dtb | lzma | uImage lzma | pad-offset 4 0
+  KERNEL := kernel-bin | append-dtb | lzma | uImage lzma | pad-offset 4 0 | pad-to 2162624
   IMAGES := sysupgrade.bin factory.img
-  IMAGE/default := append-kernel | append-rootfs | pad-rootfs | append-metadata
+  IMAGE/default := append-kernel | append-hdr-rootfs | pad-rootfs | append-metadata
   IMAGE/sysupgrade.bin := $$(IMAGE/default) | check-size $$$$(IMAGE_SIZE)
   IMAGE/factory.img := $$(IMAGE/default) | netgear-dni | check-size $$$$(IMAGE_SIZE)
 endef
