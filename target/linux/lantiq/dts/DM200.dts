@@ -1,0 +1,11 @@
+/dts-v1/;
+
+#include "EASY220.dtsi"
+
+/ {
+	model = "Netgear DM200";
+
+	chosen {
+		bootargs = "root=/dev/mtdblock4 ro rootfstype=squashfs,jffs2 mem=62M vpe1_load_addr=0x83e00000 vpe1_mem=2M maxvpes=1 maxtcs=1 nosmp";
+	};
+};
