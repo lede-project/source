@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gcc
 PKG_VERSION:=5.4.0
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 PKG_SOURCE_URL:=@GNU/gcc/gcc-$(PKG_VERSION)
 PKG_MD5SUM:=4c626ac2a83ef30dfb9260e6f59c2b30
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -49,30 +49,30 @@ define Package/gcc/description
 	build a native toolchain for compiling on target
 endef
 
-GMPSRC=gmp-4.3.2
+GMPSRC=gmp-6.1.2
 
 define Download/gmp
   URL:=ftp://gcc.gnu.org/pub/gcc/infrastructure/
   FILE:=$(GMPSRC).tar.bz2
-  MD5SUM:=dd60683d7057917e34630b4a787932e8
+  MD5SUM:=8ddbb26dc3bd4e2302984debba1406a5
 endef
 $(eval $(call Download,gmp))
 
-MPCSRC=mpc-0.8.1
+MPCSRC=mpc-1.0.3
 
 define Download/mpc
   URL:=ftp://gcc.gnu.org/pub/gcc/infrastructure/
   FILE:=$(MPCSRC).tar.gz
-  MD5SUM:=5b34aa804d514cc295414a963aedb6bf
+  MD5SUM:=d6a1d5f8ddea3abd2cc3e98f58352d26
 endef
 $(eval $(call Download,mpc))
 
-MPFRSRC=mpfr-2.4.2
+MPFRSRC=mpfr-3.1.5
 
 define Download/mpfr
   URL:=ftp://gcc.gnu.org/pub/gcc/infrastructure/
   FILE:=$(MPFRSRC).tar.bz2
-  MD5SUM:=89e59fe665e2b3ad44a6789f40b059a0
+  MD5SUM:=b1d23a55588e3b2a13e3be66bc69fd8d
 endef
 $(eval $(call Download,mpfr))
 
@@ -86,10 +86,6 @@ define Build/Prepare
 	tar -C $(PKG_BUILD_DIR) -xvjf $(DL_DIR)/$(MPFRSRC).tar.bz2
 	ln -sf $(PKG_BUILD_DIR)/$(MPFRSRC) $(PKG_BUILD_DIR)/mpfr
 	$(Build/Patch)
-#	poor man's fix for `none-openwrt-linux' not recognized when building with musl
-	cp $(PKG_BUILD_DIR)/config.sub $(PKG_BUILD_DIR)/mpfr/
-	cp $(PKG_BUILD_DIR)/config.sub $(PKG_BUILD_DIR)/gmp/
-	cp $(PKG_BUILD_DIR)/config.sub $(PKG_BUILD_DIR)/mpc/
 endef
 
 
