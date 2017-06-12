@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dropbear
 PKG_VERSION:=2017.75
-PKG_RELEASE:=1
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:= \
@@ -77,7 +77,7 @@ CONFIGURE_ARGS += \
 	--disable-zlib \
 	--enable-bundled-libtom
 
-TARGET_CFLAGS += -DARGTYPE=3 -ffunction-sections -fdata-sections
+TARGET_CFLAGS += -DARGTYPE=3 -DDEFAULT_AUTH_TRIES=3 -ffunction-sections -fdata-sections
 TARGET_LDFLAGS += -Wl,--gc-sections
 
 define Build/Configure
