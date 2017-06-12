@@ -247,6 +247,12 @@ else
 	rm -f /tmp/sysupgrade.always.overwrite.bootdisk.partmap
 fi
 
+IMAGE_FILE=$(readlink -f ${ARGV})
+if [ "${IMAGE_FILE:1:3}" != "tmp" ]; then
+	echo "Image file must be flashed with absolute path from '/tmp' folder"
+	exit 1
+fi
+
 run_hooks "" $sysupgrade_pre_upgrade
 
 install_bin /sbin/upgraded
