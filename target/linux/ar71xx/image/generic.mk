@@ -92,6 +92,16 @@ define Device/ap90q
 endef
 TARGET_DEVICES += ap90q
 
+define Device/arduino-yun
+  BOARDNAME := Yun
+  DEVICE_TITLE := Arduino Yun
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
+  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env),15936k(firmware),64k(nvram),64k(art)ro
+  CONSOLE = ttyATH0,250000
+  IMAGE_SIZE := 15936k
+endef
+TARGET_DEVICES += arduino-yun
+
 define Device/bsb
   DEVICE_TITLE := Smart Electronics Black Swift board
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2
