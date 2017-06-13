@@ -1,0 +1,10 @@
+--- a/session.c
++++ b/session.c
+@@ -1115,6 +1115,7 @@ rpc_handle_login(struct ubus_context *ct
+ 	                                  blobmsg_get_string(tb[RPC_L_PASSWORD]));
+ 
+ 	if (!login) {
++		sleep(3);
+ 		rv = UBUS_STATUS_PERMISSION_DENIED;
+ 		goto out;
+ 	}
