@@ -512,6 +512,9 @@ define Device/BTHOMEHUBV5A
 endef
 TARGET_DEVICES += BTHOMEHUBV5A
 
+# Netgear DM200
+include netgear.mk
+
 define Device/EASY80920NAND
   $(Device/lantiqFullImage)
   IMAGE_SIZE := 64512k
