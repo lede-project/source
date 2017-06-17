@@ -22,7 +22,14 @@ if [ -n "$led" ]; then
 	case "$DSL_INTERFACE_STATUS" in
 	  "HANDSHAKE")  led_timer $led 500 500;;
 	  "TRAINING")   led_timer $led 200 200;;
-	  "UP")		led_on $led;;
+	  "UP")		config_get trigger led_dsl trigger
+			if [ "$trigger" = "netdev" ]; then
+				config_get dev led_dsl dev
+				config_get mode led_dsl mode
+				led_netdev $led $dev "$mode"
+			else
+				led_on $led
+			fi;;
 	  *)		led_off $led
 	esac
 fi
