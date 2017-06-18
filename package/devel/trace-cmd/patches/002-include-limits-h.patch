@@ -1,0 +1,10 @@
+--- a/trace-listen.c	2017-05-02 19:35:16.000000000 +0200
++++ b/trace-listen.c	2017-06-18 16:42:47.438740627 +0200
+@@ -31,6 +31,7 @@
+ #include <fcntl.h>
+ #include <signal.h>
+ #include <errno.h>
++#include <linux/limits.h>
+ 
+ #include "trace-local.h"
+ #include "trace-msg.h"
