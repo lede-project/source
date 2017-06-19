@@ -1,0 +1,12 @@
+--- a/lib/module.js
++++ b/lib/module.js
+@@ -626,7 +626,8 @@
+   } else {
+     prefixDir = path.resolve(process.execPath, '..', '..');
+   }
+-  var paths = [path.resolve(prefixDir, 'lib', 'node')];
++  var paths = [path.resolve(prefixDir, 'lib', 'node'),
++               path.resolve(prefixDir, 'lib', 'node_modules')];
+ 
+   if (homeDir) {
+     paths.unshift(path.resolve(homeDir, '.node_libraries'));
