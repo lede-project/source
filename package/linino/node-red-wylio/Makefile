@@ -21,7 +21,7 @@ PKG_SOURCE_URL:=https://github.com/Wyliodrin/node-red.git
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_REVISION).tar.gz
 
 PKG_BUILD_DEPENDS:=node
-PKG_NODE_VERSION:=6.10.2
+PKG_NODE_VERSION:=6.11.0
 
 include $(INCLUDE_DIR)/package.mk
 
