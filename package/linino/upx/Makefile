@@ -8,6 +8,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=upx
 PKG_VERSION:=3.91
+PKG_RELEASE:=2
 
 # PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-src.tar.gz
 # PKG_SOURCE_URL:=@SF/upx
@@ -43,12 +44,14 @@ endef
 define Host/Compile
 	rm -f $(HOST_BUILD_DIR)/src/.depend
 	$(MAKE) UPX_LZMADIR="$(BUILD_DIR_HOST)/lzma-4.65" -C $(HOST_BUILD_DIR)/src \
-		CXXFLAGS_WERROR="" LDFLAGS="$(HOST_LDFLAGS)" \
+		UPX_UCLDIR="$(STAGING_DIR_HOSTPKG)" \
+		CXXFLAGS="$(CXXFLAGS) -DUCL_NO_ASM" \
+		CXXFLAGS_WERROR="" LDFLAGS="-L$(STAGING_DIR_HOSTPKG)/lib -lucl -static" \
 		CXX="$(HOSTCXX)"
 endef
 
 define Host/Install
-	$(CP) $(HOST_BUILD_DIR)/src/upx.out $(STAGING_DIR_HOST)/bin/upx
+	$(CP) $(HOST_BUILD_DIR)/src/upx.out $(STAGING_DIR_HOSTPKG)/bin/upx
 endef
 
 define Host/Clean
