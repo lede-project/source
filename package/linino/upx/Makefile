@@ -55,7 +55,7 @@ define Host/Install
 endef
 
 define Host/Clean
-	rm -f $(STAGING_DIR_HOST)/bin/upx
+	rm -f $(STAGING_DIR_HOSTPKG)/bin/upx
 endef
 
 define Build/Compile
