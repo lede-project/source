@@ -1,11 +1,11 @@
---- a/lib/module.js
-+++ b/lib/module.js
-@@ -616,7 +616,8 @@
-     homeDir = process.env.HOME;
+--- a/lib/module.js	2017-05-02 18:34:23.000000000 +0200
++++ b/lib/module.js	2017-05-05 12:07:20.217903258 +0200
+@@ -625,7 +625,8 @@
+   } else {
+     prefixDir = path.resolve(process.execPath, '..', '..');
    }
- 
--  var paths = [path.resolve(process.execPath, '..', '..', 'lib', 'node')];
-+  var paths = [path.resolve(process.execPath, '..', '..', 'lib', 'node'),
+-  var paths = [path.resolve(prefixDir, 'lib', 'node')];
++  var paths = [path.resolve(prefixDir, 'lib', 'node'),
 +    path.resolve(process.execPath, '..', '..', 'lib', 'node_modules')];
  
    if (homeDir) {
