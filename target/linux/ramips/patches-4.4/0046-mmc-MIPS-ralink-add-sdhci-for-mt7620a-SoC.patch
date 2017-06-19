@@ -2336,13 +2336,15 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +    spin_lock(&host->lock);
 +
 +    if (hw->get_cd_status) { // NULL
-+	inserted = hw->get_cd_status();
++        inserted = hw->get_cd_status();
 +    } else {
 +        status = sdr_read32(MSDC_PS);
 +        if (cd_active_low)
-+		inserted = (status & MSDC_PS_CDSTS) ? 0 : 1;
-+	else
-+	        inserted = (status & MSDC_PS_CDSTS) ? 1 : 0;
++            inserted = (status & MSDC_PS_CDSTS) ? 0 : 1;
++        else
++            inserted = (status & MSDC_PS_CDSTS) ? 1 : 0;
++        if (host->mmc->caps & MMC_CAP_NEEDS_POLL)
++            inserted = 1;
 +    }
 +
 +#if 0
@@ -4083,16 +4085,13 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +    /* MSDC_CD_PIN_EN set for card */
 +    if (host->hw->flags & MSDC_CD_PIN_EN) {
 +        spin_lock_irqsave(&host->lock, flags);
-+#if 0        
-+        present = host->card_inserted;  /* why not read from H/W: Fix me*/
-+#else
-+        // CD
-+	if (cd_active_low)
-+		present = (sdr_read32(MSDC_PS) & MSDC_PS_CDSTS) ? 0 : 1; 
++	     if (cd_active_low)
++		     present = (sdr_read32(MSDC_PS) & MSDC_PS_CDSTS) ? 0 : 1;
 +        else
-+		present = (sdr_read32(MSDC_PS) & MSDC_PS_CDSTS) ? 1 : 0; 
++            present = (sdr_read32(MSDC_PS) & MSDC_PS_CDSTS) ? 1 : 0;
++        if (host->mmc->caps & MMC_CAP_NEEDS_POLL)
++            present = 1;
 +        host->card_inserted = present;  
-+#endif        
 +        spin_unlock_irqrestore(&host->lock, flags);
 +    } else {
 +        present = 0; /* TODO? Check DAT3 pins for card detection */
@@ -4828,3 +4827,5 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +MODULE_AUTHOR("Infinity Chen <infinity.chen@mediatek.com>");
 +
 +EXPORT_SYMBOL(msdc_6575_host);
++
+
