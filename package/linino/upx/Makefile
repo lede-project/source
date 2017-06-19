@@ -8,7 +8,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=upx
 PKG_VERSION:=3.91
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 # PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-src.tar.gz
 # PKG_SOURCE_URL:=@SF/upx
@@ -43,7 +43,7 @@ endef
 
 define Host/Compile
 	rm -f $(HOST_BUILD_DIR)/src/.depend
-	$(MAKE) UPX_LZMADIR="$(BUILD_DIR_HOST)/lzma-4.65" -C $(HOST_BUILD_DIR)/src \
+	$(MAKE) UPX_LZMADIR="$(HOST_BUILD_DIR)/src/lzma-sdk" -C $(HOST_BUILD_DIR)/src \
 		UPX_UCLDIR="$(STAGING_DIR_HOSTPKG)" \
 		CXXFLAGS="$(CXXFLAGS) -DUCL_NO_ASM" \
 		CXXFLAGS_WERROR="" LDFLAGS="-L$(STAGING_DIR_HOSTPKG)/lib -lucl -static" \
@@ -60,7 +60,7 @@ endef
 
 define Build/Compile
 	rm -f $(BUILD_DIR)/src/.depend
-	$(MAKE) UPX_LZMADIR="$(BUILD_DIR_HOST)/lzma-4.65" -C $(PKG_BUILD_DIR)/src \
+	$(MAKE) UPX_LZMADIR="$(PKG_BUILD_DIR)/src/lzma-sdk" -C $(PKG_BUILD_DIR)/src \
 		CXXFLAGS="$(TARGET_CXXFLAGS) -DUCL_NO_ASM" \
 		CXXFLAGS_WERROR="" LDFLAGS="$(TARGET_LDFLAGS) -lucl" \
 		CC="$(REAL_GNU_TARGET_NAME)-gcc" \
