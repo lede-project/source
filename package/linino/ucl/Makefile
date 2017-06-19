@@ -1,4 +1,4 @@
-# 
+#
 # Copyright (C) 2006-2010 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ucl
 PKG_VERSION:=1.03
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.oberhumer.com/opensource/ucl/download/
@@ -18,8 +18,11 @@ PKG_MD5SUM:=852bd691d8abc75b52053465846fba34
 PKG_FIXUP:=libtool
 PKG_REMOVE_FILES:=aclocal.m4 acconfig/ltmain.sh
 
+PKG_BUILD_DEPENDS:=ucl/host
+
 PKG_INSTALL:=1
 
+include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/package.mk
 
 define Package/libucl
@@ -35,6 +38,11 @@ implements a number of compression algorithms that achieve an excellent
 compression ratio while allowing *very* fast decompression. Decompression
 requires no additional memory.
 endef
+
+HOST_CONFIGURE_ARGS += \
+	--enable-static \
+	--enable-shared \
+	--disable-asm
 
 CONFIGURE_ARGS += \
 	--enable-static \
@@ -54,5 +62,5 @@ define Package/libucl/install
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libucl.so.* $(1)/usr/lib/
 endef
 
+$(eval $(call HostBuild))
 $(eval $(call BuildPackage,libucl))
-
