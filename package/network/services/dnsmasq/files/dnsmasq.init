@@ -594,7 +594,7 @@ dhcp_option_add() {
 	config_get list_len "$cfg" dhcp_option_LENGTH
 
 	if [ -n "$list_len" ]; then
-		config_list_foreach "$cfg" dhcp_option dhcp_option_append "$networkid" "$force"
+		config_list_foreach "$cfg" dhcp_option dhcp_option_append "$option" "$networkid" "$force"
 	else
 		config_get dhcp_option "$cfg" dhcp_option
 
