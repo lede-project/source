@@ -1,0 +1,22 @@
+diff --git a/src/mman/mmap.c b/src/mman/mmap.c
+index b85f25c..3c505e5 100644
+--- a/src/mman/mmap.c
++++ b/src/mman/mmap.c
+@@ -14,7 +14,7 @@ weak_alias(dummy, __vm_wait);
+ 
+ void *__mmap(void *start, size_t len, int prot, int flags, int fd, off_t off)
+ {
+-	if (off & OFF_MASK) {
++	if ((unsigned long)off & OFF_MASK) {
+ 		errno = EINVAL;
+ 		return MAP_FAILED;
+ 	}
+@@ -26,7 +26,7 @@ void *__mmap(void *start, size_t len, int prot, int flags, int fd, off_t off)
+ 		__vm_wait();
+ 	}
+ #ifdef SYS_mmap2
+-	return (void *)syscall(SYS_mmap2, start, len, prot, flags, fd, off/UNIT);
++	return (void *)syscall(SYS_mmap2, start, len, prot, flags, fd, (unsigned long)off/UNIT);
+ #else
+ 	return (void *)syscall(SYS_mmap, start, len, prot, flags, fd, off);
+ #endif
