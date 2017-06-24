@@ -17,10 +17,13 @@ Simply running "make" will build your firmware.
 It will download all sources, build the cross-compile toolchain, 
 the kernel and all choosen applications.
 
-To build your own firmware you need to have access to a Linux, BSD or MacOSX system
-(case-sensitive filesystem required). Cygwin will not be supported because of
-the lack of case sensitiveness in the file system.
+A POSIX environment is required to build LEDE. For Windows user space, files
+must be case sensitive. This can be accomplished through the following 
+registry key:
 
+HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel\obcaseinsensitive
+
+and setting that to 1.
 
 Sunshine!
 	Your LEDE Community
