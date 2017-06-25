@@ -12,7 +12,7 @@ PKG_VERSION:=1.0.1
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:= \
+PKG_SOURCE_URL:=@DISTFILES \
 	http://www.netfilter.org/projects/libnetfilter_log/files/ \
 	ftp://ftp.netfilter.org/pub/libnetfilter_log/
 PKG_HASH:=74e0fe75753dba3ac114531b5e73240452c789a3f3adccf5c51217da1d933b21

@@ -12,7 +12,7 @@ PKG_VERSION:=1.4.1
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=http://www.inet.no/dante/files/
+PKG_SOURCE_URL:=@DISTFILES http://www.inet.no/dante/files/
 PKG_HASH:=b6d232bd6fefc87d14bf97e447e4fcdeef4b28b16b048d804b50b48f261c4f53
 
 PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>

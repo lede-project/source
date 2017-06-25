@@ -12,7 +12,7 @@ PKG_VERSION:=0.169
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=https://sourceware.org/$(PKG_NAME)/ftp/$(PKG_VERSION)
+PKG_SOURCE_URL:=@DISTFILES https://sourceware.org/$(PKG_NAME)/ftp/$(PKG_VERSION)
 PKG_HASH:=9412fac7b30872b738bc1ed1ebcaed54493c26ef9a67887913498c17b10f3bc2
 PKG_MAINTAINER:=Luiz Angelo Daros de Luca <luizluca@gmail.com>
 PKG_LICENSE:=GPL-3.0+

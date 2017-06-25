@@ -13,7 +13,7 @@ PKG_VERSION:=2.4.7
 PKG_RELEASE:=12
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://download.samba.org/pub/ppp/
+PKG_SOURCE_URL:=@DISTFILES https://download.samba.org/pub/ppp/
 PKG_HASH:=02e0a3dd3e4799e33103f70ec7df75348c8540966ee7c948e4ed8a42bbccfb30
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=BSD-4-Clause

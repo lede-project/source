@@ -13,7 +13,7 @@ PKG_VERSION:=2.9.7
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://github.com/libfuse/libfuse/releases/download/$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_URL:=@DISTFILES https://github.com/libfuse/libfuse/releases/download/$(PKG_NAME)-$(PKG_VERSION)
 PKG_HASH:=832432d1ad4f833c20e13b57cf40ce5277a9d33e483205fc63c78111b3358874
 
 PKG_LICENSE:=LGPLv2.1 GPLv2
