@@ -1,0 +1,119 @@
+From 06175a3a52139065845292c10130c5b051d128ef Mon Sep 17 00:00:00 2001
+From: Nitheesh Sekar <nsekar@codeaurora.org>
+Date: Mon, 5 Jun 2017 14:31:44 +0530
+Subject: ipq806x: usb: Reset war for SS device enum issue
+
+Reset again so that if SS device was detected as HS, the
+second reset would push it to SS.
+
+Change-Id: I4c76daf8ebeb2d7098d4953af4e01c9ba56342ae
+Signed-off-by: Nitheesh Sekar <nsekar@codeaurora.org>
+---
+ drivers/usb/core/hub.c                        | 9 +++++++++
+ drivers/usb/dwc3/core.c                       | 2 ++
+ drivers/usb/dwc3/core.h                       | 1 +
+ drivers/usb/dwc3/host.c                       | 1 +
+ drivers/usb/host/xhci-plat.c                  | 3 +++
+ include/linux/usb/hcd.h                       | 3 +++
+ include/linux/usb/xhci_pdriver.h              | 1 +
+ 7 files changed, 20 insertions(+)
+
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index c100ab6..be625d4 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -4284,6 +4284,15 @@ hub_port_init(struct usb_hub *hub, struct usb_device *udev, int port1,
+ 	retval = hub_port_reset(hub, port1, udev, delay, false);
+ 	if (retval < 0)		/* error or disconnect */
+ 		goto fail;
++
++	if (hcd->primary_hcd->usb3_dev_reset_quirk) {
++		if (udev->speed != USB_SPEED_SUPER) {
++			retval = hub_port_reset(hub, port1, udev, delay, false);
++			if (retval < 0)		/* error or disconnect */
++				goto fail;
++		}
++	}
++
+ 	/* success, speed is known */
+ 
+ 	retval = -ENODEV;
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index f9c08fe..177e2e0 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -962,6 +962,8 @@ static int dwc3_probe(struct platform_device *pdev)
+ 				"snps,usb3_lpm_capable");
+ 	dwc->enable_usb2susphy_quirk = device_property_read_bool(dev,
+ 				"usb2-susphy-quirk");
++	dwc->usb3_dev_reset_quirk = of_property_read_bool(dev,
++				"usb3_dev_reset_quirk");
+ 	dwc->enable_usb2_host_discon_quirk =
+ 			device_property_read_bool(dev, "usb2-host-discon-quirk");
+ 
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index d3cda1f..d13dd24 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -869,6 +869,7 @@ struct dwc3 {
+ 	unsigned		dis_u3_susphy_quirk:1;
+ 	unsigned		dis_u2_susphy_quirk:1;
+ 	unsigned		dis_enblslpm_quirk:1;
++	unsigned		usb3_dev_reset_quirk:1;
+ 
+ 	unsigned		tx_de_emphasis_quirk:1;
+ 	unsigned		tx_de_emphasis:2;
+diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
+index 567220c..18505f9 100644
+--- a/drivers/usb/dwc3/host.c
++++ b/drivers/usb/dwc3/host.c
+@@ -53,6 +53,7 @@ int dwc3_host_init(struct dwc3 *dwc)
+ 	pdata.usb3_lpm_capable = dwc->usb3_lpm_capable;
+ 
+ 	pdata.usb2_susphy_quirk = dwc->enable_usb2susphy_quirk;
++	pdata.usb3_dev_reset_quirk = dwc->usb3_dev_reset_quirk;
+ 	pdata.susphy = &dwc->susphy;
+ 
+ 	ret = platform_device_add_data(xhci, &pdata, sizeof(pdata));
+diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
+index dc0e3d9..1cb0158 100644
+--- a/drivers/usb/host/xhci-plat.c
++++ b/drivers/usb/host/xhci-plat.c
+@@ -127,6 +127,9 @@ static int xhci_plat_probe(struct platform_device *pdev)
+ 		hcd->susphy = pdata->susphy;
+ 	}
+ 
++	if (pdata->usb3_dev_reset_quirk)
++		hcd->usb3_dev_reset_quirk = pdata->usb3_dev_reset_quirk;
++
+ 	/*
+ 	 * Not all platforms have a clk so it is not an error if the
+ 	 * clock does not exists.
+diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
+index bc6fddd..ccca90d 100644
+--- a/include/linux/usb/hcd.h
++++ b/include/linux/usb/hcd.h
+@@ -158,6 +158,9 @@ struct usb_hcd {
+ 	unsigned		amd_resume_bug:1; /* AMD remote wakeup quirk */
+ 	unsigned		can_do_streams:1; /* HC supports streams */
+ 	unsigned		tpl_support:1; /* OTG & EH TPL support */
++	unsigned		usb3_dev_reset_quirk:1; /* USB device reset
++							 * quirk.
++							 */
+ 	unsigned		cant_recv_wakeups:1;
+ 			/* wakeup requests from downstream aren't received */
+ 
+diff --git a/include/linux/usb/xhci_pdriver.h b/include/linux/usb/xhci_pdriver.h
+index 158c4be..d794d95 100644
+--- a/include/linux/usb/xhci_pdriver.h
++++ b/include/linux/usb/xhci_pdriver.h
+@@ -23,6 +23,7 @@
+ struct usb_xhci_pdata {
+ 	unsigned	usb3_lpm_capable:1;
+ 	unsigned	usb2_susphy_quirk:1;
++	unsigned	usb3_dev_reset_quirk:1;
+ 	struct usb_susphy       *susphy;
+ };
+ 
+-- 
+cgit v1.1
