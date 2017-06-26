@@ -17,12 +17,13 @@
 						]
 					],
 					[ "if",
-						[ "regex", "DEVNAME", "^snd" ],
-						[ "makedev", "/dev/%DEVNAME%", "0660", "audio" ],
-					],
-					[ "if",
-						[ "regex", "DEVNAME", "^tty" ],
-						[ "makedev", "/dev/%DEVNAME%", "0660", "tty" ],
+					 	[ "eq", "DEVNAME",
+							[ "audio", "tty" ],
+						],
+						[
+							[ "makedev", "/dev/%DEVNAME%", "0660" ],
+							[ "return" ],
+						]
 					],
 					[ "if",
 						[ "has", "DEVNAME" ],
