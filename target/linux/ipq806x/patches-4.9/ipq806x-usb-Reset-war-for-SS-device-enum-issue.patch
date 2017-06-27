@@ -91,8 +91,8 @@ index dc0e3d9..1cb0158 100644
 --- a/drivers/usb/host/xhci-plat.c
 +++ b/drivers/usb/host/xhci-plat.c
 @@ -127,6 +127,9 @@ static int xhci_plat_probe(struct platform_device *pdev)
- 		hcd->susphy = pdata->susphy;
- 	}
+ 	hcd->rsrc_start = res->start;
+ 	hcd->rsrc_len = resource_size(res);
  
 +	if (dwc->usb3_dev_reset_quirk)
 +		hcd->usb3_dev_reset_quirk = dwc->usb3_dev_reset_quirk;
