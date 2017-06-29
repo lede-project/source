@@ -2009,6 +2009,14 @@ config ATH79_MACH_CF_E320N_V2
 	select ATH79_DEV_USB
 	select ATH79_DEV_WMAC
 
+config ATH79_MACH_CF_E355AC
+      bool "COMFAST CF-E355AC board support"
+      select SOC_QCA953X
+      select ATH79_DEV_ETH
+      select ATH79_DEV_GPIO_BUTTONS
+      select ATH79_DEV_AP9X_PCI
+      select ATH79_DEV_WMAC
+
 config ATH79_MACH_CF_E380AC_V1
 	bool "COMFAST CF-E380AC v1 support"
 	select SOC_QCA955X
