@@ -19,7 +19,5 @@ set_vm_min_free() {
 
 start() {
 	set_vm_min_free
-	for CONF in /etc/sysctl.conf /etc/sysctl.d/*.conf; do
-		[ -f "$CONF" ] && sysctl -p "$CONF" -e >&-
-	done
+	cat /etc/sysctl.conf /etc/sysctl.d/*.conf | grep -v "^#" | while read line; do sysctl -qw $line; done
 }
