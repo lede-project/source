@@ -8,18 +8,19 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=uboot-layerscape-armv8_32b
-PKG_VERSION:=v1.0
+PKG_VERSION:=2017.03
 PKG_RELEASE:=1
 
+# Layerscape ARMv8 platforms use 64-bit u-boot to support both 32-bit and 64-bit
+# kernel/rootfs. Since LEDE could only provide 32-bit toolchain for 32-bit targets,
+# 64-bit u-boot images git tree is provided here whose source code actually is
+# uboot-layerscape's source code.
 PKG_SOURCE_PROTO:=git
-PKG_MIRROR_HASH:=a29edbeddde4b3007ac349c2a5ee434719049ac4753e459dbb1bab21e1c585da
-PKG_SOURCE_URL:=https://github.com/fsl-jyt/uboot-ls-32b.git
-PKG_SOURCE_VERSION:=6476195551ea83193afd06d0c441483c04729c8d
+PKG_MIRROR_HASH:=e8a3294cae1aa0b47fbe159f75051060ab2a81e0a52f7609f5306bd65428f636
+PKG_SOURCE_URL:=https://github.com/yangbolu1991/u-boot-lede.git
+PKG_SOURCE_VERSION:=df9258f02f91425ddcaeeee8a91ed4add7d8283c
 
-PKG_LICENSE:=GPL-2.0 GPL-2.0+
-PKG_LICENSE_FILES:=Licenses/README
-
-PKG_MAINTAINER:=Jiang Yutang <jiangyutang1978@gmail.com>
+PKG_MAINTAINER:=Yangbo Lu <yangbo.lu@nxp.com>
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/kernel.mk
@@ -45,7 +46,7 @@ define Build/InstallDev
 	$(INSTALL_DIR) $(STAGING_DIR_IMAGE)
 	$(CP) $(PKG_BUILD_DIR)/ls1043ardb-uboot.bin $(STAGING_DIR_IMAGE)/ls1043ardb-armv8_32b-uboot.bin
 	$(CP) $(PKG_BUILD_DIR)/ls1046ardb-uboot.bin $(STAGING_DIR_IMAGE)/ls1046ardb-armv8_32b-uboot.bin
-	$(CP) $(PKG_BUILD_DIR)/ls1012ardb-uboot.bin.swap $(STAGING_DIR_IMAGE)/ls1012ardb-armv8_32b-uboot.bin
+	$(CP) $(PKG_BUILD_DIR)/ls1012ardb-uboot.bin $(STAGING_DIR_IMAGE)/ls1012ardb-armv8_32b-uboot.bin
 endef
 
 $(eval $(call BuildPackage,uboot-layerscape-armv8_32b))

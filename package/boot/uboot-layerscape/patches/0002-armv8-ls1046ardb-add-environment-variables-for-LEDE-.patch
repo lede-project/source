@@ -1,0 +1,57 @@
+From f076b296d992e3d83a11bf3cf50934ad8b43c176 Mon Sep 17 00:00:00 2001
+From: Yangbo Lu <yangbo.lu@nxp.com>
+Date: Tue, 4 Jul 2017 19:24:11 +0800
+Subject: [PATCH 2/3] armv8: ls1046ardb: add environment variables for LEDE
+ boot
+
+Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
+---
+ include/configs/ls1046a_common.h | 15 ++++++++++++++-
+ include/configs/ls1046ardb.h     |  5 +++--
+ 2 files changed, 17 insertions(+), 3 deletions(-)
+
+diff --git a/include/configs/ls1046a_common.h b/include/configs/ls1046a_common.h
+index 8787609..04e18d6 100644
+--- a/include/configs/ls1046a_common.h
++++ b/include/configs/ls1046a_common.h
+@@ -273,7 +273,20 @@
+ 		"$kernel_start $kernel_size; env exists secureboot "	\
+ 		"&& sf read $kernelheader_addr_r $kernelheader_start "	\
+ 		"$kernelheader_size && esbc_validate ${kernelheader_addr_r}; " \
+-		"bootm $load_addr#$board\0"
++		"bootm $load_addr#$board\0"	\
++	"lede_setenv=setenv loadaddr 82000000 && " \
++		"setenv fdtaddr 8f000000 && " \
++		"setenv bootargs root=/dev/mtdblock9 " \
++		"rootfstype=ext4 noinitrd " \
++		"earlycon=uart8250,mmio,0x21c0500 console=ttyS0,115200 " \
++		"mtdparts=1550000.quadspi:1M(rcw),2M(u-boot),1M(u-boot-env)," \
++		"5M(reserved-1),256k(fman),5888k(reserved-2),1M(dtb)," \
++		"16M(kernel),22M(ext4rfs),10M(user)\0" \
++	"lede_run=sf probe 0:0 && " \
++		"sf read $fdtaddr f00000 100000 && " \
++		"sf read $loadaddr 1000000 1000000 && " \
++		"bootm $loadaddr - $fdtaddr\0" \
++	"lede_boot=run lede_setenv;run lede_run\0"
+ 
+ 
+ #define CONFIG_BOOTARGS			"console=ttyS0,115200 root=/dev/ram0 " \
+diff --git a/include/configs/ls1046ardb.h b/include/configs/ls1046ardb.h
+index 7648e4e..6a6563a 100644
+--- a/include/configs/ls1046ardb.h
++++ b/include/configs/ls1046ardb.h
+@@ -241,8 +241,9 @@
+ 
+ #ifndef SPL_NO_MISC
+ #undef CONFIG_BOOTCOMMAND
+-#define CONFIG_BOOTCOMMAND "run distro_bootcmd; run qspi_bootcmd; "	\
+-			   "env exists secureboot && esbc_halt;"
++#define CONFIG_BOOTCOMMAND "run lede_boot"
++#undef CONFIG_BOOTDELAY
++#define CONFIG_BOOTDELAY		3
+ #define MTDPARTS_DEFAULT "mtdparts=1550000.quadspi:1m(rcw)," \
+ 			"15m(u-boot),48m(kernel.itb);" \
+ 			"7e800000.flash:16m(nand_uboot)," \
+-- 
+2.7.4
+
