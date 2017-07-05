@@ -1,0 +1,275 @@
+From fb216c26cd0f7136e2ddfe136001f7fee6704329 Mon Sep 17 00:00:00 2001
+From: John Crispin <john@phrozen.org>
+Date: Tue, 1 Nov 2016 01:39:09 +0100
+Subject: [PATCH 14/22] net: dsa: qca8k: properly name the ARL table
+
+FDB and MDB entries both get stored inside the ARL table. Currently the
+code uses "fdb_" as a namespace for the functions adding and deleting
+entries. Change the code to use "arl_" as a namespace instead.
+
+Signed-off-by: John Crispin <john@phrozen.org>
+---
+ drivers/net/dsa/qca8k.c |   83 +++++++++++++++++++++++++----------------------
+ drivers/net/dsa/qca8k.h |   22 ++++++++-----
+ 2 files changed, 59 insertions(+), 46 deletions(-)
+
+Index: linux-4.9.34/drivers/net/dsa/qca8k.c
+===================================================================
+--- linux-4.9.34.orig/drivers/net/dsa/qca8k.c
++++ linux-4.9.34/drivers/net/dsa/qca8k.c
+@@ -287,7 +287,7 @@ qca8k_busy_wait(struct qca8k_priv *priv,
+ }
+ 
+ static void
+-qca8k_fdb_read(struct qca8k_priv *priv, struct qca8k_fdb *fdb)
++qca8k_arl_read(struct qca8k_priv *priv, struct qca8k_arl *arl)
+ {
+ 	u32 reg[4];
+ 	int i;
+@@ -297,22 +297,26 @@ qca8k_fdb_read(struct qca8k_priv *priv,
+ 		reg[i] = qca8k_read(priv, QCA8K_REG_ATU_DATA0 + (i * 4));
+ 
+ 	/* vid - 83:72 */
+-	fdb->vid = (reg[2] >> QCA8K_ATU_VID_S) & QCA8K_ATU_VID_M;
++	arl->vid = (reg[2] >> QCA8K_ATU_VID_S) & QCA8K_ATU_VID_M;
+ 	/* aging - 67:64 */
+-	fdb->aging = reg[2] & QCA8K_ATU_STATUS_M;
++	arl->aging = reg[2] & QCA8K_ATU_STATUS_M;
+ 	/* portmask - 54:48 */
+-	fdb->port_mask = (reg[1] >> QCA8K_ATU_PORT_S) & QCA8K_ATU_PORT_M;
++	arl->port_mask = (reg[1] >> QCA8K_ATU_PORT_S) & QCA8K_ATU_PORT_M;
+ 	/* mac - 47:0 */
+-	fdb->mac[0] = (reg[1] >> QCA8K_ATU_ADDR0_S) & 0xff;
+-	fdb->mac[1] = reg[1] & 0xff;
+-	fdb->mac[2] = (reg[0] >> QCA8K_ATU_ADDR2_S) & 0xff;
+-	fdb->mac[3] = (reg[0] >> QCA8K_ATU_ADDR3_S) & 0xff;
+-	fdb->mac[4] = (reg[0] >> QCA8K_ATU_ADDR4_S) & 0xff;
+-	fdb->mac[5] = reg[0] & 0xff;
++	arl->mac[0] = (reg[1] >> QCA8K_ATU_ADDR0_S) & 0xff;
++	arl->mac[1] = reg[1] & 0xff;
++	arl->mac[2] = (reg[0] >> QCA8K_ATU_ADDR2_S) & 0xff;
++	arl->mac[3] = (reg[0] >> QCA8K_ATU_ADDR3_S) & 0xff;
++	arl->mac[4] = (reg[0] >> QCA8K_ATU_ADDR4_S) & 0xff;
++	arl->mac[5] = reg[0] & 0xff;
++
++	/* is this a FDB or MDB entry ? */
++	if (!is_multicast_ether_addr(arl->mac))
++		arl->type = QCA8K_ARL_MDB;
+ }
+ 
+ static void
+-qca8k_fdb_write(struct qca8k_priv *priv, u16 vid, u8 port_mask, const u8 *mac,
++qca8k_arl_write(struct qca8k_priv *priv, u16 vid, u8 port_mask, const u8 *mac,
+ 		u8 aging)
+ {
+ 	u32 reg[3] = { 0 };
+@@ -338,7 +342,7 @@ qca8k_fdb_write(struct qca8k_priv *priv,
+ }
+ 
+ static int
+-qca8k_fdb_access(struct qca8k_priv *priv, enum qca8k_fdb_cmd cmd, int port)
++qca8k_arl_access(struct qca8k_priv *priv, enum qca8k_arl_cmd cmd, int port)
+ {
+ 	u32 reg;
+ 
+@@ -358,7 +362,7 @@ qca8k_fdb_access(struct qca8k_priv *priv
+ 		return -1;
+ 
+ 	/* Check for table full violation when adding an entry */
+-	if (cmd == QCA8K_FDB_LOAD) {
++	if (cmd == QCA8K_ARL_LOAD) {
+ 		reg = qca8k_read(priv, QCA8K_REG_ATU_FUNC);
+ 		if (reg & QCA8K_ATU_FUNC_FULL)
+ 			return -1;
+@@ -368,50 +372,50 @@ qca8k_fdb_access(struct qca8k_priv *priv
+ }
+ 
+ static int
+-qca8k_fdb_next(struct qca8k_priv *priv, struct qca8k_fdb *fdb, int port)
++qca8k_arl_next(struct qca8k_priv *priv, struct qca8k_arl *arl, int port)
+ {
+ 	int ret;
+ 
+-	qca8k_fdb_write(priv, fdb->vid, fdb->port_mask, fdb->mac, fdb->aging);
+-	ret = qca8k_fdb_access(priv, QCA8K_FDB_NEXT, port);
++	qca8k_arl_write(priv, arl->vid, arl->port_mask, arl->mac, arl->aging);
++	ret = qca8k_arl_access(priv, QCA8K_ARL_NEXT, port);
+ 	if (ret >= 0)
+-		qca8k_fdb_read(priv, fdb);
++		qca8k_arl_read(priv, arl);
+ 
+ 	return ret;
+ }
+ 
+ static int
+-qca8k_fdb_add(struct qca8k_priv *priv, const u8 *mac, u16 port_mask,
++qca8k_arl_add(struct qca8k_priv *priv, const u8 *mac, u16 port_mask,
+ 	      u16 vid, u8 aging)
+ {
+ 	int ret;
+ 
+ 	mutex_lock(&priv->reg_mutex);
+-	qca8k_fdb_write(priv, vid, port_mask, mac, aging);
+-	ret = qca8k_fdb_access(priv, QCA8K_FDB_LOAD, -1);
++	qca8k_arl_write(priv, vid, port_mask, mac, aging);
++	ret = qca8k_arl_access(priv, QCA8K_ARL_LOAD, -1);
+ 	mutex_unlock(&priv->reg_mutex);
+ 
+ 	return ret;
+ }
+ 
+ static int
+-qca8k_fdb_del(struct qca8k_priv *priv, const u8 *mac, u16 port_mask, u16 vid)
++qca8k_arl_del(struct qca8k_priv *priv, const u8 *mac, u16 port_mask, u16 vid)
+ {
+ 	int ret;
+ 
+ 	mutex_lock(&priv->reg_mutex);
+-	qca8k_fdb_write(priv, vid, port_mask, mac, 0);
+-	ret = qca8k_fdb_access(priv, QCA8K_FDB_PURGE, -1);
++	qca8k_arl_write(priv, vid, port_mask, mac, 0);
++	ret = qca8k_arl_access(priv, QCA8K_ARL_PURGE, -1);
+ 	mutex_unlock(&priv->reg_mutex);
+ 
+ 	return ret;
+ }
+ 
+ static void
+-qca8k_fdb_flush(struct qca8k_priv *priv)
++qca8k_arl_flush(struct qca8k_priv *priv)
+ {
+ 	mutex_lock(&priv->reg_mutex);
+-	qca8k_fdb_access(priv, QCA8K_FDB_FLUSH, -1);
++	qca8k_arl_access(priv, QCA8K_ARL_FLUSH, -1);
+ 	mutex_unlock(&priv->reg_mutex);
+ }
+ 
+@@ -580,7 +584,7 @@ qca8k_setup(struct dsa_switch *ds)
+ 	}
+ 
+ 	/* Flush the FDB table */
+-	qca8k_fdb_flush(priv);
++	qca8k_arl_flush(priv);
+ 
+ 	return 0;
+ }
+@@ -822,14 +826,14 @@ qca8k_port_disable(struct dsa_switch *ds
+ }
+ 
+ static int
+-qca8k_port_fdb_insert(struct qca8k_priv *priv, const u8 *addr,
++qca8k_port_arl_insert(struct qca8k_priv *priv, const u8 *addr,
+ 		      u16 port_mask, u16 vid)
+ {
+ 	/* Set the vid to the port vlan id if no vid is set */
+ 	if (!vid)
+ 		vid = 1;
+ 
+-	return qca8k_fdb_add(priv, addr, port_mask, vid,
++	return qca8k_arl_add(priv, addr, port_mask, vid,
+ 			     QCA8K_ATU_STATUS_STATIC);
+ }
+ 
+@@ -845,7 +849,7 @@ qca8k_port_fdb_prepare(struct dsa_switch
+ 	 * when port_fdb_add is called an entry is still available. Otherwise
+ 	 * the last free entry might have been used up by auto learning
+ 	 */
+-	return qca8k_port_fdb_insert(priv, fdb->addr, 0, fdb->vid);
++	return qca8k_port_arl_insert(priv, fdb->addr, 0, fdb->vid);
+ }
+ 
+ static void
+@@ -857,7 +861,7 @@ qca8k_port_fdb_add(struct dsa_switch *ds
+ 	u16 port_mask = BIT(port);
+ 
+ 	/* Update the FDB entry adding the port_mask */
+-	qca8k_port_fdb_insert(priv, fdb->addr, port_mask, fdb->vid);
++	qca8k_port_arl_insert(priv, fdb->addr, port_mask, fdb->vid);
+ }
+ 
+ static int
+@@ -871,7 +875,7 @@ qca8k_port_fdb_del(struct dsa_switch *ds
+ 	if (!vid)
+ 		vid = 1;
+ 
+-	return qca8k_fdb_del(priv, fdb->addr, port_mask, vid);
++	return qca8k_arl_del(priv, fdb->addr, port_mask, vid);
+ }
+ 
+ static int
+@@ -880,18 +884,21 @@ qca8k_port_fdb_dump(struct dsa_switch *d
+ 		    int (*cb)(struct switchdev_obj *obj))
+ {
+ 	struct qca8k_priv *priv = (struct qca8k_priv *)ds->priv;
+-	struct qca8k_fdb _fdb = { 0 };
+-	int cnt = QCA8K_NUM_FDB_RECORDS;
++	struct qca8k_arl arl = { 0 };
++	int cnt = QCA8K_NUM_ARL_RECORDS;
+ 	int ret = 0;
+ 
+ 	mutex_lock(&priv->reg_mutex);
+-	while (cnt-- && !qca8k_fdb_next(priv, &_fdb, port)) {
+-		if (!_fdb.aging)
++	while (cnt-- && !qca8k_arl_next(priv, &arl, port)) {
++		if (!arl.aging)
+ 			break;
+ 
+-		ether_addr_copy(fdb->addr, _fdb.mac);
+-		fdb->vid = _fdb.vid;
+-		if (_fdb.aging == QCA8K_ATU_STATUS_STATIC)
++		if (arl.type != QCA8K_ARL_FDB)
++			continue;
++
++		ether_addr_copy(fdb->addr, arl.mac);
++		fdb->vid = arl.vid;
++		if (arl.aging == QCA8K_ATU_STATUS_STATIC)
+ 			fdb->ndm_state = NUD_NOARP;
+ 		else
+ 			fdb->ndm_state = NUD_REACHABLE;
+Index: linux-4.9.34/drivers/net/dsa/qca8k.h
+===================================================================
+--- linux-4.9.34.orig/drivers/net/dsa/qca8k.h
++++ linux-4.9.34/drivers/net/dsa/qca8k.h
+@@ -24,7 +24,7 @@
+ #define PHY_ID_QCA8337					0x004dd036
+ #define QCA8K_ID_QCA8337				0x13
+ 
+-#define QCA8K_NUM_FDB_RECORDS				2048
++#define QCA8K_NUM_ARL_RECORDS				2048
+ 
+ #define QCA8K_CPU_PORT					0
+ 
+@@ -147,12 +147,17 @@ enum {
+ 	QCA8K_PORT_SPEED_ERR = 3,
+ };
+ 
+-enum qca8k_fdb_cmd {
+-	QCA8K_FDB_FLUSH	= 1,
+-	QCA8K_FDB_LOAD = 2,
+-	QCA8K_FDB_PURGE = 3,
+-	QCA8K_FDB_NEXT = 6,
+-	QCA8K_FDB_SEARCH = 7,
++enum qca8k_arl_cmd {
++	QCA8K_ARL_FLUSH	= 1,
++	QCA8K_ARL_LOAD = 2,
++	QCA8K_ARL_PURGE = 3,
++	QCA8K_ARL_NEXT = 6,
++	QCA8K_ARL_SEARCH = 7,
++};
++
++enum qca8k_arl_type {
++	QCA8K_ARL_FDB = 0,
++	QCA8K_ARL_MDB
+ };
+ 
+ struct ar8xxx_port_status {
+@@ -175,7 +180,8 @@ struct qca8k_mib_desc {
+ 	const char *name;
+ };
+ 
+-struct qca8k_fdb {
++struct qca8k_arl {
++	enum qca8k_arl_type type;
+ 	u16 vid;
+ 	u8 port_mask;
+ 	u8 aging;

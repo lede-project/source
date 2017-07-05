@@ -1,0 +1,77 @@
+From faae7eef37163613254bc5255334fff292cb148e Mon Sep 17 00:00:00 2001
+From: John Crispin <john@phrozen.org>
+Date: Mon, 14 Nov 2016 17:39:01 +0100
+Subject: [PATCH 16/22] net: dsa: qca8k: add port arl learning limit
+
+Signed-off-by: John Crispin <john@phrozen.org>
+---
+ drivers/net/dsa/qca8k.c |   19 +++++++++++++++++++
+ drivers/net/dsa/qca8k.h |    8 ++++++++
+ 2 files changed, 27 insertions(+)
+
+diff --git a/drivers/net/dsa/qca8k.c b/drivers/net/dsa/qca8k.c
+index e3749ee..a43de2a 100644
+--- a/drivers/net/dsa/qca8k.c
++++ b/drivers/net/dsa/qca8k.c
+@@ -434,6 +434,20 @@ qca8k_arl_flush(struct qca8k_priv *priv)
+ }
+ 
+ static void
++qca8k_arl_port_limit(struct qca8k_priv *priv, int port, int limit)
++{
++	u32 val = 0;
++
++	val &= ~QCA8K_PORT_LEARN_LIMIT_EN;
++	if (limit)
++		val |= QCA8K_PORT_LEARN_LIMIT_EN;
++	val &= ~QCA8K_PORT_LEARN_LIMIT_CNT_M;
++	val |= limit & QCA8K_PORT_LEARN_LIMIT_CNT_M;
++	val |= QCA8K_PORT_LEARN_LIMIT_STATUS;
++	qca8k_write(priv, QCA8K_REG_PORT_LEARN_LIMIT(port), val);
++}
++
++static void
+ qca8k_mib_init(struct qca8k_priv *priv)
+ {
+ 	mutex_lock(&priv->reg_mutex);
+@@ -594,6 +608,11 @@ qca8k_setup(struct dsa_switch *ds)
+ 		if (ds->enabled_port_mask & BIT(i))
+ 			qca8k_port_set_status(priv, i, 0);
+ 
++	/* set the maximum SA learning limit for each user port */
++	for (i = 1; i < QCA8K_NUM_PORTS; i++)
++		if (ds->enabled_port_mask & BIT(i))
++			qca8k_arl_port_limit(priv, i, QCA8K_SA_LEARN_LIMIT);
++
+ 	/* Forward all unknown frames to CPU port for Linux processing */
+ 	qca8k_write(priv, QCA8K_REG_GLOBAL_FW_CTRL1,
+ 		    BIT(0) << QCA8K_GLOBAL_FW_CTRL1_IGMP_DP_S |
+diff --git a/drivers/net/dsa/qca8k.h b/drivers/net/dsa/qca8k.h
+index c0a2a13..6193073 100644
+--- a/drivers/net/dsa/qca8k.h
++++ b/drivers/net/dsa/qca8k.h
+@@ -122,6 +122,11 @@
+ #define   QCA8K_PORT_LOOKUP_STATE_FORWARD		(4 << 16)
+ #define   QCA8K_PORT_LOOKUP_STATE			GENMASK(18, 16)
+ #define   QCA8K_PORT_LOOKUP_LEARN			BIT(20)
++#define QCA8K_REG_PORT_LEARN_LIMIT(p)			(0x668 + (p * 0xc))
++#define   QCA8K_PORT_LEARN_LIMIT_EN			BIT(11)
++#define   QCA8K_PORT_LEARN_LIMIT_CNT_M			0x7ff
++#define   QCA8K_PORT_LEARN_LIMIT_STATUS			(7 << 12)
++
+ 
+ /* Pkt edit registers */
+ #define QCA8K_EGRESS_VLAN(x)				(0x0c70 + (4 * (x / 2)))
+@@ -142,6 +147,9 @@
+ #define MII_ATH_MMD_ADDR				0x0d
+ #define MII_ATH_MMD_DATA				0x0e
+ 
++/* the maximum number of SA addresses a user port may learn */
++#define QCA8K_SA_LEARN_LIMIT				512
++
+ enum {
+ 	QCA8K_PORT_SPEED_10M = 0,
+ 	QCA8K_PORT_SPEED_100M = 1,
+-- 
+1.7.10.4
+

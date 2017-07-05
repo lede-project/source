@@ -1,0 +1,316 @@
+From 8541425fb399861a3c92f4a02f16f98e7e6aa47a Mon Sep 17 00:00:00 2001
+From: John Crispin <john@phrozen.org>
+Date: Tue, 1 Nov 2016 01:55:27 +0100
+Subject: [PATCH 05/22] netfilter: qca8k: add CT extension
+
+this allows us to track our offloaded state inside the actual conntrack
+entry.
+
+Signed-off-by: John Crispin <john@phrozen.org>
+---
+ include/net/netfilter/nf_conntrack_extend.h |    4 ++
+ include/net/netfilter/nf_conntrack_qca8k.h  |   70 +++++++++++++++++++++++++++
+ net/netfilter/Kconfig                       |   11 +++++
+ net/netfilter/Makefile                      |    3 ++
+ net/netfilter/nf_conntrack_core.c           |   15 ++++++
+ net/netfilter/nf_conntrack_proto_tcp.c      |    7 ++-
+ net/netfilter/nf_conntrack_qca8k.c          |   58 ++++++++++++++++++++++
+ 7 files changed, 167 insertions(+), 1 deletion(-)
+ create mode 100644 include/net/netfilter/nf_conntrack_qca8k.h
+ create mode 100644 net/netfilter/nf_conntrack_qca8k.c
+
+Index: linux-4.9.34/include/net/netfilter/nf_conntrack_extend.h
+===================================================================
+--- linux-4.9.34.orig/include/net/netfilter/nf_conntrack_extend.h
++++ linux-4.9.34/include/net/netfilter/nf_conntrack_extend.h
+@@ -30,6 +30,9 @@ enum nf_ct_ext_id {
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK_RTCACHE)
+ 	NF_CT_EXT_RTCACHE,
+ #endif
++#if IS_ENABLED(CONFIG_NF_CONNTRACK_QCA8K)
++	NF_CT_EXT_QCA8K,
++#endif
+ 	NF_CT_EXT_NUM,
+ };
+ 
+@@ -43,6 +46,7 @@ enum nf_ct_ext_id {
+ #define NF_CT_EXT_LABELS_TYPE struct nf_conn_labels
+ #define NF_CT_EXT_SYNPROXY_TYPE struct nf_conn_synproxy
+ #define NF_CT_EXT_RTCACHE_TYPE struct nf_conn_rtcache
++#define NF_CT_EXT_QCA8K_TYPE struct nf_conn_qca8k
+ 
+ /* Extensions: optional stuff which isn't permanently in struct. */
+ struct nf_ct_ext {
+Index: linux-4.9.34/include/net/netfilter/nf_conntrack_qca8k.h
+===================================================================
+--- /dev/null
++++ linux-4.9.34/include/net/netfilter/nf_conntrack_qca8k.h
+@@ -0,0 +1,70 @@
++#ifndef _NF_CONNTRACK_QCA8K_H
++#define _NF_CONNTRACK_QCA8K_H
++
++#include <net/net_namespace.h>
++#include <linux/netfilter/nf_conntrack_common.h>
++#include <linux/netfilter/nf_conntrack_tuple_common.h>
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_extend.h>
++
++struct qca8k_priv;
++
++struct nf_conn_qca8k {
++	struct nf_conn *ct;
++	int idx;
++	u64 counter;
++	int fail;
++	struct qca8k_priv *priv;
++};
++
++static inline
++struct nf_conn_qca8k *nf_ct_qca8k_find(const struct nf_conn *ct)
++{
++#if defined(CONFIG_NF_CONNTRACK_QCA8K) || defined(CONFIG_NF_CONNTRACK_QCA8K_MODULE)
++	return nf_ct_ext_find(ct, NF_CT_EXT_QCA8K);
++#else
++	return NULL;
++#endif
++}
++
++static inline
++struct nf_conn_qca8k *nf_ct_qca8k_ext_add(struct nf_conn *ct,
++					    gfp_t gfp)
++{
++#if defined(CONFIG_NF_CONNTRACK_QCA8K) || defined(CONFIG_NF_CONNTRACK_QCA8K_MODULE)
++	struct nf_conn_qca8k *qca8k_ext;
++
++	qca8k_ext = nf_ct_ext_add(ct, NF_CT_EXT_QCA8K, gfp);
++	if (qca8k_ext == NULL)
++		return NULL;
++
++	qca8k_ext->idx = -1;
++	qca8k_ext->ct = ct;
++	qca8k_ext->counter = qca8k_ext->fail = 0;
++
++	return qca8k_ext;
++#else
++	return NULL;
++#endif
++};
++
++#if defined(CONFIG_NF_CONNTRACK_QCA8K) || defined(CONFIG_NF_CONNTRACK_QCA8K_MODULE)
++int nf_conntrack_qca8k_init(void);
++void nf_conntrack_qca8k_fini(void);
++#else
++static inline int nf_conntrack_qca8k_init(void)
++{
++        return 0;
++}
++
++static inline void nf_conntrack_qca8k_fini(void)
++{
++        return;
++}
++#endif /* CONFIG_NF_CONNTRACK_QCA8K */
++
++#if defined(CONFIG_NF_CONNTRACK_QCA8K) || defined(CONFIG_NF_CONNTRACK_QCA8K_MODULE)
++extern void (*nf_ct_qca8k_destroy)(struct nf_conn *ct, struct nf_conn_qca8k *conn);
++#endif
++
++#endif /* _NF_CONNTRACK_QCA8K_H */
+Index: linux-4.9.34/net/netfilter/Kconfig
+===================================================================
+--- linux-4.9.34.orig/net/netfilter/Kconfig
++++ linux-4.9.34/net/netfilter/Kconfig
+@@ -147,6 +147,17 @@ config NF_CONNTRACK_TIMESTAMP
+ 
+ 	  If unsure, say `N'.
+ 
++config NF_CONNTRACK_QCA8K
++	tristate "QCA8K offload entries in conntrack objectt"
++	depends on NETFILTER_ADVANCED
++	depends on NF_CONNTRACK
++	help
++	  If this option is enabled, the connection tracking code will
++	  be able to track connections offloaded to the QCA8K switch core
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++	  The module will be called nf_conntrack_rtcache.
++
+ config NF_CONNTRACK_LABELS
+ 	bool
+ 	help
+Index: linux-4.9.34/net/netfilter/Makefile
+===================================================================
+--- linux-4.9.34.orig/net/netfilter/Makefile
++++ linux-4.9.34/net/netfilter/Makefile
+@@ -1,6 +1,7 @@
+ netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o
+ 
+-nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_proto.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o nf_conntrack_extend.o nf_conntrack_acct.o nf_conntrack_seqadj.o
++nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_proto.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o nf_conntrack_extend.o nf_conntrack_acct.o nf_conntrack_seqadj.o nf_conntrack_qca8k.o
++
+ nf_conntrack-$(CONFIG_NF_CONNTRACK_TIMEOUT) += nf_conntrack_timeout.o
+ nf_conntrack-$(CONFIG_NF_CONNTRACK_TIMESTAMP) += nf_conntrack_timestamp.o
+ nf_conntrack-$(CONFIG_NF_CONNTRACK_EVENTS) += nf_conntrack_ecache.o
+@@ -19,6 +20,7 @@ obj-$(CONFIG_NF_CONNTRACK) += nf_conntra
+ # optional conntrack route cache extension
+ obj-$(CONFIG_NF_CONNTRACK_RTCACHE) += nf_conntrack_rtcache.o
+ 
++
+ # SCTP protocol connection tracking
+ obj-$(CONFIG_NF_CT_PROTO_DCCP) += nf_conntrack_proto_dccp.o
+ obj-$(CONFIG_NF_CT_PROTO_GRE) += nf_conntrack_proto_gre.o
+Index: linux-4.9.34/net/netfilter/nf_conntrack_core.c
+===================================================================
+--- linux-4.9.34.orig/net/netfilter/nf_conntrack_core.c
++++ linux-4.9.34/net/netfilter/nf_conntrack_core.c
+@@ -51,6 +51,7 @@
+ #include <net/netfilter/nf_conntrack_timeout.h>
+ #include <net/netfilter/nf_conntrack_labels.h>
+ #include <net/netfilter/nf_conntrack_synproxy.h>
++#include <net/netfilter/nf_conntrack_qca8k.h>
+ #include <net/netfilter/nf_nat.h>
+ #include <net/netfilter/nf_nat_core.h>
+ #include <net/netfilter/nf_nat_helper.h>
+@@ -1153,6 +1154,8 @@ init_conntrack(struct net *net, struct n
+ 		timeouts = l4proto->get_timeouts(net);
+ 	}
+ 
++	nf_ct_qca8k_ext_add(ct, GFP_ATOMIC);
++
+ 	if (!l4proto->new(ct, skb, dataoff, timeouts)) {
+ 		nf_conntrack_free(ct);
+ 		pr_debug("can't track with proto module\n");
+@@ -1591,6 +1594,12 @@ void nf_ct_iterate_cleanup(struct net *n
+ 		return;
+ 
+ 	while ((ct = get_next_corpse(net, iter, data, &bucket)) != NULL) {
++		struct nf_conn_qca8k *qca8k_ext;
++
++		qca8k_ext = nf_ct_qca8k_find(ct);
++		if (qca8k_ext && qca8k_ext->idx >= 0)
++			continue;
++
+ 		/* Time to push up daises... */
+ 
+ 		nf_ct_delete(ct, portid, report);
+@@ -1906,6 +1915,10 @@ int nf_conntrack_init_start(void)
+ 	if (ret < 0)
+ 		goto err_proto;
+ 
++	ret = nf_conntrack_qca8k_init();
++	if (ret < 0)
++		goto err_qca8k;
++
+ 	/* Set up fake conntrack: to never be deleted, not in any hashes */
+ 	for_each_possible_cpu(cpu) {
+ 		struct nf_conn *ct = &per_cpu(nf_conntrack_untracked, cpu);
+@@ -1922,6 +1935,8 @@ int nf_conntrack_init_start(void)
+ 
+ err_proto:
+ 	nf_conntrack_seqadj_fini();
++err_qca8k:
++	nf_conntrack_qca8k_fini();
+ err_seqadj:
+ 	nf_conntrack_labels_fini();
+ err_labels:
+Index: linux-4.9.34/net/netfilter/nf_conntrack_proto_tcp.c
+===================================================================
+--- linux-4.9.34.orig/net/netfilter/nf_conntrack_proto_tcp.c
++++ linux-4.9.34/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -29,6 +29,7 @@
+ #include <net/netfilter/nf_conntrack_ecache.h>
+ #include <net/netfilter/nf_conntrack_seqadj.h>
+ #include <net/netfilter/nf_conntrack_synproxy.h>
++#include <net/netfilter/nf_conntrack_qca8k.h>
+ #include <net/netfilter/nf_log.h>
+ #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
+ #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
+@@ -823,6 +824,7 @@ static int tcp_packet(struct nf_conn *ct
+ {
+ 	struct net *net = nf_ct_net(ct);
+ 	struct nf_tcp_net *tn = tcp_pernet(net);
++	struct nf_conn_qca8k *qca8k_ext;
+ 	struct nf_conntrack_tuple *tuple;
+ 	enum tcp_conntrack new_state, old_state;
+ 	enum ip_conntrack_dir dir;
+@@ -1037,7 +1039,10 @@ static int tcp_packet(struct nf_conn *ct
+ 		break;
+ 	}
+ 
+-	if (!tcp_in_window(ct, &ct->proto.tcp, dir, index,
++	qca8k_ext = nf_ct_qca8k_find(ct);
++//	if (qca8k_ext)
++//		printk("%s:%s[%d]%d\n", __FILE__, __func__, __LINE__, qca8k_ext->idx);
++	if ((!qca8k_ext || (qca8k_ext->idx < 0)) && !tcp_in_window(ct, &ct->proto.tcp, dir, index,
+ 			   skb, dataoff, th, pf)) {
+ 		spin_unlock_bh(&ct->lock);
+ 		return -NF_ACCEPT;
+Index: linux-4.9.34/net/netfilter/nf_conntrack_qca8k.c
+===================================================================
+--- /dev/null
++++ linux-4.9.34/net/netfilter/nf_conntrack_qca8k.c
+@@ -0,0 +1,64 @@
++/*
++ * (C) 2016 John Crispin <john@phrozen.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation (or any later at your option).
++ */
++
++#include <linux/types.h>
++#include <linux/netfilter.h>
++#include <linux/skbuff.h>
++#include <linux/vmalloc.h>
++#include <linux/stddef.h>
++#include <linux/err.h>
++#include <linux/percpu.h>
++#include <linux/kernel.h>
++#include <linux/netdevice.h>
++#include <linux/slab.h>
++#include <linux/export.h>
++
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_core.h>
++#include <net/netfilter/nf_conntrack_extend.h>
++#include <net/netfilter/nf_conntrack_qca8k.h>
++
++void (*nf_ct_qca8k_destroy)(struct nf_conn *ct, struct nf_conn_qca8k *conn) __read_mostly;
++EXPORT_SYMBOL_GPL(nf_ct_qca8k_destroy);
++
++static void nf_conn_qca8k_destroy(struct nf_conn *ct)
++{
++	struct nf_conn_qca8k *conn = nf_ct_qca8k_find(ct);
++
++	if (!conn || !nf_ct_qca8k_destroy)
++		return;
++
++	nf_ct_qca8k_destroy(ct, conn);
++}
++
++static struct nf_ct_ext_type qca8k_extend __read_mostly = {
++	.len	= sizeof(struct nf_conn_qca8k),
++	.align	= __alignof__(struct nf_conn_qca8k),
++	.id	= NF_CT_EXT_QCA8K,
++	.destroy = nf_conn_qca8k_destroy,
++};
++
++int nf_conntrack_qca8k_init(void)
++{
++	int ret = nf_ct_extend_register(&qca8k_extend);
++	if (ret < 0)
++		pr_err("nf_ct_qca8k: Unable to register qca8k extension.\n");
++	nf_ct_qca8k_destroy = NULL;
++	return ret;
++}
++EXPORT_SYMBOL_GPL(nf_conntrack_qca8k_init);
++
++void nf_conntrack_qca8k_fini(void)
++{
++	nf_ct_extend_unregister(&qca8k_extend);
++}
++EXPORT_SYMBOL_GPL(nf_conntrack_qca8k_fini);
++
++MODULE_DESCRIPTION("Qualcomm switch offloading driver");
++MODULE_AUTHOR("John Crispin <john@phrozen.org");
++MODULE_LICENSE("GPL v2");

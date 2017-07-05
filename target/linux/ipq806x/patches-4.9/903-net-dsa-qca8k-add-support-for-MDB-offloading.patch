@@ -1,0 +1,174 @@
+From 25d533b01b60fe436dad793284d5e8828800e95d Mon Sep 17 00:00:00 2001
+From: John Crispin <john@phrozen.org>
+Date: Tue, 1 Nov 2016 01:40:37 +0100
+Subject: [PATCH 15/22] net: dsa: qca8k: add support for MDB offloading
+
+Currently the driver only supports writing static FDB entries to the ARL
+table. Add the missing driver callbacks so that we can also write MDB
+entries to the ARL table.
+
+Signed-off-by: John Crispin <john@phrozen.org>
+---
+ drivers/net/dsa/qca8k.c |  107 +++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/net/dsa/qca8k.h |    2 +
+ 2 files changed, 109 insertions(+)
+
+Index: linux-4.9.34/drivers/net/dsa/qca8k.c
+===================================================================
+--- linux-4.9.34.orig/drivers/net/dsa/qca8k.c
++++ linux-4.9.34/drivers/net/dsa/qca8k.c
+@@ -372,6 +372,20 @@ qca8k_arl_access(struct qca8k_priv *priv
+ }
+ 
+ static int
++qca8k_arl_search(struct qca8k_priv *priv, struct qca8k_arl *arl, const u8 *mac,
++		 u16 vid)
++{
++	int ret;
++
++	qca8k_arl_write(priv, vid, 0, mac, 0);
++	ret = qca8k_arl_access(priv, QCA8K_ARL_SEARCH, 0);
++	if (ret >= 0)
++		qca8k_arl_read(priv, arl);
++
++	return ret;
++}
++
++static int
+ qca8k_arl_next(struct qca8k_priv *priv, struct qca8k_arl *arl, int port)
+ {
+ 	int ret;
+@@ -551,6 +565,9 @@ qca8k_setup(struct dsa_switch *ds)
+ 		    BIT(0) << QCA8K_GLOBAL_FW_CTRL1_MC_DP_S |
+ 		    BIT(0) << QCA8K_GLOBAL_FW_CTRL1_UC_DP_S);
+ 
++	/* Disable MDB learning */
++	qca8k_reg_clear(priv, QCA8K_REG_ARL_CTRL, QCA8K_ARL_CTRL_IGMP_JOIN_EN);
++
+ 	/* Setup connection between CPU port & user ports */
+ 	for (i = 0; i < DSA_MAX_PORTS; i++) {
+ 		/* CPU port gets connected to all user ports of the switch */
+@@ -838,6 +855,31 @@ qca8k_port_arl_insert(struct qca8k_priv
+ }
+ 
+ static int
++qca8k_port_arl_modify(struct dsa_switch *ds, struct qca8k_priv *priv,
++		      const u8 *addr, u16 port, u16 vid, int add)
++{
++	struct qca8k_arl arl = { 0 };
++	u16 port_mask = BIT(port);
++
++	/* Set the vid to the port vlan id if no vid is set */
++	if (!vid)
++		vid = 1;
++
++	if (qca8k_arl_search(priv, &arl, addr, vid) >= 0) {
++		if (add)
++			port_mask |= arl.port_mask;
++		else
++			port_mask &= ~arl.port_mask;
++	}
++
++	if (!add && (port_mask == BIT(dsa_port_upstream_port(ds, port))))
++		return qca8k_arl_del(priv, addr, port_mask, vid);
++
++	return qca8k_arl_add(priv, addr, port_mask, vid,
++			     QCA8K_ATU_STATUS_STATIC);
++}
++
++static int
+ qca8k_port_fdb_prepare(struct dsa_switch *ds, int port,
+ 		       const struct switchdev_obj_port_fdb *fdb,
+ 		       struct switchdev_trans *trans)
+@@ -918,6 +960,67 @@ qca8k_get_tag_protocol(struct dsa_switch
+ 	return DSA_TAG_PROTO_QCA;
+ }
+ 
++static int
++qca8k_port_mdb_prepare(struct dsa_switch *ds, int port,
++		       const struct switchdev_obj_port_mdb *mdb,
++		       struct switchdev_trans *trans)
++{
++	struct qca8k_priv *priv = (struct qca8k_priv *)ds->priv;
++
++	return qca8k_port_arl_modify(ds, priv, mdb->addr,
++				     dsa_port_upstream_port(ds, port),
++				     mdb->vid, 1);
++}
++
++static void
++qca8k_port_mdb_add(struct dsa_switch *ds, int port,
++		   const struct switchdev_obj_port_mdb *mdb,
++		   struct switchdev_trans *trans)
++{
++	struct qca8k_priv *priv = (struct qca8k_priv *)ds->priv;
++
++	qca8k_port_arl_modify(ds, priv, mdb->addr, port, mdb->vid, 1);
++}
++
++static int
++qca8k_port_mdb_del(struct dsa_switch *ds, int port,
++		   const struct switchdev_obj_port_mdb *mdb)
++{
++	struct qca8k_priv *priv = (struct qca8k_priv *)ds->priv;
++
++	return qca8k_port_arl_modify(ds, priv, mdb->addr, port, mdb->vid, 0);
++}
++
++static int
++qca8K_port_mdb_dump(struct dsa_switch *ds, int port,
++		    struct switchdev_obj_port_mdb *mdb,
++		    int (*cb)(struct switchdev_obj *obj))
++{
++	struct qca8k_priv *priv = (struct qca8k_priv *)ds->priv;
++	struct qca8k_arl arl = { 0 };
++	int cnt = QCA8K_NUM_ARL_RECORDS;
++	int ret = 0;
++
++	mutex_lock(&priv->reg_mutex);
++
++	while (cnt-- && !qca8k_arl_next(priv, &arl, port)) {
++		if (!arl.aging)
++			break;
++
++		if (arl.type != QCA8K_ARL_MDB)
++			continue;
++
++		ether_addr_copy(mdb->addr, arl.mac);
++		mdb->vid = arl.vid;
++		ret = cb(&mdb->obj);
++		if (ret)
++			break;
++	}
++	mutex_unlock(&priv->reg_mutex);
++
++	return ret;
++}
++
+ static struct dsa_switch_ops qca8k_switch_ops = {
+ 	.get_tag_protocol	= qca8k_get_tag_protocol,
+ 	.setup			= qca8k_setup,
+@@ -937,6 +1040,10 @@ static struct dsa_switch_ops qca8k_switc
+ 	.port_fdb_add		= qca8k_port_fdb_add,
+ 	.port_fdb_del		= qca8k_port_fdb_del,
+ 	.port_fdb_dump		= qca8k_port_fdb_dump,
++	.port_mdb_prepare	= qca8k_port_mdb_prepare,
++	.port_mdb_add		= qca8k_port_mdb_add,
++	.port_mdb_del		= qca8k_port_mdb_del,
++	.port_mdb_dump		= qca8K_port_mdb_dump
+ };
+ 
+ static int
+Index: linux-4.9.34/drivers/net/dsa/qca8k.h
+===================================================================
+--- linux-4.9.34.orig/drivers/net/dsa/qca8k.h
++++ linux-4.9.34/drivers/net/dsa/qca8k.h
+@@ -103,6 +103,8 @@
+ #define   QCA8K_ATU_FUNC_FULL				BIT(12)
+ #define   QCA8K_ATU_FUNC_PORT_M				0xf
+ #define   QCA8K_ATU_FUNC_PORT_S				8
++#define QCA8K_REG_ARL_CTRL				0x618
++#define   QCA8K_ARL_CTRL_IGMP_JOIN_EN			BIT(28)
+ #define QCA8K_REG_GLOBAL_FW_CTRL0			0x620
+ #define   QCA8K_GLOBAL_FW_CTRL0_CPU_PORT_EN		BIT(10)
+ #define QCA8K_REG_GLOBAL_FW_CTRL1			0x624

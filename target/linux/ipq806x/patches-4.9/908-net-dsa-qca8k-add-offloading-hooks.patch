@@ -1,0 +1,150 @@
+From 8402a58cd1968ce6893b17fa4615349015b333c8 Mon Sep 17 00:00:00 2001
+From: John Crispin <john@phrozen.org>
+Date: Tue, 1 Nov 2016 01:53:34 +0100
+Subject: [PATCH 20/22] net: dsa: qca8k: add offloading hooks
+
+Modify the driver to accomodate the requirements of the offloading code.
+Do so by making the register access functions none static and calling the
+init/exit functions.
+
+Signed-off-by: John Crispin <john@phrozen.org>
+---
+ drivers/net/dsa/qca8k.c |   27 ++++++++++++---------------
+ drivers/net/dsa/qca8k.h |   24 ++++++++++++++++++++++++
+ 2 files changed, 36 insertions(+), 15 deletions(-)
+
+Index: linux-4.9.34/drivers/net/dsa/qca8k.c
+===================================================================
+--- linux-4.9.34.orig/drivers/net/dsa/qca8k.c
++++ linux-4.9.34/drivers/net/dsa/qca8k.c
+@@ -34,6 +34,9 @@
+ 		.name = (_n),	\
+ 	}
+ 
++struct qca8k_priv *qca8k_priv = NULL;
++EXPORT_SYMBOL_GPL(qca8k_priv);
++
+ static const struct qca8k_mib_desc ar8327_mib[] = {
+ 	MIB_DESC(1, 0x00, "RxBroad"),
+ 	MIB_DESC(1, 0x04, "RxPause"),
+@@ -146,7 +149,7 @@ qca8k_set_page(struct mii_bus *bus, u16
+ 	qca8k_current_page = page;
+ }
+ 
+-static u32
++u32
+ qca8k_read(struct qca8k_priv *priv, u32 reg)
+ {
+ 	u16 r1, r2, page;
+@@ -163,8 +166,9 @@ qca8k_read(struct qca8k_priv *priv, u32
+ 
+ 	return val;
+ }
++EXPORT_SYMBOL_GPL(qca8k_read);
+ 
+-static void
++void
+ qca8k_write(struct qca8k_priv *priv, u32 reg, u32 val)
+ {
+ 	u16 r1, r2, page;
+@@ -178,8 +182,9 @@ qca8k_write(struct qca8k_priv *priv, u32
+ 
+ 	mutex_unlock(&priv->bus->mdio_lock);
+ }
++EXPORT_SYMBOL_GPL(qca8k_write);
+ 
+-static u32
++u32
+ qca8k_rmw(struct qca8k_priv *priv, u32 reg, u32 mask, u32 val)
+ {
+ 	u16 r1, r2, page;
+@@ -199,18 +204,7 @@ qca8k_rmw(struct qca8k_priv *priv, u32 r
+ 
+ 	return ret;
+ }
+-
+-static void
+-qca8k_reg_set(struct qca8k_priv *priv, u32 reg, u32 val)
+-{
+-	qca8k_rmw(priv, reg, 0, val);
+-}
+-
+-static void
+-qca8k_reg_clear(struct qca8k_priv *priv, u32 reg, u32 val)
+-{
+-	qca8k_rmw(priv, reg, val, 0);
+-}
++EXPORT_SYMBOL_GPL(qca8k_rmw);
+ 
+ static int
+ qca8k_regmap_read(void *ctx, uint32_t reg, uint32_t *val)
+@@ -1116,6 +1110,7 @@ qca8k_sw_probe(struct mdio_device *mdiod
+ {
+ 	struct qca8k_priv *priv;
+ 	u32 id;
++	int ret;
+ 
+ 	/* allocate the private data struct so that we can probe the switches
+ 	 * ID register
+@@ -1143,7 +1138,12 @@ qca8k_sw_probe(struct mdio_device *mdiod
+ 	mutex_init(&priv->reg_mutex);
+ 	dev_set_drvdata(&mdiodev->dev, priv);
+ 
+-	return dsa_register_switch(priv->ds, priv->ds->dev->of_node);
++
++	ret = dsa_register_switch(priv->ds, priv->ds->dev->of_node);
++	if (!ret)
++		qca8k_priv = priv;
++
++	return ret;
+ }
+ 
+ static void
+Index: linux-4.9.34/drivers/net/dsa/qca8k.h
+===================================================================
+--- linux-4.9.34.orig/drivers/net/dsa/qca8k.h
++++ linux-4.9.34/drivers/net/dsa/qca8k.h
+@@ -178,13 +178,17 @@ struct ar8xxx_port_status {
+ 	int enabled;
+ };
+ 
++struct qca8k_offload *offload;
++
+ struct qca8k_priv {
+ 	struct regmap *regmap;
+ 	struct mii_bus *bus;
+ 	struct ar8xxx_port_status port_sts[QCA8K_NUM_PORTS];
+ 	struct dsa_switch *ds;
+ 	struct mutex reg_mutex;
++	struct qca8k_offload *offload;
+ };
++extern struct qca8k_priv *qca8k_priv;
+ 
+ struct qca8k_mib_desc {
+ 	unsigned int size;
+@@ -200,4 +204,25 @@ struct qca8k_arl {
+ 	u8 mac[6];
+ };
+ 
++u32
++qca8k_rmw(struct qca8k_priv *priv, u32 reg, u32 mask, u32 val);
++
++u32
++qca8k_read(struct qca8k_priv *priv, u32 reg);
++
++void
++qca8k_write(struct qca8k_priv *priv, u32 reg, u32 val);
++
++static inline void
++qca8k_reg_set(struct qca8k_priv *priv, u32 reg, u32 val)
++{
++	qca8k_rmw(priv, reg, 0, val);
++}
++
++static inline void
++qca8k_reg_clear(struct qca8k_priv *priv, u32 reg, u32 val)
++{
++	qca8k_rmw(priv, reg, val, 0);
++}
++
+ #endif /* __QCA8K_H */
