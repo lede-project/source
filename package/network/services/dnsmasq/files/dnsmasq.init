@@ -129,6 +129,10 @@ append_domain() {
 	xappend "--domain=$1"
 }
 
+append_rev_server() {
+        xappend "--rev-server=$1"
+}
+
 append_address() {
 	xappend "--address=$1"
 }
@@ -827,6 +831,7 @@ dnsmasq_start()
 	append_parm "$cfg" "local" "--server"
 	config_list_foreach "$cfg" "domain" append_domain
 	config_list_foreach "$cfg" "server" append_server
+	config_list_foreach "$cfg" "rev_server" append_rev_server
 	config_list_foreach "$cfg" "address" append_address
 	config_list_foreach "$cfg" "ipset" append_ipset
 	config_list_foreach "$cfg" "interface" append_interface

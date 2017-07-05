@@ -52,14 +52,17 @@ get_status_led() {
 		status_led="ap135:green:status"
 		;;
 	archer-c25-v1|\
+	archer-c58-v1|\
 	archer-c59-v1|\
 	archer-c60-v1|\
+	fritz300e|\
 	mr12|\
 	mr16|\
 	nbg6616|\
 	sc1750|\
 	sc450|\
-	tl-wpa8630)
+	tl-wpa8630|\
+	tl-wr902ac-v1)
 		status_led="$board:green:power"
 		;;
 	ap90q|\
@@ -368,6 +371,7 @@ get_status_led() {
 	tl-wa850re-v2)
 		status_led="tp-link:blue:re"
 		;;
+	tl-wa855re-v1|\
 	tl-wa860re)
 		status_led="tp-link:green:power"
 		;;

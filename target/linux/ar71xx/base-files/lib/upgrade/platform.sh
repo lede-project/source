@@ -207,6 +207,7 @@ platform_check_image() {
 	ap531b0|\
 	ap90q|\
 	archer-c25-v1|\
+	archer-c58-v1|\
 	archer-c59-v1|\
 	archer-c60-v1|\
 	bullet-m|\
@@ -411,6 +412,7 @@ platform_check_image() {
 	tl-wa830re-v2|\
 	tl-wa850re|\
 	tl-wa850re-v2|\
+	tl-wa855re-v1|\
 	tl-wa860re|\
 	tl-wa901nd-v2|\
 	tl-wa901nd-v3|\
@@ -647,6 +649,7 @@ platform_check_image() {
 		return 0;
 		;;
 	# these boards use metadata images
+	fritz300e|\
 	rb-750-r2|\
 	rb-750up-r2|\
 	rb-941-2nd|\
@@ -654,7 +657,8 @@ platform_check_image() {
 	rb-952ui-5ac2nd|\
 	rb-962uigs-5hact2hnt|\
 	rb-lhg-5nd|\
-	rb-mapl-2nd)
+	rb-mapl-2nd|\
+	tl-wr902ac-v1)
 		return 0
 		;;
 	esac

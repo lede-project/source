@@ -92,6 +92,16 @@ define Device/ap90q
 endef
 TARGET_DEVICES += ap90q
 
+define Device/arduino-yun
+  DEVICE_TITLE := Arduino Yun
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
+  BOARDNAME := Yun
+  IMAGE_SIZE := 15936k
+  CONSOLE = ttyATH0,250000
+  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env),15936k(firmware),64k(nvram),64k(art)ro
+endef
+TARGET_DEVICES += arduino-yun
+
 define Device/bsb
   DEVICE_TITLE := Smart Electronics Black Swift board
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2
@@ -878,3 +888,16 @@ define Device/zbt-we1526
   IMAGE/sysupgrade.bin := append-rootfs | pad-rootfs | pad-to $$$$(ROOTFS_SIZE) | append-kernel | check-size $$$$(IMAGE_SIZE)
 endef
 TARGET_DEVICES += zbt-we1526
+
+define Device/fritz300e
+  DEVICE_TITLE := AVM FRITZ!WLAN Repeater 300E
+  DEVICE_PACKAGES := fritz-tffs rssileds -swconfig -uboot-envtools
+  BOARDNAME := FRITZ300E
+  SUPPORTED_DEVICES := fritz300e
+  IMAGE_SIZE := 15232k
+  KERNEL := kernel-bin | patch-cmdline | lzma | eva-image
+  IMAGE/sysupgrade.bin := append-kernel | pad-to 64k | \
+	append-squashfs-fakeroot-be | pad-to 256 | \
+	append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
+endef
+TARGET_DEVICES += fritz300e

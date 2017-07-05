@@ -66,6 +66,8 @@ hostapd_common_add_device_config() {
 	config_add_string require_mode
 	config_add_boolean legacy_rates
 
+	config_add_string acs_chan_bias
+
 	hostapd_add_log_config
 }
 
@@ -76,7 +78,7 @@ hostapd_prepare_device_config() {
 	local base="${config%%.conf}"
 	local base_cfg=
 
-	json_get_vars country country_ie beacon_int:100 doth require_mode legacy_rates
+	json_get_vars country country_ie beacon_int:100 doth require_mode legacy_rates acs_chan_bias
 
 	hostapd_set_log_options base_cfg
 
@@ -92,6 +94,8 @@ hostapd_prepare_device_config() {
 		[ "$country_ie" -gt 0 ] && append base_cfg "ieee80211d=1" "$N"
 		[ "$hwmode" = "a" -a "$doth" -gt 0 ] && append base_cfg "ieee80211h=1" "$N"
 	}
+
+	[ -n "$acs_chan_bias" ] && append base_cfg "acs_chan_bias=$acs_chan_bias" "$N"
 
 	local brlist= br
 	json_get_values basic_rate_list basic_rate
@@ -151,6 +155,7 @@ hostapd_common_add_bss_config() {
 	config_add_string acct_server
 	config_add_string acct_secret
 	config_add_int acct_port
+	config_add_int acct_interval
 
 	config_add_string dae_client
 	config_add_string dae_secret
@@ -207,8 +212,8 @@ hostapd_set_bss_options() {
 		wps_pushbutton wps_label ext_registrar wps_pbc_in_m1 wps_ap_setup_locked \
 		wps_independent wps_device_type wps_device_name wps_manufacturer wps_pin \
 		macfilter ssid wmm uapsd hidden short_preamble rsn_preauth \
-		iapp_interface eapol_version acct_server acct_secret acct_port \
-		dynamic_vlan ieee80211w
+		iapp_interface eapol_version dynamic_vlan ieee80211w nasid \
+		acct_server acct_secret acct_port acct_interval
 
 	set_default isolate 0
 	set_default maxassoc 0
@@ -244,11 +249,14 @@ hostapd_set_bss_options() {
 		[ -n "$wpa_master_rekey" ] && append bss_conf "wpa_gmk_rekey=$wpa_master_rekey"  "$N"
 	}
 
+	[ -n "$nasid" ] && append bss_conf "nas_identifier=$nasid" "$N"
 	[ -n "$acct_server" ] && {
 		append bss_conf "acct_server_addr=$acct_server" "$N"
 		append bss_conf "acct_server_port=$acct_port" "$N"
 		[ -n "$acct_secret" ] && \
 			append bss_conf "acct_server_shared_secret=$acct_secret" "$N"
+		[ -n "$acct_interval" ] && \
+			append bss_conf "radius_acct_interim_interval=$acct_interval" "$N"
 	}
 
 	local vlan_possible=""
@@ -369,9 +377,8 @@ hostapd_set_bss_options() {
 	}
 
 	if [ "$wpa" -ge "1" ]; then
-		json_get_vars nasid ieee80211r
+		json_get_vars ieee80211r
 		set_default ieee80211r 0
-		[ -n "$nasid" ] && append bss_conf "nas_identifier=$nasid" "$N"
 
 		if [ "$ieee80211r" -gt "0" ]; then
 			json_get_vars mobility_domain r0_key_lifetime r1_key_holder \

@@ -43,7 +43,7 @@ struct fw_header {
 	char		fw_version[48]; /* 0x04: fw version string */
 	uint32_t	hw_id;		/* 0x34: hardware id */
 	uint32_t	hw_rev;		/* 0x38: FIXME: hardware revision? */
-	uint32_t	unk1;	        /* 0x3c: 0x00000000 */
+	uint32_t	hw_ver_add;	/* 0x3c: additional hardware version */
 	uint8_t		md5sum1[MD5SUM_LEN]; /* 0x40 */
 	uint32_t	unk2;		/* 0x50: 0x00000000 */
 	uint8_t		md5sum2[MD5SUM_LEN]; /* 0x54 */
@@ -80,6 +80,7 @@ struct board_info {
 	char		*id;
 	uint32_t	hw_id;
 	uint32_t	hw_rev;
+	uint32_t	hw_ver_add;
 	char		*layout_id;
 	uint32_t	hdr_ver;
 	bool		endian_swap;
@@ -104,6 +105,8 @@ static char *opt_hw_id;
 static uint32_t hw_id;
 static char *opt_hw_rev;
 static uint32_t hw_rev;
+static char *opt_hw_ver_add;
+static uint32_t hw_ver_add;
 static int fw_ver_lo;
 static int fw_ver_mid;
 static int fw_ver_hi;
@@ -132,8 +135,8 @@ char md5salt_normal[MD5SUM_LEN] = {
 };
 
 char md5salt_boot[MD5SUM_LEN] = {
-	0x8c, 0xef, 0x33, 0x5b, 0xd5, 0xc5, 0xce, 0xfa,
-	0xa7, 0x9c, 0x28, 0xda, 0xb2, 0xe9, 0x0f, 0x42,
+	0x8c, 0xef, 0x33, 0x5f, 0xd5, 0xc5, 0xce, 0xfa,
+	0xac, 0x9c, 0x28, 0xda, 0xb2, 0xe9, 0x0f, 0x42,
 };
 
 static struct flash_layout layouts[] = {
@@ -202,6 +205,22 @@ static struct board_info boards[] = {
 		.hw_id		= 0xd7500001,
 		.hw_rev		= 0x4a,
 		.layout_id	= "8MLmtk",
+		.hdr_ver	= 3,
+		.endian_swap	= true,
+	}, {
+		.id		= "TL-WR840NV4",
+		.hw_id		= 0x08400004,
+		.hw_rev		= 0x1,
+		.hw_ver_add	= 0x4,
+		.layout_id	= "8Mmtk",
+		.hdr_ver	= 3,
+		.endian_swap	= true,
+	}, {
+		.id		= "TL-WR841NV13",
+		.hw_id		= 0x08410013,
+		.hw_rev		= 0x268,
+		.hw_ver_add	= 0x13,
+		.layout_id	= "8Mmtk",
 		.hdr_ver	= 3,
 		.endian_swap	= true,
 	}, {
@@ -284,10 +303,12 @@ static void usage(int status)
 "Options:\n"
 "  -B <board>      create image for the board specified with <board>\n"
 "  -c              use combined kernel image\n"
+"  -e              swap endianness in kernel load address and entry point\n"
 "  -E <ep>         overwrite kernel entry point with <ep> (hexval prefixed with 0x)\n"
 "  -L <la>         overwrite kernel load address with <la> (hexval prefixed with 0x)\n"
 "  -H <hwid>       use hardware id specified with <hwid>\n"
 "  -W <hwrev>      use hardware revision specified with <hwrev>\n"
+"  -w <hwveradd>   use additional hardware version specified with <hwveradd>\n"
 "  -F <id>         use flash layout specified with <id>\n"
 "  -k <file>       read kernel image from the file <file>\n"
 "  -r <file>       read rootfs image from the file <file>\n"
@@ -296,6 +317,8 @@ static void usage(int status)
 "  -o <file>       write output to the file <file>\n"
 "  -s              strip padding from the end of the image\n"
 "  -j              add jffs2 end-of-filesystem markers\n"
+"  -N <vendor>     set image vendor to <vendor>\n"
+"  -T <version>    set header version to <version>\n"
 "  -V <version>    set image version to <version>\n"
 "  -v <version>    set firmware version to <version>\n"
 "  -y <version>    set secondary version to <version>\n"
@@ -391,6 +414,7 @@ static int check_options(void)
 
 		hw_id = board->hw_id;
 		hw_rev = board->hw_rev;
+		hw_ver_add = board->hw_ver_add;
 		if (board->hdr_ver)
 			hdr_ver = board->hdr_ver;
 		endian_swap = board->endian_swap;
@@ -405,6 +429,11 @@ static int check_options(void)
 			hw_rev = strtoul(opt_hw_rev, NULL, 0);
 		else
 			hw_rev = 1;
+
+		if (opt_hw_ver_add)
+			hw_ver_add = strtoul(opt_hw_ver_add, NULL, 0);
+		else
+			hw_ver_add = 0;
 	}
 
 	layout = find_layout(layout_id);
@@ -511,6 +540,7 @@ static void fill_header(char *buf, int len)
 
 	hdr->hw_id = htonl(hw_id);
 	hdr->hw_rev = htonl(hw_rev);
+	hdr->hw_ver_add = htonl(hw_ver_add);
 
 	if (boot_info.file_size == 0) {
 		memcpy(hdr->md5sum1, md5salt_normal, sizeof(hdr->md5sum1));
@@ -535,7 +565,6 @@ static void fill_header(char *buf, int len)
 	hdr->boot_ofs = htonl(0);
 	hdr->boot_len = htonl(boot_info.file_size);
 
-	hdr->unk1 = htonl(0);
 	hdr->unk2 = htonl(0);
 	hdr->unk3 = htonl(0xffffffff);
 	hdr->unk4 = htons(0x55aa);
@@ -779,9 +808,6 @@ static int inspect_fw(void)
 
 	inspect_fw_phexdec("Version 2 Header size", sizeof(struct fw_header));
 
-	if (ntohl(hdr->unk1) != 0)
-		inspect_fw_phexdec("Unknown value 1", hdr->unk1);
-
 	memcpy(md5sum, hdr->md5sum1, sizeof(md5sum));
 	if (ntohl(hdr->boot_len) == 0)
 		memcpy(hdr->md5sum1, md5salt_normal, sizeof(md5sum));
@@ -820,11 +846,15 @@ static int inspect_fw(void)
 		                    ntohl(hdr->hw_id), board->id);
 		inspect_fw_phexexp("Hardware Revision",
 		                   ntohl(hdr->hw_rev), board->hw_rev);
+		inspect_fw_phexexp("Additional HW Version",
+		                   ntohl(hdr->hw_ver_add), board->hw_ver_add);
 	} else {
 		inspect_fw_phexpost("Hardware ID",
 		                    ntohl(hdr->hw_id), "unknown");
 		inspect_fw_phex("Hardware Revision",
 		                ntohl(hdr->hw_rev));
+		inspect_fw_phex("Additional HW Version",
+		                ntohl(hdr->hw_ver_add));
 	}
 
 	printf("%-23s: %d.%d.%d-%d.%d\n", "Software version",
@@ -919,7 +949,7 @@ int main(int argc, char *argv[])
 	while ( 1 ) {
 		int c;
 
-		c = getopt(argc, argv, "a:B:H:E:F:L:V:N:W:ci:k:r:R:o:xhsjv:y:T:e");
+		c = getopt(argc, argv, "a:B:H:E:F:L:V:N:W:w:ci:k:r:R:o:xhsjv:y:T:e");
 		if (c == -1)
 			break;
 
@@ -941,6 +971,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'W':
 			opt_hw_rev = optarg;
+			break;
+		case 'w':
+			opt_hw_ver_add = optarg;
 			break;
 		case 'L':
 			sscanf(optarg, "0x%x", &kernel_la);
