@@ -163,6 +163,7 @@
 		pcie1: pci@1b700000 {
 			status = "ok";
 			phy-tx0-term-offset = <7>;
+			force_gen1 = <1>;
 		};
 		
 		pcie2: pci@1b900000 {
