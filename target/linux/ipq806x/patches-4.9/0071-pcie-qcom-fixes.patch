@@ -1,6 +1,6 @@
 --- a/drivers/pci/host/pcie-qcom.c
 +++ b/drivers/pci/host/pcie-qcom.c
-@@ -36,8 +36,50 @@
+@@ -36,8 +36,52 @@
  
  #include "pcie-designware.h"
  
@@ -48,10 +48,12 @@
 +#define PCIE20_PARF_CONFIG_BITS			0x50
 +#define PHY_RX0_EQ(x)				(x << 24)
 +
++#define PCIE20_LNK_CONTROL2_LINK_STATUS2        0xA0
++
  #define PCIE20_PARF_DBI_BASE_ADDR		0x168
  #define PCIE20_PARF_SLV_ADDR_SPACE_SIZE		0x16c
  #define PCIE20_PARF_AXI_MSTR_WR_ADDR_HALT	0x178
-@@ -53,14 +95,18 @@ struct qcom_pcie_resources_v0 {
+@@ -53,14 +97,18 @@ struct qcom_pcie_resources_v0 {
  	struct clk *iface_clk;
  	struct clk *core_clk;
  	struct clk *phy_clk;
@@ -70,7 +72,7 @@
  };
  
  struct qcom_pcie_resources_v1 {
-@@ -82,6 +128,7 @@ struct qcom_pcie;
+@@ -82,6 +130,7 @@ struct qcom_pcie;
  struct qcom_pcie_ops {
  	int (*get_resources)(struct qcom_pcie *pcie);
  	int (*init)(struct qcom_pcie *pcie);
@@ -78,7 +80,15 @@
  	void (*deinit)(struct qcom_pcie *pcie);
  };
  
-@@ -160,6 +207,14 @@ static int qcom_pcie_get_resources_v0(st
+@@ -93,6 +142,7 @@ struct qcom_pcie {
+ 	struct phy *phy;
+ 	struct gpio_desc *reset;
+ 	struct qcom_pcie_ops *ops;
++	uint32_t force_gen1;
+ };
+ 
+ #define to_qcom_pcie(x)		container_of(x, struct qcom_pcie, pp)
+@@ -160,6 +210,14 @@ static int qcom_pcie_get_resources_v0(struct qcom_pcie *pcie)
  	if (IS_ERR(res->phy_clk))
  		return PTR_ERR(res->phy_clk);
  
@@ -93,7 +103,7 @@
  	res->pci_reset = devm_reset_control_get(dev, "pci");
  	if (IS_ERR(res->pci_reset))
  		return PTR_ERR(res->pci_reset);
-@@ -180,6 +235,14 @@ static int qcom_pcie_get_resources_v0(st
+@@ -180,6 +238,14 @@ static int qcom_pcie_get_resources_v0(struct qcom_pcie *pcie)
  	if (IS_ERR(res->phy_reset))
  		return PTR_ERR(res->phy_reset);
  
@@ -108,7 +118,7 @@
  	return 0;
  }
  
-@@ -223,15 +286,69 @@ static void qcom_pcie_deinit_v0(struct q
+@@ -223,15 +289,69 @@ static void qcom_pcie_deinit_v0(struct qcom_pcie *pcie)
  	reset_control_assert(res->axi_reset);
  	reset_control_assert(res->ahb_reset);
  	reset_control_assert(res->por_reset);
@@ -179,7 +189,7 @@
  static int qcom_pcie_init_v0(struct qcom_pcie *pcie)
  {
  	struct qcom_pcie_resources_v0 *res = &pcie->res.v0;
-@@ -260,13 +377,19 @@ static int qcom_pcie_init_v0(struct qcom
+@@ -260,13 +380,19 @@ static int qcom_pcie_init_v0(struct qcom_pcie *pcie)
  	ret = reset_control_assert(res->ahb_reset);
  	if (ret) {
  		dev_err(dev, "cannot assert ahb reset\n");
@@ -201,7 +211,7 @@
  	}
  
  	ret = clk_prepare_enable(res->phy_clk);
-@@ -281,22 +404,53 @@ static int qcom_pcie_init_v0(struct qcom
+@@ -281,22 +407,53 @@ static int qcom_pcie_init_v0(struct qcom_pcie *pcie)
  		goto err_clk_core;
  	}
  
@@ -257,7 +267,16 @@
  	ret = reset_control_deassert(res->phy_reset);
  	if (ret) {
  		dev_err(dev, "cannot deassert phy reset\n");
-@@ -327,12 +481,16 @@ static int qcom_pcie_init_v0(struct qcom
+@@ -324,15 +481,25 @@ static int qcom_pcie_init_v0(struct qcom_pcie *pcie)
+ 	/* wait for clock acquisition */
+ 	usleep_range(1000, 1500);
+ 
++	if (pcie->force_gen1) {
++		writel_relaxed((readl_relaxed(
++			pcie->pp.dbi_base + PCIE20_LNK_CONTROL2_LINK_STATUS2) | 1),
++			pcie->pp.dbi_base + PCIE20_LNK_CONTROL2_LINK_STATUS2);
++	}
++
  	return 0;
  
  err_deassert_ahb:
@@ -275,7 +294,7 @@
  	regulator_disable(res->vdda_phy);
  err_vdda_phy:
  	regulator_disable(res->vdda_refclk);
-@@ -342,6 +500,12 @@ err_refclk:
+@@ -342,6 +509,12 @@ static int qcom_pcie_init_v0(struct qcom_pcie *pcie)
  	return ret;
  }
  
@@ -288,7 +307,7 @@
  static void qcom_pcie_deinit_v1(struct qcom_pcie *pcie)
  {
  	struct qcom_pcie_resources_v1 *res = &pcie->res.v1;
-@@ -455,6 +619,9 @@ static void qcom_pcie_host_init(struct p
+@@ -455,6 +628,9 @@ static void qcom_pcie_host_init(struct pcie_port *pp)
  	if (ret)
  		goto err;
  
@@ -298,7 +317,7 @@
  	return;
  err:
  	qcom_ep_reset_assert(pcie);
-@@ -486,6 +653,7 @@ static struct pcie_host_ops qcom_pcie_dw
+@@ -486,6 +662,7 @@ static struct pcie_host_ops qcom_pcie_dw_ops = {
  static const struct qcom_pcie_ops ops_v0 = {
  	.get_resources = qcom_pcie_get_resources_v0,
  	.init = qcom_pcie_init_v0,
@@ -306,3 +325,22 @@
  	.deinit = qcom_pcie_deinit_v0,
  };
  
+@@ -502,6 +679,8 @@ static int qcom_pcie_probe(struct platform_device *pdev)
+ 	struct qcom_pcie *pcie;
+ 	struct pcie_port *pp;
+ 	int ret;
++	uint32_t force_gen1 = 0;
++	struct device_node *np = pdev->dev.of_node;
+ 
+ 	pcie = devm_kzalloc(dev, sizeof(*pcie), GFP_KERNEL);
+ 	if (!pcie)
+@@ -514,6 +693,9 @@ static int qcom_pcie_probe(struct platform_device *pdev)
+ 	if (IS_ERR(pcie->reset))
+ 		return PTR_ERR(pcie->reset);
+ 
++	of_property_read_u32(np, "force_gen1", &force_gen1);
++	pcie->force_gen1 = force_gen1;
++
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "parf");
+ 	pcie->parf = devm_ioremap_resource(dev, res);
+ 	if (IS_ERR(pcie->parf))
