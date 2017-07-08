@@ -16,7 +16,7 @@ PKG_SOURCE:=$(PKG_NPM_NAME)-$(PKG_VERSION).tgz
 PKG_SOURCE_URL:=http://registry.npmjs.org/$(PKG_NPM_NAME)/-/
 # PKG_MD5SUM:=f0de658691c32002da54e97750ee7e0e
 
-PKG_BUILD_DEPENDS:=node +eudev
+PKG_BUILD_DEPENDS:=node eudev
 PKG_NODE_VERSION:=6.11.0
 
 include $(INCLUDE_DIR)/package.mk
@@ -41,6 +41,7 @@ endef
 
 define Build/Compile
 	$(MAKE_FLAGS) \
+	$(MAKE_VARS) \
 	GYPFLAGS="-Dv8_use_mips_abi_hardfloat=false -Dv8_can_use_fpu_instructions=false" \
 	CFLAGS="$(TARGET_CFLAGS) $(EXTRA_CFLAGS) $(TARGET_CPPFLAGS) $(EXTRA_CPPFLAGS) -I$(STAGING_DIR)/usr/include" \
 	CXXFLAGS="$(TARGET_CXXFLAGS) $(EXTRA_CXXFLAGS) $(TARGET_CPPFLAGS) $(EXTRA_CPPFLAGS) -I$(STAGING_DIR)/usr/include" \
@@ -48,13 +49,13 @@ define Build/Compile
 	npm_config_arch=mips \
 	npm_config_nodedir=$(BUILD_DIR)/node-v$(PKG_NODE_VERSION)/ \
 	PREFIX="$(PKG_INSTALL_DIR)/usr/" \
-	$(STAGING_DIR_HOSTPKG)/bin/npm install --target_arch=mips --build-from-source -g $(PKG_BUILD_DIR)
+	$(STAGING_DIR_HOSTPKG)/bin/npm install --no-optional --target_arch=mips --build-from-source -g $(PKG_BUILD_DIR)
 endef
 
 define Package/node-$(PKG_NPM_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/lib/
 	
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/node_modules $(1)/usr/lib/
+	$(CP) -R $(PKG_INSTALL_DIR)/usr/lib/node_modules $(1)/usr/lib/
 endef
 
 define Package/$(PKG_NAME)/postrm
