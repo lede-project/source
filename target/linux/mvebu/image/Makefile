@@ -90,16 +90,38 @@ define Device/NAND-512K
   PAGESIZE := 4096
 endef
 
+define Device/marvell-nand
+  $(Device/NAND-512K)
+  DEVICE_TITLE := Marvell Armada $(1)
+endef
+
 define Device/linksys
   DEVICE_TITLE := Linksys $(1)
   DEVICE_PACKAGES := kmod-mwlwifi wpad-mini swconfig
 endef
+
+ifeq ($(SUBTARGET),armada_38x)
 
 define Device/armada-385-linksys
   $(Device/NAND-128K)
   $(Device/UBI-factory)
   KERNEL_SIZE := 6144k
 endef
+
+define Device/armada-385-db-ap
+  $(Device/NAND-256K)
+  $(Device/UBI-factory)
+  KERNEL_SIZE := 8192k
+  DEVICE_TITLE := Marvell Armada 385 DB AP (DB-88F6820-AP)
+endef
+TARGET_DEVICES += armada-385-db-ap
+
+define Device/armada-388-rd
+  DEVICE_TITLE := Marvell Armada 388 RD (RD-88F6820-AP)
+  IMAGES := firmware.bin
+  IMAGE/firmware.bin := append-kernel | pad-to 256k | append-rootfs | pad-rootfs
+endef
+TARGET_DEVICES += armada-388-rd
 
 define Device/linksys-wrt1200ac
   $(call Device/linksys,WRT1200AC (Caiman))
@@ -115,6 +137,13 @@ define Device/linksys-wrt1900acv2
 endef
 TARGET_DEVICES += linksys-wrt1900acv2
 
+define Device/linksys-wrt1900acs
+  $(call Device/linksys,WRT1900ACS (Shelby))
+  $(Device/armada-385-linksys)
+  DEVICE_DTS := armada-385-linksys-shelby
+endef
+TARGET_DEVICES += linksys-wrt1900acs
+
 define Device/linksys-wrt3200acm
   $(call Device/linksys,WRT3200ACM (Rango))
   $(Device/armada-385-linksys)
@@ -123,12 +152,51 @@ define Device/linksys-wrt3200acm
 endef
 TARGET_DEVICES += linksys-wrt3200acm
 
-define Device/linksys-wrt1900acs
-  $(call Device/linksys,WRT1900ACS (Shelby))
-  $(Device/armada-385-linksys)
-  DEVICE_DTS := armada-385-linksys-shelby
+define Device/armada-388-clearfog-base
+  KERNEL_INSTALL := 1
+  KERNEL := kernel-bin
+  DEVICE_TITLE := SolidRun ClearFog Base
+  DEVICE_PACKAGES := \
+	  kmod-nls-cp437 kmod-nls-iso8859-1 \
+	  mkf2fs e2fsprogs kmod-fs-vfat kmod-fuse kmod-fs-f2fs \
+	  kmod-ata-core kmod-ata-ahci kmod-ata-marvell-sata kmod-scsi-core kmod-scsi-generic \
+	  kmod-button-hotplug kmod-gpio-button-hotplug
+  IMAGES := sdcard.img.gz
+  IMAGE/sdcard.img.gz := boot-scr-cfbase | boot-img | sdcard-img | gzip
+  IMAGE_NAME = $$(IMAGE_PREFIX)-$$(2)
+  DEVICE_DTS := armada-388-clearfog-pro armada-388-clearfog-base
 endef
-TARGET_DEVICES += linksys-wrt1900acs
+TARGET_DEVICES += armada-388-clearfog-base
+
+define Device/armada-388-clearfog-pro
+  KERNEL_INSTALL := 1
+  KERNEL := kernel-bin
+  DEVICE_TITLE := SolidRun ClearFog Pro
+  DEVICE_PACKAGES := mkf2fs e2fsprogs swconfig kmod-fs-vfat kmod-nls-cp437 kmod-nls-iso8859-1
+  IMAGES := sdcard.img.gz
+  IMAGE/sdcard.img.gz := boot-scr-cfpro | boot-img | sdcard-img | gzip | append-metadata
+  IMAGE_NAME = $$(IMAGE_PREFIX)-$$(2)
+  DEVICE_DTS := armada-388-clearfog-pro armada-388-clearfog-base
+endef
+TARGET_DEVICES += armada-388-clearfog-pro
+
+endif
+
+ifeq ($(SUBTARGET),armada_37x_xp)
+
+Device/armada-370-db = $(call Device/marvell-nand,370 DB (DB-88F6710-BP-DDR3))
+Device/armada-370-rd = $(call Device/marvell-nand,370 RD (RD-88F6710-A1))
+Device/armada-xp-db = $(call Device/marvell-nand,XP DB (DB-78460-BP))
+Device/armada-xp-gp = $(call Device/marvell-nand,XP GP (DB-MV784MP-GP))
+TARGET_DEVICES += armada-370-db armada-370-rd armada-xp-db armada-xp-gp
+
+define Device/globalscale-mirabox
+  $(Device/NAND-512K)
+  DEVICE_DTS := armada-370-mirabox
+  SUPPORTED_DEVICES := mirabox
+  DEVICE_TITLE := Globalscale Mirabox
+endef
+TARGET_DEVICES += globalscale-mirabox
 
 define Device/linksys-wrt1900ac
   $(call Device/linksys,WRT1900AC (Mamba))
@@ -150,66 +218,6 @@ define Device/openblocks-ax3-4
 endef
 TARGET_DEVICES += openblocks-ax3-4
 
-define Device/armada-385-db-ap
-  $(Device/NAND-256K)
-  $(Device/UBI-factory)
-  KERNEL_SIZE := 8192k
-  DEVICE_TITLE := Marvell Armada 385 DB AP (DB-88F6820-AP)
-endef
-TARGET_DEVICES += armada-385-db-ap
-
-define Device/marvell-nand
-  $(Device/NAND-512K)
-  DEVICE_TITLE := Marvell Armada $(1)
-endef
-
-Device/armada-370-db = $(call Device/marvell-nand,370 DB (DB-88F6710-BP-DDR3))
-Device/armada-370-rd = $(call Device/marvell-nand,370 RD (RD-88F6710-A1))
-Device/armada-xp-db = $(call Device/marvell-nand,XP DB (DB-78460-BP))
-Device/armada-xp-gp = $(call Device/marvell-nand,XP GP (DB-MV784MP-GP))
-TARGET_DEVICES += armada-370-db armada-370-rd armada-xp-db armada-xp-gp
-
-define Device/armada-388-rd
-  DEVICE_TITLE := Marvell Armada 388 RD (RD-88F6820-AP)
-  IMAGES := firmware.bin
-  IMAGE/firmware.bin := append-kernel | pad-to 256k | append-rootfs | pad-rootfs
-endef
-TARGET_DEVICES += armada-388-rd
-
-define Device/armada-388-clearfog-pro
-  KERNEL_INSTALL := 1
-  KERNEL := kernel-bin
-  DEVICE_TITLE := SolidRun ClearFog Pro
-  DEVICE_PACKAGES := mkf2fs e2fsprogs swconfig kmod-fs-vfat kmod-nls-cp437 kmod-nls-iso8859-1
-  IMAGES := sdcard.img.gz
-  IMAGE/sdcard.img.gz := boot-scr-cfpro | boot-img | sdcard-img | gzip | append-metadata
-  IMAGE_NAME = $$(IMAGE_PREFIX)-$$(2)
-  DEVICE_DTS := armada-388-clearfog-pro armada-388-clearfog-base
-endef
-TARGET_DEVICES += armada-388-clearfog-pro
-
-define Device/armada-388-clearfog-base
-  KERNEL_INSTALL := 1
-  KERNEL := kernel-bin
-  DEVICE_TITLE := SolidRun ClearFog Base
-  DEVICE_PACKAGES := \
-	  kmod-nls-cp437 kmod-nls-iso8859-1 \
-	  mkf2fs e2fsprogs kmod-fs-vfat kmod-fuse kmod-fs-f2fs \
-	  kmod-ata-core kmod-ata-ahci kmod-ata-marvell-sata kmod-scsi-core kmod-scsi-generic \
-	  kmod-button-hotplug kmod-gpio-button-hotplug
-  IMAGES := sdcard.img.gz
-  IMAGE/sdcard.img.gz := boot-scr-cfbase | boot-img | sdcard-img | gzip
-  IMAGE_NAME = $$(IMAGE_PREFIX)-$$(2)
-  DEVICE_DTS := armada-388-clearfog-pro armada-388-clearfog-base
-endef
-TARGET_DEVICES += armada-388-clearfog-base
-
-define Device/globalscale-mirabox
-  $(Device/NAND-512K)
-  DEVICE_DTS := armada-370-mirabox
-  SUPPORTED_DEVICES := mirabox
-  DEVICE_TITLE := Globalscale Mirabox
-endef
-TARGET_DEVICES += globalscale-mirabox
+endif
 
 $(eval $(call BuildImage))
