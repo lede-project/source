@@ -296,7 +296,7 @@ endef
 TARGET_DEVICES += re450-v1
 
 define Device/tl-mr10u-v1
-  $(Device/tplink-4mlzma)
+  $(Device/tplink-8mlzma)
   DEVICE_TITLE := TP-LINK TL-MR10U v1
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2
   BOARDNAME := TL-MR10U
@@ -1062,7 +1062,7 @@ define Device/tl-wr940n-v4
 endef
 
 define Device/tl-wr941nd-v2
-  $(Device/tplink-4m)
+  $(Device/tplink-8m)
   DEVICE_TITLE := TP-LINK TL-WR941N/ND v2
   BOARDNAME := TL-WR941ND
   DEVICE_PROFILE := TLWR941
@@ -1124,3 +1124,37 @@ define Device/tl-wr942n-v1
   SUPPORTED_DEVICES := tl-wr942n-v1
 endef
 TARGET_DEVICES += tl-wr940n-v4 tl-wr941nd-v2 tl-wr941nd-v3 tl-wr941nd-v4 tl-wr941nd-v5 tl-wr941nd-v6 tl-wr941nd-v6-cn tl-wr942n-v1
+
+define Device/tl-wr740n-v5-cn
+  $(Device/tplink-8mlzma)
+  BOARDNAME := TL-WR740N-v5
+  DEVICE_PROFILE := TLWR740
+  TPLINK_HWID := 0x07400005
+  CONSOLE := ttyATH0,115200
+endef
+
+define Device/tl-wr741n-v4-cn
+  $(Device/tplink-8mlzma)
+  BOARDNAME := TL-WR740N-v5
+  DEVICE_PROFILE := TLWR741
+  TPLINK_HWID := 0x07410004
+  CONSOLE := ttyATH0,115200
+endef
+
+define Device/tl-wr742n-v5
+  $(Device/tplink-8mlzma)
+  BOARDNAME := TL-WR742N-v5
+  DEVICE_PROFILE := TLWR742
+  TPLINK_HWID := 0x07420005
+  CONSOLE := ttyATH0,115200
+endef
+TARGET_DEVICES += tl-wr740n-v5-cn tl-wr741n-v4-cn tl-wr742n-v5
+
+define Device/tl-wr882n-v1
+   $(Device/tplink-8mlzma)
+   DEVICE_TITLE := TP-LINK TL-WR882N v1
+   BOARDNAME := TL-WR882N-v1
+   DEVICE_PROFILE := TLWR882
+   TPLINK_HWID := 0x08820001
+endef
+TARGET_DEVICES += tl-wr882n-v1
