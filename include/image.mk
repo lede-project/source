@@ -8,7 +8,6 @@
 override TARGET_BUILD=
 include $(INCLUDE_DIR)/prereq.mk
 include $(INCLUDE_DIR)/kernel.mk
-include $(INCLUDE_DIR)/host.mk
 include $(INCLUDE_DIR)/version.mk
 include $(INCLUDE_DIR)/image-commands.mk
 
@@ -211,14 +210,15 @@ endef
 # $(1): board name
 # $(2): rootfs type
 # $(3): kernel image
+# $(4): compat string
 ifneq ($(CONFIG_NAND_SUPPORT),)
    define Image/Build/SysupgradeNAND
-	mkdir -p "$(KDIR_TMP)/sysupgrade-$(1)/"
-	echo "BOARD=$(1)" > "$(KDIR_TMP)/sysupgrade-$(1)/CONTROL"
-	[ -z "$(2)" ] || $(CP) "$(KDIR)/root.$(2)" "$(KDIR_TMP)/sysupgrade-$(1)/root"
-	[ -z "$(3)" ] || $(CP) "$(3)" "$(KDIR_TMP)/sysupgrade-$(1)/kernel"
+	mkdir -p "$(KDIR_TMP)/sysupgrade-$(if $(4),$(4),$(1))/"
+	echo "BOARD=$(if $(4),$(4),$(1))" > "$(KDIR_TMP)/sysupgrade-$(if $(4),$(4),$(1))/CONTROL"
+	[ -z "$(2)" ] || $(CP) "$(KDIR)/root.$(2)" "$(KDIR_TMP)/sysupgrade-$(if $(4),$(4),$(1))/root"
+	[ -z "$(3)" ] || $(CP) "$(3)" "$(KDIR_TMP)/sysupgrade-$(if $(4),$(4),$(1))/kernel"
 	(cd "$(KDIR_TMP)"; $(TAR) cvf \
-		"$(BIN_DIR)/$(IMG_PREFIX)-$(1)-$(2)-sysupgrade.tar" sysupgrade-$(1) \
+		"$(BIN_DIR)/$(IMG_PREFIX)-$(1)-$(2)-sysupgrade.tar" sysupgrade-$(if $(4),$(4),$(1)) \
 			$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
 	)
    endef
@@ -277,7 +277,7 @@ endif
 
 ifdef CONFIG_TARGET_ROOTFS_CPIOGZ
   define Image/Build/cpiogz
-	( cd $(TARGET_DIR); find . | cpio -o -H newc | gzip -9n >$(BIN_DIR)/$(IMG_PREFIX)-rootfs.cpio.gz )
+	( cd $(TARGET_DIR); find . | cpio -o -H newc -R root:root | gzip -9n >$(BIN_DIR)/$(IMG_PREFIX)-rootfs.cpio.gz )
   endef
 endif
 
@@ -363,7 +363,7 @@ endef
 
 DEFAULT_DEVICE_VARS := \
   DEVICE_NAME KERNEL KERNEL_INITRAMFS KERNEL_SIZE KERNEL_INITRAMFS_IMAGE \
-  DEVICE_DTS DEVICE_DTS_DIR BOARD_NAME CMDLINE \
+  KERNEL_LOADADDR DEVICE_DTS DEVICE_DTS_DIR BOARD_NAME CMDLINE \
   UBOOTENV_IN_UBI KERNEL_IN_UBI \
   BLOCKSIZE PAGESIZE SUBPAGESIZE VID_HDR_OFFSET \
   UBINIZE_OPTS UIMAGE_NAME UBINIZE_PARTS \
@@ -420,7 +420,7 @@ define Device/Build/initramfs
   $(BIN_DIR)/$$(KERNEL_INITRAMFS_IMAGE): $(KDIR)/tmp/$$(KERNEL_INITRAMFS_IMAGE)
 	cp $$^ $$@
 
-  $(KDIR)/tmp/$$(KERNEL_INITRAMFS_IMAGE): $(KDIR)/$$(KERNEL_INITRAMFS_NAME) $(CURDIR)/Makefile $$(KERNEL_DEPENDS)
+  $(KDIR)/tmp/$$(KERNEL_INITRAMFS_IMAGE): $(KDIR)/$$(KERNEL_INITRAMFS_NAME) $(CURDIR)/Makefile $$(KERNEL_DEPENDS) image_prepare
 	@rm -f $$@
 	$$(call concat_cmd,$$(KERNEL_INITRAMFS))
 endef
@@ -444,7 +444,7 @@ define Device/Build/kernel
     ifdef CONFIG_IB
       install: $$(KDIR_KERNEL_IMAGE)
     endif
-    $$(KDIR_KERNEL_IMAGE): $(KDIR)/$$(KERNEL_NAME) $(CURDIR)/Makefile $$(KERNEL_DEPENDS)
+    $$(KDIR_KERNEL_IMAGE): $(KDIR)/$$(KERNEL_NAME) $(CURDIR)/Makefile $$(KERNEL_DEPENDS) image_prepare
 	@rm -f $$@
 	$$(call concat_cmd,$$(KERNEL))
 	$$(if $$(KERNEL_SIZE),$$(call Build/check-size,$$(KERNEL_SIZE)))

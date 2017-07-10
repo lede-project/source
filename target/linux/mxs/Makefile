@@ -13,7 +13,7 @@ FEATURES:=ext4 rtc usb gpio
 CPU_TYPE:=arm926ej-s
 
 MAINTAINER:=Zoltan HERPAI <wigyori@uid0.hu>
-KERNEL_PATCHVER:=4.4
+KERNEL_PATCHVER:=4.9
 KERNELNAME:=zImage dtbs
 
 define Target/Description
@@ -21,7 +21,5 @@ define Target/Description
 endef
 
 include $(INCLUDE_DIR)/target.mk
-
-DEFAULT_PACKAGES += kmod-wdt-stmp3xxx
 
 $(eval $(call BuildTarget))

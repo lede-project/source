@@ -8,7 +8,45 @@ define Build/uImage
 		-O linux -T kernel \
 		-C $(1) -a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
 		-n '$(if $(UIMAGE_NAME),$(UIMAGE_NAME),$(call toupper,$(LINUX_KARCH)) LEDE Linux-$(LINUX_VERSION))' -d $@ $@.new
-	@mv $@.new $@
+	mv $@.new $@
+endef
+
+define Build/buffalo-enc
+	$(eval product=$(word 1,$(1)))
+	$(eval version=$(word 2,$(1)))
+	$(eval args=$(wordlist 3,$(words $(1)),$(1)))
+	$(STAGING_DIR_HOST)/bin/buffalo-enc \
+		-p $(product) -v $(version) $(args) \
+		-i $@ -o $@.new
+	mv $@.new $@
+endef
+
+define Build/buffalo-enc-tag
+	$(call Build/buffalo-enc,'' '' -S 152 $(1))
+endef
+
+define Build/buffalo-tag-dhp
+	$(eval product=$(word 1,$(1)))
+	$(eval region=$(word 2,$(1)))
+	$(eval language=$(word 3,$(1)))
+	$(STAGING_DIR_HOST)/bin/buffalo-tag \
+		-d 0x01000000 -w 1 \
+		-a $(BUFFALO_TAG_PLATFORM) \
+		-v $(BUFFALO_TAG_VERSION) -m $(BUFFALO_TAG_MINOR) \
+		-b $(product) -p $(product) \
+		-r $(region) -r $(region) -l $(language) \
+		-I $@ -o $@.new
+	mv $@.new $@
+endef
+
+define Build/buffalo-dhp-image
+	$(STAGING_DIR_HOST)/bin/mkdhpimg $@ $@.new
+	mv $@.new $@
+endef
+
+define Build/eva-image
+	$(STAGING_DIR_HOST)/bin/lzma2eva $(KERNEL_LOADADDR) $(KERNEL_LOADADDR) $@ $@.new
+	mv $@.new $@
 endef
 
 define Build/netgear-chk
@@ -16,7 +54,7 @@ define Build/netgear-chk
 		-o $@.new \
 		-k $@ \
 		-b $(NETGEAR_BOARD_ID) \
-		-r $(NETGEAR_REGION)
+		$(if $(NETGEAR_REGION),-r $(NETGEAR_REGION),)
 	mv $@.new $@
 endef
 
@@ -29,9 +67,31 @@ define Build/netgear-dni
 	mv $@.new $@
 endef
 
+define Build/append-squashfs-fakeroot-be
+	rm -rf $@.fakefs $@.fakesquashfs
+	mkdir $@.fakefs
+	$(STAGING_DIR_HOST)/bin/mksquashfs-lzma \
+		$@.fakefs $@.fakesquashfs \
+		-noappend -root-owned -be -nopad -b 65536 \
+		$(if $(SOURCE_DATE_EPOCH),-fixed-time $(SOURCE_DATE_EPOCH))
+	cat $@.fakesquashfs >> $@
+endef
+
+# append a fake/empty rootfs uImage header, to fool the bootloaders
+# rootfs integrity check
+define Build/append-uImage-fakeroot-hdr
+	rm -f $@.fakeroot
+	$(STAGING_DIR_HOST)/bin/mkimage \
+		-A $(LINUX_KARCH) -O linux -T filesystem -C none \
+		-n '$(call toupper,$(LINUX_KARCH)) LEDE fakeroot' \
+		-s \
+		$@.fakeroot
+	cat $@.fakeroot >> $@
+endef
+
 define Build/tplink-safeloader
        -$(STAGING_DIR_HOST)/bin/tplink-safeloader \
-		-B $(TPLINK_BOARD_NAME) \
+		-B $(TPLINK_BOARD_ID) \
 		-V $(REVISION) \
 		-k $(IMAGE_KERNEL) \
 		-r $@ \
@@ -171,6 +231,20 @@ define Build/sysupgrade-tar
 		--kernel $(call param_get_default,kernel,$(1),$(IMAGE_KERNEL)) \
 		--rootfs $(call param_get_default,rootfs,$(1),$(IMAGE_ROOTFS)) \
 		$@
+endef
+
+define Build/tplink-v2-header
+	$(STAGING_DIR_HOST)/bin/mktplinkfw2 \
+		-c -V "ver. 2.0" -B $(TPLINK_BOARD_ID) $(1) -k $@ -o $@.new
+	@mv $@.new $@
+endef
+
+define Build/tplink-v2-image
+	$(STAGING_DIR_HOST)/bin/mktplinkfw2 \
+		-a 0x4 -j -V "ver. 2.0" -B $(TPLINK_BOARD_ID) $(1) \
+		-k $(IMAGE_KERNEL) -r $(IMAGE_ROOTFS) -o $@.new
+	cat $@.new >> $@
+	rm -rf $@.new
 endef
 
 json_quote=$(subst ','\'',$(subst ",\",$(1)))

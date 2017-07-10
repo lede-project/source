@@ -113,7 +113,7 @@ static ssize_t led_device_name_store(struct device *dev,
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct led_netdev_data *trigger_data = led_cdev->trigger_data;
 
-	if (size < 0 || size >= IFNAMSIZ)
+	if (size >= IFNAMSIZ)
 		return -EINVAL;
 
 	cancel_delayed_work_sync(&trigger_data->work);
@@ -267,12 +267,12 @@ static int netdev_trig_notify(struct notifier_block *nb,
 	if (evt != NETDEV_UP && evt != NETDEV_DOWN && evt != NETDEV_CHANGE && evt != NETDEV_REGISTER && evt != NETDEV_UNREGISTER && evt != NETDEV_CHANGENAME)
 		return NOTIFY_DONE;
 
+	if (strcmp(dev->name, trigger_data->device_name))
+		return NOTIFY_DONE;
+
 	cancel_delayed_work_sync(&trigger_data->work);
 
 	spin_lock_bh(&trigger_data->lock);
-
-	if (strcmp(dev->name, trigger_data->device_name))
-		goto done;
 
 	if (evt == NETDEV_REGISTER || evt == NETDEV_CHANGENAME) {
 		if (trigger_data->net_dev != NULL)

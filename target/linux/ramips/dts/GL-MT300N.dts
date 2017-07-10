@@ -79,9 +79,8 @@
 	m25p80@0 {
 		#address-cells = <1>;
 		#size-cells = <1>;
-		compatible = "w25q128";
+		compatible = "jedec,spi-nor";
 		reg = <0>;
-		linux,modalias = "m25p80", "w25q128";
 		spi-max-frequency = <10000000>;
 
 		partition@0 {
@@ -123,24 +122,11 @@
 
 &ethernet {
 	mtd-mac-address = <&factory 0x4000>;
-	ralink,port-map = "wllll";
+	mediatek,portmap = "wllll";
 };
 
 &wmac {
 	ralink,mtd-eeprom = <&factory 0>;
-};
-
-&pcie {
-	status = "okay";
-
-	pcie-bridge {
-		mt76@0,0 {
-			reg = <0x0000 0 0 0 0>;
-			device_type = "pci";
-			mediatek,mtd-eeprom = <&factory 0x8000>;
-			mediatek,2ghz = <0>;
-		};
-	};
 };
 
 &pinctrl {

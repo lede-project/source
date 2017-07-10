@@ -13,7 +13,7 @@ FEATURES:=squashfs nand usb pci pcie gpio
 MAINTAINER:=Hauke Mehrtens <hauke@hauke-m.de>
 CPU_TYPE:=cortex-a9
 
-KERNEL_PATCHVER:=4.4
+KERNEL_PATCHVER:=4.9
 
 define Target/Description
 	Build firmware images for Broadcom based BCM47xx/53xx routers with ARM CPU, *not* MIPS.
@@ -23,7 +23,7 @@ include $(INCLUDE_DIR)/target.mk
 
 KERNELNAME:=zImage dtbs
 
-DEFAULT_PACKAGES += swconfig wpad-mini nvram \
+DEFAULT_PACKAGES += swconfig nvram \
 	osafeloader oseama otrx \
 	kmod-gpio-button-hotplug \
 	kmod-leds-gpio kmod-ledtrig-default-on kmod-ledtrig-timer

@@ -14,12 +14,12 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.org>
 
 --- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c
 +++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c
-@@ -2782,6 +2782,10 @@ brcmf_cfg80211_set_power_mgmt(struct wip
+@@ -2775,6 +2775,10 @@ brcmf_cfg80211_set_power_mgmt(struct wip
  	 * preference in cfg struct to apply this to
  	 * FW later while initializing the dongle
  	 */
-+#if defined(CONFIG_BCM2708) || defined(CONFIG_BCM2709)
-+	pr_info("power management disabled\n");
++#if defined(CONFIG_ARCH_BCM2835)
++	brcmf_dbg(INFO, "power management disabled\n");
 +	enabled = false;
 +#endif
  	cfg->pwr_save = enabled;

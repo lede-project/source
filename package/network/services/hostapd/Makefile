@@ -7,7 +7,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hostapd
-PKG_RELEASE:=1
+PKG_RELEASE:=4
 
 PKG_SOURCE_URL:=http://w1.fi/hostap.git
 PKG_SOURCE_PROTO:=git
@@ -249,7 +249,7 @@ define Package/eapol-test
   SECTION:=net
   CATEGORY:=Network
   VARIANT:=supplicant-full
-  DEPENDS:=$(DRV_DEPENDS)
+  DEPENDS:=$(DRV_DEPENDS) +WPA_SUPPLICANT_OPENSSL:libopenssl
 endef
 
 
@@ -357,7 +357,7 @@ endef
 
 define Package/hostapd-common/install
 	$(INSTALL_DIR) $(1)/lib/netifd
-	$(INSTALL_DATA) ./files/netifd.sh $(1)/lib/netifd/hostapd.sh
+	$(INSTALL_DATA) ./files/hostapd.sh $(1)/lib/netifd/hostapd.sh
 endef
 
 define Package/hostapd/install

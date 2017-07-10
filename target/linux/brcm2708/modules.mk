@@ -5,6 +5,24 @@
 # See /LICENSE for more information.
 #
 
+define KernelPackage/drm-vc4
+  SUBMENU:=$(VIDEO_MENU)
+  TITLE:=Broadcom VC4 Graphics
+  DEPENDS:=@TARGET_brcm2708 +kmod-drm
+  KCONFIG:=CONFIG_DRM_VC4
+  FILES:= \
+	$(LINUX_DIR)/drivers/gpu/drm/vc4/vc4.ko \
+	$(LINUX_DIR)/drivers/gpu/drm/drm_kms_helper.ko
+  AUTOLOAD:=$(call AutoProbe,vc4)
+endef
+
+define KernelPackage/drm-vc4/description
+  Direct Rendering Manager (DRM) support for Broadcom VideoCore IV GPU
+  used in BCM2835, BCM2836 and BCM2837 SoCs (e.g. Raspberry Pi).
+endef
+
+$(eval $(call KernelPackage,drm-vc4))
+
 define KernelPackage/sound-arm-bcm2835
   TITLE:=BCM2835 ALSA driver
   KCONFIG:= \
@@ -126,8 +144,8 @@ define KernelPackage/sound-soc-digidac1-soundcard
 	$(LINUX_DIR)/sound/soc/codecs/snd-soc-wm8741.ko \
 	$(LINUX_DIR)/sound/soc/codecs/snd-soc-wm8804.ko \
 	$(LINUX_DIR)/sound/soc/codecs/snd-soc-wm8804-i2c.ko
-  AUTOLOAD:=$(call AutoLoad,68,snd-soc-snd-soc-wm8741 \
-	snd-soc-snd-soc-wm8804 snd-soc-snd-soc-wm8804-i2c \
+  AUTOLOAD:=$(call AutoLoad,68,snd-soc-wm8741 \
+	snd-soc-wm8804 snd-soc-wm8804-i2c \
 	snd-soc-digidac1-soundcard)
   DEPENDS:= \
 	kmod-sound-soc-bcm2835-i2s \
@@ -149,7 +167,7 @@ define KernelPackage/sound-soc-dionaudio-loco
   FILES:= \
 	$(LINUX_DIR)/sound/soc/bcm/snd-soc-dionaudio-loco.ko \
 	$(LINUX_DIR)/sound/soc/codecs/snd-soc-pcm5102a.ko
-  AUTOLOAD:=$(call AutoLoad,68,snd-soc-snd-soc-pcm5102a \
+  AUTOLOAD:=$(call AutoLoad,68,snd-soc-pcm5102a \
 	snd-soc-dionaudio-loco)
   DEPENDS:= \
 	kmod-sound-soc-bcm2835-i2s
@@ -161,6 +179,50 @@ define KernelPackage/sound-soc-dionaudio-loco/description
 endef
 
 $(eval $(call KernelPackage,sound-soc-dionaudio-loco))
+
+define KernelPackage/sound-soc-dionaudio-loco-v2
+  TITLE:=Support for Dion Audio LOCO-V2 DAC-AMP
+  KCONFIG:= \
+        CONFIG_SND_BCM2708_SOC_DIONAUDIO_LOCO_V2 \
+        CONFIG_SND_SOC_PCM512x \
+        CONFIG_SND_SOC_PCM512x_I2C
+  FILES:= \
+        $(LINUX_DIR)/sound/soc/bcm/snd-soc-dionaudio-loco.ko \
+	$(LINUX_DIR)/sound/soc/codecs/snd-soc-pcm512x.ko \
+	$(LINUX_DIR)/sound/soc/codecs/snd-soc-pcm512x-i2c.ko
+  AUTOLOAD:=$(call AutoLoad,68,snd-soc-pcm512x snd-soc-pcm512x-i2c \
+        snd-soc-dionaudio-loco)
+  DEPENDS:= \
+        kmod-sound-soc-bcm2835-i2s
+  $(call AddDepends/sound)
+endef
+
+define KernelPackage/sound-soc-dionaudio-loco-v2/description
+  This package contains support for Dion Audio LOCO-V2 DAC-AMP
+endef
+
+$(eval $(call KernelPackage,sound-soc-dionaudio-loco-v2))
+
+define KernelPackage/sound-soc-fe-pi
+  TITLE:=Support for Fe-Pi Audio Sound Card
+  KCONFIG:= \
+	CONFIG_SND_BCM2708_SOC_FE_PI_AUDIO \
+	CONFIG_SND_SOC_SGTL5000
+  FILES:= \
+	$(LINUX_DIR)/sound/soc/bcm/snd-soc-fe-pi-audio.ko \
+	$(LINUX_DIR)/sound/soc/codecs/snd-soc-sgtl5000.ko
+  AUTOLOAD:=$(call AutoLoad,68,snd-soc-sgtl5000 \
+	snd-soc-fe-pi-audio)
+  DEPENDS:= \
+	kmod-sound-soc-bcm2835-i2s
+  $(call AddDepends/sound)
+endef
+
+define KernelPackage/sound-soc-fe-pi/description
+  This package contains support for Fe-Pi Audio Sound Card
+endef
+
+$(eval $(call KernelPackage,sound-soc-fe-pi))
 
 define KernelPackage/sound-soc-hifiberry-dac
   TITLE:=Support for HifiBerry DAC

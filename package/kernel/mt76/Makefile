@@ -8,9 +8,9 @@ PKG_LICENSE_FILES:=
 
 PKG_SOURCE_URL:=https://github.com/openwrt/mt76
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2017-01-15
-PKG_SOURCE_VERSION:=85d12fea1abe8654f694dc6594781f85168aa2c2
-PKG_MIRROR_HASH:=d07c019a3f836860409c58c303195df832f5dc31168201c3fa7d23f4f5927a79
+PKG_SOURCE_DATE:=2017-07-04
+PKG_SOURCE_VERSION:=e90a81a5523e567efb1fe33bac677cfac644101f
+PKG_MIRROR_HASH:=6c40885a4f29f6842b6426568ae7d4b6c3e91f4a510c475e8fecaec03ae5f2f2
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_BUILD_PARALLEL:=1
@@ -20,17 +20,44 @@ STAMP_CONFIGURED_DEPENDS := $(STAGING_DIR)/usr/include/mac80211-backport/backpor
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk
 
-define KernelPackage/mt76
+define KernelPackage/mt76-default
   SUBMENU:=Wireless Drivers
-  TITLE:=MediaTek MT76x2/MT7603 wireless driver
   DEPENDS:= \
 	+kmod-mac80211 @PCI_SUPPORT @!LINUX_3_18 \
 	+@DRIVER_11AC_SUPPORT +@DRIVER_11N_SUPPORT +@DRIVER_11W_SUPPORT
+endef
+
+define KernelPackage/mt76
+  SUBMENU:=Wireless Drivers
+  TITLE:=MediaTek MT76x2/MT7603 wireless driver (metapackage)
+  DEPENDS:= \
+	+kmod-mt76-core +kmod-mt76x2 +kmod-mt7603
+endef
+
+define KernelPackage/mt76-core
+  $(KernelPackage/mt76-default)
+  TITLE:=MediaTek MT76xx wireless driver
   FILES:=\
-	$(PKG_BUILD_DIR)/mt76.ko \
-	$(PKG_BUILD_DIR)/mt76x2e.ko \
+	$(PKG_BUILD_DIR)/mt76.ko
+  AUTOLOAD:=$(call AutoLoad,50,mac80211 mt76)
+endef
+
+define KernelPackage/mt76x2
+  $(KernelPackage/mt76-default)
+  TITLE:=MediaTek MT76x2 wireless driver
+  DEPENDS+=+kmod-mt76-core
+  FILES:=\
+	$(PKG_BUILD_DIR)/mt76x2e.ko
+  AUTOLOAD:=$(call AutoLoad,51,mt76x2e)
+endef
+
+define KernelPackage/mt7603
+  $(KernelPackage/mt76-default)
+  TITLE:=MediaTek MT7603 wireless driver
+  DEPENDS+=+kmod-mt76-core
+  FILES:=\
 	$(PKG_BUILD_DIR)/mt7603e.ko
-  AUTOLOAD:=$(call AutoLoad,50,mac80211 mt76 mt76x2e mt7603e)
+  AUTOLOAD:=$(call AutoLoad,51,mt7603e)
 endef
 
 NOSTDINC_FLAGS = \
@@ -55,18 +82,31 @@ define Build/Compile
 		modules
 endef
 
-define KernelPackage/mt76/install
+define Package/kmod-mt76/install
+	true
+endef
+
+define KernelPackage/mt76x2/install
 	$(INSTALL_DIR) $(1)/lib/firmware
 	cp \
-		$(if $(CONFIG_TARGET_ramips_mt7628) || $(CONFIG_TARGET_ramips_mt7688), \
-			$(PKG_BUILD_DIR)/firmware/mt7628_e1.bin \
-			$(PKG_BUILD_DIR)/firmware/mt7628_e2.bin \
-		) \
-		$(PKG_BUILD_DIR)/firmware/mt7603_e1.bin \
-		$(PKG_BUILD_DIR)/firmware/mt7603_e2.bin \
 		$(PKG_BUILD_DIR)/firmware/mt7662_rom_patch.bin \
 		$(PKG_BUILD_DIR)/firmware/mt7662.bin \
 		$(1)/lib/firmware
 endef
 
+define KernelPackage/mt7603/install
+	$(INSTALL_DIR) $(1)/lib/firmware
+	cp $(if $(CONFIG_TARGET_ramips_mt7628)$(CONFIG_TARGET_ramips_mt7688), \
+		$(PKG_BUILD_DIR)/firmware/mt7628_e1.bin \
+		$(PKG_BUILD_DIR)/firmware/mt7628_e2.bin \
+		,\
+		$(PKG_BUILD_DIR)/firmware/mt7603_e1.bin \
+		$(PKG_BUILD_DIR)/firmware/mt7603_e2.bin \
+		) \
+		$(1)/lib/firmware
+endef
+
+$(eval $(call KernelPackage,mt76-core))
+$(eval $(call KernelPackage,mt76x2))
+$(eval $(call KernelPackage,mt7603))
 $(eval $(call KernelPackage,mt76))

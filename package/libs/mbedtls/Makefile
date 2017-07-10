@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mbedtls
-PKG_VERSION:=2.4.0
-PKG_RELEASE:=2
+PKG_VERSION:=2.5.1
+PKG_RELEASE:=1
 PKG_USE_MIPS16:=0
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-gpl.tgz
 PKG_SOURCE_URL:=https://tls.mbed.org/download/
-PKG_HASH:=80eff0e0028f969355d6e34ffdd3dbf4eb2a9367b07ff2f3f70e6d75beee9e3f
+PKG_HASH:=312f020006f0d8e9ede3ed8e73d907a629baf6475229703941769372ab0adee2
 
 PKG_BUILD_PARALLEL:=1
 PKG_LICENSE:=GPL-2.0+
@@ -47,6 +47,8 @@ This package contains the mbedtls library.
 endef
 
 PKG_INSTALL:=1
+
+TARGET_CFLAGS += -ffunction-sections -fdata-sections
 
 CMAKE_OPTIONS += \
 	-DCMAKE_BUILD_TYPE:String="Release" \

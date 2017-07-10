@@ -506,6 +506,14 @@ ar8327_hw_config_pdata(struct ar8xxx_priv *priv,
 	ar8xxx_write(priv, AR8327_REG_PAD0_MODE, t);
 
 	t = ar8327_get_pad_cfg(pdata->pad5_cfg);
+	if (chip_is_ar8337(priv)) {
+		/*
+		 * Workaround: RGMII RX delay setting needs to be
+		 * always specified for AR8337 to avoid port 5
+		 * RX hang on high traffic / flood conditions
+		 */
+		t |= AR8327_PAD_RGMII_RXCLK_DELAY_EN;
+	}
 	ar8xxx_write(priv, AR8327_REG_PAD5_MODE, t);
 	t = ar8327_get_pad_cfg(pdata->pad6_cfg);
 	ar8xxx_write(priv, AR8327_REG_PAD6_MODE, t);
@@ -619,11 +627,11 @@ ar8327_hw_init(struct ar8xxx_priv *priv)
 	if (!priv->chip_data)
 		return -ENOMEM;
 
-	if (priv->phy->dev.of_node)
-		ret = ar8327_hw_config_of(priv, priv->phy->dev.of_node);
+	if (priv->phy->mdio.dev.of_node)
+		ret = ar8327_hw_config_of(priv, priv->phy->mdio.dev.of_node);
 	else
 		ret = ar8327_hw_config_pdata(priv,
-					     priv->phy->dev.platform_data);
+					     priv->phy->mdio.dev.platform_data);
 
 	if (ret)
 		return ret;
@@ -670,6 +678,39 @@ ar8327_init_globals(struct ar8xxx_priv *priv)
 	/* Disable EEE on all phy's due to stability issues */
 	for (i = 0; i < AR8XXX_NUM_PHYS; i++)
 		data->eee[i] = false;
+
+	if (chip_is_ar8337(priv)) {
+		/* Update HOL registers with values suggested by QCA switch team */
+		for (i = 0; i < AR8327_NUM_PORTS; i++) {
+			if (i == AR8216_PORT_CPU || i == 5 || i == 6) {
+				t = 0x3 << AR8327_PORT_HOL_CTRL0_EG_PRI0_BUF_S;
+				t |= 0x4 << AR8327_PORT_HOL_CTRL0_EG_PRI1_BUF_S;
+				t |= 0x4 << AR8327_PORT_HOL_CTRL0_EG_PRI2_BUF_S;
+				t |= 0x4 << AR8327_PORT_HOL_CTRL0_EG_PRI3_BUF_S;
+				t |= 0x6 << AR8327_PORT_HOL_CTRL0_EG_PRI4_BUF_S;
+				t |= 0x8 << AR8327_PORT_HOL_CTRL0_EG_PRI5_BUF_S;
+				t |= 0x1e << AR8327_PORT_HOL_CTRL0_EG_PORT_BUF_S;
+			} else {
+				t = 0x3 << AR8327_PORT_HOL_CTRL0_EG_PRI0_BUF_S;
+				t |= 0x4 << AR8327_PORT_HOL_CTRL0_EG_PRI1_BUF_S;
+				t |= 0x6 << AR8327_PORT_HOL_CTRL0_EG_PRI2_BUF_S;
+				t |= 0x8 << AR8327_PORT_HOL_CTRL0_EG_PRI3_BUF_S;
+				t |= 0x19 << AR8327_PORT_HOL_CTRL0_EG_PORT_BUF_S;
+			}
+			ar8xxx_write(priv, AR8327_REG_PORT_HOL_CTRL0(i), t);
+
+			t = 0x6 << AR8327_PORT_HOL_CTRL1_ING_BUF_S;
+			t |= AR8327_PORT_HOL_CTRL1_EG_PRI_BUF_EN;
+			t |= AR8327_PORT_HOL_CTRL1_EG_PORT_BUF_EN;
+			t |= AR8327_PORT_HOL_CTRL1_WRED_EN;
+			ar8xxx_rmw(priv, AR8327_REG_PORT_HOL_CTRL1(i),
+				   AR8327_PORT_HOL_CTRL1_ING_BUF |
+				   AR8327_PORT_HOL_CTRL1_EG_PRI_BUF_EN |
+				   AR8327_PORT_HOL_CTRL1_EG_PORT_BUF_EN |
+				   AR8327_PORT_HOL_CTRL1_WRED_EN,
+				   t);
+		}
+	}
 }
 
 static void
@@ -1040,7 +1081,6 @@ ar8327_wait_atu_ready(struct ar8xxx_priv *priv, u16 r2, u16 r1)
 		pr_err("ar8327: timeout waiting for atu to become ready\n");
 }
 
-#if 0
 static void ar8327_get_arl_entry(struct ar8xxx_priv *priv,
 				 struct arl_entry *a, u32 *status, enum arl_op op)
 {
@@ -1100,7 +1140,6 @@ static void ar8327_get_arl_entry(struct ar8xxx_priv *priv,
 		break;
 	}
 }
-#endif
 
 static int
 ar8327_sw_hw_apply(struct switch_dev *dev)
@@ -1399,11 +1438,8 @@ const struct ar8xxx_chip ar8327_chip = {
 	.atu_flush_port = ar8327_atu_flush_port,
 	.vtu_flush = ar8327_vtu_flush,
 	.vtu_load_vlan = ar8327_vtu_load_vlan,
-	.phy_fixup = ar8327_phy_fixup,
 	.set_mirror_regs = ar8327_set_mirror_regs,
-#if 0
 	.get_arl_entry = ar8327_get_arl_entry,
-#endif
 	.sw_hw_apply = ar8327_sw_hw_apply,
 
 	.num_mibs = ARRAY_SIZE(ar8236_mibs),
@@ -1438,9 +1474,7 @@ const struct ar8xxx_chip ar8337_chip = {
 	.vtu_load_vlan = ar8327_vtu_load_vlan,
 	.phy_fixup = ar8327_phy_fixup,
 	.set_mirror_regs = ar8327_set_mirror_regs,
-#if 0
 	.get_arl_entry = ar8327_get_arl_entry,
-#endif
 	.sw_hw_apply = ar8327_sw_hw_apply,
 
 	.num_mibs = ARRAY_SIZE(ar8236_mibs),

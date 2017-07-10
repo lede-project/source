@@ -18,6 +18,9 @@ set_state() {
 	ar-5387un)
 		status_led="AR-5387un:green:power"
 		;;
+	av4202n)
+		status_led="AV4202N:white:power"
+		;;
 	bcm96348gw)
 		status_led="96348GW:green:power"
 		;;
@@ -32,6 +35,9 @@ set_state() {
 		;;
 	spw303v)
 		status_led="spw303v:green:power+adsl"
+		;;
+	vh4032n)
+		status_led="VH4032N:red:power"
 		;;
 	vr-3025un)
 		status_led="VR-3025un:green:power"
@@ -108,6 +114,9 @@ set_state() {
 	p870hw-51a_v2)
 		status_led="P870HW-51a:green:power"
 		;;
+	r1000h)
+		status_led="R1000H:green:power"
+		;;
 	r5010un_v2)
 		status_led="R5010UNv2:green:power"
 		;;
@@ -127,13 +136,13 @@ set_state() {
 
 	case "$1" in
 	preinit)
-		status_led_set_timer 200 200
+		status_led_blink_preinit
 		;;
 	failsafe)
-		status_led_set_timer 50 50
+		status_led_blink_failsafe
 		;;
 	preinit_regular)
-		status_led_set_timer 500 500
+		status_led_blink_preinit_regular
 		;;
 	done)
 		if [ "${status_led/power}" != "$status_led" ]; then

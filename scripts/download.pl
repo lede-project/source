@@ -82,7 +82,7 @@ sub download_cmd($) {
 	}
 
 	return $have_curl
-		? (qw(curl --connect-timeout 20 --retry 5 --location --insecure), shellwords($ENV{CURL_OPTIONS} || ''), $url)
+		? (qw(curl -f --connect-timeout 20 --retry 5 --location --insecure), shellwords($ENV{CURL_OPTIONS} || ''), $url)
 		: (qw(wget --tries=5 --timeout=20 --no-check-certificate --output-document=-), shellwords($ENV{WGET_OPTIONS} || ''), $url)
 	;
 }
@@ -139,6 +139,7 @@ sub download
 		};
 	} else {
 		my @cmd = download_cmd("$mirror/$url_filename");
+		print STDERR "+ ".join(" ",@cmd)."\n";
 		open(FETCH_FD, '-|', @cmd) or die "Cannot launch curl or wget.\n";
 		$hash_cmd and do {
 			open MD5SUM, "| $hash_cmd > '$target/$filename.hash'" or die "Cannot launch $hash_cmd.\n";
@@ -166,7 +167,7 @@ sub download
 		$sum = $1;
 
 		if ($sum ne $file_hash) {
-			print STDERR "MD5 sum of the downloaded file does not match (file: $sum, requested: $file_hash) - deleting download.\n";
+			print STDERR "Hash of the downloaded file does not match (file: $sum, requested: $file_hash) - deleting download.\n";
 			cleanup();
 			return;
 		}

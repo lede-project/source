@@ -213,8 +213,11 @@ _procd_set_param() {
 			json_add_string "" "$@"
 			json_close_array
 		;;
-		nice|reload_signal)
+		nice|term_timeout)
 			json_add_int "$type" "$1"
+		;;
+		reload_signal)
+			json_add_int "$type" $(kill -l "$1")
 		;;
 		pidfile|user|seccomp|capabilities)
 			json_add_string "$type" "$1"
@@ -248,9 +251,8 @@ _procd_add_interface_trigger() {
 	json_close_array
 
 	json_close_array
-	json_close_array
-
 	_procd_add_timeout
+	json_close_array
 }
 
 _procd_add_reload_interface_trigger() {
@@ -280,10 +282,8 @@ _procd_add_config_trigger() {
 	json_close_array
 
 	json_close_array
-
-	json_close_array
-
 	_procd_add_timeout
+	json_close_array
 }
 
 _procd_add_raw_trigger() {
@@ -351,8 +351,10 @@ _procd_close_instance() {
 	if json_select respawn ; then
 		json_get_values respawn_vals
 		if [ -z "$respawn_vals" ]; then
+			local respawn_threshold=$(uci_get system.@service[0].respawn_threshold)
+			local respawn_timeout=$(uci_get system.@service[0].respawn_timeout)
 			local respawn_retry=$(uci_get system.@service[0].respawn_retry)
-			_procd_add_array_data 3600 5 ${respawn_retry:-5}
+			_procd_add_array_data ${respawn_threshold:-3600} ${respawn_timeout:-5} ${respawn_retry:-5}
 		fi
 		json_select ..
 	fi

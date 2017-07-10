@@ -1,7 +1,7 @@
 ARCH:=mipsel
 SUBTARGET:=le
+FEATURES+=source-only
 BOARDNAME:=Little Endian
-FEATURES:=ramdisk mips16
 
 define Target/Description
 	Build LE firmware images for MIPS Malta CoreLV board running in

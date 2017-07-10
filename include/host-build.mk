@@ -19,20 +19,19 @@ else
 HOST_JOBS?=$(if $(HOST_BUILD_PARALLEL),$(HOST_MAKE_J),-j1)
 endif
 
-include $(INCLUDE_DIR)/host.mk
 include $(INCLUDE_DIR)/unpack.mk
 include $(INCLUDE_DIR)/depends.mk
+include $(INCLUDE_DIR)/quilt.mk
 
 BUILD_TYPES += host
-HOST_STAMP_PREPARED=$(HOST_BUILD_DIR)/.prepared$(if $(HOST_QUILT)$(DUMP),,$(shell $(call find_md5,${CURDIR} $(PKG_FILE_DEPENDS),))_$(call confvar,CONFIG_AUTOREMOVE $(HOST_PREPARED_DEPENDS)))
+HOST_STAMP_PREPARED:=$(HOST_BUILD_DIR)/.prepared$(if $(HOST_QUILT)$(DUMP),,$(shell $(call find_md5,${CURDIR} $(PKG_FILE_DEPENDS),))_$(call confvar,CONFIG_AUTOREMOVE $(HOST_PREPARED_DEPENDS)))
 HOST_STAMP_CONFIGURED:=$(HOST_BUILD_DIR)/.configured
 HOST_STAMP_BUILT:=$(HOST_BUILD_DIR)/.built
-HOST_BUILD_PREFIX:=$(if $(IS_PACKAGE_BUILD),$(STAGING_DIR_HOSTPKG),$(STAGING_DIR_HOST))
+HOST_BUILD_PREFIX?=$(if $(IS_PACKAGE_BUILD),$(STAGING_DIR_HOSTPKG),$(STAGING_DIR_HOST))
 HOST_STAMP_INSTALLED:=$(HOST_BUILD_PREFIX)/stamp/.$(PKG_NAME)_installed
 
 override MAKEFLAGS=
 
-include $(INCLUDE_DIR)/quilt.mk
 include $(INCLUDE_DIR)/autotools.mk
 
 _host_target:=$(if $(HOST_QUILT),,.)
@@ -108,7 +107,7 @@ define Host/Compile
 endef
 
 define Host/Install/Default
-	$(_SINGLE)$(MAKE) -C $(HOST_BUILD_DIR) install
+	$(call Host/Compile/Default,install)
 endef
 
 define Host/Install
@@ -176,15 +175,21 @@ ifndef DUMP
       $(t): host-$(t)
       .$(t): .host-$(t)
     )
+    clean-build: host-clean-build
   endif
 
   $(_host_target)host-prepare: $(HOST_STAMP_PREPARED)
   $(_host_target)host-configure: $(HOST_STAMP_CONFIGURED)
   $(_host_target)host-compile: $(HOST_STAMP_BUILT) $(HOST_STAMP_INSTALLED)
-  host-clean: FORCE
+  host-install: host-compile
+
+  host-clean-build: FORCE
+	rm -rf $(HOST_BUILD_DIR) $(HOST_STAMP_BUILT)
+
+  host-clean: host-clean-build
 	$(call Host/Clean)
 	$(call Host/Uninstall)
-	rm -rf $(HOST_BUILD_DIR) $(HOST_STAMP_INSTALLED) $(HOST_STAMP_BUILT)
+	rm -rf $(HOST_STAMP_INSTALLED)
 
     ifneq ($(CONFIG_AUTOREMOVE),)
       host-compile:

@@ -17,6 +17,9 @@ ipq806x_board_detect() {
 	*"AP148")
 		name="ap148"
 		;;
+	*"4040")
+		name="fritz4040"
+		;;
 	*"C2600")
 		name="c2600"
 		;;
@@ -69,7 +72,7 @@ ipq806x_board_name() {
 ipq806x_get_dt_led() {
 	local label
 	local ledpath
-	local basepath="/sys/firmware/devicetree/base"
+	local basepath="/proc/device-tree"
 	local nodepath="$basepath/aliases/led-$1"
 
 	[ -f "$nodepath" ] && ledpath=$(cat "$nodepath")

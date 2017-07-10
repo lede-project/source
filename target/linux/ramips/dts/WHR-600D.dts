@@ -93,7 +93,6 @@
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		linux,modalias = "m25p80", "mx25l6405d";
 		spi-max-frequency = <10000000>;
 
 		partition@0 {
@@ -149,10 +148,10 @@
 	status = "okay";
 
 	pcie-bridge {
-		wifi@1814,3091 {
-			compatible = "pci1814,3091";
+		wifi@1814,5592 {
+			compatible = "pci1814,5592";
 			reg = <0x0000 0 0 0 0>;
-			mediatek,mtd-eeprom = <&factory 0x8000>;
+			ralink,mtd-eeprom = <&factory 0x8000>;
 		};
 	};
 };

@@ -282,6 +282,31 @@ static int rtl8366rb_reset_chip(struct rtl8366_smi *smi)
 static int rtl8366rb_setup(struct rtl8366_smi *smi)
 {
 	int err;
+#ifdef CONFIG_OF
+	unsigned i;
+	struct device_node *np;
+	unsigned num_initvals;
+	const __be32 *paddr;
+
+	np = smi->parent->of_node;
+
+	paddr = of_get_property(np, "realtek,initvals", &num_initvals);
+	if (paddr) {
+		dev_info(smi->parent, "applying initvals from DTS\n");
+
+		if (num_initvals < (2 * sizeof(*paddr)))
+			return -EINVAL;
+
+		num_initvals /= sizeof(*paddr);
+
+		for (i = 0; i < num_initvals - 1; i += 2) {
+			u32 reg = be32_to_cpup(paddr + i);
+			u32 val = be32_to_cpup(paddr + i + 1);
+
+			REG_WR(smi, reg, val);
+		}
+	}
+#endif
 
 	/* set maximum packet length to 1536 bytes */
 	REG_RMW(smi, RTL8366RB_SGCR, RTL8366RB_SGCR_MAX_LENGTH_MASK,
@@ -1458,7 +1483,7 @@ static int rtl8366rb_remove(struct platform_device *pdev)
 
 #ifdef CONFIG_OF
 static const struct of_device_id rtl8366rb_match[] = {
-	{ .compatible = "rtl8366rb" },
+	{ .compatible = "realtek,rtl8366rb" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, rtl8366rb_match);

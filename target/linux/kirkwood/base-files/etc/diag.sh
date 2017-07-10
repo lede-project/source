@@ -20,6 +20,12 @@ get_status_led() {
 	linksys-viper)
 		status_led="viper:white:health"
 		;;
+	nsa310b)
+		status_led="nsa310:green:sys"
+		;;
+	on100)
+		status_led="on100:green:health"
+		;;
 	esac
 }
 

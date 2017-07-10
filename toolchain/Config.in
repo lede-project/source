@@ -263,7 +263,6 @@ choice
 
 endchoice
 
-source "toolchain/glibc/Config.in"
 source "toolchain/uClibc/Config.in"
 
 comment "Debuggers"
@@ -276,14 +275,6 @@ config GDB
 	default y if !EXTERNAL_TOOLCHAIN
 	help
 	  Enable if you want to build the gdb.
-
-config INSIGHT
-	bool
-	prompt "Build insight-gdb" if TOOLCHAINOPTS
-	select GDB
-	default n
-	help
-	  Enable if you want to build insight-gdb.
 
 config USE_GLIBC
 	bool
@@ -303,21 +294,11 @@ config USE_EXTERNAL_LIBC
 source "toolchain/binutils/Config.version"
 source "toolchain/gcc/Config.version"
 
-source "toolchain/glibc/Config.version"
-source "toolchain/uClibc/Config.version"
-source "toolchain/musl/Config.version"
-
 config LIBC
 	string
 	default "glibc"   if USE_GLIBC
 	default "uClibc"  if USE_UCLIBC
 	default "musl"	  if USE_MUSL
-
-config LIBC_VERSION
-	string
-	default GLIBC_VERSION   if USE_GLIBC
-	default UCLIBC_VERSION  if USE_UCLIBC
-	default MUSL_VERSION	if USE_MUSL
 
 config TARGET_SUFFIX
 	string

@@ -13,7 +13,7 @@ export TOPDIR LC_ALL LANG
 export OPENWRT_VERBOSE=s
 all: help
 
-include $(TOPDIR)/include/host.mk
+export PATH:=$(TOPDIR)/staging_dir/host/bin:$(PATH)
 
 ifneq ($(OPENWRT_BUILD),1)
   override OPENWRT_BUILD=1
@@ -74,15 +74,14 @@ include $(INCLUDE_DIR)/target.mk
 
 USER_PROFILE ?= $(firstword $(PROFILE_NAMES))
 PROFILE_LIST = $(foreach p,$(PROFILE_NAMES), \
-	echo '$(patsubst DEVICE_%,%,$(p)):'; $(if $($(p)_NAME),echo '    $($(p)_NAME)'; ) echo '    Packages: $($(p)_PACKAGES)'; \
+	echo '$(patsubst DEVICE_%,%,$(p)):'; $(if $($(p)_NAME),echo '    $(subst ','"'"',$($(p)_NAME))'; ) echo '    Packages: $($(p)_PACKAGES)'; \
 )
 
 .profiles.mk: .targetinfo
-	$(SCRIPT_DIR)/target-metadata.pl profile_mk $< '$(BOARD)$(if $(SUBTARGET),/$(SUBTARGET))' > $@
+	@$(SCRIPT_DIR)/target-metadata.pl profile_mk $< '$(BOARD)$(if $(SUBTARGET),/$(SUBTARGET))' > $@
 
 staging_dir/host/.prereq-build: include/prereq-build.mk
 	mkdir -p tmp
-	rm -f tmp/.host.mk
 	@$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f $(TOPDIR)/include/prereq-build.mk prereq 2>/dev/null || { \
 		echo "Prerequisite check failed. Use FORCE=1 to override."; \
 		false; \
@@ -112,29 +111,36 @@ _call_image: staging_dir/host/.prereq-build
 	echo
 	rm -rf $(TARGET_DIR)
 	mkdir -p $(TARGET_DIR) $(BIN_DIR) $(TMP_DIR) $(DL_DIR)
-	if [ ! -f "$(PACKAGE_DIR)/Packages" ] || [ ! -f "$(PACKAGE_DIR)/Packages.gz" ] || [ "`find $(PACKAGE_DIR) -cnewer $(PACKAGE_DIR)/Packages.gz`" ]; then \
-		echo "Package list missing or not up-to-date, generating it.";\
-		$(MAKE) package_index; \
-	else \
-		mkdir -p $(TARGET_DIR)/tmp; \
-		$(OPKG) update || true; \
-	fi
+	$(MAKE) package_reload
 	$(MAKE) package_install
 ifneq ($(USER_FILES),)
 	$(MAKE) copy_files
 endif
-	$(MAKE) package_postinst
-	$(MAKE) build_image
-	$(MAKE) checksum
+	$(MAKE) -s package_postinst
+	$(MAKE) -s build_image
+	$(MAKE) -s checksum
 
 package_index: FORCE
-	@echo
-	@echo Building package index...
+	@echo >&2
+	@echo Building package index... >&2
 	@mkdir -p $(TMP_DIR) $(TARGET_DIR)/tmp
 	(cd $(PACKAGE_DIR); $(SCRIPT_DIR)/ipkg-make-index.sh . > Packages && \
 		gzip -9nc Packages > Packages.gz \
 	) >/dev/null 2>/dev/null
-	$(OPKG) update || true
+	$(OPKG) update >&2 || true
+
+package_reload:
+	if [ ! -f "$(PACKAGE_DIR)/Packages" ] || [ ! -f "$(PACKAGE_DIR)/Packages.gz" ] || [ "`find $(PACKAGE_DIR) -cnewer $(PACKAGE_DIR)/Packages.gz`" ]; then \
+		echo "Package list missing or not up-to-date, generating it." >&2 ;\
+		$(MAKE) package_index; \
+	else \
+		mkdir -p $(TARGET_DIR)/tmp; \
+		$(OPKG) update >&2 || true; \
+	fi
+
+package_list: FORCE
+	@$(MAKE) -s package_reload
+	@$(OPKG) list --size 2>/dev/null
 
 package_install: FORCE
 	@echo
@@ -194,7 +200,7 @@ ifneq ($(PROFILE),)
   endif
 endif
 	(unset PROFILE FILES PACKAGES MAKEFLAGS; \
-	$(MAKE) _call_image \
+	$(MAKE) -s _call_image \
 		$(if $(PROFILE),USER_PROFILE="$(PROFILE_FILTER)") \
 		$(if $(FILES),USER_FILES="$(FILES)") \
 		$(if $(PACKAGES),USER_PACKAGES="$(PACKAGES)") \

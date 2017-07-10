@@ -12,6 +12,7 @@ platform_pre_upgrade() {
 
 	case "$board" in
 	ap148 |\
+	ap-dk04.1-c1 |\
 	d7800 |\
 	nbg6817 |\
 	r7500 |\
@@ -40,6 +41,9 @@ platform_do_upgrade() {
 	vr2600v)
 		PART_NAME="kernel:rootfs"
 		MTD_CONFIG_ARGS="-s 0x200000"
+		default_do_upgrade "$ARGV"
+		;;
+	*)
 		default_do_upgrade "$ARGV"
 		;;
 	esac

@@ -1,8 +1,8 @@
 ARCH:=mips64
 CPU_TYPE:=mips64
 SUBTARGET:=be64
+FEATURES+=source-only
 BOARDNAME:=Big Endian (64-bits)
-FEATURES:=ramdisk
 
 define Target/Description
 	Build BE firmware images for MIPS Malta CoreLV board running in

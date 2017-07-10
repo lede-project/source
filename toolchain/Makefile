@@ -29,7 +29,7 @@
 curdir:=toolchain
 
 # subdirectories to descend into
-$(curdir)/builddirs := $(if $(CONFIG_GDB),gdb) $(if $(CONFIG_INSIGHT),insight) $(if $(CONFIG_EXTERNAL_TOOLCHAIN),wrapper,kernel-headers binutils gcc/initial gcc/final $(LIBC) fortify-headers) $(if $(CONFIG_YASM),yasm)
+$(curdir)/builddirs := $(if $(CONFIG_GDB),gdb) $(if $(CONFIG_EXTERNAL_TOOLCHAIN),wrapper,kernel-headers binutils gcc/initial gcc/final $(LIBC) fortify-headers) $(if $(CONFIG_YASM),yasm)
 ifdef CONFIG_USE_UCLIBC
   $(curdir)/builddirs += $(LIBC)/utils
 endif
@@ -43,21 +43,15 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
     $(curdir)/builddirs += $(LIBC)/headers gcc/minimal
     $(curdir)/gcc/minimal/compile:=$(curdir)/binutils/compile
     $(curdir)/kernel-headers/compile:=$(curdir)/gcc/minimal/compile
-    $(curdir)/gcc/initial/prepare:=$(curdir)/gcc/minimal/prepare
-    $(curdir)/$(LIBC)/prepare:=$(curdir)/$(LIBC)/headers/prepare
     $(curdir)/$(LIBC)/headers/compile:=$(curdir)/kernel-headers/compile
     $(curdir)/gcc/initial/compile:=$(curdir)/$(LIBC)/headers/compile
   endif
 
   $(curdir)/gcc/initial/compile+=$(curdir)/binutils/compile
-  $(curdir)/gcc/final/prepare:=$(curdir)/gcc/initial/prepare
   $(curdir)/$(LIBC)/compile:=$(curdir)/gcc/initial/compile
   $(curdir)/gcc/final/compile:=$(curdir)/$(LIBC)/compile
   $(curdir)/$(LIBC)/utils/compile:=$(curdir)/gcc/final/compile
-  $(curdir)/$(LIBC)/utils/prepare:=$(curdir)/$(LIBC)/headers/prepare
 endif
-
-$(curdir)/builddirs-compile:=$($(curdir)/builddirs-prepare)
 
 ifndef DUMP_TARGET_DB
 ifneq ($(ARCH),)
@@ -75,11 +69,21 @@ ifneq ($(ARCH),)
 endif
 endif
 
+ifdef CONFIG_BUILDBOT
+  $(TOOLCHAIN_DIR)/stamp/.ver_check: $(TMP_DIR)/.build
+	cd "$(TOPDIR)"; git log --format=%h -1 toolchain > $(TMP_DIR)/.ver_check
+	cmp -s $(TMP_DIR)/.ver_check $@ || { \
+		rm -rf $(BUILD_DIR) $(STAGING_DIR) $(TOOLCHAIN_DIR) $(BUILD_DIR_TOOLCHAIN); \
+		mkdir -p $(TOOLCHAIN_DIR)/stamp; \
+		mv $(TMP_DIR)/.ver_check $@; \
+	}
+
+$(TOOLCHAIN_DIR)/info.mk $(STAGING_DIR)/.prepared: $(TOOLCHAIN_DIR)/stamp/.ver_check
+endif
+
 # prerequisites for the individual targets
 $(curdir)/ := .config prereq
-$(curdir)//prepare = $(STAGING_DIR)/.prepared $(TOOLCHAIN_DIR)/info.mk $(tools/stamp-compile)
-$(curdir)//compile = $(1)/prepare
-$(curdir)//compile = $(1)/compile
+$(curdir)//compile = $(STAGING_DIR)/.prepared $(TOOLCHAIN_DIR)/info.mk $(tools/stamp-compile)
 
 ifndef DUMP_TARGET_DB
 $(TOOLCHAIN_DIR)/stamp/.gcc-initial_installed:

@@ -4,7 +4,6 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-include $(INCLUDE_DIR)/host.mk
 include $(INCLUDE_DIR)/prereq.mk
 include $(INCLUDE_DIR)/depends.mk
 
@@ -105,7 +104,7 @@ define BuildKernel
   $(KERNEL_BUILD_DIR)/symtab.h: FORCE
 	rm -f $(KERNEL_BUILD_DIR)/symtab.h
 	touch $(KERNEL_BUILD_DIR)/symtab.h
-	+$(MAKE) $(KERNEL_MAKEOPTS) vmlinux
+	+$(KERNEL_MAKE) vmlinux
 	find $(LINUX_DIR) $(STAGING_DIR_ROOT)/lib/modules -name \*.ko | \
 		xargs $(TARGET_CROSS)nm | \
 		awk '$$$$1 == "U" { print $$$$2 } ' | \
@@ -152,7 +151,7 @@ define BuildKernel
   endef
 
   download: $(if $(LINUX_SITE),$(DL_DIR)/$(LINUX_SOURCE))
-  prepare: $(STAMP_CONFIGURED)
+  prepare: $(STAMP_PREPARED)
   compile: $(LINUX_DIR)/.modules
 	$(MAKE) -C image compile TARGET_BUILD=
 
@@ -160,7 +159,9 @@ define BuildKernel
 	rm -f $(LINUX_DIR)/.config.prev
 	rm -f $(STAMP_CONFIGURED)
 	$(LINUX_RECONF_CMD) > $(LINUX_DIR)/.config
-	$(_SINGLE)$(MAKE) -C $(LINUX_DIR) $(KERNEL_MAKEOPTS) HOST_LOADLIBES="-L$(STAGING_DIR_HOST)/lib -lncurses" $$@
+	$(_SINGLE)$(KERNEL_MAKE) \
+		$(if $(findstring Darwin,$(HOST_OS)),HOST_LOADLIBES="-L$(STAGING_DIR_HOST)/lib -lncurses") \
+		$$@
 	$(LINUX_RECONF_DIFF) $(LINUX_DIR)/.config > $(LINUX_RECONFIG_TARGET)
 
   install: $(LINUX_DIR)/.image

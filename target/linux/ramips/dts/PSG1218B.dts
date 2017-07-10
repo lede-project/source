@@ -1,0 +1,42 @@
+/dts-v1/;
+
+#include "PSG1218.dtsi"
+
+/ {
+	compatible = "PSG1218B", "ralink,mt7620a-soc";
+	model = "Phicomm PSG1218 rev.B";
+
+	gpio-leds {
+		compatible = "gpio-leds";
+		blue {
+			label = "psg1218b:blue:status";
+			gpios = <&gpio0 10 1>;
+		};
+
+		yellow {
+			label = "psg1218b:yellow:status";
+			gpios = <&gpio0 11 1>;
+		};
+
+		red {
+			label = "psg1218b:red:status";
+				gpios = <&gpio0 8 0>;
+		};
+	};
+};
+
+&pinctrl {
+	state_default: pinctrl0 {
+		gpio {
+			ralink,group = "i2c", "uartf", "rgmii1", "rgmii2", "wled", "nd_sd", "pa";
+			ralink,function = "gpio";
+		};
+	};
+};
+
+&ethernet {
+	pinctrl-names = "default";
+	pinctrl-0 = <&ephy_pins>;
+	mtd-mac-address = <&factory 0x28>;
+	mediatek,portmap = "llllw";
+};

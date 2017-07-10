@@ -209,7 +209,7 @@ Subject: [PATCH 25/36] NET: MIPS: lantiq: adds xrx200-net
 +};
 --- /dev/null
 +++ b/drivers/net/ethernet/lantiq_xrx200.c
-@@ -0,0 +1,1850 @@
+@@ -0,0 +1,1852 @@
 +/*
 + *   This program is free software; you can redistribute it and/or modify it
 + *   under the terms of the GNU General Public License version 2 as published
@@ -1190,8 +1190,8 @@ Subject: [PATCH 25/36] NET: MIPS: lantiq: adds xrx200-net
 +		if ((desc->ctl & (LTQ_DMA_OWN | LTQ_DMA_C)) == LTQ_DMA_C) {
 +#ifdef SW_ROUTING
 +			struct sk_buff *skb = ch->skb[ch->dma.desc];
-+			u32 *special_tag = (u32*)skb->data;
-+			int port = (special_tag[1] >> SPPID_SHIFT) & SPPID_MASK;
++			u8 *special_tag = (u8*)skb->data;
++			int port = (special_tag[7] >> SPPID_SHIFT) & SPPID_MASK;
 +			xrx200_hw_receive(ch, priv->hw->port_map[port]);
 +#else
 +			xrx200_hw_receive(ch, 0);
@@ -1280,11 +1280,12 @@ Subject: [PATCH 25/36] NET: MIPS: lantiq: adds xrx200-net
 +#ifdef SW_ROUTING
 +	if (is_multicast_ether_addr(eth_hdr(skb)->h_dest)) {
 +		u16 port_map = priv->port_map;
-+		special_tag |= PORT_MAP_SEL | PORT_MAP_EN;
-+		if (skb->protocol == htons(ETH_P_8021Q)) {
++
++		if (priv->sw && skb->protocol == htons(ETH_P_8021Q)) {
 +			u16 vid;
 +			int i;
 +
++			port_map = 0;
 +			if (!__vlan_get_tag(skb, &vid)) {
 +				for (i = 0; i < XRX200_MAX_VLAN; i++) {
 +					if (priv->hw->vlan_vid[i] != vid)
@@ -1294,9 +1295,10 @@ Subject: [PATCH 25/36] NET: MIPS: lantiq: adds xrx200-net
 +				}
 +			}
 +		}
-+		special_tag |= port_map << PORT_MAP_SHIFT;
++
++		special_tag |= (port_map << PORT_MAP_SHIFT) |
++			       PORT_MAP_SEL | PORT_MAP_EN;
 +	}
-+	special_tag |= priv->port_map << PORT_MAP_SHIFT;
 +	if(priv->wan)
 +		special_tag |= (1 << DPID_SHIFT);
 +	if(skb_headroom(skb) < 4) {

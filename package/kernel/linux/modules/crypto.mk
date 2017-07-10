@@ -27,7 +27,7 @@ define KernelPackage/crypto-aead
 	CONFIG_CRYPTO_AEAD2
   FILES:=$(LINUX_DIR)/crypto/aead.ko
   AUTOLOAD:=$(call AutoLoad,09,aead,1)
-  $(call AddDepends/crypto, +LINUX_4_4:kmod-crypto-null)
+  $(call AddDepends/crypto, +!LINUX_3_18:kmod-crypto-null)
 endef
 
 $(eval $(call KernelPackage,crypto-aead))
@@ -124,9 +124,10 @@ define KernelPackage/crypto-iv
   TITLE:=CryptoAPI initialization vectors
   DEPENDS:=+kmod-crypto-manager +kmod-crypto-rng +kmod-crypto-wq
   KCONFIG:= CONFIG_CRYPTO_BLKCIPHER2
+  HIDDEN:=1
   FILES:= \
-	$(LINUX_DIR)/crypto/eseqiv.ko \
-	$(LINUX_DIR)/crypto/chainiv.ko
+	$(LINUX_DIR)/crypto/eseqiv.ko@lt4.9 \
+	$(LINUX_DIR)/crypto/chainiv.ko@lt4.9
   AUTOLOAD:=$(call AutoLoad,10,eseqiv chainiv)
   $(call AddDepends/crypto)
 endef
@@ -195,7 +196,7 @@ $(eval $(call KernelPackage,crypto-hw-padlock))
 
 define KernelPackage/crypto-hw-ccp
   TITLE:=AMD Cryptographic Coprocessor
-  DEPENDS:=+kmod-crypto-authenc +kmod-crypto-hash +kmod-crypto-manager +kmod-random-core
+  DEPENDS:=+kmod-crypto-authenc +kmod-crypto-hash +kmod-crypto-manager +kmod-random-core +kmod-crypto-sha1 +kmod-crypto-sha256
   KCONFIG:= \
 	CONFIG_CRYPTO_HW=y \
 	CONFIG_CRYPTO_DEV_CCP=y \
@@ -242,7 +243,7 @@ $(eval $(call KernelPackage,crypto-hw-hifn-795x))
 
 define KernelPackage/crypto-authenc
   TITLE:=Combined mode wrapper for IPsec
-  DEPENDS:=+kmod-crypto-manager +LINUX_4_4:kmod-crypto-null
+  DEPENDS:=+kmod-crypto-manager +!LINUX_3_18:kmod-crypto-null
   KCONFIG:=CONFIG_CRYPTO_AUTHENC
   FILES:=$(LINUX_DIR)/crypto/authenc.ko
   AUTOLOAD:=$(call AutoLoad,09,authenc)
@@ -306,6 +307,17 @@ endef
 
 $(eval $(call KernelPackage,crypto-crc32c))
 
+define KernelPackage/crypto-crc32
+  TITLE:=CRC32 CRC module
+  DEPENDS:=+kmod-crypto-hash
+  KCONFIG:=CONFIG_CRYPTO_CRC32
+  HIDDEN:=1
+  FILES:=$(LINUX_DIR)/crypto/crc32_generic.ko@ge4.9
+  AUTOLOAD:=$(call AutoLoad,04,crc32_generic@ge4.9,1)
+  $(call AddDepends/crypto)
+endef
+
+$(eval $(call KernelPackage,crypto-crc32))
 
 define KernelPackage/crypto-des
   TITLE:=DES/3DES cipher CryptoAPI module
@@ -436,7 +448,7 @@ endef
 
 define KernelPackage/crypto-md5/octeon
   FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-md5.ko
-  AUTOLOAD:=$(call AutoLoad,09,octeon-md5)
+  AUTOLOAD+=$(call AutoLoad,09,octeon-md5)
 endef
 
 $(eval $(call KernelPackage,crypto-md5))
@@ -468,12 +480,12 @@ endef
 
 define KernelPackage/crypto-sha1/octeon
   FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-sha1.ko
-  AUTOLOAD:=$(call AutoLoad,09,octeon-sha1)
+  AUTOLOAD+=$(call AutoLoad,09,octeon-sha1)
 endef
 
 define KernelPackage/crypto-sha1/x86/64
   FILES+=$(LINUX_DIR)/arch/x86/crypto/sha1-ssse3.ko
-  AUTOLOAD:=$(call AutoLoad,09,sha1-ssse3)
+  AUTOLOAD+=$(call AutoLoad,09,sha1-ssse3)
 endef
 
 $(eval $(call KernelPackage,crypto-sha1))
@@ -493,12 +505,12 @@ endef
 
 define KernelPackage/crypto-sha256/octeon
   FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-sha256.ko
-  AUTOLOAD:=$(call AutoLoad,09,octeon-sha256)
+  AUTOLOAD+=$(call AutoLoad,09,octeon-sha256)
 endef
 
 define KernelPackage/crypto-sha256/x86/64
   FILES+=$(LINUX_DIR)/arch/x86/crypto/sha256-ssse3.ko
-  AUTOLOAD:=$(call AutoLoad,09,sha256-ssse3)
+  AUTOLOAD+=$(call AutoLoad,09,sha256-ssse3)
 endef
 
 $(eval $(call KernelPackage,crypto-sha256))
@@ -518,12 +530,12 @@ endef
 
 define KernelPackage/crypto-sha512/octeon
   FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-sha512.ko
-  AUTOLOAD:=$(call AutoLoad,09,octeon-sha512)
+  AUTOLOAD+=$(call AutoLoad,09,octeon-sha512)
 endef
 
 define KernelPackage/crypto-sha512/x86/64
   FILES+=$(LINUX_DIR)/arch/x86/crypto/sha512-ssse3.ko
-  AUTOLOAD:=$(call AutoLoad,09,sha512-ssse3)
+  AUTOLOAD+=$(call AutoLoad,09,sha512-ssse3)
 endef
 
 $(eval $(call KernelPackage,crypto-sha512))

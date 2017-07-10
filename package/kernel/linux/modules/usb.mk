@@ -60,7 +60,7 @@ define KernelPackage/usb-phy-nop
   KCONFIG:=CONFIG_NOP_USB_XCEIV
   HIDDEN:=1
   FILES:=$(LINUX_DIR)/drivers/usb/phy/phy-generic.ko
-  AUTOLOAD:=$(call AutoLoad,43,phy-generic)
+  AUTOLOAD:=$(call AutoLoad,21,phy-generic,1)
   $(call AddDepends/usb)
 endef
 
@@ -77,7 +77,7 @@ define KernelPackage/usb-gadget
   HIDDEN:=1
   FILES:=\
 	$(LINUX_DIR)/drivers/usb/gadget/udc/udc-core.ko
-  AUTOLOAD:=$(call AutoLoad,45,udc-core)
+  AUTOLOAD:=$(call AutoLoad,21,udc-core,1)
   DEPENDS:=@USB_GADGET_SUPPORT
   $(call AddDepends/usb)
 endef
@@ -273,26 +273,36 @@ define KernelPackage/usb-ssb
 endef
 $(eval $(call KernelPackage,usb-ssb))
 
+define KernelPackage/usb-ehci
+  TITLE:=EHCI controller support
+  HIDDEN:=1
+  KCONFIG:= \
+	CONFIG_USB_EHCI_HCD
+  FILES:= \
+	$(LINUX_DIR)/drivers/usb/host/ehci-hcd.ko
+  AUTOLOAD:=$(call AutoLoad,35,ehci-hcd,1)
+  $(call AddDepends/usb)
+endef
+$(eval $(call KernelPackage,usb-ehci))
+
 define KernelPackage/usb2
   TITLE:=Support for USB2 controllers
   DEPENDS:=\
 	+TARGET_brcm47xx:kmod-usb-bcma \
 	+TARGET_brcm47xx:kmod-usb-ssb \
 	+TARGET_bcm53xx:kmod-usb-bcma \
-	+TARGET_bcm53xx:kmod-phy-bcm-ns-usb2
+	+TARGET_bcm53xx:kmod-phy-bcm-ns-usb2 \
+	+kmod-usb-ehci
   KCONFIG:=\
-	CONFIG_USB_EHCI_HCD \
-	CONFIG_USB_EHCI_ATH79=y \
+	CONFIG_USB_EHCI_HCD_PLATFORM \
 	CONFIG_USB_EHCI_BCM63XX=y \
 	CONFIG_USB_IMX21_HCD=y \
 	CONFIG_USB_EHCI_MXC=y \
 	CONFIG_USB_OCTEON_EHCI=y \
 	CONFIG_USB_EHCI_HCD_ORION=y \
-	CONFIG_USB_EHCI_HCD_PLATFORM=y \
 	CONFIG_USB_EHCI_HCD_AT91=y \
 	CONFIG_USB_EHCI_FSL
   FILES:= \
-	$(LINUX_DIR)/drivers/usb/host/ehci-hcd.ko \
 	$(LINUX_DIR)/drivers/usb/host/ehci-platform.ko
   ifneq ($(wildcard $(LINUX_DIR)/drivers/usb/host/ehci-orion.ko),)
     FILES+=$(LINUX_DIR)/drivers/usb/host/ehci-orion.ko
@@ -491,6 +501,45 @@ define KernelPackage/usb-serial-ch341/description
 endef
 
 $(eval $(call KernelPackage,usb-serial-ch341))
+
+
+define KernelPackage/usb-serial-edgeport
+  TITLE:=Support for Digi Edgeport devices
+  KCONFIG:=CONFIG_USB_SERIAL_EDGEPORT
+  FILES:=$(LINUX_DIR)/drivers/usb/serial/io_edgeport.ko
+  AUTOLOAD:=$(call AutoProbe,io_edgeport)
+  $(call AddDepends/usb-serial)
+endef
+
+define KernelPackage/usb-serial-edgeport/description
+ Kernel support for Inside Out Networks (Digi)
+	Edgeport/4
+	Rapidport/4
+	Edgeport/4t
+	Edgeport/2
+	Edgeport/4i
+	Edgeport/2i
+	Edgeport/421
+	Edgeport/21
+	Edgeport/8
+	Edgeport/8 Dual
+	Edgeport/2D8
+	Edgeport/4D8
+	Edgeport/8i
+	Edgeport/2 DIN
+	Edgeport/4 DIN
+	Edgeport/16 Dual
+endef
+
+define KernelPackage/usb-serial-edgeport/install
+	$(INSTALL_DIR) $(1)/lib/firmware/edgeport
+	$(INSTALL_DATA) $(LINUX_DIR)/firmware/edgeport/boot.fw $(1)/lib/firmware/edgeport/
+	$(INSTALL_DATA) $(LINUX_DIR)/firmware/edgeport/boot2.fw $(1)/lib/firmware/edgeport/
+	$(INSTALL_DATA) $(LINUX_DIR)/firmware/edgeport/down.fw $(1)/lib/firmware/edgeport/
+	$(INSTALL_DATA) $(LINUX_DIR)/firmware/edgeport/down2.fw $(1)/lib/firmware/edgeport/
+endef
+
+$(eval $(call KernelPackage,usb-serial-edgeport))
 
 
 define KernelPackage/usb-serial-ftdi
@@ -1273,6 +1322,19 @@ endef
 
 $(eval $(call KernelPackage,usb-net-kalmia))
 
+define KernelPackage/usb-net-pl
+  TITLE:=Prolific PL-2301/2302/25A1 based cables
+  KCONFIG:=CONFIG_USB_NET_PLUSB
+  FILES:=$(LINUX_DIR)/drivers/net/usb/plusb.ko
+  AUTOLOAD:=$(call AutoProbe,plusb)
+  $(call AddDepends/usb-net)
+endef
+
+define KernelPackage/usb-net-pl/description
+ Kernel support for Prolific PL-2301/2302/25A1 based cables
+endef
+
+$(eval $(call KernelPackage,usb-net-pl))
 
 define KernelPackage/usb-hid
   TITLE:=Support for USB Human Input Devices
@@ -1377,18 +1439,18 @@ $(eval $(call KernelPackage,usbip-server))
 
 define KernelPackage/usb-chipidea
   TITLE:=Host and device support for Chipidea controllers
-  DEPENDS:=+USB_GADGET_SUPPORT:kmod-usb-gadget @TARGET_ar71xx +kmod-usb2
+  DEPENDS:=+USB_GADGET_SUPPORT:kmod-usb-gadget @TARGET_ar71xx +kmod-usb-ehci +kmod-usb-phy-nop
   KCONFIG:= \
-	CONFIG_NOP_USB_XCEIV=y \
 	CONFIG_EXTCON \
 	CONFIG_USB_CHIPIDEA \
 	CONFIG_USB_CHIPIDEA_HOST=y \
 	CONFIG_USB_CHIPIDEA_UDC=y \
 	CONFIG_USB_CHIPIDEA_DEBUG=y
   FILES:= \
-	$(LINUX_DIR)/drivers/extcon/extcon.ko \
+	$(LINUX_DIR)/drivers/extcon/extcon.ko@lt4.9 \
+	$(LINUX_DIR)/drivers/extcon/extcon-core.ko@ge4.9 \
 	$(LINUX_DIR)/drivers/usb/chipidea/ci_hdrc.ko
-  AUTOLOAD:=$(call AutoLoad,51,ci_hdrc,0)
+  AUTOLOAD:=$(call AutoLoad,39,ci_hdrc,1)
   $(call AddDepends/usb)
 endef
 

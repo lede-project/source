@@ -26,14 +26,18 @@ start_service() {
 }
 
 reload_service() {
+	local rv=0
+
 	init_switch
-	ubus call network reload
+	ubus call network reload || rv=1
 	/sbin/wifi reload_legacy
+	return $rv
 }
 
-stop() {
+stop_service() {
 	/sbin/wifi down
-	procd_kill network ''
+	ifdown -a
+	sleep 1
 }
 
 service_running() {
@@ -135,14 +139,6 @@ service_triggers()
 	validate_switch_section
 	validate_switch_vlan
 	procd_close_validate
-}
-
-restart() {
-	ifdown -a
-	sleep 1
-	trap '' TERM
-	stop "$@"
-	start "$@"
 }
 
 shutdown() {

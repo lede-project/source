@@ -22,6 +22,8 @@ PKG_BUILD_DIR=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)-$(BUILD_VARIANT)/$(PKG_NAM
 PKG_LICENSE:=GPL-2.0 GPL-2.0+
 PKG_LICENSE_FILES:=Licenses/README
 
+PKG_FLAGS:=nonshared
+
 include $(INCLUDE_DIR)/package.mk
 
 define rcw/Default
@@ -79,7 +81,8 @@ define Build/Compile
 endef
 
 define Package/rcw/install/default
-	$(CP) $(PKG_BUILD_DIR)/$(RCW_CONFIG) $(KDIR)/$(1)-rcw.bin
+	$(INSTALL_DIR) $(STAGING_DIR_IMAGE)
+	$(CP) $(PKG_BUILD_DIR)/$(RCW_CONFIG) $(STAGING_DIR_IMAGE)/$(1)-rcw.bin
 endef
 
 define Package/rcw/install/template

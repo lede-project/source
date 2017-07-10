@@ -20,9 +20,8 @@ else
   UBIFS_OPTS := -m 2048 -e 126KiB -c 4096
 endif
 
-define Build/eva-image
-	lzma2eva $(KERNEL_LOADADDR) $(KERNEL_LOADADDR) $@ $@.new
-	( dd if=$@.new bs=64k conv=sync; cat ./eva.dummy.squashfs; ) > $@
+define Build/append-avm-fakeroot
+	cat ./eva.dummy.squashfs >> $@
 endef
 
 define Build/dgn3500-sercom-footer
@@ -104,7 +103,33 @@ endef
 
 define Device/AVM
   KERNEL := kernel-bin | append-dtb | lzma | eva-image
+  IMAGE/sysupgrade.bin := append-kernel | pad-to 64k | append-avm-fakeroot | \
+	append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
 endef
+
+ifeq ($(SUBTARGET),ase)
+
+define Device/ALL0333CJ
+  IMAGE_SIZE := 3700k
+  DEVICE_DTS := ALL0333CJ
+  DEVICE_TITLE := Allnet ALL0333CJ
+  DEVICE_PACKAGES := kmod-ltq-adsl-ase kmod-ltq-adsl-ase-mei \
+	kmod-ltq-adsl-ase-fw-b kmod-ltq-atm-ase \
+	ltq-adsl-app ppp-mod-pppoe
+endef
+TARGET_DEVICES += ALL0333CJ
+
+define Device/DGN1000B
+  IMAGE_SIZE := 6000k
+  DEVICE_DTS := DGN1000B
+  DEVICE_TITLE := Netgear DGN1000B
+  DEVICE_PACKAGES := kmod-ltq-adsl-ase kmod-ltq-adsl-ase-mei \
+	kmod-ltq-adsl-ase-fw-b kmod-ltq-atm-ase \
+	ltq-adsl-app ppp-mod-pppoe
+endef
+TARGET_DEVICES += DGN1000B
+
+endif
 
 ifeq ($(SUBTARGET),xway_legacy)
 
@@ -341,18 +366,18 @@ define Device/DGN3500
   IMAGE_SIZE := 16000k
   IMAGES := \
 	sysupgrade-NA.bin sysupgrade-WW.bin \
-	factory-NA.bin factory-WW.bin
+	factory-NA.img factory-WW.img
   IMAGE/sysupgrade-NA.bin := \
 	append-kernel | append-rootfs | dgn3500-sercom-footer 0x0 "NA" | \
 	pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
   IMAGE/sysupgrade-WW.bin := \
 	append-kernel | append-rootfs | dgn3500-sercom-footer 0x0 "WW" | \
 	pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
-  IMAGE/factory-NA.bin := \
+  IMAGE/factory-NA.img := \
 	pad-extra $(DGN3500_KERNEL_OFFSET_DEC) | append-kernel | append-rootfs | \
 	dgn3500-sercom-footer $(DGN3500_KERNEL_OFFSET_HEX) "NA" | pad-rootfs | \
 	check-size 16320k | pad-to 16384k
-  IMAGE/factory-WW.bin := \
+  IMAGE/factory-WW.img := \
 	pad-extra $(DGN3500_KERNEL_OFFSET_DEC) | append-kernel | append-rootfs | \
 	dgn3500-sercom-footer $(DGN3500_KERNEL_OFFSET_HEX) "WW" | pad-rootfs | \
 	check-size 16320k | pad-to 16384k
@@ -368,11 +393,11 @@ TARGET_DEVICES += DGN3500
 
 define Device/DGN3500B
   IMAGE_SIZE := 16000k
-  IMAGES += factory.bin
+  IMAGES += factory.img
   IMAGE/sysupgrade.bin := \
 	append-kernel | append-rootfs | dgn3500-sercom-footer 0x0 "DE" | \
 	pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
-  IMAGE/factory.bin := \
+  IMAGE/factory.img := \
 	pad-extra $(DGN3500_KERNEL_OFFSET_DEC) | append-kernel | append-rootfs | \
 	dgn3500-sercom-footer $(DGN3500_KERNEL_OFFSET_HEX) "DE" | pad-rootfs | \
 	check-size 16320k | pad-to 16384k
@@ -474,6 +499,12 @@ define Device/ARV7519RW22
 endef
 TARGET_DEVICES += ARV7519RW22
 
+define Device/ASL56026
+  IMAGE_SIZE := 7488k
+  DEVICE_TITLE := BT OpenReach - ECI VDSL Modem V-2FUb/I
+endef
+TARGET_DEVICES += ASL56026
+
 define Device/BTHOMEHUBV5A
   $(Device/NAND)
   DEVICE_TITLE := BT Home Hub 5A
@@ -481,6 +512,17 @@ define Device/BTHOMEHUBV5A
 	kmod-ath10k ath10k-firmware-qca988x wpad-mini kmod-usb-dwc2
 endef
 TARGET_DEVICES += BTHOMEHUBV5A
+
+define Device/DM200
+  IMAGES := sysupgrade.bin factory.img
+  IMAGE/factory.img := $$(IMAGE/sysupgrade.bin) | netgear-dni
+  IMAGE_SIZE := 7872k
+  DEVICE_TITLE := Netgear DM200
+  NETGEAR_BOARD_ID := DM200
+  NETGEAR_HW_ID := 29765233+8+0+64+0+0
+endef
+DEVICE_VARS += NETGEAR_BOARD_ID NETGEAR_HW_ID
+TARGET_DEVICES += DM200
 
 define Device/EASY80920NAND
   $(Device/lantiqFullImage)
@@ -515,7 +557,7 @@ TARGET_DEVICES += FRITZ7360SL
 
 define Device/VG3503J
   IMAGE_SIZE := 8000k
-  DEVICE_TITLE := BT OpenReach - ECI VDSL Modem
+  DEVICE_TITLE := BT OpenReach - ECI VDSL Modem V-2FUb/R
 endef
 TARGET_DEVICES += VG3503J
 
@@ -524,7 +566,7 @@ include tp-link.mk
 define Device/WBMR300
   IMAGE_SIZE := 15616k
   DEVICE_TITLE := Buffalo WBMR-300HPD
-  DEVICE_PACKAGES := kmod-mt76 wpad-mini kmod-usb-dwc2
+  DEVICE_PACKAGES := kmod-mt7603 wpad-mini kmod-usb-dwc2
 endef
 TARGET_DEVICES += WBMR300
 
@@ -538,9 +580,9 @@ TARGET_DEVICES += VGV7510KW22NOR
 define Device/VGV7510KW22BRN
   $(Device/lantiqBrnImage)
   IMAGE_SIZE := 7168k
-  SIGNATURE := 5D00008000
+  SIGNATURE := BRNDA6431
   MAGIC := 0x12345678
-  CRC32_POLY := 0x2083b8ed
+  CRC32_POLY := 0x04c11db7
   DEVICE_TITLE := o2 Box 6431 / Arcadyan VGV7510KW22 (BRN)
   DEVICE_PACKAGES := kmod-rt2800-pci wpad-mini kmod-usb-dwc2 kmod-ltq-tapi kmod-ltq-vmmc
 endef

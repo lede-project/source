@@ -1,8 +1,6 @@
-Index: linux-4.4.4/arch/mips/include/asm/mach-ath79/ar71xx_regs.h
-===================================================================
---- linux-4.4.4.orig/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2016-03-31 21:43:10.595132564 +0300
-+++ linux-4.4.4/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2016-03-31 21:56:21.463152017 +0300
-@@ -641,6 +641,7 @@
+--- a/arch/mips/include/asm/mach-ath79/ar71xx_regs.h
++++ b/arch/mips/include/asm/mach-ath79/ar71xx_regs.h
+@@ -659,6 +659,7 @@
  
  #define AR933X_BOOTSTRAP_MDIO_GPIO_EN	BIT(18)
  #define AR933X_BOOTSTRAP_EEPBUSY	BIT(4)
@@ -10,7 +8,7 @@ Index: linux-4.4.4/arch/mips/include/asm/mach-ath79/ar71xx_regs.h
  #define AR933X_BOOTSTRAP_REF_CLK_40	BIT(0)
  
  #define AR934X_BOOTSTRAP_SW_OPTION8	BIT(23)
-@@ -670,6 +671,8 @@
+@@ -688,6 +689,8 @@
  
  #define QCA956X_BOOTSTRAP_REF_CLK_40	BIT(2)
  
@@ -19,10 +17,8 @@ Index: linux-4.4.4/arch/mips/include/asm/mach-ath79/ar71xx_regs.h
  #define AR934X_PCIE_WMAC_INT_WMAC_MISC		BIT(0)
  #define AR934X_PCIE_WMAC_INT_WMAC_TX		BIT(1)
  #define AR934X_PCIE_WMAC_INT_WMAC_RXLP		BIT(2)
-Index: linux-4.4.4/arch/mips/ath79/dev-usb.c
-===================================================================
---- linux-4.4.4.orig/arch/mips/ath79/dev-usb.c	2016-03-31 21:43:10.407132560 +0300
-+++ linux-4.4.4/arch/mips/ath79/dev-usb.c	2016-03-31 21:43:10.707132567 +0300
+--- a/arch/mips/ath79/dev-usb.c
++++ b/arch/mips/ath79/dev-usb.c
 @@ -19,6 +19,9 @@
  #include <linux/platform_device.h>
  #include <linux/usb/ehci_pdriver.h>
@@ -33,7 +29,7 @@ Index: linux-4.4.4/arch/mips/ath79/dev-usb.c
  
  #include <asm/mach-ath79/ath79.h>
  #include <asm/mach-ath79/ar71xx_regs.h>
-@@ -170,6 +173,54 @@
+@@ -170,6 +173,51 @@ static void __init ar913x_usb_setup(void
  			   &ath79_ehci_pdata_v2, sizeof(ath79_ehci_pdata_v2));
  }
  
@@ -52,10 +48,9 @@ Index: linux-4.4.4/arch/mips/ath79/dev-usb.c
 +
 +static void __init ar933x_ci_usb_setup(void)
 +{
-+	u32 bootstrap;
-+	enum usb_dr_mode dr_mode;
 +	struct ci_hdrc_platform_data ci_pdata;
-+	struct platform_device *phy;
++	enum usb_dr_mode dr_mode;
++	u32 bootstrap;
 +
 +	bootstrap = ath79_reset_rr(AR933X_RESET_REG_BOOTSTRAP);
 +	if (bootstrap & AR933X_BOOTSTRAP_USB_MODE_HOST) {
@@ -74,10 +69,8 @@ Index: linux-4.4.4/arch/mips/ath79/dev-usb.c
 +	ci_pdata.id_extcon.edev = ERR_PTR(-ENODEV);
 +	ci_pdata.itc_setting = 1;
 +
-+	/* register a nop PHY */
-+	phy = usb_phy_generic_register();
-+	if (IS_ERR(phy))
-+		return;
++	platform_device_register_simple("usb_phy_generic",
++					PLATFORM_DEVID_AUTO, NULL, 0);
 +
 +	ath79_usb_register("ci_hdrc", -1,
 +			   AR933X_EHCI_BASE, AR933X_EHCI_SIZE,
@@ -88,7 +81,7 @@ Index: linux-4.4.4/arch/mips/ath79/dev-usb.c
  static void __init ar933x_usb_setup(void)
  {
  	ath79_device_reset_set(AR933X_RESET_USBSUS_OVERRIDE);
-@@ -185,6 +236,8 @@
+@@ -185,6 +233,8 @@ static void __init ar933x_usb_setup(void
  			   AR933X_EHCI_BASE, AR933X_EHCI_SIZE,
  			   ATH79_CPU_IRQ(3),
  			   &ath79_ehci_pdata_v2, sizeof(ath79_ehci_pdata_v2));

@@ -515,7 +515,7 @@ $(eval $(call KernelPackage,ipt-tproxy))
 
 define KernelPackage/ipt-tee
   TITLE:=TEE support
-  DEPENDS:=+kmod-ipt-conntrack @!LINUX_4_4
+  DEPENDS:=+kmod-ipt-conntrack
   KCONFIG:= \
   	CONFIG_NETFILTER_XT_TARGET_TEE
   FILES:= \
@@ -689,7 +689,7 @@ define KernelPackage/br-netfilter
   SUBMENU:=$(NF_MENU)
   TITLE:=Bridge netfilter support modules
   HIDDEN:=1
-  DEPENDS:=+kmod-ipt-core +kmod-bridge
+  DEPENDS:=+kmod-ipt-core
   FILES:=$(LINUX_DIR)/net/bridge/br_netfilter.ko
   KCONFIG:=CONFIG_BRIDGE_NETFILTER
   AUTOLOAD:=$(call AutoProbe,br_netfilter)
@@ -701,7 +701,7 @@ $(eval $(call KernelPackage,br-netfilter))
 define KernelPackage/ebtables
   SUBMENU:=$(NF_MENU)
   TITLE:=Bridge firewalling modules
-  DEPENDS:=+kmod-ipt-core +kmod-bridge +kmod-br-netfilter
+  DEPENDS:=+kmod-ipt-core +kmod-br-netfilter
   FILES:=$(foreach mod,$(EBTABLES-m),$(LINUX_DIR)/net/$(mod).ko)
   KCONFIG:=$(KCONFIG_EBTABLES)
   AUTOLOAD:=$(call AutoProbe,$(notdir $(EBTABLES-m)))

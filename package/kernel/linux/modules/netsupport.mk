@@ -45,7 +45,6 @@ $(eval $(call KernelPackage,atmtcp))
 define KernelPackage/appletalk
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=Appletalk protocol support
-  DEPENDS:=+PACKAGE_kmod-llc:kmod-llc
   KCONFIG:= \
 	CONFIG_ATALK \
 	CONFIG_DEV_APPLETALK \
@@ -78,71 +77,6 @@ define KernelPackage/bonding/description
 endef
 
 $(eval $(call KernelPackage,bonding))
-
-
-define KernelPackage/bridge
-  SUBMENU:=$(NETWORK_SUPPORT_MENU)
-  TITLE:=Ethernet bridging support
-  DEPENDS:=+kmod-stp
-  KCONFIG:= \
-	CONFIG_BRIDGE \
-	CONFIG_BRIDGE_IGMP_SNOOPING=y
-  FILES:=$(LINUX_DIR)/net/bridge/bridge.ko
-  AUTOLOAD:=$(call AutoLoad,11,bridge)
-endef
-
-define KernelPackage/bridge/description
- Kernel module for Ethernet bridging.
-endef
-
-$(eval $(call KernelPackage,bridge))
-
-define KernelPackage/llc
-  SUBMENU:=$(NETWORK_SUPPORT_MENU)
-  TITLE:=ANSI/IEEE 802.2 LLC support
-  KCONFIG:=CONFIG_LLC
-  FILES:= \
-	$(LINUX_DIR)/net/llc/llc.ko \
-	$(LINUX_DIR)/net/802/p8022.ko \
-	$(LINUX_DIR)/net/802/psnap.ko
-  AUTOLOAD:=$(call AutoLoad,09,llc p8022 psnap)
-endef
-
-define KernelPackage/llc/description
- Kernel module for ANSI/IEEE 802.2 LLC support.
-endef
-
-$(eval $(call KernelPackage,llc))
-
-define KernelPackage/stp
-  SUBMENU:=$(NETWORK_SUPPORT_MENU)
-  TITLE:=Ethernet Spanning Tree Protocol support
-  DEPENDS:=+kmod-llc
-  KCONFIG:=CONFIG_STP
-  FILES:=$(LINUX_DIR)/net/802/stp.ko
-  AUTOLOAD:=$(call AutoLoad,10,stp)
-endef
-
-define KernelPackage/stp/description
- Kernel module for Ethernet Spanning Tree Protocol support.
-endef
-
-$(eval $(call KernelPackage,stp))
-
-define KernelPackage/8021q
-  SUBMENU:=$(NETWORK_SUPPORT_MENU)
-  TITLE:=802.1Q VLAN support
-  KCONFIG:=CONFIG_VLAN_8021Q \
-		CONFIG_VLAN_8021Q_GVRP=n
-  FILES:=$(LINUX_DIR)/net/8021q/8021q.ko
-  AUTOLOAD:=$(call AutoLoad,12,8021q)
-endef
-
-define KernelPackage/8021q/description
- Kernel module for 802.1Q VLAN support
-endef
-
-$(eval $(call KernelPackage,8021q))
 
 
 define KernelPackage/udptunnel4
@@ -533,7 +467,7 @@ $(eval $(call KernelPackage,gre))
 define KernelPackage/gre6
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=GRE support over IPV6
-  DEPENDS:=@IPV6 +kmod-iptunnel +kmod-ip6-tunnel
+  DEPENDS:=@IPV6 +kmod-iptunnel +kmod-ip6-tunnel +kmod-gre
   KCONFIG:=CONFIG_IPV6_GRE
   FILES:=$(LINUX_DIR)/net/ipv6/ip6_gre.ko
   AUTOLOAD:=$(call AutoLoad,39,ip6_gre)
@@ -736,7 +670,7 @@ $(eval $(call KernelPackage,mppe))
 
 
 SCHED_MODULES = $(patsubst $(LINUX_DIR)/net/sched/%.ko,%,$(wildcard $(LINUX_DIR)/net/sched/*.ko))
-SCHED_MODULES_CORE = sch_ingress sch_fq_codel sch_hfsc cls_fw cls_route cls_flow cls_tcindex cls_u32 em_u32 act_mirred act_skbedit
+SCHED_MODULES_CORE = sch_ingress sch_fq_codel sch_hfsc sch_htb sch_tbf cls_fw cls_route cls_flow cls_tcindex cls_u32 em_u32 act_mirred act_skbedit
 SCHED_MODULES_FILTER = $(SCHED_MODULES_CORE) act_connmark sch_netem
 SCHED_MODULES_EXTRA = $(filter-out $(SCHED_MODULES_FILTER),$(SCHED_MODULES))
 SCHED_FILES = $(patsubst %,$(LINUX_DIR)/net/sched/%.ko,$(filter $(SCHED_MODULES_CORE),$(SCHED_MODULES)))
@@ -748,6 +682,8 @@ define KernelPackage/sched-core
   KCONFIG:= \
 	CONFIG_NET_SCHED=y \
 	CONFIG_NET_SCH_HFSC \
+	CONFIG_NET_SCH_HTB \
+	CONFIG_NET_SCH_TBF \
 	CONFIG_NET_SCH_INGRESS \
 	CONFIG_NET_SCH_FQ_CODEL \
 	CONFIG_NET_CLS=y \
@@ -789,12 +725,10 @@ define KernelPackage/sched
   KCONFIG:= \
 	CONFIG_NET_SCH_CODEL \
 	CONFIG_NET_SCH_DSMARK \
-	CONFIG_NET_SCH_HTB \
 	CONFIG_NET_SCH_FIFO \
 	CONFIG_NET_SCH_GRED \
 	CONFIG_NET_SCH_PRIO \
 	CONFIG_NET_SCH_RED \
-	CONFIG_NET_SCH_TBF \
 	CONFIG_NET_SCH_SFQ \
 	CONFIG_NET_SCH_TEQL \
 	CONFIG_NET_SCH_FQ \
@@ -990,8 +924,8 @@ define KernelPackage/rxrpc
 	CONFIG_AF_RXRPC_DEBUG=n
   FILES:= \
 	$(LINUX_DIR)/net/rxrpc/af-rxrpc.ko \
-	$(LINUX_DIR)/net/rxrpc/rxkad.ko
-  AUTOLOAD:=$(call AutoLoad,30,rxkad af-rxrpc)
+	$(LINUX_DIR)/net/rxrpc/rxkad.ko@lt4.7
+  AUTOLOAD:=$(call AutoLoad,30,rxkad@lt4.7 af-rxrpc)
   DEPENDS:= +kmod-crypto-manager +kmod-crypto-pcbc +kmod-crypto-fcrypt
 endef
 
@@ -1059,3 +993,19 @@ define KernelPackage/nlmon/description
 endef
 
 $(eval $(call KernelPackage,nlmon))
+
+
+define KernelPackage/mdio
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=MDIO (clause 45) PHY support
+  KCONFIG:=CONFIG_MDIO
+  HIDDEN:=1
+  FILES:=$(LINUX_DIR)/drivers/net/mdio.ko
+  AUTOLOAD:=$(call AutoLoad,32,mdio)
+endef
+
+define KernelPackage/mdio/description
+ Kernel modules for MDIO (clause 45) PHY support
+endef
+
+$(eval $(call KernelPackage,mdio))

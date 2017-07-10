@@ -31,6 +31,7 @@ ar71xx_setup_interfaces()
 	mynet-n600|\
 	oolite|\
 	qihoo-c301|\
+	r602n|\
 	rb-750|\
 	rb-751|\
 	som9331|\
@@ -43,11 +44,12 @@ ar71xx_setup_interfaces()
 	tl-wdr3320-v2|\
 	tl-wdr3500|\
 	tl-wr740n-v5|\
-	tl-wr741nd|\
+	tl-wr740n-v6|\
 	tl-wr741nd-v4|\
 	tl-wr742n-v5|\
+	tl-wr840n-v2|\
+	tl-wr840n-v3|\
 	tl-wr841n-v11|\
-	tl-wr841n-v7|\
 	tl-wr841n-v9|\
 	tl-wr842n-v3|\
 	tl-wr882n-v1|\
@@ -56,7 +58,7 @@ ar71xx_setup_interfaces()
 	whr-hp-gn|\
 	wzr-hp-ag300h|\
 	zbt-we1526)
-		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_set_interfaces_lan_wan "eth0.1" "eth1"
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1"
 		;;
@@ -75,6 +77,8 @@ ar71xx_setup_interfaces()
 	eap300v2|\
 	eap7660d|\
 	el-mini|\
+	fritz300e|\
+	hiveap-121|\
 	loco-m-xw|\
 	mr12|\
 	mr16|\
@@ -94,6 +98,8 @@ ar71xx_setup_interfaces()
 	rb-911g-5hpnd|\
 	rb-912uag-2hpnd|\
 	rb-912uag-5hpnd|\
+	rb-lhg-5nd|\
+	rb-mapl-2nd|\
 	rb-sxt2n|\
 	rb-sxt5n|\
 	re450|\
@@ -112,29 +118,43 @@ ar71xx_setup_interfaces()
 	tl-wa801nd-v2|\
 	tl-wa830re-v2|\
 	tl-wa850re|\
+	tl-wa850re-v2|\
+	tl-wa855re-v1|\
 	tl-wa901nd|\
 	tl-wa901nd-v2|\
 	tl-wa901nd-v3|\
 	tl-wa901nd-v4|\
 	tl-wr703n|\
 	tl-wr802n-v1|\
+	tl-wr802n-v2|\
+	tl-wr902ac-v1|\
 	tube2h|\
 	unifiac-lite|\
 	wndap360|\
 	wp543)
 		ucidef_set_interface_lan "eth0"
 		;;
+	a40|\
+	a60|\
 	alfa-ap96|\
 	alfa-nx|\
+	archer-c25-v1|\
+	dr344|\
 	gl-ar150|\
 	gl-ar300m|\
 	gl-domino|\
 	gl-inet|\
 	gl-mifi|\
 	jwap003|\
+	om2pv4|\
+	om2p-hsv4|\
 	pb42|\
 	pb44|\
+	rb-750-r2|\
+	rb-750up-r2|\
 	rb-951ui-2hnd|\
+	rb-951ui-2nd|\
+	rb-952ui-5ac2nd|\
 	routerstation|\
 	tl-wr710n|\
 	tl-wr720n-v3|\
@@ -147,7 +167,6 @@ ar71xx_setup_interfaces()
 	all0315n|\
 	dlan-hotspot|\
 	dlan-pro-500-wp|\
-	dr344|\
 	ja76pf2|\
 	rocket-m-ti|\
 	ubnt-unifi-outdoor)
@@ -163,6 +182,7 @@ ar71xx_setup_interfaces()
 	rb-750gl|\
 	rb-751g|\
 	rb-951g-2hnd|\
+	rb-962uigs-5hact2hnt|\
 	wlr8100|\
 	wzr-hp-g450h)
 		ucidef_add_switch "switch0" \
@@ -174,7 +194,7 @@ ar71xx_setup_interfaces()
 	tew-823dru|\
 	tl-wr1043nd-v2|\
 	wzr-450hp2)
-		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0.2"
 		ucidef_add_switch "switch0" \
 			"0@eth1" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1" "5:wan" "6@eth0"
 		;;
@@ -182,23 +202,35 @@ ar71xx_setup_interfaces()
 	ap147-010|\
 	nbg6616|\
 	nbg6716)
-		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_set_interfaces_lan_wan "eth0.1" "eth1.2"
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "5:wan" "6@eth1"
 		;;
 	ap143|\
 	rb-433|\
 	rb-433u)
-		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "5@eth1"
 		;;
 	archer-c5|\
 	archer-c7|\
 	tl-wdr4900-v2)
-		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0.2"
 		ucidef_add_switch "switch0" \
 			"0@eth1" "2:lan" "3:lan" "4:lan" "5:lan" "6@eth0" "1:wan"
+		;;
+	archer-c58-v1|\
+	archer-c59-v1|\
+	rb-450g)
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
+		ucidef_add_switch "switch0" \
+			"0@eth1" "1:lan:1" "2:lan:4" "3:lan:3" "4:lan:2"
+		;;
+	archer-c60-v1)
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
+		ucidef_add_switch "switch0" \
+			"0@eth1" "1:lan:1" "2:lan:2" "3:lan:3" "4:lan:4"
 		;;
 	arduino-yun|\
 	dir-505-a1|\
@@ -206,7 +238,7 @@ ar71xx_setup_interfaces()
 		ucidef_set_interface_lan "eth1"
 		;;
 	bsb)
-		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
 		ucidef_add_switch "switch0" \
 			"0@eth1" "1:lan" "3:lan"
 		;;
@@ -225,7 +257,7 @@ ar71xx_setup_interfaces()
 			"0@eth0" "5:lan" "4:wan"
 		;;
 	cr3000)
-		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_set_interfaces_lan_wan "eth0.1" "eth1"
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:lan:1" "2:lan:4" "3:lan:3" "4:lan:2"
 		;;
@@ -236,9 +268,7 @@ ar71xx_setup_interfaces()
 	dir-835-a1|\
 	esr900|\
 	mynet-n750|\
-	sr3200|\
-	wndr3700v4|\
-	wndr4300)
+	sr3200)
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "5:wan"
 		;;
@@ -250,6 +280,7 @@ ar71xx_setup_interfaces()
 			"0@eth0" "1:lan:4" "2:lan:3" "3:lan:2" "4:wan:1"
 	;;
 	db120|\
+	rb-2011il|\
 	rb-2011l|\
 	rb-2011uas|\
 	rb-2011uas-2hnd|\
@@ -275,45 +306,53 @@ ar71xx_setup_interfaces()
 	omy-g1|\
 	r6100|\
 	smart-300|\
-	tl-mr3420-v2|\
 	tl-wdr6500-v2|\
-	tl-wr841n-v8|\
 	tl-wr940n-v4|\
-	tl-wr941nd-v5|\
 	tl-wr941nd-v6|\
 	wnr1000-v2|\
-	wnr2000-v3|\
 	wnr2000-v4|\
 	wnr2200|\
 	wnr612-v2|\
 	wpn824n)
-		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
 		ucidef_add_switch "switch0" \
-			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "4@eth1"
+			"0@eth1" "1:lan:1" "2:lan:2" "3:lan:3" "4:lan:4"
+		;;
+	tl-mr6400)
+		ucidef_set_interfaces_lan_wan "eth0.1 eth1" "usb0"
+		ucidef_add_switch "switch0" \
+			"0@eth0" "1:lan" "2:lan" "3:lan"
 		;;
 	dir-825-b1|\
 	nbg460n_550n_550nh|\
 	tew-673gru|\
 	wzr-hp-g300nh)
-		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_set_interfaces_lan_wan "eth0.1" "eth1"
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "2:lan" "3:lan" "5@eth0"
 		;;
 	dlan-pro-1200-ac)
 		ucidef_set_interface_lan "eth0"
 		ucidef_add_switch "switch0" \
-			"0@eth0" "2:lan" "3:lan" "4:lan"
+			"0u@eth0" "2:lan" "3:lan" "4:lan"
 		ucidef_add_switch_attr "switch0" "enable" "false"
 		;;
+	ebr-2310-c1)
+		ucidef_set_interfaces_lan_wan "eth0.1" "eth1"
+		ucidef_add_switch "switch0" \
+			"0@eth0" "1:lan:1" "2:lan:2" "3:lan:3" "4:lan:4"
+		;;
 	el-m150)
-		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "3@eth1"
 		;;
 	dir-869-a1|\
 	epg5000|\
 	esr1750|\
-	tl-wr1043nd-v4)
+	tl-wr1043nd-v4|\
+	wndr3700v4|\
+	wndr4300)
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1" "5:wan"
 		;;
@@ -322,23 +361,24 @@ ar71xx_setup_interfaces()
 			"0@eth0" "1:lan" "2:lan" "3:wan"
 		;;
 	ew-dorin-router)
-		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_set_interfaces_lan_wan "eth0.1" "eth1"
 		ucidef_add_switch "switch0" \
 			"0@eth0" "2:lan" "3:lan"
 		;;
 	dw33d|\
 	f9k1115v2)
-		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0.2"
 		ucidef_add_switch "switch0" \
 			"2:lan" "3:lan" "4:lan" "5:lan" "6@eth1" "0@eth0" "1:wan"
 		;;
-	gl-ar300)
-		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+	gl-ar300|\
+	wnr2000-v3)
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
 		ucidef_add_switch "switch0" \
 			"0@eth1" "1:lan" "2:lan" "3:lan" "4:lan"
 		;;
 	jwap230)
-		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_set_interfaces_lan_wan "eth0.1" "eth1.2"
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:lan" "5:wan" "6@eth1"
 		;;
@@ -350,27 +390,22 @@ ar71xx_setup_interfaces()
 		ucidef_set_interface_lan "wlan0"
 		;;
 	rb-435g)
-		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
 		ucidef_add_switch "switch0" \
 			"0@eth1" "1:lan" "2:lan"
 		;;
 	rb-450)
-		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
 		ucidef_add_switch "switch0" \
 			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "5@eth1"
 		;;
-	rb-450g)
-		ucidef_set_interfaces_lan_wan "eth1" "eth0"
-		ucidef_add_switch "switch0" \
-			"0@eth1" "1:lan:1" "2:lan:4" "3:lan:3" "4:lan:2"
-		;;
 	routerstation-pro)
-		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
 		ucidef_add_switch "switch0" \
 			"0@eth1" "2:lan:3" "3:lan:2" "4:lan:1"
 		;;
 	rb-493g)
-		ucidef_set_interfaces_lan_wan "eth0 eth1.1" "eth1.2"
+		ucidef_set_interfaces_lan_wan "eth0.1 eth1.1" "eth1.2"
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:lan" "2:lan" "3:lan" "4:lan"
 		ucidef_add_switch "switch1" \
@@ -379,6 +414,15 @@ ar71xx_setup_interfaces()
 	tellstick-znet-lite)
 		ucidef_set_interface_wan "eth0"
 		ucidef_set_interface_raw "wlan" "wlan0" "dhcp"
+		;;
+	tl-mr3420-v2|\
+	tl-wr841n-v8|\
+	tl-wr842n-v2|\
+	tl-wr941nd-v5|\
+	tl-wr942n-v1)
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
+		ucidef_add_switch "switch0" \
+			"0@eth1" "1:lan:4" "2:lan:1" "3:lan:2" "4:lan:3"
 		;;
 	tl-wdr4300|\
 	tl-wr1041n-v2)
@@ -402,10 +446,11 @@ ar71xx_setup_interfaces()
 		ucidef_set_interface_raw "eth" "eth0"
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" "wan"
 		;;
-	tl-wr842n-v2)
-		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+	tl-wr741nd|\
+	tl-wr841n-v7)
+		ucidef_set_interfaces_lan_wan "eth0.1" "eth1"
 		ucidef_add_switch "switch0" \
-			"0@eth1" "1:lan:4" "2:lan:1" "3:lan:2" "4:lan:3"
+			"0@eth0" "1:lan:1" "2:lan:2" "3:lan:3" "4:lan:4"
 		;;
 	uap-pro|\
 	wpj342)
@@ -417,10 +462,13 @@ ar71xx_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0@eth0" "2:lan" "3:wan"
 		;;
-	wndr3700)
-		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+	wndr3700|\
+	wndr3700v2|\
+	wndr3800|\
+	wndr3800ch)
+		ucidef_set_interfaces_lan_wan "eth0.1" "eth1"
 		ucidef_add_switch "switch0" \
-			"0:lan" "1:lan" "2:lan" "3:lan" "5@eth0"
+			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "5@eth0"
 
 		ucidef_add_switch_attr "switch0" "blinkrate" 2
 		ucidef_add_switch_port_attr "switch0" 1 led 6
@@ -435,8 +483,12 @@ ar71xx_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"5:lan" "1:wan" "6@eth0"
 		;;
+	wpj563)
+		ucidef_add_switch "switch0" \
+			"0@eth0" "2:lan" "3:wan"
+		;;
 	wrt160nl)
-		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_set_interfaces_lan_wan "eth0.1" "eth1"
 		ucidef_add_switch "switch0" \
 			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "4@eth0"
 		;;
@@ -445,7 +497,7 @@ ar71xx_setup_interfaces()
 			"0@eth0" "2:lan:1 3:lan:2 4:lan:3 5:lan:4" "1:wan"
 		;;
 	z1)
-		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_set_interfaces_lan_wan "eth0.1" "eth1"
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:lan:1" "2:lan:2" "3:lan:3" "4:lan:4" "5:wan"
 		;;
@@ -473,6 +525,9 @@ ar71xx_setup_macs()
 		lan_mac=$(mtd_get_mac_binary caldata 0)
 		wan_mac=$(mtd_get_mac_binary caldata 6)
 		;;
+	fritz300e)
+		lan_mac=$(fritz_tffs -n maca -i $(find_mtd_part "tffs (1)"))
+		;;
 	tl-wr1043nd-v4)
 		wan_mac=$(mtd_get_mac_binary config 0x1017c)
 		;;
@@ -482,6 +537,9 @@ ar71xx_setup_macs()
 	dir-869-a1|\
 	mynet-n750)
 		wan_mac=$(mtd_get_mac_ascii devdata "wanmac")
+		;;
+	wpj344)
+		wan_mac=$(mtd_get_mac_binary u-boot 0x2e018)
 		;;
 	esac
 

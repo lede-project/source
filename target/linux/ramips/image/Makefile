@@ -22,7 +22,8 @@ define Image/Build/Initramfs
 	$(call Image/Build/Profile/$(PROFILE),initramfs)
 endef
 
-DEVICE_VARS += DTS IMAGE_SIZE
+DEVICE_VARS += DTS IMAGE_SIZE NETGEAR_BOARD_ID NETGEAR_HW_ID
+DEVICE_VARS += BUFFALO_TAG_PLATFORM BUFFALO_TAG_VERSION BUFFALO_TAG_MINOR
 
 loadaddr-y := 0x80000000
 loadaddr-$(CONFIG_TARGET_ramips_rt288x) := 0x88000000
@@ -35,6 +36,7 @@ define Device/Default
   PROFILES = Default $$(DTS)
   KERNEL_DEPENDS = $$(wildcard ../dts/$$(DTS).dts)
   KERNEL := $(KERNEL_DTB) | uImage lzma
+  DEVICE_DTS_DIR := ../dts
   IMAGES := sysupgrade.bin
   IMAGE_SIZE := $(ralink_default_fw_size_8M)
   SUPPORTED_DEVICES = $(1)
@@ -48,7 +50,7 @@ define Build/patch-dtb
 endef
 
 define Build/trx
-	$(STAGING_DIR_HOST)/bin/trx \
+	$(STAGING_DIR_HOST)/bin/trx $(1) \
 		-o $@ \
 		-m $(IMAGE_SIZE) \
 		-f $(IMAGE_KERNEL) \

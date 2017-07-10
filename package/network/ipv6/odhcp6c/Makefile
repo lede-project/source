@@ -8,18 +8,21 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=odhcp6c
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
-PKG_SOURCE_URL:=git://git.lede-project.org/project/odhcp6c.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2017-01-07
-PKG_SOURCE_VERSION:=d420f49396c627ce1072b83170889baf0720bc8b
-PKG_MIRROR_HASH:=a7c599b5600b6cca9aec221dd32fc7754e0e942b0192bd902f1e789f53345127
+PKG_SOURCE_URL=$(LEDE_GIT)/project/odhcp6c.git
+PKG_SOURCE_DATE:=2017-03-22
+PKG_SOURCE_VERSION:=0463b0571af90fbab2bfc75d3338d6bf503dc0fb
+PKG_MIRROR_HASH:=42c500f6d7839fadcc29cd939ebea1b468be69616af160f9a2b82507bcd39520
 PKG_MAINTAINER:=Hans Dedecker <dedeckeh@gmail.com>
 PKG_LICENSE:=GPL-2.0
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
+
+CMAKE_OPTIONS += \
+	-DUSE_LIBUBOX=on
 
 ifneq ($(CONFIG_PACKAGE_odhcp6c_ext_cer_id),0)
   CMAKE_OPTIONS += -DEXT_CER_ID=$(CONFIG_PACKAGE_odhcp6c_ext_cer_id)

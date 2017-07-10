@@ -8,7 +8,6 @@
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
-include $(INCLUDE_DIR)/host.mk
 include $(INCLUDE_DIR)/version.mk
 
 override MAKEFLAGS=
@@ -17,7 +16,8 @@ SDK_NAME:=$(VERSION_DIST_SANITIZED)-sdk-$(if $(CONFIG_VERSION_FILENAMES),$(VERSI
 SDK_BUILD_DIR:=$(BUILD_DIR)/$(SDK_NAME)
 
 STAGING_SUBDIR_HOST := staging_dir/host
-STAGING_SUBDIR_TOOLCHAIN := staging_dir/toolchain-$(ARCH)$(ARCH_SUFFIX)_gcc-$(GCCV)_$(LIBC)-$(LIBCV)$(if $(CONFIG_arm),_eabi)
+STAGING_SUBDIR_TARGET := staging_dir/$(TARGET_DIR_NAME)
+STAGING_SUBDIR_TOOLCHAIN := staging_dir/toolchain-$(ARCH)$(ARCH_SUFFIX)_gcc-$(GCCV)_$(LIBC)$(if $(CONFIG_arm),_eabi)
 
 EXCLUDE_DIRS:=*/ccache/* \
 	*/stamp \
@@ -37,12 +37,14 @@ SDK_DIRS = \
 		$(STAGING_SUBDIR_TOOLCHAIN)
 
 GIT_URL:=$(filter git://% http://% https://%,$(shell git config --get remote.origin.url 2>/dev/null))
-GIT_BRANCH:=$(filter-out master,$(shell git rev-parse --abbrev-ref HEAD 2>/dev/null))
+GIT_COMMIT:=$(shell git rev-parse HEAD 2>/dev/null)
+GIT_BRANCH:=$(filter-out master HEAD,$(shell git rev-parse --abbrev-ref HEAD 2>/dev/null))
+GIT_TAGNAME:=$(shell git show-ref --tags --dereference 2>/dev/null | sed -ne '/^$(GIT_COMMIT) / { s|^.*/||; s|\^.*||; p }')
 
-BASE_FEED:=$(if $(GIT_URL),src-git base $(GIT_URL)$(if $(GIT_BRANCH),;$(GIT_BRANCH)))
+BASE_FEED:=$(if $(GIT_URL),src-git base $(GIT_URL)$(if $(GIT_BRANCH),;$(GIT_BRANCH),$(if $(GIT_TAGNAME),;$(GIT_TAGNAME))))
 BASE_FEED:=$(if $(BASE_FEED),$(BASE_FEED),$(shell cd $(TOPDIR); LC_ALL=C git svn info 2>/dev/null | sed -ne 's/^URL: /src-gitsvn base /p'))
 BASE_FEED:=$(if $(BASE_FEED),$(BASE_FEED),$(shell cd $(TOPDIR); LC_ALL=C svn info 2>/dev/null | sed -ne 's/^URL: /src-svn base /p'))
-BASE_FEED:=$(if $(BASE_FEED),$(BASE_FEED),src-git base https://git.lede-project.org/source.git$(if $(GIT_BRANCH),;$(GIT_BRANCH)))
+BASE_FEED:=$(if $(BASE_FEED),$(BASE_FEED),src-git base https://git.lede-project.org/source.git$(if $(GIT_BRANCH),;$(GIT_BRANCH),$(if $(GIT_TAGNAME),;$(GIT_TAGNAME))))
 
 KDIR_BASE = $(patsubst $(TOPDIR)/%,%,$(LINUX_DIR))
 
@@ -118,6 +120,11 @@ $(BIN_DIR)/$(SDK_NAME).tar.xz: clean
 		$(TOPDIR)/package/kernel/linux \
 		$(SDK_BUILD_DIR)/package/
 
+	-rm -rf \
+		$(SDK_BUILD_DIR)/$(STAGING_SUBDIR_HOST)/ccache \
+		$(SDK_BUILD_DIR)/$(STAGING_SUBDIR_TARGET)/ccache \
+		$(SDK_BUILD_DIR)/$(STAGING_SUBDIR_TOOLCHAIN)/ccache
+
 	-rm -f $(SDK_BUILD_DIR)/feeds.conf.default
 	$(if $(BASE_FEED),echo "$(BASE_FEED)" > $(SDK_BUILD_DIR)/feeds.conf.default)
 	if [ -f $(TOPDIR)/feeds.conf ]; then \
@@ -131,6 +138,7 @@ $(BIN_DIR)/$(SDK_NAME).tar.xz: clean
 	find $(SDK_BUILD_DIR) -name .git | $(XARGS) rm -rf
 	find $(SDK_BUILD_DIR) -name .svn | $(XARGS) rm -rf
 	find $(SDK_BUILD_DIR) -name CVS | $(XARGS) rm -rf
+	-make -C $(SDK_BUILD_DIR)/scripts/config clean
 	(cd $(BUILD_DIR); \
 		tar -I 'xz -7e' -cf $@ $(SDK_NAME); \
 	)

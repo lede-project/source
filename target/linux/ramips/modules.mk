@@ -29,7 +29,7 @@ $(eval $(call KernelPackage,pwm-mediatek))
 define KernelPackage/sdhci-mt7620
   SUBMENU:=Other modules
   TITLE:=MT7620 SDCI
-  DEPENDS:=@(TARGET_ramips_mt7620||TARGET_ramips_mt7628||TARGET_ramips_mt7621||TARGET_ramips_mt7688) +kmod-sdhci
+  DEPENDS:=@(TARGET_ramips_mt7620||TARGET_ramips_mt7628||TARGET_ramips_mt7621||TARGET_ramips_mt7688) +kmod-mmc
   KCONFIG:= \
 	CONFIG_MTK_MMC \
 	CONFIG_MTK_AEE_KDUMP=n \
@@ -120,10 +120,12 @@ define KernelPackage/sound-mt7620
   KCONFIG:= \
 	CONFIG_SND_RALINK_SOC_I2S \
 	CONFIG_SND_SIMPLE_CARD \
+	CONFIG_SND_SIMPLE_CARD_UTILS \
 	CONFIG_SND_SOC_WM8960
   FILES:= \
 	$(LINUX_DIR)/sound/soc/ralink/snd-soc-ralink-i2s.ko \
 	$(LINUX_DIR)/sound/soc/generic/snd-soc-simple-card.ko \
+	$(LINUX_DIR)/sound/soc/generic/snd-soc-simple-card-utils.ko \
 	$(LINUX_DIR)/sound/soc/codecs/snd-soc-wm8960.ko
   AUTOLOAD:=$(call AutoLoad,90,snd-soc-wm8960 snd-soc-ralink-i2s snd-soc-simple-card)
   $(call AddDepends/sound)

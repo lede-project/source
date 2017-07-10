@@ -18,7 +18,7 @@ $(if $(findstring $(space),$(TOPDIR)),$(error ERROR: The path to the LEDE direct
 
 world:
 
-include $(TOPDIR)/include/host.mk
+export PATH:=$(TOPDIR)/staging_dir/host/bin:$(PATH)
 
 ifneq ($(OPENWRT_BUILD),1)
   _SINGLE=export MAKEFLAGS=$(space);
@@ -92,9 +92,10 @@ diffconfig: FORCE
 	$(SCRIPT_DIR)/diffconfig.sh > $(BIN_DIR)/config.seed
 
 prepare: .config $(tools/stamp-compile) $(toolchain/stamp-compile)
+	$(_SINGLE)$(SUBMAKE) -r diffconfig
+
 world: prepare $(target/stamp-compile) $(package/stamp-compile) $(package/stamp-install) $(target/stamp-install) FORCE
 	$(_SINGLE)$(SUBMAKE) -r package/index
-	$(_SINGLE)$(SUBMAKE) -r diffconfig
 	$(_SINGLE)$(SUBMAKE) -r checksum
 
 .PHONY: clean dirclean prereq prepare world package/symlinks package/symlinks-install package/symlinks-clean

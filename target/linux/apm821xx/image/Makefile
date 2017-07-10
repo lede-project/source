@@ -4,7 +4,6 @@
 #
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
-include $(INCLUDE_DIR)/host.mk
 
 DEVICE_VARS += DEVICE_PROFILE IMAGE_SIZE DTB_SIZE
 
@@ -70,7 +69,7 @@ endef
 
 define Device/mr24
   DEVICE_TITLE := Cisco Meraki MR24
-  DEVICE_PACKAGES := kmod-spi-gpio kmod-ath9k wpad-mini
+  DEVICE_PACKAGES := kmod-spi-gpio
   DEVICE_PROFILE := MR24
   DEVICE_DTS := MR24
   BLOCKSIZE := 63k
@@ -89,9 +88,9 @@ endef
 TARGET_DEVICES += mr24
 
 define Device/mx60
-  DEVICE_TITLE := Cisco Meraki MX60
-  DEVICE_PACKAGES := kmod-spi-gpio swconfig kmod-usb-ledtrig-usbport \
-	kmod-usb-dwc2 kmod-usb-storage block-mount
+  DEVICE_TITLE := Cisco Meraki MX60/MX60W
+  DEVICE_PACKAGES := kmod-spi-gpio kmod-usb-ledtrig-usbport kmod-usb-dwc2 \
+  kmod-usb-storage block-mount
   DEVICE_PROFILE := MX60
   DEVICE_DTS := MX60
   BLOCKSIZE := 63k
@@ -113,13 +112,6 @@ define Device/mx60
 endef
 TARGET_DEVICES += mx60
 
-define Device/mx60w
-$(Device/mx60)
-  DEVICE_TITLE := Cisco Meraki MX60W
-  DEVICE_PACKAGES += kmod-ath9k wpad-mini
-endef
-TARGET_DEVICES += mx60w
-
 define Build/create-uImage-dtb
 	# flat_dt target expect FIT image - which WNDR4700's uboot doesn't support
 	-$(STAGING_DIR_HOST)/bin/mkimage -A $(LINUX_KARCH) \
@@ -127,23 +119,6 @@ define Build/create-uImage-dtb
 		-n '$(call toupper,$(LINUX_KARCH)) LEDE Linux-$(LINUX_VERSION)' \
 		-d $(IMAGE_KERNEL).dtb $@.new
 	@mv $@.new $@
-endef
-
-define Build/append-fakerootfs
-	rm -rf $@.fakerootsquashfs $@.fakefs
-
-	# append a fake/empty rootfs to fool netgear's uboot
-	# CHECK_DNI_FIRMWARE_ROOTFS_INTEGRITY in do_chk_dniimg()
-	dd if=/dev/zero of=$@.fakerd bs=16 count=1 conv=sync
-
-	-$(STAGING_DIR_HOST)/bin/mkimage \
-		-A $(LINUX_KARCH) -O linux -T filesystem -C none \
-		-a 0x00000000 -e 0x00000000 \
-		-n '$(DEVICE_PROFILE) fakerootfs' \
-		-d $@.fakerd $@.fakefs
-
-	cat $@.fakefs >> $@
-	rm -rf $@.fakerootsquashfs $@.fakefs
 endef
 
 define Build/wndr4700-specialImage
@@ -178,10 +153,10 @@ endef
 define Device/WNDR4700
   DEVICE_TITLE := Netgear Centria N900 WNDR4700/WNDR4720
   DEVICE_PACKAGES := badblocks block-mount e2fsprogs \
-	kmod-ath9k kmod-dm kmod-fs-ext4 kmod-fs-vfat kmod-usb-ledtrig-usbport \
+	kmod-dm kmod-fs-ext4 kmod-fs-vfat kmod-usb-ledtrig-usbport \
 	kmod-md-mod kmod-nls-cp437 kmod-nls-iso8859-1 kmod-nls-iso8859-15 \
 	kmod-nls-utf8 kmod-usb3 kmod-usb-dwc2 kmod-usb-storage \
-	partx-utils swconfig wpad-mini
+	partx-utils
   DEVICE_NAME := wndr4700
   DEVICE_PROFILE := wndr4700
   DEVICE_DTS := wndr4700
@@ -192,7 +167,8 @@ define Device/WNDR4700
   IMAGE_SIZE := 24960k
   IMAGES := factory.img sysupgrade.tar kernel.dtb
   KERNEL_SIZE := 1920k
-  KERNEL := dtb | kernel-bin | lzma | uImage lzma | pad-offset $$(BLOCKSIZE) 64 | append-fakerootfs
+  KERNEL := dtb | kernel-bin | lzma | uImage lzma | pad-offset $$(BLOCKSIZE) 64 | \
+	  append-uImage-fakeroot-hdr
   KERNEL_INITRAMFS := kernel-bin | gzip | dtb | wndr4700-specialImage gzip
   IMAGE/factory.img := create-uImage-dtb | append-kernel | pad-to 2M | append-ubi | \
 		       netgear-dni | check-size $$$$(IMAGE_SIZE)

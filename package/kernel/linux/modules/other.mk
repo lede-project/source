@@ -30,7 +30,7 @@ $(eval $(call KernelPackage,6lowpan))
 define KernelPackage/bluetooth
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Bluetooth support
-  DEPENDS:=@USB_SUPPORT +kmod-usb-core +kmod-crypto-hash +kmod-crypto-ecb +kmod-lib-crc16 +kmod-hid +!LINUX_3_18:kmod-crypto-cmac +LINUX_4_4:kmod-regmap
+  DEPENDS:=@USB_SUPPORT +kmod-usb-core +kmod-crypto-hash +kmod-crypto-ecb +kmod-lib-crc16 +kmod-hid +!LINUX_3_18:kmod-crypto-cmac +!LINUX_3_18:kmod-regmap
   KCONFIG:= \
 	CONFIG_BLUEZ \
 	CONFIG_BLUEZ_L2CAP \
@@ -125,6 +125,20 @@ endef
 $(eval $(call KernelPackage,dma-buf))
 
 
+define KernelPackage/nvmem
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=Non Volatile Memory support
+  KCONFIG:=CONFIG_NVMEM
+  HIDDEN:=1
+  FILES:=$(LINUX_DIR)/drivers/nvmem/nvmem_core.ko@ge4.9
+endef
+
+define KernelPackage/nvmem/description
+  Support for NVMEM(Non Volatile Memory) devices like EEPROM, EFUSES, etc.
+endef
+
+$(eval $(call KernelPackage,nvmem))
+
 define KernelPackage/eeprom-93cx6
   SUBMENU:=$(OTHER_MENU)
   TITLE:=EEPROM 93CX6 support
@@ -144,7 +158,7 @@ define KernelPackage/eeprom-at24
   SUBMENU:=$(OTHER_MENU)
   TITLE:=EEPROM AT24 support
   KCONFIG:=CONFIG_EEPROM_AT24
-  DEPENDS:=+kmod-i2c-core
+  DEPENDS:=+kmod-i2c-core +kmod-nvmem
   FILES:=$(LINUX_DIR)/drivers/misc/eeprom/at24.ko
   AUTOLOAD:=$(call AutoProbe,at24)
 endef
@@ -160,6 +174,7 @@ define KernelPackage/eeprom-at25
   SUBMENU:=$(OTHER_MENU)
   TITLE:=EEPROM AT25 support
   KCONFIG:=CONFIG_EEPROM_AT25
+  DEPENDS:=+kmod-nvmem
   FILES:=$(LINUX_DIR)/drivers/misc/eeprom/at25.ko
   AUTOLOAD:=$(call AutoProbe,at25)
 endef
@@ -334,6 +349,7 @@ $(eval $(call KernelPackage,lp))
 define KernelPackage/mmc
   SUBMENU:=$(OTHER_MENU)
   TITLE:=MMC/SD Card Support
+  DEPENDS:=@!TARGET_uml
   KCONFIG:= \
 	CONFIG_MMC \
 	CONFIG_MMC_BLOCK \
@@ -469,7 +485,8 @@ $(eval $(call KernelPackage,bcma))
 define KernelPackage/rtc-ds1307
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Dallas/Maxim DS1307 (and compatible) RTC support
-  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
+  DEPENDS:=+kmod-i2c-core
   KCONFIG:=CONFIG_RTC_DRV_DS1307 \
 	CONFIG_RTC_CLASS=y
   FILES:=$(LINUX_DIR)/drivers/rtc/rtc-ds1307.ko
@@ -487,7 +504,8 @@ $(eval $(call KernelPackage,rtc-ds1307))
 define KernelPackage/rtc-ds1374
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Dallas/Maxim DS1374 RTC support
-  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
+  DEPENDS:=+kmod-i2c-core
   KCONFIG:=CONFIG_RTC_DRV_DS1374 \
 	CONFIG_RTC_DRV_DS1374_WDT=n \
 	CONFIG_RTC_CLASS=y
@@ -505,7 +523,8 @@ $(eval $(call KernelPackage,rtc-ds1374))
 define KernelPackage/rtc-ds1672
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Dallas/Maxim DS1672 RTC support
-  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
+  DEPENDS:=+kmod-i2c-core
   KCONFIG:=CONFIG_RTC_DRV_DS1672 \
 	CONFIG_RTC_CLASS=y
   FILES:=$(LINUX_DIR)/drivers/rtc/rtc-ds1672.ko
@@ -522,7 +541,8 @@ $(eval $(call KernelPackage,rtc-ds1672))
 define KernelPackage/rtc-isl1208
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Intersil ISL1208 RTC support
-  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
+  DEPENDS:=+kmod-i2c-core
   KCONFIG:=CONFIG_RTC_DRV_ISL1208 \
 	CONFIG_RTC_CLASS=y
   FILES:=$(LINUX_DIR)/drivers/rtc/rtc-isl1208.ko
@@ -539,7 +559,8 @@ $(eval $(call KernelPackage,rtc-isl1208))
 define KernelPackage/rtc-pcf8563
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Philips PCF8563/Epson RTC8564 RTC support
-  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
+  DEPENDS:=+kmod-i2c-core
   KCONFIG:=CONFIG_RTC_DRV_PCF8563 \
 	CONFIG_RTC_CLASS=y
   FILES:=$(LINUX_DIR)/drivers/rtc/rtc-pcf8563.ko
@@ -557,7 +578,7 @@ $(eval $(call KernelPackage,rtc-pcf8563))
 define KernelPackage/rtc-pcf2123
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Philips PCF2123 RTC support
-  DEPENDS:=@RTC_SUPPORT
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
   KCONFIG:=CONFIG_RTC_DRV_PCF2123 \
 	CONFIG_RTC_CLASS=y
   FILES:=$(LINUX_DIR)/drivers/rtc/rtc-pcf2123.ko
@@ -573,7 +594,8 @@ $(eval $(call KernelPackage,rtc-pcf2123))
 define KernelPackage/rtc-pt7c4338
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Pericom PT7C4338 RTC support
-  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
+  DEPENDS:=+kmod-i2c-core
   KCONFIG:=CONFIG_RTC_DRV_PT7C4338 \
 	CONFIG_RTC_CLASS=y
   FILES:=$(LINUX_DIR)/drivers/rtc/rtc-pt7c4338.ko
@@ -589,7 +611,8 @@ $(eval $(call KernelPackage,rtc-pt7c4338))
 define KernelPackage/rtc-rs5c372a
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Ricoh R2025S/D, RS5C372A/B, RV5C386, RV5C387A
-  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
+  DEPENDS:=+kmod-i2c-core
   KCONFIG:=CONFIG_RTC_DRV_RS5C372 \
 	CONFIG_RTC_CLASS=y
   FILES:=$(LINUX_DIR)/drivers/rtc/rtc-rs5c372.ko
@@ -629,16 +652,19 @@ define KernelPackage/serial-8250
   SUBMENU:=$(OTHER_MENU)
   TITLE:=8250 UARTs
   KCONFIG:= CONFIG_SERIAL_8250 \
+	CONFIG_SERIAL_8250_PCI \
 	CONFIG_SERIAL_8250_NR_UARTS=16 \
-  	CONFIG_SERIAL_8250_RUNTIME_UARTS=16 \
-  	CONFIG_SERIAL_8250_EXTENDED=y \
-  	CONFIG_SERIAL_8250_MANY_PORTS=y \
+	CONFIG_SERIAL_8250_RUNTIME_UARTS=16 \
+	CONFIG_SERIAL_8250_EXTENDED=y \
+	CONFIG_SERIAL_8250_MANY_PORTS=y \
 	CONFIG_SERIAL_8250_SHARE_IRQ=y \
 	CONFIG_SERIAL_8250_DETECT_IRQ=n \
 	CONFIG_SERIAL_8250_RSA=n
   FILES:= \
 	$(LINUX_DIR)/drivers/tty/serial/8250/8250.ko \
-	$(LINUX_DIR)/drivers/tty/serial/8250/8250_base.ko@ge4.4
+	$(LINUX_DIR)/drivers/tty/serial/8250/8250_base.ko@ge4.4 \
+	$(if $(CONFIG_PCI),$(LINUX_DIR)/drivers/tty/serial/8250/8250_pci.ko@ge4.4)
+  AUTOLOAD:=$(call AutoProbe,8250 8250_base 8250_pci)
 endef
 
 define KernelPackage/serial-8250/description
@@ -939,3 +965,82 @@ define KernelPackage/bmp085-spi/description
 endef
 
 $(eval $(call KernelPackage,bmp085-spi))
+
+define KernelPackage/tpm
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=TPM Hardware Support
+  KCONFIG:= CONFIG_TCG_TPM
+  FILES:= $(LINUX_DIR)/drivers/char/tpm/tpm.ko
+  AUTOLOAD:=$(call AutoLoad,10,tpm,1)
+endef
+
+define KernelPackage/tpm/description
+	This enables TPM Hardware Support.
+endef
+
+$(eval $(call KernelPackage,tpm))
+
+define KernelPackage/tpm-tis
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=TPM TIS 1.2 Interface / TPM 2.0 FIFO Interface
+	DEPENDS:= @TARGET_x86 +kmod-tpm
+  KCONFIG:= CONFIG_TCG_TIS
+  FILES:= \
+	$(LINUX_DIR)/drivers/char/tpm/tpm_tis.ko \
+	$(LINUX_DIR)/drivers/char/tpm/tpm_tis_core.ko
+  AUTOLOAD:=$(call AutoLoad,20,tpm_tis,1)
+endef
+
+define KernelPackage/tpm-tis/description
+	If you have a TPM security chip that is compliant with the
+	TCG TIS 1.2 TPM specification (TPM1.2) or the TCG PTP FIFO
+	specification (TPM2.0) say Yes and it will be accessible from
+	within Linux.
+endef
+
+$(eval $(call KernelPackage,tpm-tis))
+
+define KernelPackage/tpm-i2c-atmel
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=TPM I2C Atmel Support
+  DEPENDS:= +kmod-tpm +kmod-i2c-core
+  KCONFIG:= CONFIG_TCG_TIS_I2C_ATMEL
+  FILES:= $(LINUX_DIR)/drivers/char/tpm/tpm_i2c_atmel.ko
+  AUTOLOAD:=$(call AutoLoad,40,tpm_i2c_atmel,1)
+endef
+
+define KernelPackage/tpm-i2c-atmel/description
+	This enables the TPM Interface Specification 1.2 Interface (I2C - Atmel)
+endef
+
+$(eval $(call KernelPackage,tpm-i2c-atmel))
+
+define KernelPackage/tpm-i2c-infineon
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:= TPM I2C Infineon driver
+  DEPENDS:= +kmod-tpm +kmod-i2c-core
+  KCONFIG:= CONFIG_TCG_TIS_I2C_INFINEON
+  FILES:= $(LINUX_DIR)/drivers/char/tpm/tpm_i2c_infineon.ko
+  AUTOLOAD:= $(call AutoLoad,40,tpm_i2c_infineon,1)
+endef
+
+define KernelPackage/tpm-i2c-infineon/description
+	This enables the TPM Interface Specification 1.2 Interface (I2C - Infineon)
+endef
+
+$(eval $(call KernelPackage,tpm-i2c-infineon))
+
+
+define KernelPackage/w83627hf-wdt
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=Winbond 83627HF Watchdog Timer
+  KCONFIG:=CONFIG_W83627HF_WDT
+  FILES:=$(LINUX_DIR)/drivers/$(WATCHDOG_DIR)/w83627hf_wdt.ko
+  AUTOLOAD:=$(call AutoLoad,50,w83627hf-wdt,1)
+endef
+
+define KernelPackage/w83627hf-wdt/description
+  Kernel module for Winbond 83627HF Watchdog Timer
+endef
+
+$(eval $(call KernelPackage,w83627hf-wdt))

@@ -94,10 +94,6 @@
 	status = "okay";
 };
 
-&wmac {
-	status = "okay";
-};
-
 &spi0 {
 	status = "okay";
 
@@ -153,10 +149,6 @@
 };
 
 &uart2 {
-	status = "okay";
-};
-
-&pwm {
 	status = "okay";
 };
 

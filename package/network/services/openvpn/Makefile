@@ -9,14 +9,18 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openvpn
 
-PKG_VERSION:=2.4.0
+PKG_VERSION:=2.4.3
 PKG_RELEASE:=1
 
-PKG_SOURCE_URL:=http://swupdate.openvpn.net/community/releases
+PKG_SOURCE_URL:=\
+	https://build.openvpn.net/downloads/releases/ \
+	https://swupdate.openvpn.net/community/releases/ \
+	http://www.eurephia.net/openvpn/
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_HASH:=6f23ba49a1dbeb658f49c7ae17d9ea979de6d92c7357de3d55cd4525e1b2f87e
+PKG_HASH:=7aa86167a5b8923e54e8795b814ed77288c793671f59fd830d9ab76d4b480571
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
 PKG_INSTALL:=1
 PKG_FIXUP:=autoreconf
@@ -34,7 +38,11 @@ define Package/openvpn/Default
   MENU:=1
   DEPENDS:=+kmod-tun +OPENVPN_$(1)_ENABLE_LZO:liblzo +OPENVPN_$(1)_ENABLE_IPROUTE2:ip $(3)
   VARIANT:=$(1)
-  MAINTAINER:=Mirko Vogt <mirko@openwrt.org>
+ifeq ($(1),nossl)
+  PROVIDES:=openvpn
+else
+  PROVIDES:=openvpn openvpn-crypto
+endif
 endef
 
 Package/openvpn-openssl=$(call Package/openvpn/Default,openssl,OpenSSL,+PACKAGE_openvpn-openssl:libopenssl)
@@ -101,6 +109,7 @@ endef
 define Package/openvpn-$(BUILD_VARIANT)/install
 	$(INSTALL_DIR) \
 		$(1)/usr/sbin \
+		$(1)/usr/share/openvpn \
 		$(1)/etc/init.d \
 		$(1)/etc/config \
 		$(1)/etc/openvpn \
@@ -113,6 +122,9 @@ define Package/openvpn-$(BUILD_VARIANT)/install
 	$(INSTALL_BIN) \
 		files/openvpn.init \
 		$(1)/etc/init.d/openvpn
+	$(INSTALL_DATA) \
+		files/openvpn.options \
+		$(1)/usr/share/openvpn/openvpn.options
 
 	$(INSTALL_CONF) files/openvpn.config \
 		$(1)/etc/config/openvpn

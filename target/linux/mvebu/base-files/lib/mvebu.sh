@@ -53,8 +53,11 @@ mvebu_board_detect() {
 	*"Marvell Armada XP Development Board DB-MV784MP-GP")
 		name="armada-xp-gp"
 		;;
-	*"SolidRun Clearfog A1")
-		name="armada-388-clearfog"
+	*"SolidRun Clearfog Pro A1")
+		name="armada-388-clearfog-pro"
+		;;
+	*"SolidRun Clearfog Base A1")
+		name="armada-388-clearfog-base"
 		;;
 	esac
 

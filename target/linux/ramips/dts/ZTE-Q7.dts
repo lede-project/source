@@ -52,7 +52,6 @@
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		linux,modalias = "m25p80", "en25q64";
 		spi-max-frequency = <10000000>;
 
 		partition@0 {
@@ -90,8 +89,6 @@
 };
 
 &ethernet {
-	pinctrl-names = "default";
-	pinctrl-0 = <&ephy_pins>;
 	mtd-mac-address = <&factory 0x4>;
 	mediatek,portmap = "wllll";
 };
@@ -110,4 +107,8 @@
 
 &ohci {
 	status = "okay";
+};
+
+&gsw {
+	mediatek,port4 = "ephy";
 };
