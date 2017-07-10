@@ -65,7 +65,7 @@ $(Device/tplink)
   KERNEL_INITRAMFS := copy-file $(KDIR)/vmlinux-initramfs.bin.lzma | loader-kernel-cmdline | mktplinkfw-combined
 endef
 
-define Device/tplink-8m
+define Device/tplink-4m
 $(Device/tplink-nolzma)
   TPLINK_FLASHLAYOUT := 4M
   IMAGE_SIZE := 3904k
@@ -77,7 +77,7 @@ $(Device/tplink-nolzma)
   IMAGE_SIZE := 7936k
 endef
 
-define Device/tplink-8mlzma
+define Device/tplink-4mlzma
 $(Device/tplink)
   TPLINK_FLASHLAYOUT := 4Mlzma
   IMAGE_SIZE := 3904k
@@ -234,7 +234,7 @@ endef
 TARGET_DEVICES += tl-wdr6500-v2
 
 define Device/tl-wdr3320-v2
-$(Device/tplink-8mlzma)
+$(Device/tplink-4mlzma)
   DEVICE_TITLE := TP-LINK TL-WDR3320v2
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
   BOARDNAME = TL-WDR3320-v2
@@ -295,7 +295,7 @@ endef
 TARGET_DEVICES += archer-c5-v1 archer-c7-v1 archer-c7-v2 archer-c7-v2-il tl-wdr7500-v3
 
 define Device/tl-mr10u-v1
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR10U
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2
     BOARDNAME := TL-MR10U
@@ -305,7 +305,7 @@ define Device/tl-mr10u-v1
 endef
 
 define Device/tl-mr11u-v1
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR11U
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR11U
@@ -315,7 +315,7 @@ define Device/tl-mr11u-v1
 endef
 
 define Device/tl-mr11u-v2
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR11U v2
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR11U
@@ -325,7 +325,7 @@ define Device/tl-mr11u-v2
 endef
 
 define Device/tl-mr12u-v1
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR12U
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR13U
@@ -335,7 +335,7 @@ define Device/tl-mr12u-v1
 endef
 
 define Device/tl-mr13u-v1
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR13U
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR13U
@@ -346,7 +346,7 @@ endef
 TARGET_DEVICES += tl-mr10u-v1 tl-mr11u-v1 tl-mr11u-v2 tl-mr12u-v1 tl-mr13u-v1
 
 define Device/tl-mr3020-v1
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR3020
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3020
@@ -356,7 +356,7 @@ define Device/tl-mr3020-v1
 endef
 
 define Device/tl-mr3040-v1
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR3040
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3040
@@ -366,7 +366,7 @@ define Device/tl-mr3040-v1
 endef
 
 define Device/tl-mr3040-v2
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR3040
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3040-v2
@@ -376,7 +376,7 @@ define Device/tl-mr3040-v2
 endef
 
 define Device/tl-mr3220-v1
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-MR3220
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3220
@@ -385,7 +385,7 @@ define Device/tl-mr3220-v1
 endef
 
 define Device/tl-mr3220-v2
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR3220 v2
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3220-v2
@@ -395,7 +395,7 @@ define Device/tl-mr3220-v2
 endef
 
 define Device/tl-mr3420-v1
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-MR3420
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3420
@@ -404,7 +404,7 @@ define Device/tl-mr3420-v1
 endef
 
 define Device/tl-mr3420-v2
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-MR3420 v2
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
     BOARDNAME := TL-MR3420-v2
@@ -424,7 +424,7 @@ endef
 TARGET_DEVICES += tl-wpa8630
 
 define Device/tl-wr703n-v1
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR703N
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2
     BOARDNAME := TL-WR703N
@@ -444,7 +444,7 @@ define Device/tl-wr710n-v1
 endef
 
 define Device/tl-wr710n-v2
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR710N v2
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2
     BOARDNAME := TL-WR710N v2
@@ -465,7 +465,7 @@ define Device/tl-wr710n-v2.1
 endef
 
 define Device/tl-wr720n-v3
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR720N v3
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2
     BOARDNAME := TL-WR720N-v3
@@ -475,7 +475,7 @@ define Device/tl-wr720n-v3
 endef
 
 define Device/tl-wr720n-v4
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR720N v4
     DEVICE_PACKAGES := kmod-usb-core kmod-usb2
     BOARDNAME := TL-WR720N-v3
@@ -486,7 +486,7 @@ endef
 TARGET_DEVICES += tl-wr703n-v1 tl-wr710n-v1 tl-wr710n-v2 tl-wr710n-v2.1 tl-wr720n-v3 tl-wr720n-v4
 
 define Device/tl-wr740n-v1
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR740N/ND v1
     BOARDNAME := TL-WR741ND
     DEVICE_PROFILE := TLWR740
@@ -494,7 +494,7 @@ define Device/tl-wr740n-v1
 endef
 
 define Device/tl-wr740n-v3
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR740N/ND v3
     BOARDNAME := TL-WR741ND
     DEVICE_PROFILE := TLWR740
@@ -502,7 +502,7 @@ define Device/tl-wr740n-v3
 endef
 
 define Device/tl-wr740n-v4
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR740N/ND v4
     BOARDNAME := TL-WR741ND-v4
     DEVICE_PROFILE := TLWR740
@@ -511,7 +511,7 @@ define Device/tl-wr740n-v4
 endef
 
 define Device/tl-wr740n-v5
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR740N/ND v5
     BOARDNAME := TL-WR741ND-v4
     DEVICE_PROFILE := TLWR740
@@ -520,7 +520,7 @@ define Device/tl-wr740n-v5
 endef
 
 define Device/tl-wr740n-v6
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR740N/ND v6
     BOARDNAME := TL-WR841N-v9
     DEVICE_PROFILE := TLWR740
@@ -528,7 +528,7 @@ define Device/tl-wr740n-v6
 endef
 
 define Device/tl-wr741nd-v1
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR741N/ND v1
     BOARDNAME := TL-WR741ND
     DEVICE_PROFILE := TLWR741
@@ -536,7 +536,7 @@ define Device/tl-wr741nd-v1
 endef
 
 define Device/tl-wr741nd-v2
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR741N/ND v2
     BOARDNAME := TL-WR741ND
     DEVICE_PROFILE := TLWR741
@@ -544,7 +544,7 @@ define Device/tl-wr741nd-v2
 endef
 
 define Device/tl-wr741nd-v4
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR741N/ND v4
     BOARDNAME := TL-WR741ND-v4
     DEVICE_PROFILE := TLWR741
@@ -553,7 +553,7 @@ define Device/tl-wr741nd-v4
 endef
 
 define Device/tl-wr741nd-v5
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR741N/ND v5
     BOARDNAME := TL-WR741ND-v4
     DEVICE_PROFILE := TLWR741
@@ -572,7 +572,7 @@ endef
 TARGET_DEVICES += tl-wr810n
 
 define Device/tl-wr743nd-v1
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR743N/ND v1
     BOARDNAME := TL-WR741ND
     DEVICE_PROFILE := TLWR743
@@ -580,7 +580,7 @@ define Device/tl-wr743nd-v1
 endef
 
 define Device/tl-wr743nd-v2
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR743N/ND v2
     BOARDNAME := TL-WR741ND-v4
     DEVICE_PROFILE := TLWR743
@@ -600,7 +600,7 @@ endef
 TARGET_DEVICES += tl-wr802n-v1
 
 define Device/tl-wr841-v1.5
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR841N/ND v1.5
     BOARDNAME := TL-WR841N-v1.5
     DEVICE_PROFILE := TLWR841
@@ -609,7 +609,7 @@ define Device/tl-wr841-v1.5
 endef
 
 define Device/tl-wr841-v3
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR841N/ND v3
     BOARDNAME := TL-WR941ND
     DEVICE_PROFILE := TLWR841
@@ -618,7 +618,7 @@ define Device/tl-wr841-v3
 endef
 
 define Device/tl-wr841-v5
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR841N/ND v5
     BOARDNAME := TL-WR741ND
     DEVICE_PROFILE := TLWR841
@@ -626,7 +626,7 @@ define Device/tl-wr841-v5
 endef
 
 define Device/tl-wr841-v7
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR841N/ND v7
     BOARDNAME := TL-WR841N-v7
     DEVICE_PROFILE := TLWR841
@@ -634,7 +634,7 @@ define Device/tl-wr841-v7
 endef
 
 define Device/tl-wr841-v8
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR841N/ND v8
     BOARDNAME := TL-WR841N-v8
     DEVICE_PROFILE := TLWR841
@@ -642,7 +642,7 @@ define Device/tl-wr841-v8
 endef
 
 define Device/tl-wr841-v9
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR841N/ND v9
     BOARDNAME := TL-WR841N-v9
     DEVICE_PROFILE := TLWR841
@@ -650,7 +650,7 @@ define Device/tl-wr841-v9
 endef
 
 define Device/tl-wr841-v10
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR841N/ND v10
     BOARDNAME := TL-WR841N-v9
     DEVICE_PROFILE := TLWR841
@@ -658,7 +658,7 @@ define Device/tl-wr841-v10
 endef
 
 define Device/tl-wr841-v11
-   $(Device/tplink-8mlzma)
+   $(Device/tplink-4mlzma)
    DEVICE_TITLE := TP-LINK TL-WR841N/ND v11
    BOARDNAME := TL-WR841N-v11
    DEVICE_PROFILE := TLWR841
@@ -696,7 +696,7 @@ define Device/tl-wr842n-v3
 endef
 
 define Device/tl-wr843nd-v1
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR843N/ND
     BOARDNAME := TL-WR841N-v8
     DEVICE_PROFILE := TLWR843
@@ -704,7 +704,7 @@ define Device/tl-wr843nd-v1
 endef
 
 define Device/tl-wr847n-v8
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR847N/ND v8
     BOARDNAME := TL-WR841N-v8
     DEVICE_PROFILE := TLWR841
@@ -712,17 +712,8 @@ define Device/tl-wr847n-v8
 endef
 TARGET_DEVICES += tl-wr841-v1.5 tl-wr841-v3 tl-wr841-v5 tl-wr841-v7 tl-wr841-v8 tl-wr841-v9 tl-wr841-v10 tl-wr841-v11 tl-wr842n-v1 tl-wr842n-v2 tl-wr842n-v3 tl-wr843nd-v1 tl-wr847n-v8
 
-define Device/tl-wr882n-v1
-   $(Device/tplink-8mlzma)
-   DEVICE_TITLE := TP-LINK TL-WR882N v1
-   BOARDNAME := TL-WR882N-v1
-   DEVICE_PROFILE := TLWR882
-   TPLINK_HWID := 0x08820001
-endef
-TARGET_DEVICES += tl-wr882n-v1
-
 define Device/tl-wr941nd-v2
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR941N/ND v2
     BOARDNAME := TL-WR941ND
     DEVICE_PROFILE := TLWR941
@@ -731,7 +722,7 @@ define Device/tl-wr941nd-v2
 endef
 
 define Device/tl-wr941nd-v3
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR941N/ND v3
     BOARDNAME := TL-WR941ND
     DEVICE_PROFILE := TLWR941
@@ -740,7 +731,7 @@ define Device/tl-wr941nd-v3
 endef
 
 define Device/tl-wr941nd-v4
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR941N/ND v4
     BOARDNAME := TL-WR741ND
     DEVICE_PROFILE := TLWR941
@@ -748,7 +739,7 @@ define Device/tl-wr941nd-v4
 endef
 
 define Device/tl-wr941nd-v5
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR941N/ND v5
     BOARDNAME := TL-WR941ND-v5
     DEVICE_PROFILE := TLWR941
@@ -756,7 +747,7 @@ define Device/tl-wr941nd-v5
 endef
 
 define Device/tl-wr941nd-v6
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR941N/ND v6
     BOARDNAME := TL-WR941ND-v6
     DEVICE_PROFILE := TLWR941
@@ -776,7 +767,7 @@ endef
 
 # Chinese version (unlike European) is similar to the TL-WDR3500
 define Device/tl-wr941nd-v6-cn
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR941N/ND v6 (CN)
     BOARDNAME := TL-WDR3500
     DEVICE_PROFILE := TLWR941
@@ -785,7 +776,7 @@ endef
 TARGET_DEVICES += tl-wr941nd-v2 tl-wr941nd-v3 tl-wr941nd-v4 tl-wr941nd-v5 tl-wr941nd-v6 tl-wr941nd-v6-cn tl-wr940n-v4
 
 define Device/tl-wr1041n-v2
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WR1041N
     BOARDNAME := TL-WR1041N-v2
     DEVICE_PROFILE := TLWR1041
@@ -861,7 +852,7 @@ endef
 TARGET_DEVICES += tl-wdr4900-v2
 
 define Device/tl-wa701nd-v1
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WA701N/ND v1
     BOARDNAME := TL-WA901ND
     DEVICE_PROFILE := TLWA701
@@ -869,7 +860,7 @@ define Device/tl-wa701nd-v1
 endef
 
 define Device/tl-wa701nd-v2
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WA701N/ND v2
     BOARDNAME := TL-WA701ND-v2
     DEVICE_PROFILE := TLWA701
@@ -878,7 +869,7 @@ define Device/tl-wa701nd-v2
 endef
 
 define Device/tl-wa730re-v1
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WA730RE
     BOARDNAME := TL-WA901ND
     DEVICE_PROFILE := TLWA730RE
@@ -886,7 +877,7 @@ define Device/tl-wa730re-v1
 endef
 
 define Device/tl-wa750re-v1
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WA750RE
     DEVICE_PACKAGES := rssileds
     BOARDNAME := TL-WA750RE
@@ -895,7 +886,7 @@ define Device/tl-wa750re-v1
 endef
 
 define Device/tl-wa7510n
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WA7510N
     BOARDNAME := TL-WA7510N
     DEVICE_PROFILE := TLWA7510
@@ -904,7 +895,7 @@ endef
 TARGET_DEVICES += tl-wa701nd-v1 tl-wa701nd-v2 tl-wa730re-v1 tl-wa750re-v1 tl-wa7510n
 
 define Device/tl-wa801nd-v1
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WA801N/ND v1
     BOARDNAME := TL-WA901ND
     DEVICE_PROFILE := TLWA801
@@ -912,7 +903,7 @@ define Device/tl-wa801nd-v1
 endef
 
 define Device/tl-wa801nd-v2
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WA801N/ND v2
     BOARDNAME := TL-WA801ND-v2
     DEVICE_PROFILE := TLWA801
@@ -920,7 +911,7 @@ define Device/tl-wa801nd-v2
 endef
 
 define Device/tl-wa801nd-v3
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WA801N/ND v3
     BOARDNAME := TL-WA801ND-v3
     DEVICE_PROFILE := TLWA801
@@ -928,7 +919,7 @@ define Device/tl-wa801nd-v3
 endef
 
 define Device/tl-wa830re-v1
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WA830RE
     BOARDNAME := TL-WA901ND
     DEVICE_PROFILE := TLWA830
@@ -936,7 +927,7 @@ define Device/tl-wa830re-v1
 endef
 
 define Device/tl-wa830re-v2
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WA830RE
     BOARDNAME := TL-WA830RE-v2
     DEVICE_PROFILE := TLWA830
@@ -944,7 +935,7 @@ define Device/tl-wa830re-v2
 endef
 
 define Device/tl-wa850re-v1
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WA850RE
     BOARDNAME := TL-WA850RE
     DEVICE_PROFILE := TLWA850
@@ -952,7 +943,7 @@ define Device/tl-wa850re-v1
 endef
 
 define Device/tl-wa860re-v1
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WA860RE
     BOARDNAME := TL-WA860RE
     DEVICE_PROFILE := TLWA860
@@ -961,7 +952,7 @@ endef
 TARGET_DEVICES += tl-wa801nd-v1 tl-wa801nd-v2 tl-wa801nd-v3 tl-wa830re-v1 tl-wa830re-v2 tl-wa850re-v1 tl-wa860re-v1
 
 define Device/tl-wa901nd-v1
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WA901N/ND v1
     BOARDNAME := TL-WA901ND
     DEVICE_PROFILE := TLWA901
@@ -969,7 +960,7 @@ define Device/tl-wa901nd-v1
 endef
 
 define Device/tl-wa901nd-v2
-    $(Device/tplink-8m)
+    $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WA901N/ND v2
     BOARDNAME := TL-WA901ND-v2
     DEVICE_PROFILE := TLWA901
@@ -977,7 +968,7 @@ define Device/tl-wa901nd-v2
 endef
 
 define Device/tl-wa901nd-v3
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WA901N/ND v3
     BOARDNAME := TL-WA901ND-v3
     DEVICE_PROFILE := TLWA901
@@ -985,7 +976,7 @@ define Device/tl-wa901nd-v3
 endef
 
 define Device/tl-wa901nd-v4
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WA901N/ND v4
     BOARDNAME := TL-WA901ND-v4
     DEVICE_PROFILE := TLWA901
@@ -996,7 +987,7 @@ endef
 TARGET_DEVICES += tl-wa901nd-v1 tl-wa901nd-v2 tl-wa901nd-v3 tl-wa901nd-v4
 
 define Device/tl-wa7210n-v2
-    $(Device/tplink-8mlzma)
+    $(Device/tplink-4mlzma)
     DEVICE_TITLE := TP-LINK TL-WA7210N
     DEVICE_PACKAGES := rssileds kmod-ledtrig-netdev
     BOARDNAME := TL-WA7210N-v2
@@ -1005,28 +996,3 @@ define Device/tl-wa7210n-v2
     CONSOLE := ttyATH0,115200
 endef
 TARGET_DEVICES += tl-wa7210n-v2
-
-define Device/tl-wr740n-v5-cn
-    $(Device/tplink-8mlzma)
-    BOARDNAME := TL-WR740N-v5
-    DEVICE_PROFILE := TLWR740
-    TPLINK_HWID := 0x07400005
-    CONSOLE := ttyATH0,115200
-endef
-
-define Device/tl-wr741n-v4-cn
-    $(Device/tplink-8mlzma)
-    BOARDNAME := TL-WR740N-v5
-    DEVICE_PROFILE := TLWR741
-    TPLINK_HWID := 0x07410004
-    CONSOLE := ttyATH0,115200
-endef
-
-define Device/tl-wr742n-v5
-    $(Device/tplink-8mlzma)
-    BOARDNAME := TL-WR742N-v5
-    DEVICE_PROFILE := TLWR742
-    TPLINK_HWID := 0x07420005
-    CONSOLE := ttyATH0,115200
-endef
-TARGET_DEVICES += tl-wr740n-v5-cn tl-wr741n-v4-cn tl-wr742n-v5
