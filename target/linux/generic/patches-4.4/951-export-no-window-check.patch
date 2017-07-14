@@ -1,0 +1,37 @@
+From 0a981d12fc2bfe71d19caf2ddb462c714a0d2e43 Mon Sep 17 00:00:00 2001
+From: "Pamidipati, Vijay" <vpamidip@codeaurora.org>
+Date: Mon, 29 Jul 2013 13:53:08 +0530
+Subject: msm: ipq806x: exporting TCP sequence check parameters
+
+This is for use in NSS connection manager.
+
+Change-Id: I01d30c0ab552308c439353c0d51d3d0ab3aa7699
+Signed-off-by: Pamidipati, Vijay <vpamidip@codeaurora.org>
+Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
+---
+ net/netfilter/nf_conntrack_proto_tcp.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index fecd4ea..6d67bd1 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -34,12 +34,14 @@
+ #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
+ 
+ /* Do not check the TCP window for incoming packets  */
+-static int nf_ct_tcp_no_window_check __read_mostly = 1;
++int nf_ct_tcp_no_window_check __read_mostly = 0;
++EXPORT_SYMBOL_GPL(nf_ct_tcp_no_window_check);
+ 
+ /* "Be conservative in what you do,
+     be liberal in what you accept from others."
+     If it's non-zero, we mark only out of window RST segments as INVALID. */
+-static int nf_ct_tcp_be_liberal __read_mostly = 0;
++int nf_ct_tcp_be_liberal __read_mostly;
++EXPORT_SYMBOL_GPL(nf_ct_tcp_be_liberal);
+ 
+ /* If it is set to zero, we disable picking up already established
+    connections. */
+-- 
+cgit v1.1

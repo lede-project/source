@@ -1,0 +1,98 @@
+From bdc736771f902b1ee4b2d6b1f970a56fc463e2f3 Mon Sep 17 00:00:00 2001
+From: Pavel Kubelun <be.dissent@gmail.com>
+Date: Wed, 12 Jul 2017 17:48:44 +0300
+Subject: [PATCH] patch kernel to support sfe
+
+---
+ include/linux/skbuff.h                 |  1 +
+ net/core/dev.c                         | 19 +++++++++++++++++--
+ net/netfilter/nf_conntrack_proto_tcp.c |  6 ++++--
+ 3 files changed, 22 insertions(+), 4 deletions(-)
+
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index 9a0c945..c7a9742 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -738,6 +738,7 @@ struct sk_buff {
+ #endif
+ 	__u8			ipvs_property:1;
+ 	__u8			inner_protocol_type:1;
++	__u8			fast_forwarded:1;
+ 	__u8			remcsum_offload:1;
+ #ifdef CONFIG_NET_SWITCHDEV
+ 	__u8			offload_fwd_mark:1;
+diff --git a/net/core/dev.c b/net/core/dev.c
+index ca39cd2..3160f38 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -2929,8 +2929,13 @@ static int xmit_one(struct sk_buff *skb, struct net_device *dev,
+ 	unsigned int len;
+ 	int rc;
+ 
+-	if (!list_empty(&ptype_all) || !list_empty(&dev->ptype_all))
+-		dev_queue_xmit_nit(skb, dev);
++	/* If this skb has been fast forwarded then we don't want it to
++	 * go to any taps (by definition we're trying to bypass them).
++	 */
++	if (unlikely(!skb->fast_forwarded)) {
++		if (!list_empty(&ptype_all) || !list_empty(&dev->ptype_all))
++			dev_queue_xmit_nit(skb, dev);
++	}
+ 
+ #ifdef CONFIG_ETHERNET_PACKET_MANGLE
+ 	if (!dev->eth_mangle_tx ||
+@@ -4061,6 +4066,9 @@ void netdev_rx_handler_unregister(struct net_device *dev)
+ }
+ EXPORT_SYMBOL_GPL(netdev_rx_handler_unregister);
+ 
++int (*fast_nat_recv)(struct sk_buff *skb) __rcu __read_mostly;
++EXPORT_SYMBOL_GPL(fast_nat_recv);
++
+ /*
+  * Limit the use of PFMEMALLOC reserves to those protocols that implement
+  * the special handling of PFMEMALLOC skbs.
+@@ -4108,6 +4116,7 @@ static int __netif_receive_skb_core(struct sk_buff *skb, bool pfmemalloc)
+ 	bool deliver_exact = false;
+ 	int ret = NET_RX_DROP;
+ 	__be16 type;
++	int (*fast_recv)(struct sk_buff *skb);
+ 
+ 	net_timestamp_check(!netdev_tstamp_prequeue, skb);
+ 
+@@ -4133,6 +4142,12 @@ another_round:
+ 		if (unlikely(!skb))
+ 			goto out;
+ 	}
++	
++	fast_recv = rcu_dereference(fast_nat_recv);
++	if (fast_recv && fast_recv(skb)) {
++		ret = NET_RX_SUCCESS;
++		goto out;
++	}
+ 
+ #ifdef CONFIG_NET_CLS_ACT
+ 	if (skb->tc_verd & TC_NCLS) {
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index f24b626..e404947 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -34,12 +34,14 @@
+ #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
+ 
+ /* Do not check the TCP window for incoming packets  */
+-static int nf_ct_tcp_no_window_check __read_mostly = 1;
++int nf_ct_tcp_no_window_check __read_mostly = 0;
++EXPORT_SYMBOL_GPL(nf_ct_tcp_no_window_check);
+ 
+ /* "Be conservative in what you do,
+     be liberal in what you accept from others."
+     If it's non-zero, we mark only out of window RST segments as INVALID. */
+-static int nf_ct_tcp_be_liberal __read_mostly = 0;
++int nf_ct_tcp_be_liberal __read_mostly = 0;
++EXPORT_SYMBOL_GPL(nf_ct_tcp_be_liberal);
+ 
+ /* If it is set to zero, we disable picking up already established
+    connections. */
+--
+Working Copy 3.0.3
+

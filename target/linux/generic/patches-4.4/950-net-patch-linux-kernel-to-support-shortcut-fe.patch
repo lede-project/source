@@ -1,0 +1,85 @@
+From bc967779e3f6cf49bef2fc6b79c9dfdf9fa8389a Mon Sep 17 00:00:00 2001
+From: Xiaoping Fan <xfan@codeaurora.org>
+Date: Fri, 26 Feb 2016 15:01:53 -0800
+Subject: net: patch linux kernel to support shortcut-fe
+
+1, add a new flag 'fast_forwarded' in skb structure.
+2, put a hook in '__netif_receive_skb_core' to
+   deliver packet to shortcut-fe.
+
+Change-Id: Icaa7c172a06df1c3bc89ff89814d1136772fe217
+Signed-off-by: Xiaoping Fan <xfan@codeaurora.org>
+---
+ include/linux/skbuff.h |  3 ++-
+ net/core/dev.c         | 21 +++++++++++++++++++--
+ 2 files changed, 21 insertions(+), 3 deletions(-)
+
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index a74d315..9b9ed84 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -643,7 +643,8 @@ struct sk_buff {
+ 	__u8			inner_protocol_type:1;
+ 	__u8			remcsum_offload:1;
+ 	__u8			gro_skip:1;
+-	/* 2 or 4 bit hole */
++	__u8			fast_forwarded:1;
++	/* 1 or 3 bit hole */
+ 
+ #ifdef CONFIG_NET_SCHED
+ 	__u16			tc_index;	/* traffic control index */
+diff --git a/net/core/dev.c b/net/core/dev.c
+index efbf03e..79d93e1 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -2710,8 +2710,13 @@ static int xmit_one(struct sk_buff *skb, struct net_device *dev,
+ 	unsigned int len;
+ 	int rc;
+ 
+-	if (!list_empty(&ptype_all) || !list_empty(&dev->ptype_all))
+-		dev_queue_xmit_nit(skb, dev);
++	/* If this skb has been fast forwarded then we don't want it to
++	 * go to any taps (by definition we're trying to bypass them).
++	 */
++	if (unlikely(!skb->fast_forwarded)) {
++		if (!list_empty(&ptype_all) || !list_empty(&dev->ptype_all))
++			dev_queue_xmit_nit(skb, dev);
++	}
+ 
+ #ifdef CONFIG_ETHERNET_PACKET_MANGLE
+ 	if (!dev->eth_mangle_tx ||
+@@ -3784,6 +3789,9 @@ void netdev_rx_handler_unregister(struct net_device *dev)
+ }
+ EXPORT_SYMBOL_GPL(netdev_rx_handler_unregister);
+ 
++int (*fast_nat_recv)(struct sk_buff *skb) __rcu __read_mostly;
++EXPORT_SYMBOL_GPL(fast_nat_recv);
++
+ /*
+  * Limit the use of PFMEMALLOC reserves to those protocols that implement
+  * the special handling of PFMEMALLOC skbs.
+@@ -3826,6 +3834,7 @@ static int __netif_receive_skb_core(struct sk_buff *skb, bool pfmemalloc)
+ 	bool deliver_exact = false;
+ 	int ret = NET_RX_DROP;
+ 	__be16 type;
++	int (*fast_recv)(struct sk_buff *skb);
+ 
+ 	net_timestamp_check(!netdev_tstamp_prequeue, skb);
+ 
+@@ -3852,6 +3861,14 @@ another_round:
+ 			goto out;
+ 	}
+ 
++	fast_recv = rcu_dereference(fast_nat_recv);
++	if (fast_recv) {
++		if (fast_recv(skb)) {
++			ret = NET_RX_SUCCESS;
++			goto out;
++		}
++	}
++
+ #ifdef CONFIG_NET_CLS_ACT
+ 	if (skb->tc_verd & TC_NCLS) {
+ 		skb->tc_verd = CLR_TC_NCLS(skb->tc_verd);
+-- 
+cgit v1.1
