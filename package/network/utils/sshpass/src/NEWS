@@ -1,0 +1,3 @@
+As of version 1.03, sshpass will do everything in its power not to hang. It
+now detects invalid password as well as ssh asking to verify the host, and
+returns a return value that indicate the reason for the exit.
