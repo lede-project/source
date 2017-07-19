@@ -1,0 +1,40 @@
+Version 1.05
+	* OpenSSH version 5.6 closed our leaked slave PTY fd, breaking sshpass.
+	  This reverted the "better detection of child exit", unfortunately.
+	* Update the manual page about changes.
+	* Print usage information if no arguments given.
+
+Version 1.04
+	* Fix crash when "-e" is given but environment variable is not set -
+	  based on patch suggested by Samuel Rios Carvalho.
+	* Fix 100% CPU usage during session. Reported by anonymous on the
+	  SourceForge bug tracking system.
+	* Attempt to hide a password provided on the command line. It does
+	  expose the password length. Base on a patch by anonymous from the
+	  sourceforge bug tracking system.
+
+Version 1.03
+	* Sshpass will now exit if ssh is asking to confirm a host key
+	* Sshpass now has verbose reporting of what error occured through the
+	  program's return codes.
+
+Version 1.02
+	* Various updates to the tests done by the configure script
+	* Broader platform support (cygwin)
+
+Version 1.01
+	* Make sshpass pass along tty window resize events to the inner tty
+
+Version 1.00
+	* Make sure that authentication failures are terminated early.
+	* Better detect when the child has exited.
+	* Improve error reporting.
+
+Version 0.03
+	* Change the match string from "Password: " to "assword:", as some ssh
+	  usage uses a different prompt ("foo@bar's password:" instead of a
+	  clean "Password:").
+	* Add the "-V" option to display the version information
+
+Version 0.02
+	* Add the "-e" option.

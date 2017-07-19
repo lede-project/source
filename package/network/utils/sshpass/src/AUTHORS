@@ -1,0 +1,12 @@
+sshpass was written by Shachar Shemesh for Lingnu Open Source Consulting Ltd.
+
+It is distributed under the terms and conditions of the GNU General Public
+License version 2. Upgrade to later versions of the GPL can be done under the
+normal terms of the GPL *only if said version of the GPL was approved by Lingnu
+Open Source Consulting Ltd. as a valid license for its projects*.
+
+We are sorry that we have to impose this extra burecratic step, but it seems
+that the GPL v. 3 is still some way off, and it is likely that we would not
+like our code used under the resulting license. Rather than prohibit license
+upgrades altogether, we decided to allow it in principle, pending explicit
+approval by us.

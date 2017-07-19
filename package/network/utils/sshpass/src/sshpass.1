@@ -1,0 +1,111 @@
+.TH SSHPASS 1 "August 6, 2011" "Lingnu Open Source Consulting" "Sshpass User Manual"
+.\" Please adjust this date whenever revising the manpage.
+.SH NAME
+sshpass \- noninteractive ssh password provider
+.SH SYNOPSIS
+.B sshpass
+.RB [ -f\fIfilename | -d\fInum | -p\fIpassword | -e ]
+.RI [ options ] " command arguments"
+.br
+.SH DESCRIPTION
+This manual page documents the \fBsshpass\fP command.
+.PP
+\fBsshpass\fP is a utility designed for running \fBssh\fP using the mode referred
+to as "keyboard-interactive" password authentication, but in non-interactive mode.
+.PP
+ssh uses direct TTY access to make sure that the password is indeed issued by
+an interactive keyboard user. Sshpass runs ssh in a dedicated tty, fooling it
+into thinking it is getting the password from an interactive user.
+.PP
+The command to run is specified after sshpass' own options. Typically it will be
+"ssh" with arguments, but it can just as well be any other command. The password
+prompt used by ssh is, however, currently hardcoded into sshpass.
+.SH Options
+If no option is given, sshpass reads the password from the standard input. The
+user may give at most one alternative source for the password:
+.TP
+.B \-p\fIpassword\fP
+The password is given on the command line. Please note the section titled
+"\fBSECURITY CONSIDERATIONS\fP".
+.TP
+.B \-f\fIfilename\fP
+The password is the first line of the file \fIfilename\fP.
+.TP
+.B \-d\fInumber\fP
+\fInumber\fP is a file descriptor inherited by sshpass from the runner. The
+password is read from the open file descriptor.
+.TP
+.B \-e
+The password is taken from the environment variable "SSHPASS".
+.SH SECURITY CONSIDERATIONS
+.P
+First and foremost, users of sshpass should realize that ssh's insistance on
+only getting the password interactively is not without reason. It is close to
+impossible to securely store the password, and users of sshpass should consider
+whether ssh's public key authentication provides the same end-user experience,
+while involving less hassle and being more secure.
+.P
+The \-p option should be considered the least secure of all of sshpass's options.
+All system users can see the password in the command line with a simple "ps"
+command. Sshpass makes a minimal attempt to hide the password, but such attempts are doomed to create
+race conditions without actually solving the problem. Users of sshpass are
+encouraged to use one of the other password passing techniques, which are all
+more secure.
+.P
+In particular, people writing programs that are meant to communicate the password
+programatically are encouraged to use an anonymous pipe and pass the pipe's reading
+end to sshpass using the \-d option.
+.SH RETURN VALUES
+As with any other program, sshpass returns 0 on success. In case of failure, the following
+return codes are used:
+.TP
+1
+Invalid command line argument
+.TP
+2
+Conflicting arguments given
+.TP
+3
+General runtime error
+.TP
+4
+Unrecognized response from ssh (parse error)
+.TP
+5
+Invalid/incorrect password
+.TP
+6
+Host public key is unknown. sshpass exits without confirming the new key.
+.P
+In addition, ssh might be complaining about a man in the middle attack. This
+complaint does not go to the tty. In other words, even with sshpass, the error
+message from ssh is printed to standard error. In such a case ssh's return code
+is reported back. This is typically an unimaginative (and non-informative) "255"
+for all error cases.
+.SH EXAMPLES
+.P
+Run rsync over SSH using password authentication, passing the password on the
+command line:
+.PP
+rsync \-\-rsh='sshpass \-p 12345 ssh \-l test' host.example.com:path .
+.P
+To do the same from a bourne shell script in a marginally less exposed way:
+.PP
+SSHPASS=12345 rsync \-\-rsh='sshpass \-e ssh \-l test' host.example.com:path .
+.SH BUGS
+.P
+Sshpass is in its infancy at the moment. As such, bugs are highly possible. In
+particular, if the password is read from stdin (no password option at all), it
+is possible that some of the input aimed to be passed to ssh will be read by
+sshpass and lost.
+.P
+Sshpass utilizes the \fBpty\fR(7) interface to control the TTY for ssh. This interface,
+at least on Linux, has a misfeature where if no slave file descriptors are open, the
+master pty returns \fBEIO\fR. This is the normal behavior, except a slave pty may
+be born at any point by a program opening \fB/dev/tty\fR. This makes it impossible
+to reliably wait for events without consuming 100% of the CPU.
+.P
+Over the various versions different approaches were attempted at solving this problem.
+Any given version of sshpass is released with the belief that it is working, but experience
+has shown that these things do, occasionally, break. This happened with OpenSSH version 5.6.
+As of this writing, it is believed that sshpass is, again, working properly.
