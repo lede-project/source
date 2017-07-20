@@ -1,5 +1,5 @@
 REQUIRE_IMAGE_METADATA=1
-RAMFS_COPY_BIN=/usr/sbin/nandwrite
+RAMFS_COPY_BIN='nandwrite'
 CI_KERNPART=none
 
 platform_check_image() {
@@ -15,10 +15,8 @@ platform_pre_upgrade() {
 }
 
 platform_nand_pre_upgrade() {
-	local board_name="$(cat /tmp/sysinfo/board_name)"
-
 	mtd erase kernel
-	tar xf "$1" sysupgrade-$board_name/kernel -O | nandwrite -o /dev/mtd0 -
+	tar xf "$1" "sysupgrade-$(board_name)/kernel" -O | nandwrite -o /dev/mtd0 -
 }
 
 platform_do_upgrade() {

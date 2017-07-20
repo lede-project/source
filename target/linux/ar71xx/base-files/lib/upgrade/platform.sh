@@ -7,7 +7,7 @@
 
 PART_NAME=firmware
 RAMFS_COPY_DATA=/lib/ar71xx.sh
-[ -x /usr/sbin/nandwrite ] && RAMFS_COPY_BIN=/usr/sbin/nandwrite
+RAMFS_COPY_BIN='nandwrite'
 
 CI_BLKSZ=65536
 CI_LDADR=0x80060000
@@ -184,7 +184,7 @@ alfa_check_image() {
 }
 
 platform_nand_board_name() {
-	local board=$(ar71xx_board_name)
+	local board=$(board_name)
 
 	case "$board" in
 	rb*) echo "routerboard";;
@@ -193,7 +193,7 @@ platform_nand_board_name() {
 }
 
 platform_check_image() {
-	local board=$(ar71xx_board_name)
+	local board=$(board_name)
 	local magic="$(get_magic_word "$1")"
 	local magic_long="$(get_magic_long "$1")"
 
@@ -671,7 +671,7 @@ platform_check_image() {
 }
 
 platform_pre_upgrade() {
-	local board=$(ar71xx_board_name)
+	local board=$(board_name)
 
 	case "$board" in
 	c-60|\
@@ -730,7 +730,7 @@ platform_pre_upgrade() {
 }
 
 platform_nand_pre_upgrade() {
-	local board=$(ar71xx_board_name)
+	local board=$(board_name)
 
 	case "$board" in
 	rb*)
@@ -745,7 +745,7 @@ platform_nand_pre_upgrade() {
 }
 
 platform_do_upgrade() {
-	local board=$(ar71xx_board_name)
+	local board=$(board_name)
 
 	case "$board" in
 	all0258n)
