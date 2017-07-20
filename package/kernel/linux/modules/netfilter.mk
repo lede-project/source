@@ -361,7 +361,6 @@ define KernelPackage/nf-nathelper/description
  Includes:
  - ftp
  - irc
- - tftp
 endef
 
 $(eval $(call KernelPackage,nf-nathelper))
@@ -386,6 +385,7 @@ define KernelPackage/nf-nathelper-extra/description
  - proto_gre
  - sip
  - snmp_basic
+ - tftp
  - broadcast
 endef
 
