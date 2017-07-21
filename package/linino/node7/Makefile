@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=node7
-PKG_VERSION:=v7.10.0
+PKG_VERSION:=v7.10.1
 PKG_RELEASE:=1
 
 PKG_SOURCE:=node-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=http://nodejs.org/dist/$(PKG_VERSION)
-PKG_MD5SUM:=a72dfb6839e173e3cb2460b85d78f75c
+PKG_MD5SUM:=0a30a3d0c008d6ff8e031a0940c00d1a
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/node-$(PKG_VERSION)
 HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/node-$(PKG_VERSION)
@@ -51,7 +51,7 @@ endef
 define Package/node7/config
 	menu "Module Selection"
 
-	config NODEJS_ICU
+	config NODEJS_7_ICU
 		bool "enable i18n features"
 		default y
 
@@ -71,7 +71,7 @@ CONFIGURE_ARGS:= \
 	--shared-openssl \
 	--prefix=/usr
 
-ifeq ($(CONFIG_NODEJS_ICU),y)
+ifeq ($(CONFIG_NODEJS_7_ICU),y)
 CONFIGURE_ARGS+= \
 	--with-intl=system-icu
 else
