@@ -357,9 +357,17 @@ define Device/rt-ac51u
   DTS := RT-AC51U
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := Asus RT-AC51U
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ehci kmod-usb-ledtrig-usbport
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += rt-ac51u
+
+define Device/rt-ac54u
+  DTS := RT-AC54U
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := Asus RT-AC54U
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += rt-ac54u
 
 define Device/tiny-ac
   DTS := TINY-AC

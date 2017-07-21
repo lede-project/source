@@ -120,6 +120,7 @@ get_status_led() {
 	na930|\
 	pbr-m1|\
 	rt-ac51u|\
+	rt-ac54u|\
 	rt-n13u|\
 	rt-n14u|\
 	rt-n15|\
