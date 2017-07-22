@@ -14,12 +14,12 @@ well as the LNA calibration values for HT20.
 Reported-by: Tom Psyborg <pozega.tomislav@gmail.com>
 Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 ---
- drivers/net/wireless/ralink/rt2x00/rt2800lib.c | 18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ drivers/net/wireless/ralink/rt2x00/rt2800lib.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -3806,11 +3806,25 @@ static void rt2800_config_channel(struct
+@@ -3806,11 +3806,22 @@ static void rt2800_config_channel(struct
  	}
  
  	if (rt2x00_rt(rt2x00dev, RT5592) || rt2x00_rt(rt2x00dev, RT6352)) {
@@ -38,10 +38,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  
  		/* AGC init */
 -		reg = (rf->channel <= 14 ? 0x1c : 0x24) + 2 * rt2x00dev->lna_gain;
-+		if (rt2x00_rt(rt2x00dev, RT6352))
-+			reg = 0x04;
-+		else
-+			reg = rf->channel <= 14 ? 0x1c : 0x24;
++		reg = rf->channel <= 14 ? 0x1c : 0x24;
 +
 +		reg += 2 * rt2x00dev->lna_gain;
  		rt2800_bbp_write_with_rx_chain(rt2x00dev, 66, reg);
