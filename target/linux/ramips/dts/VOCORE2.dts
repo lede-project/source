@@ -50,8 +50,8 @@
 
 	uart2_pins: uart2 {
 		uart2 {
-			ralink,group = "spis";
-			ralink,function = "pwm";
+			ralink,group = "uart2";
+			ralink,function = "uart2";
 		};
 	};
 };
