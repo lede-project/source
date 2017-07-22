@@ -155,7 +155,7 @@ LINUX_RECONF_DIFF = $(call __linux_confcmd,$(filter-out $(LINUX_RECONFIG_TARGET)
 ifeq ($(DUMP),1)
   BuildTarget=$(BuildTargets/DumpCurrent)
 
-  CPU_CFLAGS = -Os -pipe
+  CPU_CFLAGS = -O3 -pipe
   ifneq ($(findstring mips,$(ARCH)),)
     ifneq ($(findstring mips64,$(ARCH)),)
       CPU_TYPE ?= mips64
@@ -184,7 +184,7 @@ ifeq ($(DUMP),1)
     CPU_CFLAGS_cortex-a7 = -mcpu=cortex-a7
     CPU_CFLAGS_cortex-a8 = -mcpu=cortex-a8
     CPU_CFLAGS_cortex-a9 = -mcpu=cortex-a9
-    CPU_CFLAGS_cortex-a15 = -mcpu=cortex-a15
+    CPU_CFLAGS_cortex-a15 = -mcpu=cortex-a15 -mtune=cortex-a15
     CPU_CFLAGS_cortex-a53 = -mcpu=cortex-a53
     CPU_CFLAGS_fa526 = -mcpu=fa526
     CPU_CFLAGS_mpcore = -mcpu=mpcore

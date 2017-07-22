@@ -83,6 +83,10 @@ struct switch_port_stats {
  */
 struct switch_dev_ops {
 	struct switch_attrlist attr_global, attr_port, attr_vlan;
+	struct switch_attrlist attr_reg;
+
+	int (*get_reg_val)(struct switch_dev *dev, int reg, int *val);
+	int (*set_reg_val)(struct switch_dev *dev, int reg, int val);
 
 	int (*get_vlan_ports)(struct switch_dev *dev, struct switch_val *val);
 	int (*set_vlan_ports)(struct switch_dev *dev, struct switch_val *val);
@@ -123,6 +127,7 @@ struct switch_dev {
 	unsigned int id;
 	struct list_head dev_list;
 	unsigned long def_global, def_port, def_vlan;
+	unsigned long def_reg;
 
 	struct mutex sw_mutex;
 	struct switch_port *portbuf;

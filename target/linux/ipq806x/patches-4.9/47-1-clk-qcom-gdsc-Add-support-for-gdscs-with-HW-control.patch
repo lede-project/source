@@ -1,0 +1,78 @@
+From 9bc624125ab7957467722200c7ec8fdf0be16643 Mon Sep 17 00:00:00 2001
+From: Rajendra Nayak <rnayak@codeaurora.org>
+Date: Fri, 18 Nov 2016 17:58:26 +0530
+Subject: clk: qcom: gdsc: Add support for gdscs with HW control
+
+Some GDSCs might support a HW control mode, where in the power
+domain (gdsc) is brought in and out of low power state (while
+unsued) without any SW assistance, saving power.
+Such GDSCs can be configured in a HW control mode when powered on
+until they are explicitly requested to be powered off by software.
+
+Signed-off-by: Rajendra Nayak <rnayak@codeaurora.org>
+Signed-off-by: Sricharan R <sricharan@codeaurora.org>
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+(cherry picked from commit 904bb4f5c7de2f40ff31d43d3547d40910e46640)
+Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+---
+ drivers/clk/qcom/gdsc.c | 18 ++++++++++++++++++
+ drivers/clk/qcom/gdsc.h |  1 +
+ 2 files changed, 19 insertions(+)
+
+diff --git a/drivers/clk/qcom/gdsc.c b/drivers/clk/qcom/gdsc.c
+index 925d178..288186c 100644
+--- a/drivers/clk/qcom/gdsc.c
++++ b/drivers/clk/qcom/gdsc.c
+@@ -56,6 +56,13 @@ static int gdsc_is_enabled(struct gdsc *sc, unsigned int reg)
+ 	return !!(val & PWR_ON_MASK);
+ }
+ 
++static int gdsc_hwctrl(struct gdsc *sc, bool en)
++{
++	u32 val = en ? HW_CONTROL_MASK : 0;
++
++	return regmap_update_bits(sc->regmap, sc->gdscr, HW_CONTROL_MASK, val);
++}
++
+ static int gdsc_toggle_logic(struct gdsc *sc, bool en)
+ {
+ 	int ret;
+@@ -180,6 +187,10 @@ static int gdsc_enable(struct generic_pm_domain *domain)
+ 	 */
+ 	udelay(1);
+ 
++	/* Turn on HW trigger mode if supported */
++	if (sc->flags & HW_CTRL)
++		return gdsc_hwctrl(sc, true);
++
+ 	return 0;
+ }
+ 
+@@ -191,6 +202,13 @@ static int gdsc_disable(struct generic_pm_domain *domain)
+ 	if (sc->pwrsts == PWRSTS_ON)
+ 		return gdsc_assert_reset(sc);
+ 
++	/* Turn off HW trigger mode if supported */
++	if (sc->flags & HW_CTRL) {
++		ret = gdsc_hwctrl(sc, false);
++		if (ret < 0)
++			return ret;
++	}
++
+ 	if (sc->pwrsts & PWRSTS_OFF)
+ 		gdsc_clear_mem_on(sc);
+ 
+diff --git a/drivers/clk/qcom/gdsc.h b/drivers/clk/qcom/gdsc.h
+index f011c49..3964834 100644
+--- a/drivers/clk/qcom/gdsc.h
++++ b/drivers/clk/qcom/gdsc.h
+@@ -52,6 +52,7 @@ struct gdsc {
+ 	const u8			flags;
+ #define VOTABLE		BIT(0)
+ #define CLAMP_IO	BIT(1)
++#define HW_CTRL		BIT(2)
+ 	struct reset_controller_dev	*rcdev;
+ 	unsigned int			*resets;
+ 	unsigned int			reset_count;
+-- 
+cgit v1.1

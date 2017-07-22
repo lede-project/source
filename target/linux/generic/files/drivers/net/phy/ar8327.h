@@ -2,6 +2,7 @@
  * ar8327.h: AR8216 switch driver
  *
  * Copyright (C) 2009 Felix Fietkau <nbd@nbd.name>
+ * Copyright (c) 2017 The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -295,6 +296,9 @@
 #define   AR8327_PORT_HOL_CTRL1_EG_PORT_BUF_EN	BIT(7)
 #define   AR8327_PORT_HOL_CTRL1_WRED_EN		BIT(8)
 #define   AR8327_PORT_HOL_CTRL1_EG_MIRROR_EN	BIT(16)
+
+#define AR8327_REG_GLOBAL_FC_THRESH		0x800
+#define AR8327_GLOBAL_FC_THRESH_DFLT_VAL	0x12001f0
 
 #define AR8337_PAD_MAC06_EXCHANGE_EN		BIT(31)
 
