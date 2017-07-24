@@ -71,6 +71,7 @@ ar71xx_setup_interfaces()
 	cf-e380ac-v1|\
 	cf-e380ac-v2|\
 	eap120|\
+	eap245-v1|\
 	eap300v2|\
 	eap7660d|\
 	el-mini|\
