@@ -183,6 +183,10 @@ fonera20n)
 	set_usb_led "$board:orange:usb"
 	set_wifi_led "$board:orange:wifi"
 	;;
+gb-pc1)
+	ucidef_set_led_netdev "lan1" "lan1" "$board:green:lan1" "eth0.1"
+	ucidef_set_led_netdev "lan2" "lan2" "$board:green:lan2" "eth0.2"
+	;;
 gl-mt300a|\
 gl-mt300n|\
 gl-mt750)
