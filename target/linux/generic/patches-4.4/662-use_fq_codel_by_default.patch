@@ -73,7 +73,7 @@
  		if (qdisc == NULL)
 --- a/net/sched/sch_mqprio.c
 +++ b/net/sched/sch_mqprio.c
-@@ -124,7 +124,7 @@ static int mqprio_init(struct Qdisc *sch
+@@ -122,7 +122,7 @@ static int mqprio_init(struct Qdisc *sch
  
  	for (i = 0; i < dev->num_tx_queues; i++) {
  		dev_queue = netdev_get_tx_queue(dev, i);
@@ -84,7 +84,7 @@
  		if (qdisc == NULL) {
 --- a/net/sched/sch_api.c
 +++ b/net/sched/sch_api.c
-@@ -1948,7 +1948,7 @@ static int __init pktsched_init(void)
+@@ -1951,7 +1951,7 @@ static int __init pktsched_init(void)
  		return err;
  	}
  
