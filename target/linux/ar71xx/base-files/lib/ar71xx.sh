@@ -1052,6 +1052,10 @@ ar71xx_board_detect() {
 	*TL-MR6400)
 		name="tl-mr6400"
 		;;
+	*"TL-MR6400 v2")
+		name="tl-mr6400-v2"
+		AR71XX_MODEL="$machine"
+		;;
 	*"TL-WA701ND v2")
 		name="tl-wa701nd-v2"
 		;;

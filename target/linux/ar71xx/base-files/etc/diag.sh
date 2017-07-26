@@ -381,7 +381,8 @@ get_status_led() {
 	tl-wa860re)
 		status_led="tp-link:green:power"
 		;;
-	tl-mr6400)
+	tl-mr6400|\
+	tl-mr6400-v2)
 		status_led="tp-link:white:power"
 		;;
 	tl-mr3220|\
