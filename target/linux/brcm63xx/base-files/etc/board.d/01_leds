@@ -4,11 +4,10 @@
 #
 
 . /lib/functions/uci-defaults.sh
-. /lib/brcm63xx.sh
 
 board_config_update
 
-case "$(brcm63xx_board_name)" in
+case "$(board_name)" in
 a4001n1)
 	ucidef_set_led_netdev "lan" "LAN" "A4001N1:green:eth" "eth0"
 	ucidef_set_led_usbdev "usb" "USB" "A4001N1:green:3g" "1-1"
@@ -68,6 +67,9 @@ livebox1)
 	ucidef_set_led_netdev "lan" "LAN" "Livebox1:red:traffic" "eth0"
 	ucidef_set_led_netdev "wan" "WAN" "Livebox1:red:adsl" "eth1"
 	ucidef_set_led_netdev "wlan0" "WIFI" "Livebox1:red:wifi" "wlan0"
+	;;
+r1000h)
+	ucidef_set_led_usbport "usb" "USB" "R1000H:green:usb" "usb1-port1" "usb2-port1"
 	;;
 r5010un_v2)
 	ucidef_set_led_usbdev "usb" "USB" "R5010UNv2:green:usb" "1-1"

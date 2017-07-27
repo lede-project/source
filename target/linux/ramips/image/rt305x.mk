@@ -300,8 +300,8 @@ define Device/dwr-512-b
   DTS := DWR-512-B
   IMAGE_SIZE := 7700k
   DEVICE_TITLE := D-Link DWR-512 B
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-i2c-core kmod-i2c-ralink kmod-spi-dev \
-			kmod-usb-serial kmod-usb-serial-option kmod-usb-serial-wwan comgt
+  DEVICE_PACKAGES := kmod-usb2 kmod-spi-dev kmod-usb-serial kmod-usb-serial-option \
+			kmod-usb-net kmod-usb-net-cdc-ether comgt-ncm
 endef
 TARGET_DEVICES += dwr-512-b
 
@@ -639,6 +639,7 @@ TARGET_DEVICES += rt-n13u
 define Device/rut5xx
   DTS := RUT5XX
   DEVICE_TITLE := Teltonika RUT5XX
+  DEVICE_PACKAGES := om-watchdog
 endef
 TARGET_DEVICES += rut5xx
 
@@ -649,6 +650,16 @@ define Device/sl-r7205
   DEVICE_TITLE := Skyline SL-R7205 Wireless 3G Router
 endef
 TARGET_DEVICES += sl-r7205
+
+define Device/tew-638apb-v2
+  DTS := TEW-638APB-V2
+  BLOCKSIZE := 64k
+  IMAGE_SIZE := $(ralink_default_fw_size_4M)
+  IMAGE/sysupgrade.bin := $$(sysupgrade_bin) | umedia-header 0x026382 | \
+        append-metadata | check-size $$$$(IMAGE_SIZE)
+  DEVICE_TITLE := TRENDnet TEW-638APB v2
+endef
+TARGET_DEVICES += tew-638apb-v2
 
 define Device/tew-714tru
   DTS := TEW-714TRU
@@ -850,3 +861,12 @@ define Device/xdxrn502j
   DEVICE_TITLE := XDX RN502J
 endef
 TARGET_DEVICES += xdxrn502j
+
+define Device/kn
+  DTS := kn
+  BLOCKSIZE := 64k
+  IMAGE_SIZE := $(ralink_default_fw_size_4M)
+  DEVICE_TITLE := ZyXEL Keenetic
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ehci kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += kn

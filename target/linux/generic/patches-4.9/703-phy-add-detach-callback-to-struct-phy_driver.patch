@@ -1,6 +1,6 @@
 --- a/drivers/net/phy/phy_device.c
 +++ b/drivers/net/phy/phy_device.c
-@@ -983,6 +983,9 @@ void phy_detach(struct phy_device *phyde
+@@ -1001,6 +1001,9 @@ void phy_detach(struct phy_device *phyde
  	struct mii_bus *bus;
  	int i;
  
@@ -12,7 +12,7 @@
  	phy_suspend(phydev);
 --- a/include/linux/phy.h
 +++ b/include/linux/phy.h
-@@ -514,6 +514,12 @@ struct phy_driver {
+@@ -517,6 +517,12 @@ struct phy_driver {
  	 */
  	int (*did_interrupt)(struct phy_device *phydev);
  

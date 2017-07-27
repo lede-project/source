@@ -21,6 +21,9 @@ brcm63xx_dt_detect() {
 	"ADB P.DG AV4202N")
 		board_name="av4202n"
 		;;
+	"Actiontec R1000H")
+		board_name="r1000h"
+		;;
 	"Alcatel RG100A")
 		board_name="rg100a"
 		;;
@@ -295,13 +298,4 @@ brcm63xx_detect() {
 
 	echo "$board_name" > /tmp/sysinfo/board_name
 	echo "$model" > /tmp/sysinfo/model
-}
-
-brcm63xx_board_name() {
-	local name
-
-	[ -f /tmp/sysinfo/board_name ] && name=$(cat /tmp/sysinfo/board_name)
-	[ -n "$name" ] || name="unknown"
-
-	echo $name
 }

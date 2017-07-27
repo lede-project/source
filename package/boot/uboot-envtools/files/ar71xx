@@ -7,18 +7,19 @@
 
 touch /etc/config/ubootenv
 
-. /lib/ar71xx.sh
 . /lib/uboot-envtools.sh
 . /lib/functions.sh
 
-board=$(ar71xx_board_name)
+board=$(board_name)
 
 case "$board" in
 a40|\
 a60|\
 alfa-ap120c|\
 all0258n|\
+ap121f|\
 ap90q|\
+arduino-yun|\
 cap324|\
 cap4200ag|\
 carambola2|\
@@ -27,6 +28,7 @@ cpe870|\
 cr3000|\
 cr5000|\
 eap300v2|\
+ens202ext|\
 gl-ar300m|\
 hornet-ub|\
 hornet-ub-x2|\
@@ -66,6 +68,10 @@ wzr-hp-ag300h)
 	;;
 dr531)
 	ubootenv_add_uci_config "/dev/mtd1" "0x0" "0xf800" "0x10000"
+	;;
+rambutan)
+	ubootenv_add_uci_config "/dev/mtd1" "0x0" "0x20000" "0x20000"
+	ubootenv_add_uci_config "/dev/mtd1" "0x100000" "0x20000" "0x20000"
 	;;
 qihoo-c301)
 	ubootenv_add_uci_config "/dev/mtd9" "0x0" "0x10000" "0x10000"

@@ -1,11 +1,11 @@
 #!/bin/sh
 # Copyright (C) 2010-2013 OpenWrt.org
 
+. /lib/functions.sh
 . /lib/functions/leds.sh
-. /lib/ramips.sh
 
 get_status_led() {
-	board=$(ramips_board_name)
+	board=$(board_name)
 
 	case $board in
 	3g150b|\
@@ -24,6 +24,7 @@ get_status_led() {
 	e1700|\
 	ex3700|\
 	fonera20n|\
+	kn|\
 	kn_rc|\
 	kn_rf|\
 	kng_rc|\
@@ -34,6 +35,8 @@ get_status_led() {
 	nbg-419n2|\
 	pwh2004|\
 	r6220|\
+	tl-wr840n-v4|\
+	tl-wr841n-v13|\
 	vr500|\
 	wnce2001|\
 	wndr3700v5|\
@@ -74,6 +77,7 @@ get_status_led() {
 	dir-620-a1|\
 	dir-620-d1|\
 	dwr-512-b|\
+	gb-pc1|\
 	hpm|\
 	hw550-3g|\
 	mac1200rv2|\
@@ -116,6 +120,8 @@ get_status_led() {
 	dap-1350|\
 	na930|\
 	pbr-m1|\
+	re350-v1|\
+	rt-ac51u|\
 	rt-n13u|\
 	rt-n14u|\
 	rt-n15|\
@@ -153,6 +159,11 @@ get_status_led() {
 	hc5962)
 		status_led="$board:white:status"
 		;;
+	k2p|\
+	m3|\
+	miwifi-nano)
+		status_led="$board:blue:status"
+		;;
 	linkits7688| \
 	linkits7688d)
 		[ "$1" = "upgrade" ] && status_led="mediatek:orange:wifi"
@@ -160,9 +171,8 @@ get_status_led() {
 	m2m)
 		status_led="$board:blue:wifi"
 		;;
-	m3|\
-	miwifi-nano)
-		status_led="$board:blue:status"
+	gl-mt300n-v2)
+		status_led="$board:red:wlan"
 		;;
 	m4-4M|\
 	m4-8M)
@@ -207,6 +217,7 @@ get_status_led() {
 		;;
 	mzk-ex300np|\
 	rt-n10-plus|\
+	tew-638apb-v2|\
 	tew-691gr|\
 	tew-692gr|\
 	ur-326n4g|\

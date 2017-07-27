@@ -5,11 +5,10 @@
 
 . /lib/functions/uci-defaults.sh
 . /lib/functions/system.sh
-. /lib/kirkwood.sh
 
 board_config_update
 
-board=$(kirkwood_board_name)
+board=$(board_name)
 
 case "$board" in
 "dockstar"|\
@@ -34,6 +33,9 @@ case "$board" in
 "nsa310b"|"nsa325")
 	ucidef_set_interface_lan "eth0" "dhcp"
 	ucidef_set_interface_macaddr "lan" $( mtd_get_mac_ascii uboot_env ethaddr )
+	;;
+"on100")
+	ucidef_set_interface_lan "eth0 eth1"
 	;;
 *)
 	ucidef_set_interface_lan "eth0"

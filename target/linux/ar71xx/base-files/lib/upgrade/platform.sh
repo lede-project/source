@@ -7,7 +7,7 @@
 
 PART_NAME=firmware
 RAMFS_COPY_DATA=/lib/ar71xx.sh
-[ -x /usr/sbin/nandwrite ] && RAMFS_COPY_BIN=/usr/sbin/nandwrite
+RAMFS_COPY_BIN='nandwrite'
 
 CI_BLKSZ=65536
 CI_LDADR=0x80060000
@@ -184,7 +184,7 @@ alfa_check_image() {
 }
 
 platform_nand_board_name() {
-	local board=$(ar71xx_board_name)
+	local board=$(board_name)
 
 	case "$board" in
 	rb*) echo "routerboard";;
@@ -193,7 +193,7 @@ platform_nand_board_name() {
 }
 
 platform_check_image() {
-	local board=$(ar71xx_board_name)
+	local board=$(board_name)
 	local magic="$(get_magic_word "$1")"
 	local magic_long="$(get_magic_long "$1")"
 
@@ -203,9 +203,12 @@ platform_check_image() {
 	airgatewaypro|\
 	airgateway|\
 	airrouter|\
+	ap121f|\
 	ap132|\
 	ap531b0|\
 	ap90q|\
+	archer-c25-v1|\
+	archer-c58-v1|\
 	archer-c59-v1|\
 	archer-c60-v1|\
 	bullet-m|\
@@ -236,6 +239,7 @@ platform_check_image() {
 	dr531|\
 	dragino2|\
 	ebr-2310-c1|\
+	ens202ext|\
 	epg5000|\
 	esr1750|\
 	esr900|\
@@ -270,6 +274,7 @@ platform_check_image() {
 	tew-712br|\
 	tew-732br|\
 	tew-823dru|\
+	tl-wr942n-v1|\
 	unifi-outdoor|\
 	unifiac-lite|\
 	unifiac-pro|\
@@ -283,6 +288,7 @@ platform_check_image() {
 	wpj342|\
 	wpj344|\
 	wpj531|\
+	wpj558|\
 	wpj563|\
 	wrt400n|\
 	wrtnode2q|\
@@ -319,7 +325,6 @@ platform_check_image() {
 	hornet-ub|\
 	mr12|\
 	mr16|\
-	wpj558|\
 	zbt-we1526|\
 	zcn-1523h-2|\
 	zcn-1523h-5)
@@ -398,6 +403,7 @@ platform_check_image() {
 	tl-mr3220|\
 	tl-mr3420-v2|\
 	tl-mr3420|\
+	tl-mr6400|\
 	tl-wa701nd-v2|\
 	tl-wa7210n-v2|\
 	tl-wa750re|\
@@ -407,6 +413,7 @@ platform_check_image() {
 	tl-wa830re-v2|\
 	tl-wa850re|\
 	tl-wa850re-v2|\
+	tl-wa855re-v1|\
 	tl-wa860re|\
 	tl-wa901nd-v2|\
 	tl-wa901nd-v3|\
@@ -426,6 +433,7 @@ platform_check_image() {
 	tl-wr703n|\
 	tl-wr710n|\
 	tl-wr720n-v3|\
+	tl-wr740n-v6|\
 	tl-wr741nd-v4|\
 	tl-wr741nd|\
 	tl-wr802n-v1|\
@@ -440,6 +448,7 @@ platform_check_image() {
 	tl-wr841n-v9|\
 	tl-wr842n-v2|\
 	tl-wr842n-v3|\
+	tl-wr902ac-v1|\
 	tl-wr941nd-v5|\
 	tl-wr941nd-v6|\
 	tl-wr940n-v4|\
@@ -519,8 +528,10 @@ platform_check_image() {
 		return $?
 		;;
 	c-60|\
+	hiveap-121|\
 	nbg6716|\
 	r6100|\
+	rambutan|\
 	wndr3700v4|\
 	wndr4300)
 		nand_do_platform_check $board $1
@@ -640,6 +651,7 @@ platform_check_image() {
 		return 0;
 		;;
 	# these boards use metadata images
+	fritz300e|\
 	rb-750-r2|\
 	rb-750up-r2|\
 	rb-941-2nd|\
@@ -657,12 +669,14 @@ platform_check_image() {
 }
 
 platform_pre_upgrade() {
-	local board=$(ar71xx_board_name)
+	local board=$(board_name)
 
 	case "$board" in
 	c-60|\
+	hiveap-121|\
 	nbg6716|\
 	r6100|\
+	rambutan|\
 	rb-411|\
 	rb-411u|\
 	rb-433|\
@@ -714,7 +728,7 @@ platform_pre_upgrade() {
 }
 
 platform_nand_pre_upgrade() {
-	local board=$(ar71xx_board_name)
+	local board=$(board_name)
 
 	case "$board" in
 	rb*)
@@ -729,7 +743,7 @@ platform_nand_pre_upgrade() {
 }
 
 platform_do_upgrade() {
-	local board=$(ar71xx_board_name)
+	local board=$(board_name)
 
 	case "$board" in
 	all0258n)
@@ -751,7 +765,8 @@ platform_do_upgrade() {
 		platform_do_upgrade_allnet "0x9f080000" "$ARGV"
 		;;
 	cap4200ag|\
-	eap300v2)
+	eap300v2|\
+	ens202ext)
 		platform_do_upgrade_allnet "0xbf0a0000" "$ARGV"
 		;;
 	dir-825-b1|\

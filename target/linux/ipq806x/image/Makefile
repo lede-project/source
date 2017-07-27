@@ -79,12 +79,12 @@ define Device/TpSafeImage
 	KERNEL_SUFFIX := -uImage
 	KERNEL = kernel-bin | append-dtb | uImage none
 	KERNEL_NAME := zImage
-	TPLINK_BOARD_NAME :=
+	TPLINK_BOARD_ID :=
 	IMAGES := factory.bin sysupgrade.bin
 	IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
 	IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade | append-metadata
 endef
-DEVICE_VARS += TPLINK_BOARD_NAME
+DEVICE_VARS += TPLINK_BOARD_ID
 
 define Device/ZyXELImage
 	PROFILES += $$(DEVICE_NAME)
@@ -102,6 +102,7 @@ define Device/AP148
 	$(call Device/FitImage)
 	$(call Device/UbiFit)
 	DEVICE_DTS := qcom-ipq8064-ap148
+	KERNEL_INSTALL := 1
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
 	BOARD_NAME := ap148
@@ -126,7 +127,7 @@ define Device/C2600
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
 	BOARD_NAME := c2600
-	TPLINK_BOARD_NAME := C2600
+	TPLINK_BOARD_ID := C2600
 	DEVICE_TITLE := TP-Link Archer C2600
 	DEVICE_PACKAGES := ath10k-firmware-qca99x0
 endef
@@ -250,7 +251,20 @@ define Device/VR2600v
 	IMAGE/sysupgrade.bin := pad-extra 512 | append-kernel | pad-to $$$${KERNEL_SIZE} | append-rootfs | pad-rootfs | append-metadata
 endef
 
+define Device/AP-DK04.1-C1
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_DTS := qcom-ipq4019-ap.dk04.1-c1
+	KERNEL_LOADADDR := 0x80208000
+	KERNEL_INSTALL := 1
+	KERNEL_SIZE := 4048k
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	BOARD_NAME := ap-dk04.1-c1
+	DEVICE_TITLE := QCA AP-DK04.1-C1
+endef
+
 TARGET_DEVICES += AP148 AP148-legacy C2600 D7800 DB149 EA8500 FRITZ4040 R7500 \
-		  R7500v2 R7800 NBG6817 VR2600v
+		  R7500v2 R7800 NBG6817 VR2600v AP-DK04.1-C1
 
 $(eval $(call BuildImage))

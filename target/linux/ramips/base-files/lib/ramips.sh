@@ -208,6 +208,9 @@ ramips_board_detect() {
 	*"FreeStation5")
 		name="freestation5"
 		;;
+	*"GB-PC1")
+		name="gb-pc1"
+		;;
 	*"GL-MT300A")
 		name="gl-mt300a"
 		;;
@@ -216,6 +219,9 @@ ramips_board_detect() {
 		;;
 	*"GL-MT750")
 		name="gl-mt750"
+		;;
+	*"GL-MT300N-V2")
+		name="gl-mt300n-v2"
 		;;
 	*"HC5661")
 		name="hc5661"
@@ -258,6 +264,9 @@ ramips_board_detect() {
 		;;
 	*"JHR-N926R")
 		name="jhr-n926r"
+		;;
+	*"K2P")
+		name="k2p"
 		;;
 	*"M3")
 		name="m3"
@@ -421,6 +430,9 @@ ramips_board_detect() {
 	*"RB750Gr3")
 		name="rb750gr3"
 		;;
+	*"RE350 v1")
+		name="re350-v1"
+		;;
 	*"RE6500")
 		name="re6500"
 		;;
@@ -435,6 +447,9 @@ ramips_board_detect() {
 		;;
 	*"RT5350F-OLinuXino-EVB")
 		name="rt5350f-olinuxino-evb"
+		;;
+	*"RT-AC51U")
+		name="rt-ac51u"
 		;;
 	*"RT-G32 B1")
 		name="rt-g32-b1"
@@ -466,6 +481,9 @@ ramips_board_detect() {
 	*"SL-R7205"*)
 		name="sl-r7205"
 		;;
+	*"TEW-638APB v2")
+		name="tew-638apb-v2"
+		;;
 	*"TEW-691GR")
 		name="tew-691gr"
 		;;
@@ -478,8 +496,17 @@ ramips_board_detect() {
 	*"Timecloud")
 		name="timecloud"
 		;;
+	*"TL-WR840N v4")
+		name="tl-wr840n-v4"
+		;;
+	*"TL-WR841N v13")
+		name="tl-wr841n-v13"
+		;;
 	*"UBNT-ERX")
 		name="ubnt-erx"
+		;;
+	*"UBNT-ERX-SFP")
+		name="ubnt-erx-sfp"
 		;;
 	*"UR-326N4G")
 		name="ur-326n4g"
@@ -570,6 +597,9 @@ ramips_board_detect() {
 		;;
 	*"WLR-6000")
 		name="wlr-6000"
+		;;
+	*"WMDR-143N")
+		name="wmdr-143n"
 		;;
 	*"WMR-300")
 		name="wmr-300"
@@ -670,6 +700,9 @@ ramips_board_detect() {
 	*"ZBT-WR8305RT")
 		name="zbt-wr8305rt"
 		;;
+	*"ZyXEL Keenetic")
+		name="kn"
+		;;
 	*"ZyXEL Keenetic Omni")
 		name="kn_rc"
 		;;
@@ -694,13 +727,4 @@ ramips_board_detect() {
 
 	echo "$RAMIPS_BOARD_NAME" > /tmp/sysinfo/board_name
 	echo "$RAMIPS_MODEL" > /tmp/sysinfo/model
-}
-
-ramips_board_name() {
-	local name
-
-	[ -f /tmp/sysinfo/board_name ] && name=$(cat /tmp/sysinfo/board_name)
-	[ -z "$name" ] && name="unknown"
-
-	echo "${name}"
 }

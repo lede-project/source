@@ -41,15 +41,17 @@ migrate_leds()
 	config_foreach do_led_update_sysfs led "$@"
 }
 
-. /lib/ar71xx.sh
-
-board=$(ar71xx_board_name)
+board=$(board_name)
 
 case "$board" in
 dhp-1565-a1|\
 dir-825-c1|\
 dir-835-a1)
 	migrate_leds ":orange:=:amber:" ":wifi_bgn=:wlan2g"
+	;;
+
+dr344)
+	migrate_leds ":red:=:green:" ":yellow:=:green:"
 	;;
 
 wndap360)

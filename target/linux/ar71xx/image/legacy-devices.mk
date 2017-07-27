@@ -117,7 +117,7 @@ LEGACY_DEVICES += AP152_16M
 
 define LegacyDevice/BXU2000N2
   DEVICE_TITLE := BHU BXU2000n-2
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-storage
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage
 endef
 LEGACY_DEVICES += BXU2000N2
 
@@ -134,19 +134,19 @@ LEGACY_DEVICES += DB120
 
 define LegacyDevice/EWDORINAP
   DEVICE_TITLE := Embedded Wireless Dorin Platform (4MB flash)
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport kmod-usb-storage
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-usb-storage
 endef
 LEGACY_DEVICES += EWDORINAP
 
 define LegacyDevice/EWDORINRT
   DEVICE_TITLE := Embedded Wireless Dorin Router
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport kmod-usb-storage
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-usb-storage
 endef
 LEGACY_DEVICES += EWDORINRT
 
 define LegacyDevice/EWDORIN16M
   DEVICE_TITLE := Embedded Wireless Dorin Platform (16MB flash)
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport kmod-usb-storage
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-usb-storage
 endef
 LEGACY_DEVICES += EWDORIN16M
 
@@ -166,29 +166,6 @@ define LegacyDevice/WLR8100
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-usb3
 endef
 LEGACY_DEVICES += WLR8100
-
-define LegacyDevice/DR344
-  DEVICE_TITLE := Wallys DR344
-endef
-LEGACY_DEVICES += DR344
-
-define LegacyDevice/WRTNODE2Q
-  DEVICE_TITLE := WRTnode2Q board
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage
-endef
-LEGACY_DEVICES += WRTNODE2Q
-
-define LegacyDevice/YUN_8M
-  DEVICE_TITLE := Arduino Yun based on Atheros AR9331 (8MB flash)
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
-endef
-LEGACY_DEVICES += YUN_8M
-
-define LegacyDevice/YUN_16M
-  DEVICE_TITLE := Arduino Yun based on Atheros AR9331 (16MB flash)
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
-endef
-LEGACY_DEVICES += YUN_16M
 
 define LegacyDevice/F9K1115V2
   DEVICE_TITLE := Belkin AC1750DB (F9K1115V2)
@@ -614,12 +591,6 @@ define LegacyDevice/WZR450HP2
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
 endef
 LEGACY_DEVICES += WZR450HP2
-
-define LegacyDevice/ZBTWE1526
-  DEVICE_TITLE := Zbtlink ZBT-WE1526
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2
-endef
-LEGACY_DEVICES += ZBTWE1526
 
 define LegacyDevice/ZCN1523H28
   DEVICE_TITLE := Zcomax ZCN-1523H-2-8

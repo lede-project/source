@@ -23,15 +23,20 @@ endef
 # Partition 1:   32768 sectors
 # Partition 2:   98304 sectors (configurable)
 
-define Build/boot-scr
+define Build/boot-scr-cfpro
 	rm -f $@.bootscript
-	mkimage -A arm -O linux -T script -C none -a 0 -e 0 -d boot.script $@.bootscript
+	mkimage -A arm -O linux -T script -C none -a 0 -e 0 -d cfpro-boot.script $@.bootscript
+endef
+
+define Build/boot-scr-cfbase
+	rm -f $@.bootscript
+	mkimage -A arm -O linux -T script -C none -a 0 -e 0 -d cfbase-boot.script $@.bootscript
 endef
 
 define Build/boot-img
 	rm -f $@.boot
 	mkfs.fat -C $@.boot 16384
-	$(foreach dts,$(DEVICE_DTS), mcopy -i $@.boot $(DTS_DIR)/$(dts).dtb ::$(dts).dtb)
+	$(foreach dts,$(DEVICE_DTS), mcopy -i $@.boot $(DTS_DIR)/$(dts).dtb ::$(dts).dtb;)
 	mcopy -i $@.boot $(IMAGE_KERNEL) ::zImage
 	mcopy -i $@.boot $@.bootscript ::boot.scr
 endef
@@ -171,16 +176,33 @@ define Device/armada-388-rd
 endef
 TARGET_DEVICES += armada-388-rd
 
-define Device/armada-388-clearfog
+define Device/armada-388-clearfog-pro
   KERNEL_INSTALL := 1
-  KERNEL := dtb | kernel-bin
-  DEVICE_TITLE := SolidRun ClearFog
+  KERNEL := kernel-bin
+  DEVICE_TITLE := SolidRun ClearFog Pro
   DEVICE_PACKAGES := mkf2fs e2fsprogs swconfig kmod-fs-vfat kmod-nls-cp437 kmod-nls-iso8859-1
   IMAGES := sdcard.img.gz
-  IMAGE/sdcard.img.gz := boot-scr | boot-img | sdcard-img | gzip | append-metadata
+  IMAGE/sdcard.img.gz := boot-scr-cfpro | boot-img | sdcard-img | gzip | append-metadata
   IMAGE_NAME = $$(IMAGE_PREFIX)-$$(2)
+  DEVICE_DTS := armada-388-clearfog-pro armada-388-clearfog-base
 endef
-TARGET_DEVICES += armada-388-clearfog
+TARGET_DEVICES += armada-388-clearfog-pro
+
+define Device/armada-388-clearfog-base
+  KERNEL_INSTALL := 1
+  KERNEL := kernel-bin
+  DEVICE_TITLE := SolidRun ClearFog Base
+  DEVICE_PACKAGES := \
+	  kmod-nls-cp437 kmod-nls-iso8859-1 \
+	  mkf2fs e2fsprogs kmod-fs-vfat kmod-fuse kmod-fs-f2fs \
+	  kmod-ata-core kmod-ata-ahci kmod-ata-marvell-sata kmod-scsi-core kmod-scsi-generic \
+	  kmod-button-hotplug kmod-gpio-button-hotplug
+  IMAGES := sdcard.img.gz
+  IMAGE/sdcard.img.gz := boot-scr-cfbase | boot-img | sdcard-img | gzip
+  IMAGE_NAME = $$(IMAGE_PREFIX)-$$(2)
+  DEVICE_DTS := armada-388-clearfog-pro armada-388-clearfog-base
+endef
+TARGET_DEVICES += armada-388-clearfog-base
 
 define Device/globalscale-mirabox
   $(Device/NAND-512K)

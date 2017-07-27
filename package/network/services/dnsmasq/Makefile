@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dnsmasq
-PKG_VERSION:=2.77test5
-PKG_RELEASE:=1
+PKG_VERSION:=2.77
+PKG_RELEASE:=8
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=http://thekelleys.org.uk/dnsmasq/test-releases
-PKG_HASH:=5d57d575944769f4c6142ac3d6e81c3e60f20f6817d52f18df8056b6e0a9112d
+PKG_SOURCE_URL:=http://thekelleys.org.uk/dnsmasq/
+PKG_HASH:=6eac3b1c50ae25170e3ff8c96ddb55236cf45007633fdb8a35b1f3e02f5f8b8a
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=COPYING
@@ -150,10 +150,15 @@ define Package/dnsmasq/install
 	$(INSTALL_DATA) ./files/dnsmasq.conf $(1)/etc/dnsmasq.conf
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/dnsmasq.init $(1)/etc/init.d/dnsmasq
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/dhcp
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/neigh
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/ntp
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/tftp
 	$(INSTALL_DATA) ./files/dnsmasqsec.hotplug $(1)/etc/hotplug.d/ntp/25-dnsmasqsec
 	$(INSTALL_DIR) $(1)/usr/share/dnsmasq
 	$(INSTALL_DATA) ./files/rfc6761.conf $(1)/usr/share/dnsmasq/
+	$(INSTALL_DIR) $(1)/usr/lib/dnsmasq
+	$(INSTALL_BIN) ./files/dhcp-script.sh $(1)/usr/lib/dnsmasq/dhcp-script.sh
 endef
 
 Package/dnsmasq-dhcpv6/install = $(Package/dnsmasq/install)

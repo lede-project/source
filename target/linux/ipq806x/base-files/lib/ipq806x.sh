@@ -60,19 +60,10 @@ ipq806x_board_detect() {
 	echo "$IPQ806X_MODEL" > /tmp/sysinfo/model
 }
 
-ipq806x_board_name() {
-	local name
-
-	[ -f /tmp/sysinfo/board_name ] && name=$(cat /tmp/sysinfo/board_name)
-	[ -z "$name" ] && name="unknown"
-
-	echo "$name"
-}
-
 ipq806x_get_dt_led() {
 	local label
 	local ledpath
-	local basepath="/sys/firmware/devicetree/base"
+	local basepath="/proc/device-tree"
 	local nodepath="$basepath/aliases/led-$1"
 
 	[ -f "$nodepath" ] && ledpath=$(cat "$nodepath")

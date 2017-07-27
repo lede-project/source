@@ -4,14 +4,14 @@
 #
 
 . /lib/functions/uci-defaults.sh
-. /lib/brcm63xx.sh
 
 board_config_update
 
-case "$(brcm63xx_board_name)" in
+case "$(board_name)" in
 
 cvg834g |\
 evg2000 |\
+r1000h |\
 rta770bw |\
 rta770w |\
 spw303v |\

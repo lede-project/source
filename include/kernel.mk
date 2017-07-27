@@ -10,6 +10,12 @@ CHECK:=1
 DUMP:=1
 endif
 
+ifneq ($(SOURCE_DATE_EPOCH),)
+  ifndef DUMP
+    KBUILD_BUILD_TIMESTAMP:=$(shell perl -e 'print scalar gmtime($(SOURCE_DATE_EPOCH))')
+  endif
+endif
+
 ifeq ($(__target_inc),)
   ifndef CHECK
     include $(INCLUDE_DIR)/target.mk
@@ -51,16 +57,18 @@ else
     LINUX_UNAME_VERSION:=$(LINUX_UNAME_VERSION)-$(strip $(lastword $(subst -, ,$(LINUX_VERSION))))
   endif
 
-  MODULES_SUBDIR:=lib/modules/$(LINUX_UNAME_VERSION)
-  TARGET_MODULES_DIR := $(LINUX_TARGET_DIR)/$(MODULES_SUBDIR)
-
   LINUX_KERNEL:=$(KERNEL_BUILD_DIR)/vmlinux
 
   LINUX_SOURCE:=linux-$(LINUX_VERSION).tar.xz
   TESTING:=$(if $(findstring -rc,$(LINUX_VERSION)),/testing,)
   ifeq ($(call qstrip,$(CONFIG_EXTERNAL_KERNEL_TREE))$(call qstrip,$(CONFIG_KERNEL_GIT_CLONE_URI)),)
       LINUX_SITE:=@KERNEL/linux/kernel/v$(word 1,$(subst ., ,$(KERNEL_BASE))).x$(TESTING)
+  else
+      LINUX_UNAME_VERSION:=$(strip $(shell cat $(LINUX_DIR)/include/config/kernel.release))
   endif
+
+  MODULES_SUBDIR:=lib/modules/$(LINUX_UNAME_VERSION)
+  TARGET_MODULES_DIR:=$(LINUX_TARGET_DIR)/$(MODULES_SUBDIR)
 
   ifneq ($(TARGET_BUILD),1)
     PKG_BUILD_DIR ?= $(KERNEL_BUILD_DIR)/$(PKG_NAME)$(if $(PKG_VERSION),-$(PKG_VERSION))
@@ -85,6 +93,34 @@ else
   LINUX_KARCH := $(ARCH)
 endif
 
+KERNEL_MAKE = $(MAKE) $(KERNEL_MAKEOPTS)
+
+KERNEL_MAKE_FLAGS := \
+	HOSTCFLAGS="$(HOST_CFLAGS) -Wall -Wmissing-prototypes -Wstrict-prototypes" \
+	CROSS_COMPILE="$(KERNEL_CROSS)" \
+	ARCH="$(LINUX_KARCH)" \
+	KBUILD_HAVE_NLS=no \
+	KBUILD_BUILD_USER="$(call qstrip,$(CONFIG_KERNEL_BUILD_USER))" \
+	KBUILD_BUILD_HOST="$(call qstrip,$(CONFIG_KERNEL_BUILD_DOMAIN))" \
+	KBUILD_BUILD_TIMESTAMP="$(KBUILD_BUILD_TIMESTAMP)" \
+	KBUILD_BUILD_VERSION="0" \
+	HOST_LOADLIBES="-L$(STAGING_DIR_HOST)/lib" \
+	CONFIG_SHELL="$(BASH)" \
+	$(if $(findstring c,$(OPENWRT_VERBOSE)),V=1,V='') \
+	$(if $(PKG_BUILD_ID),LDFLAGS_MODULE=--build-id=0x$(PKG_BUILD_ID)) \
+	cmd_syscalls=
+
+ifeq ($(call qstrip,$(CONFIG_EXTERNAL_KERNEL_TREE))$(call qstrip,$(CONFIG_KERNEL_GIT_CLONE_URI)),)
+  KERNEL_MAKE_FLAGS += \
+	KERNELRELEASE=$(LINUX_VERSION)
+endif
+
+KERNEL_MAKEOPTS := -C $(LINUX_DIR) $(KERNEL_MAKE_FLAGS)
+
+ifdef CONFIG_USE_SPARSE
+  KERNEL_MAKEOPTS += C=1 CHECK=$(STAGING_DIR_HOST)/bin/sparse
+endif
+
 define KernelPackage/Defaults
   FILES:=
   AUTOLOAD:=
@@ -95,15 +131,16 @@ define ModuleAutoLoad
 	$(SH_FUNC) \
 	export modules=; \
 	probe_module() { \
-		mods="$$$$$$$$1"; \
-		boot="$$$$$$$$2"; \
+		local mods="$$$$$$$$1"; \
+		local boot="$$$$$$$$2"; \
+		local mod; \
 		shift 2; \
-		for mod in $(sort $$$$$$$$mods); do \
+		for mod in $$$$$$$$mods; do \
 			mkdir -p $(2)/etc/modules.d; \
 			echo "$$$$$$$$mod" >> $(2)/etc/modules.d/$(1); \
 		done; \
 		if [ -e $(2)/etc/modules.d/$(1) ]; then \
-			if [ "$$$$$$$$boot" = "1" ]; then \
+			if [ "$$$$$$$$boot" = "1" -a ! -e $(2)/etc/modules-boot.d/$(1) ]; then \
 				mkdir -p $(2)/etc/modules-boot.d; \
 				ln -s ../modules.d/$(1) $(2)/etc/modules-boot.d/; \
 			fi; \
@@ -111,16 +148,17 @@ define ModuleAutoLoad
 		fi; \
 	}; \
 	add_module() { \
-		priority="$$$$$$$$1"; \
-		mods="$$$$$$$$2"; \
-		boot="$$$$$$$$3"; \
+		local priority="$$$$$$$$1"; \
+		local mods="$$$$$$$$2"; \
+		local boot="$$$$$$$$3"; \
+		local mod; \
 		shift 3; \
-		for mod in $(sort $$$$$$$$mods); do \
+		for mod in $$$$$$$$mods; do \
 			mkdir -p $(2)/etc/modules.d; \
 			echo "$$$$$$$$mod" >> $(2)/etc/modules.d/$$$$$$$$priority-$(1); \
 		done; \
 		if [ -e $(2)/etc/modules.d/$$$$$$$$priority-$(1) ]; then \
-			if [ "$$$$$$$$boot" = "1" ]; then \
+			if [ "$$$$$$$$boot" = "1" -a ! -e $(2)/etc/modules-boot.d/$$$$$$$$priority-$(1) ]; then \
 				mkdir -p $(2)/etc/modules-boot.d; \
 				ln -s ../modules.d/$$$$$$$$priority-$(1) $(2)/etc/modules-boot.d/; \
 			fi; \
@@ -129,6 +167,7 @@ define ModuleAutoLoad
 	}; \
 	$(3) \
 	if [ -n "$$$$$$$$modules" ]; then \
+		modules="$$$$$$$$(echo "$$$$$$$$modules" | tr ' ' '\n' | sort | uniq | paste -s -d' ' -)"; \
 		mkdir -p $(2)/etc/modules.d; \
 		mkdir -p $(2)/CONTROL; \
 		echo "#!/bin/sh" > $(2)/CONTROL/postinst-pkg; \

@@ -1,7 +1,6 @@
 #!/bin/sh
 
 . /lib/functions.sh
-. /lib/ramips.sh
 . /lib/functions/uci-defaults.sh
 . /lib/functions/system.sh
 
@@ -84,6 +83,8 @@ ramips_setup_interfaces()
 	hc5661a|\
 	hc5962|\
 	hlk-rm04|\
+	k2p|\
+	kn|\
 	kn_rc|\
 	mac1200rv2|\
 	miwifi-mini|\
@@ -134,6 +135,10 @@ ramips_setup_interfaces()
 		;;
 	ar670w|\
 	ar725w|\
+	rt-ac51u)
+		ucidef_add_switch "switch0" \
+			"0:wan" "1:lan" "2:lan" "3:lan" "4:lan" "6t@eth0"
+		;;
 	rt-n15|\
 	wl-351)
 		ucidef_add_switch "switch0" \
@@ -152,7 +157,6 @@ ramips_setup_interfaces()
 	c20i|\
 	c50|\
 	dir-645|\
-	dir-860l-b1|\
 	f5d8235-v2|\
 	gl-mt300a|\
 	gl-mt300n|\
@@ -164,7 +168,10 @@ ramips_setup_interfaces()
 	mzk-wdpr|\
 	rb750gr3|\
 	rt-n14u|\
+	tl-wr840n-v4|\
+	tl-wr841n-v13|\
 	ubnt-erx|\
+	ubnt-erx-sfp|\
 	ur-326n4g|\
 	wrtnode|\
 	wrtnode2p | \
@@ -174,6 +181,18 @@ ramips_setup_interfaces()
 	zbt-wa05)
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "0:wan" "6@eth0"
+		;;
+	dir-860l-b1)
+		ucidef_add_switch "switch0" \
+			"1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1" "0:wan" "6@eth0"
+		;;
+	gb-pc1)
+		ucidef_add_switch "switch0" \
+			"0:lan" "4:lan" "6@eth0"
+		;;
+	gl-mt300n-v2)
+		ucidef_add_switch "switch0" \
+			"1:lan" "0:wan" "6@eth0"
 		;;
 	awapn2403)
 		ucidef_add_switch "switch0" \
@@ -211,6 +230,7 @@ ramips_setup_interfaces()
 	na930|\
 	pbr-d1|\
 	wli-tx4-ag300n|\
+	wmdr-143n|\
 	wmr-300|\
 	wn3000rpv3|\
 	wrh-300cr)
@@ -258,6 +278,10 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 		"1:lan:2" "2:lan:1" "4:wan" "6@eth0"
 		;;
+	re350-v1)
+		ucidef_add_switch "switch0" \
+			"0:lan" "6@eth0"
+		;;
 	re6500)
 		ucidef_add_switch "switch0" \
 			"0:lan:1" "1:lan:2" "2:lan:3" "3:lan:4" "6@eth0"
@@ -265,6 +289,10 @@ ramips_setup_interfaces()
 	rt-n56u)
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "2:lan" "3:lan" "4:wan" "8@eth0"
+		;;
+	tew-638apb-v2)
+		ucidef_add_switch "switch0" \
+			"4:lan" "6@eth0"
 		;;
 	tew-691gr|\
 	tew-692gr|\
@@ -318,7 +346,8 @@ ramips_setup_macs()
 
 	case $board in
 	a5-v11|\
-	ht-tm02)
+	ht-tm02|\
+	wmdr-143n)
 		lan_mac=$(cat /sys/class/net/eth0/address)
 		;;
 	all0239-3g|\
@@ -364,6 +393,9 @@ ramips_setup_macs()
 		;;
 	e1700)
 		wan_mac=$(mtd_get_mac_ascii config WAN_MAC_ADDR)
+		;;
+	gl-mt300n-v2)
+		wan_mac=$(mtd_get_mac_binary factory 4)
 		;;
 	hc5*61|\
 	hc5661a|\
@@ -475,7 +507,7 @@ ramips_setup_macs()
 }
 
 board_config_update
-board=$(ramips_board_name)
+board=$(board_name)
 ramips_setup_interfaces $board
 ramips_setup_macs $board
 board_config_flush
