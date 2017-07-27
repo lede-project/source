@@ -3,6 +3,7 @@
 #include "ZBT-WG3526.dtsi"
 
 / {
+	compatible = "zbt,zbt-we3526", "mediatek,mt7621-soc";
 	model = "ZBT-WG3526 (16M)";
 };
 
