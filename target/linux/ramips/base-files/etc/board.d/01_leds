@@ -183,6 +183,10 @@ fonera20n)
 	set_usb_led "$board:orange:usb"
 	set_wifi_led "$board:orange:wifi"
 	;;
+gb-pc1)
+	ucidef_set_led_switch "lan1" "lan1" "$board:green:lan1" "switch0" "0x01"
+	ucidef_set_led_switch "lan2" "lan2" "$board:green:lan2" "switch0" "0x10"
+	;;
 gl-mt300a|\
 gl-mt300n|\
 gl-mt750)
@@ -307,6 +311,12 @@ r6220)
 	ucidef_set_led_netdev "wan" "wan" "$board:green:wan" eth0.2
 	set_wifi_led "$board:green:wifi"
 	set_usb_led "$board:green:usb"
+	;;
+re350-v1)
+	ucidef_set_led_netdev "wifi2g" "Wifi 2.4G" "$board:blue:wifi2G" "wlan0"
+	ucidef_set_led_netdev "wifi5g" "Wifi 5G" "$board:blue:wifi5G" "wlan1"
+	ucidef_set_led_netdev "eth_act" "LAN act" "$board:green:eth_act" "eth0" "tx rx"
+	ucidef_set_led_switch "eth_link" "LAN link" "$board:green:eth_link" "switch0" "0x01"
 	;;
 re6500)
 	ucidef_set_led_default "power" "power" "$board:white:power" "1"
