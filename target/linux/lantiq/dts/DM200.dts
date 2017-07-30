@@ -8,7 +8,7 @@
 	model = "DM200 - Netgear DM200";
 
 	chosen {
-		bootargs = "console=ttyLTQ0,115200";
+		bootargs = "root=/dev/mtdblock4 ro rootfstype=squashfs,jffs2 console=ttyLTQ0,115200";
 	};
 
 	aliases {
