@@ -1,0 +1,37 @@
+commit c8531ca31fab4be1a02d4d3bf86fa555048e9805
+Author: Bruce A. Mah <bmah@es.net>
+Date:   Tue May 2 10:21:59 2017 -0700
+
+    Fix possible integer overflow in tera prefix conversions.
+    
+    Follow-on commit for #402, possible fix for #561.
+
+diff --git a/src/units.c b/src/units.c
+index 7c376a4..f9533f0 100644
+--- a/src/units.c
++++ b/src/units.c
+@@ -69,15 +69,15 @@ extern    "C"
+ {
+ #endif
+ 
+-    const long KILO_UNIT = 1024;
+-    const long MEGA_UNIT = 1024 * 1024;
+-    const long GIGA_UNIT = 1024 * 1024 * 1024;
+-    const long TERA_UNIT = 1.0 * 1024 * 1024 * 1024 * 1024;
+-
+-    const long KILO_RATE_UNIT = 1000;
+-    const long MEGA_RATE_UNIT = 1000 * 1000;
+-    const long GIGA_RATE_UNIT = 1000 * 1000 * 1000;
+-    const long TERA_RATE_UNIT = 1.0 * 1000 * 1000 * 1000 * 1000;
++    const double KILO_UNIT = 1024.0;
++    const double MEGA_UNIT = 1024.0 * 1024.0;
++    const double GIGA_UNIT = 1024.0 * 1024.0 * 1024.0;
++    const double TERA_UNIT = 1024.0 * 1024.0 * 1024.0 * 1024.0;
++
++    const double KILO_RATE_UNIT = 1000.0;
++    const double MEGA_RATE_UNIT = 1000.0 * 1000.0;
++    const double GIGA_RATE_UNIT = 1000.0 * 1000.0 * 1000.0;
++    const double TERA_RATE_UNIT = 1000.0 * 1000.0 * 1000.0 * 1000.0;
+ 
+ /* -------------------------------------------------------------------
+  * unit_atof
