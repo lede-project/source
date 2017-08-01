@@ -209,7 +209,7 @@ Subject: [PATCH 25/36] NET: MIPS: lantiq: adds xrx200-net
 +};
 --- /dev/null
 +++ b/drivers/net/ethernet/lantiq_xrx200.c
-@@ -0,0 +1,1853 @@
+@@ -0,0 +1,1856 @@
 +/*
 + *   This program is free software; you can redistribute it and/or modify it
 + *   under the terms of the GNU General Public License version 2 as published
@@ -1857,6 +1857,9 @@ Subject: [PATCH 25/36] NET: MIPS: lantiq: adds xrx200-net
 +	else
 +		p->flags = XRX200_PORT_TYPE_PHY;
 +	priv->num_port++;
++
++	/* set initial link state to UP, because phy_device_create() also do */
++	p->link = 1;
 +
 +	p->gpio = of_get_gpio_flags(port, 0, &p->gpio_flags);
 +	if (gpio_is_valid(p->gpio))
