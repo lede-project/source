@@ -76,6 +76,8 @@ struct flash_layout {
 	uint32_t	rootfs_ofs;
 };
 
+#define FLAG_LE_KERNEL_LA_EP			0x00000001	/* Little-endian used for kernel load address & entry point */
+
 struct board_info {
 	char		*id;
 	uint32_t	hw_id;
@@ -83,7 +85,7 @@ struct board_info {
 	uint32_t	hw_ver_add;
 	char		*layout_id;
 	uint32_t	hdr_ver;
-	bool		endian_swap;
+	uint32_t	flags;
 };
 
 /*
@@ -184,7 +186,7 @@ static struct board_info boards[] = {
 		.hw_rev		= 58,
 		.layout_id	= "8Mmtk",
 		.hdr_ver	= 3,
-		.endian_swap	= true,
+		.flags		= FLAG_LE_KERNEL_LA_EP,
 	}, {
 		.id		= "ArcherVR200V",
 		.hw_id		= 0x73b70801,
@@ -197,14 +199,14 @@ static struct board_info boards[] = {
 		.hw_rev		= 69,
 		.layout_id	= "8Mmtk",
 		.hdr_ver	= 3,
-		.endian_swap	= true,
+		.flags		= FLAG_LE_KERNEL_LA_EP,
 	}, {
 		.id		= "ArcherMR200",
 		.hw_id		= 0xd7500001,
 		.hw_rev		= 0x4a,
 		.layout_id	= "8MLmtk",
 		.hdr_ver	= 3,
-		.endian_swap	= true,
+		.flags		= FLAG_LE_KERNEL_LA_EP,
 	}, {
 		.id		= "TL-WR840NV4",
 		.hw_id		= 0x08400004,
@@ -212,7 +214,7 @@ static struct board_info boards[] = {
 		.hw_ver_add	= 0x4,
 		.layout_id	= "8Mmtk",
 		.hdr_ver	= 3,
-		.endian_swap	= true,
+		.flags		= FLAG_LE_KERNEL_LA_EP,
 	}, {
 		.id		= "TL-WR841NV13",
 		.hw_id		= 0x08410013,
@@ -220,7 +222,7 @@ static struct board_info boards[] = {
 		.hw_ver_add	= 0x13,
 		.layout_id	= "8Mmtk",
 		.hdr_ver	= 3,
-		.endian_swap	= true,
+		.flags		= FLAG_LE_KERNEL_LA_EP,
 	}, {
 		/* terminating entry */
 	}
@@ -574,7 +576,7 @@ static void fill_header(char *buf, int len)
 	hdr->ver_mid = fw_ver_mid;
 	hdr->ver_lo = fw_ver_lo;
 
-	if (board->endian_swap) {
+	if (board->flags & FLAG_LE_KERNEL_LA_EP) {
 		hdr->kernel_la = bswap_32(hdr->kernel_la);
 		hdr->kernel_ep = bswap_32(hdr->kernel_ep);
 	}
@@ -791,6 +793,15 @@ static int inspect_fw(void)
 		goto out_free_buf;
 	hdr = (struct fw_header *)buf;
 
+	board = find_board_by_hwid(ntohl(hdr->hw_id));
+	if (!board)
+		board = &custom_board;
+
+	if (board->flags & FLAG_LE_KERNEL_LA_EP) {
+		hdr->kernel_la = bswap_32(hdr->kernel_la);
+		hdr->kernel_ep = bswap_32(hdr->kernel_ep);
+	}
+
 	inspect_fw_pstr("File name", inspect_info.file_name);
 	inspect_fw_phexdec("File size", inspect_info.file_size);
 
@@ -836,8 +847,7 @@ static int inspect_fw(void)
 
 	inspect_fw_pstr("Firmware version", hdr->fw_version);
 
-	board = find_board_by_hwid(ntohl(hdr->hw_id));
-	if (board) {
+	if (board != &custom_board) {
 		layout = find_layout(board->layout_id);
 		inspect_fw_phexpost("Hardware ID",
 		                    ntohl(hdr->hw_id), board->id);
@@ -864,7 +874,7 @@ static int inspect_fw(void)
 	                   ntohl(hdr->kernel_ofs));
 	inspect_fw_phexdec("Kernel data length",
 	                   ntohl(hdr->kernel_len));
-	if (board) {
+	if (board != &custom_board) {
 		inspect_fw_phexdef("Kernel load address",
 		                   ntohl(hdr->kernel_la),
 		                   layout ? layout->kernel_la : 0xffffffff);
@@ -1018,7 +1028,7 @@ int main(int argc, char *argv[])
 			hdr_ver = atoi(optarg);
 			break;
 		case 'e':
-			custom_board.endian_swap = true;
+			custom_board.flags = FLAG_LE_KERNEL_LA_EP;
 			break;
 		case 'h':
 			usage(EXIT_SUCCESS);

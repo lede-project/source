@@ -77,6 +77,7 @@ get_status_led() {
 	dir-620-a1|\
 	dir-620-d1|\
 	dwr-512-b|\
+	gb-pc1|\
 	hpm|\
 	hw550-3g|\
 	mac1200rv2|\
@@ -119,6 +120,7 @@ get_status_led() {
 	dap-1350|\
 	na930|\
 	pbr-m1|\
+	re350-v1|\
 	rt-ac51u|\
 	rt-n13u|\
 	rt-n14u|\
@@ -157,16 +159,17 @@ get_status_led() {
 	hc5962)
 		status_led="$board:white:status"
 		;;
+	k2p|\
+	m3|\
+	miwifi-nano)
+		status_led="$board:blue:status"
+		;;
 	linkits7688| \
 	linkits7688d)
 		[ "$1" = "upgrade" ] && status_led="mediatek:orange:wifi"
 		;;
 	m2m)
 		status_led="$board:blue:wifi"
-		;;
-	m3|\
-	miwifi-nano)
-		status_led="$board:blue:status"
 		;;
 	gl-mt300n-v2)
 		status_led="$board:red:wlan"
