@@ -1097,7 +1097,7 @@ ar71xx_board_detect() {
 	*UniFi)
 		name="unifi"
 		;;
-	*"UniFi-AC-LITE")
+	*"UniFi-AC-LITE/MESH")
 		name="unifiac-lite"
 		;;
 	*"UniFi-AC-PRO")
