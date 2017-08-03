@@ -1,12 +1,10 @@
 --- a/Makefile
 +++ b/Makefile
-@@ -42,8 +42,8 @@ PLATS= aix ansi bsd freebsd generic linu
- 
+@@ -43,7 +43,7 @@ PLATS= aix ansi bsd freebsd generic linu
  # What to install.
  TO_BIN= lua luac
--TO_INC= lua.h luaconf.h lualib.h lauxlib.h ../etc/lua.hpp
+ TO_INC= lua.h luaconf.h lualib.h lauxlib.h ../etc/lua.hpp
 -TO_LIB= liblua.a
-+TO_INC= lua.h luaconf.h lualib.h lauxlib.h ../etc/lua.hpp lnum_config.h
 +TO_LIB= liblua.a liblua.so.$R
  TO_MAN= lua.1 luac.1
  
@@ -21,7 +19,7 @@
  ranlib:
 --- a/src/ldo.h
 +++ b/src/ldo.h
-@@ -46,7 +46,7 @@ LUAI_FUNC int luaD_pcall (lua_State *L, 
+@@ -46,7 +46,7 @@ LUAI_FUNC int luaD_pcall (lua_State *L,
  LUAI_FUNC int luaD_poscall (lua_State *L, StkId firstResult);
  LUAI_FUNC void luaD_reallocCI (lua_State *L, int newsize);
  LUAI_FUNC void luaD_reallocstack (lua_State *L, int newsize);
@@ -80,7 +78,7 @@
 --- a/src/Makefile
 +++ b/src/Makefile
 @@ -23,6 +23,7 @@ MYLIBS=
- PLATS= aix ansi bsd freebsd generic linux macosx mingw posix solaris
+ PLATS= aix ansi bsd freebsd generic linux linux_sse macosx mingw posix solaris
  
  LUA_A=	liblua.a
 +LUA_SO= liblua.so
@@ -136,5 +134,5 @@
 -	$(MAKE) all MYCFLAGS=-DLUA_USE_LINUX MYLIBS="-Wl,-E -ldl -lreadline -lhistory -lncurses"
 +	$(MAKE) all MYCFLAGS+=-DLUA_USE_LINUX MYLIBS="-Wl,-E -ldl -lreadline -lhistory -lncurses"
  
- macosx:
- 	$(MAKE) all MYCFLAGS=-DLUA_USE_LINUX MYLIBS="-lreadline"
+ linux_sse:
+ 	$(MAKE) all MYCFLAGS="-DLUA_USE_LINUX -mfpmath=sse -msse2" MYLIBS="-Wl,-E -ldl -lreadline -lhistory -lncurses"
