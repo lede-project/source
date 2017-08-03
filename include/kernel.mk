@@ -133,11 +133,13 @@ define ModuleAutoLoad
 	probe_module() { \
 		local mods="$$$$$$$$1"; \
 		local boot="$$$$$$$$2"; \
-		local mod; \
 		shift 2; \
+		local mod; \
 		for mod in $$$$$$$$mods; do \
+			local params="$$$$$$$$1"; \
+			shift; \
 			mkdir -p $(2)/etc/modules.d; \
-			echo "$$$$$$$$mod" >> $(2)/etc/modules.d/$(1); \
+			echo "$$$$$$$$mod $$$$$$$$params" >> $(2)/etc/modules.d/$(1); \
 		done; \
 		if [ -e $(2)/etc/modules.d/$(1) ]; then \
 			if [ "$$$$$$$$boot" = "1" -a ! -e $(2)/etc/modules-boot.d/$(1) ]; then \
@@ -151,11 +153,13 @@ define ModuleAutoLoad
 		local priority="$$$$$$$$1"; \
 		local mods="$$$$$$$$2"; \
 		local boot="$$$$$$$$3"; \
-		local mod; \
 		shift 3; \
+		local mod; \
 		for mod in $$$$$$$$mods; do \
+			local params="$$$$$$$$1"; \
+			shift; \
 			mkdir -p $(2)/etc/modules.d; \
-			echo "$$$$$$$$mod" >> $(2)/etc/modules.d/$$$$$$$$priority-$(1); \
+			echo "$$$$$$$$mod $$$$$$$$params" >> $(2)/etc/modules.d/$$$$$$$$priority-$(1); \
 		done; \
 		if [ -e $(2)/etc/modules.d/$$$$$$$$priority-$(1) ]; then \
 			if [ "$$$$$$$$boot" = "1" -a ! -e $(2)/etc/modules-boot.d/$$$$$$$$priority-$(1) ]; then \
@@ -266,11 +270,11 @@ endef
 version_filter=$(if $(findstring @,$(1)),$(shell $(SCRIPT_DIR)/package-metadata.pl version_filter $(KERNEL_PATCHVER) $(1)),$(1))
 
 define AutoLoad
-  add_module "$(1)" "$(call version_filter,$(2))" "$(3)";
+  add_module "$(1)" "$(call version_filter,$(2))" "$(3)" $$(foreach mod,$$(FILES),"$$(MODPARAMS.$$(basename $$(notdir $$(mod))))");
 endef
 
 define AutoProbe
-  probe_module "$(call version_filter,$(1))" "$(2)";
+  probe_module "$(call version_filter,$(1))" "$(2)" $$(foreach mod,$$(FILES),"$$(MODPARAMS.$$(basename $$(notdir $$(mod))))");
 endef
 
 version_field=$(if $(word $(1),$(2)),$(word $(1),$(2)),0)
