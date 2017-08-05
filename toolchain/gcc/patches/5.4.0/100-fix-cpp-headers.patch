@@ -1,0 +1,245 @@
+--- a/gcc/ipa-icf-gimple.c
++++ b/gcc/ipa-icf-gimple.c
+@@ -20,6 +20,7 @@ along with GCC; see the file COPYING3.  
+ <http://www.gnu.org/licenses/>.  */
+ 
+ #include "config.h"
++#define INCLUDE_LIST
+ #include "system.h"
+ #include "coretypes.h"
+ #include "hash-set.h"
+@@ -74,7 +75,6 @@ along with GCC; see the file COPYING3.  
+ #include "cgraph.h"
+ #include "data-streamer.h"
+ #include "ipa-utils.h"
+-#include <list>
+ #include "tree-ssanames.h"
+ #include "tree-eh.h"
+ #include "builtins.h"
+--- a/gcc/graphite-isl-ast-to-gimple.c
++++ b/gcc/graphite-isl-ast-to-gimple.c
+@@ -38,6 +38,7 @@ extern "C" {
+ #endif
+ #endif
+ 
++#define INCLUDE_MAP
+ #include "system.h"
+ #include "coretypes.h"
+ #include "hash-set.h"
+@@ -75,7 +76,6 @@ extern "C" {
+ #include "tree-scalar-evolution.h"
+ #include "gimple-ssa.h"
+ #include "tree-into-ssa.h"
+-#include <map>
+ 
+ #ifdef HAVE_isl
+ #include "graphite-poly.h"
+--- a/gcc/c/c-objc-common.c
++++ b/gcc/c/c-objc-common.c
+@@ -38,8 +38,6 @@ along with GCC; see the file COPYING3.  
+ #include "langhooks.h"
+ #include "c-objc-common.h"
+ 
+-#include <new>                          // For placement new.
+-
+ static bool c_tree_printer (pretty_printer *, text_info *, const char *,
+ 			    int, bool, bool, bool);
+ 
+--- a/gcc/diagnostic.c
++++ b/gcc/diagnostic.c
+@@ -41,8 +41,6 @@ along with GCC; see the file COPYING3.  
+ # include <sys/ioctl.h>
+ #endif
+ 
+-#include <new>                     // For placement new.
+-
+ #define pedantic_warning_kind(DC)			\
+   ((DC)->pedantic_errors ? DK_ERROR : DK_WARNING)
+ #define permissive_error_kind(DC) ((DC)->permissive ? DK_WARNING : DK_ERROR)
+--- a/gcc/toplev.c
++++ b/gcc/toplev.c
+@@ -135,8 +135,6 @@ along with GCC; see the file COPYING3.  
+ #define HAVE_prologue 0
+ #endif
+ 
+-#include <new>
+-
+ static void general_init (const char *, bool);
+ static void do_compile ();
+ static void process_options (void);
+--- a/gcc/pretty-print.c
++++ b/gcc/pretty-print.c
+@@ -25,8 +25,6 @@ along with GCC; see the file COPYING3.  
+ #include "pretty-print.h"
+ #include "diagnostic-color.h"
+ 
+-#include <new>                    // For placement-new.
+-
+ #if HAVE_ICONV
+ #include <iconv.h>
+ #endif
+--- a/gcc/ChangeLog
++++ b/gcc/ChangeLog
+@@ -1,3 +1,32 @@
++2017-09-26  Iain Sandoe  <iain@codesourcery.com>
++            Ryan Mounce  <ryan@mounce.com.au>
++
++	PR bootstrap/81037
++ 	Backport from mainline r235362
++ 	2016-04-22  Szabolcs Nagy  <szabolcs.nagy@arm.com>
++ 
++	* system.h (list, map, set, vector): Include conditionally.
++	* auto-profile.c (INCLUDE_MAP, INCLUDE_SET): Define.
++	* graphite-isl-ast-to-gimple.c (INCLUDE_MAP): Define.
++	* ipa-icf.c (INCLUDE_LIST): Define.
++	* ipa-icf-gimple.c (INCLUDE_LIST): Define.
++	* config/sh/sh.c (INCLUDE_VECTOR): Define.
++	* config/sh/sh_treg_combine.cc (INCLUDE_ALGORITHM): Define.
++	(INCLUDE_LIST, INCLUDE_VECTOR): Define.
++	* fortran/trans-common.c (INCLUDE_MAP): Define.
++
++	Backport from mainline r235361
++	2016-04-22  Szabolcs Nagy  <szabolcs.nagy@arm.com>
++
++	* auto-profile.c: Remove <string.h> include.
++	* diagnostic.c: Remove <new> include.
++	* genmatch.c: Likewise.
++	* pretty-print.c: Likewise.
++	* toplev.c: Likewise
++	* c/c-objc-common.c: Likewise.
++	* cp/error.c: Likewise.
++	* fortran/error.c: Likewise.
++
+ 2016-06-03  Release Manager
+ 
+ 	* GCC 5.4.0 released.
+--- a/gcc/cp/error.c
++++ b/gcc/cp/error.c
+@@ -44,8 +44,6 @@ along with GCC; see the file COPYING3.  
+ #include "ubsan.h"
+ #include "internal-fn.h"
+ 
+-#include <new>                    // For placement-new.
+-
+ #define pp_separate_with_comma(PP) pp_cxx_separate_with (PP, ',')
+ #define pp_separate_with_semicolon(PP) pp_cxx_separate_with (PP, ';')
+ 
+--- a/gcc/fortran/trans-common.c
++++ b/gcc/fortran/trans-common.c
+@@ -92,8 +92,8 @@ along with GCC; see the file COPYING3.  
+    is examined for still-unused equivalence conditions.  We create a
+    block for each merged equivalence list.  */
+ 
+-#include <map>
+ #include "config.h"
++#define INCLUDE_MAP
+ #include "system.h"
+ #include "coretypes.h"
+ #include "tm.h"
+--- a/gcc/fortran/error.c
++++ b/gcc/fortran/error.c
+@@ -34,8 +34,6 @@ along with GCC; see the file COPYING3.  
+ #include "diagnostic-color.h"
+ #include "tree-diagnostic.h" /* tree_diagnostics_defaults */
+ 
+-#include <new> /* For placement-new */
+-
+ static int suppress_errors = 0;
+ 
+ static bool warnings_not_errors = false;
+--- a/gcc/auto-profile.c
++++ b/gcc/auto-profile.c
+@@ -19,12 +19,10 @@ along with GCC; see the file COPYING3.  
+ <http://www.gnu.org/licenses/>.  */
+ 
+ #include "config.h"
++#define INCLUDE_MAP
++#define INCLUDE_SET
+ #include "system.h"
+ 
+-#include <string.h>
+-#include <map>
+-#include <set>
+-
+ #include "coretypes.h"
+ #include "hash-set.h"
+ #include "machmode.h"
+--- a/gcc/genmatch.c
++++ b/gcc/genmatch.c
+@@ -22,7 +22,6 @@ along with GCC; see the file COPYING3.  
+ <http://www.gnu.org/licenses/>.  */
+ 
+ #include "bconfig.h"
+-#include <new>
+ #include "system.h"
+ #include "coretypes.h"
+ #include "ggc.h"
+--- a/gcc/system.h
++++ b/gcc/system.h
+@@ -215,6 +215,18 @@ extern int errno;
+ #endif
+ 
+ #ifdef __cplusplus
++# ifdef INCLUDE_LIST
++#  include <list>
++# endif
++# ifdef INCLUDE_MAP
++#  include <map>
++# endif
++# ifdef INCLUDE_SET
++#  include <set>
++# endif
++# ifdef INCLUDE_VECTOR
++#  include <vector>
++# endif
+ # include <algorithm>
+ # include <cstring>
+ # include <utility>
+--- a/gcc/config/sh/sh.c
++++ b/gcc/config/sh/sh.c
+@@ -20,9 +20,9 @@ along with GCC; see the file COPYING3.  
+ <http://www.gnu.org/licenses/>.  */
+ 
+ #include <sstream>
+-#include <vector>
+ 
+ #include "config.h"
++#define INCLUDE_VECTOR
+ #include "system.h"
+ #include "coretypes.h"
+ #include "tm.h"
+--- a/gcc/config/sh/sh_treg_combine.cc
++++ b/gcc/config/sh/sh_treg_combine.cc
+@@ -19,6 +19,9 @@ along with GCC; see the file COPYING3.  
+ <http://www.gnu.org/licenses/>.  */
+ 
+ #include "config.h"
++#define INCLUDE_ALGORITHM
++#define INCLUDE_LIST
++#define INCLUDE_VECTOR
+ #include "system.h"
+ #include "coretypes.h"
+ #include "machmode.h"
+@@ -65,10 +68,6 @@ along with GCC; see the file COPYING3.  
+ #include "stmt.h"
+ #include "expr.h"
+ 
+-#include <algorithm>
+-#include <list>
+-#include <vector>
+-
+ /*
+ This pass tries to optimize for example this:
+ 	mov.l	@(4,r4),r1
+--- a/gcc/ipa-icf.c
++++ b/gcc/ipa-icf.c
+@@ -52,8 +52,8 @@ along with GCC; see the file COPYING3.  
+ */
+ 
+ #include "config.h"
++#define INCLUDE_LIST
+ #include "system.h"
+-#include <list>
+ #include "coretypes.h"
+ #include "hash-set.h"
+ #include "machmode.h"
