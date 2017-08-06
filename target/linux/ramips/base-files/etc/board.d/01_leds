@@ -78,9 +78,6 @@ asl26555-16M)
 bc2)
 	set_usb_led "$board:blue:usb"
 	;;
-br-6425)
-	set_wifi_led "$board:orange:wlan"
-	;;
 broadway)
 	set_usb_led "$board:red:diskmounted"
 	set_wifi_led "$board:red:wps_active"
@@ -92,7 +89,6 @@ c20i)
 	ucidef_set_led_wlan "wlan" "wlan" "$board:blue:wlan" "phy0radio"
 	;;
 c50)
-	ucidef_set_led_default "power" "power" "$board:green:power" "0"
 	ucidef_set_led_switch "lan" "lan" "$board:green:lan" "switch0" "0x1e"
 	ucidef_set_led_switch "wan" "wan" "$board:green:wan" "switch0" "0x01"
 	set_usb_led "$board:green:usb"
@@ -164,7 +160,6 @@ dir-860l-b1)
 	;;
 ex2700|\
 wn3000rpv3)
-	ucidef_set_led_default "power_r" "POWER (red)" "$board:red:power" "0"
 	set_wifi_led "$board:green:router"
 	;;
 ex3700)

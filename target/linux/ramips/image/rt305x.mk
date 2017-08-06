@@ -137,24 +137,18 @@ define Device/awm002-evb-4M
   DTS := AWM002-EVB-4M
   IMAGE_SIZE := $(ralink_default_fw_size_4M)
   DEVICE_TITLE := AsiaRF AWM002-EVB (4M)
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport \
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 \
 		kmod-i2c-core kmod-i2c-gpio
 endef
 TARGET_DEVICES += awm002-evb-4M
 
 define Device/awm002-evb-8M
   DTS := AWM002-EVB-8M
-  DEVICE_TITLE := AsiaRF AWM002-EVB (8M)
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport \
+  DEVICE_TITLE := AsiaRF AWM002-EVB (8M)/AsiaRF AWM003 EVB
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 \
 		kmod-i2c-core kmod-i2c-gpio
 endef
 TARGET_DEVICES += awm002-evb-8M
-
-define Device/awm003-evb
-  DTS := AWM003-EVB
-  DEVICE_TITLE := AsiaRF AWM003 EVB
-endef
-TARGET_DEVICES += awm003-evb
 
 define Device/awapn2403
   DTS := AWAPN2403
@@ -345,6 +339,13 @@ define Device/freestation5
 endef
 TARGET_DEVICES += freestation5
 
+define Device/hg255d
+  DTS := HG255D
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := HuaWei HG255D
+endef
+TARGET_DEVICES += hg255d
+
 define Device/hlk-rm04
   DTS := HLKRM04
   IMAGES += factory.bin
@@ -455,6 +456,7 @@ endef
 TARGET_DEVICES += miniembplug
 
 define Device/miniembwifi
+  DTS := MINIEMBWIFI
   DEVICE_TITLE := Omnima MiniEMBWiFi
 endef
 TARGET_DEVICES += miniembwifi
