@@ -718,6 +718,18 @@ define KernelPackage/sched-connmark
 endef
 $(eval $(call KernelPackage,sched-connmark))
 
+define KernelPackage/sched-esfq
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Traffic shaper ESFQ support
+  DEPENDS:=+kmod-sched-core +kmod-ipt-core +kmod-ipt-conntrack
+  KCONFIG:= \
+	CONFIG_NET_SCH_ESFQ \
+	CONFIG_NET_SCH_ESFQ_NFCT=y
+  FILES:=$(LINUX_DIR)/net/sched/sch_esfq.ko
+  AUTOLOAD:=$(call AutoLoad,72, sch_esfq)
+endef
+$(eval $(call KernelPackage,sched-esfq))
+
 define KernelPackage/sched
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=Extra traffic schedulers
