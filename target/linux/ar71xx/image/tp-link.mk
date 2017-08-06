@@ -927,7 +927,7 @@ define Device/tl-wr841-v7
 endef
 
 define Device/tl-wr841-v8
-  $(Device/tplink-4mlzma)
+  $(Device/tplink-8mlzma)
   DEVICE_TITLE := TP-LINK TL-WR841N/ND v8
   BOARDNAME := TL-WR841N-v8
   DEVICE_PROFILE := TLWR841
@@ -935,7 +935,7 @@ define Device/tl-wr841-v8
 endef
 
 define Device/tl-wr841-v9
-  $(Device/tplink-4mlzma)
+  $(Device/tplink-8mlzma)
   DEVICE_TITLE := TP-LINK TL-WR841N/ND v9
   BOARDNAME := TL-WR841N-v9
   DEVICE_PROFILE := TLWR841
