@@ -1,0 +1,41 @@
+--- a/include/image.h
++++ b/include/image.h
+@@ -22,6 +22,7 @@
+ struct lmb;
+ 
+ #ifdef USE_HOSTCC
++#include <sys/types.h>
+ 
+ /* new uImage format support enabled on host */
+ #define CONFIG_FIT		1
+--- a/tools/env/fw_env.c
++++ b/tools/env/fw_env.c
+@@ -8,6 +8,8 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#define _GNU_SOURCE
++
+ #include <errno.h>
+ #include <env_flags.h>
+ #include <fcntl.h>
+--- a/tools/imagetool.h
++++ b/tools/imagetool.h
+@@ -16,6 +16,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <sys/stat.h>
++#include <sys/types.h>
+ #include <time.h>
+ #include <unistd.h>
+ #include <u-boot/sha1.h>
+--- a/tools/proftool.c
++++ b/tools/proftool.c
+@@ -16,6 +16,7 @@
+ #include <string.h>
+ #include <unistd.h>
+ #include <sys/param.h>
++#include <sys/types.h>
+ 
+ #include <compiler.h>
+ #include <trace.h>
