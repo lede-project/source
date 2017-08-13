@@ -1,9 +1,9 @@
---- a/util/Makefile.in
-+++ b/util/Makefile.in
-@@ -723,7 +723,7 @@ mount_util.c: $(top_srcdir)/lib/mount_ut
+--- a/util/Makefile.am
++++ b/util/Makefile.am
+@@ -17,7 +17,7 @@ mount_fuse3_SOURCES = mount.fuse.c
  
  install-exec-hook:
- 	-chmod u+s $(DESTDIR)$(bindir)/fusermount
+ 	-chmod u+s $(DESTDIR)$(bindir)/fusermount3
 -	@if test ! -e $(DESTDIR)/dev/fuse; then \
 +	-@if test ! -e $(DESTDIR)/dev/fuse; then \
  		$(MKDIR_P) $(DESTDIR)/dev; \
