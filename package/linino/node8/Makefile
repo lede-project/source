@@ -8,29 +8,25 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=node8
-PKG_VERSION:=v8.2.1
+PKG_VERSION:=v8.4.0
 PKG_RELEASE:=1
 
 PKG_SOURCE:=node-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=http://nodejs.org/dist/$(PKG_VERSION)
-PKG_MD5SUM:=0da0b59a6afb0e14bad05d6198dcd64a
+PKG_MD5SUM:=e6c85c83001340b30671e9432e1bd337
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/node-$(PKG_VERSION)
-HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/node-$(PKG_VERSION)
 
-HOST_BUILD_DEPENDS:=python/host
-PKG_BUILD_DEPENDS:=python/host node8/host
+PKG_BUILD_DEPENDS:=python/host
 PKG_INSTALL:=1
 PKG_USE_MIPS16:=0
 
-HOST_BUILD_PARALLEL:=1
-PKG_BUILD_PARALLEL:=1
+PKG_BUILD_PARALLEL:=3
 
 PKG_MAINTAINER:=John Crispin <blogic@openwrt.org>
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=LICENSE
 
-include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/package.mk
 
 define Package/node8
@@ -110,27 +106,6 @@ endif
 endif
 endif
 
-HOST_CONFIGURE_VARS:=
-HOST_CONFIGURE_ARGS:= \
-	--dest-os=linux \
-	--without-snapshot \
-	--shared-zlib \
-	--prefix=$(HOST_BUILD_PREFIX)
-
-HOST_CONFIGURE_CMD:=python ./configure
-
-MKTOOL=$(HOST_BUILD_DIR)/out/Release/mkpeephole
-FILE_V8_GYP:=$(PKG_BUILD_DIR)/deps/v8/src/v8.gyp
-
-define Build/Prepare
-	$(Build/Prepare/Default)
-	$(SED) "s#<(mkpeephole_exec)#$(MKTOOL)#g" $(FILE_V8_GYP)
-endef
-
-define Host/Install
-	# NOOP
-endef
-
 define Package/node8/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/node $(1)/usr/bin/
@@ -141,5 +116,4 @@ define Package/node8/install
 	$(LN) ../lib/node_modules/npm/bin/npx-cli.js $(1)/usr/bin/npx
 endef
 
-$(eval $(call HostBuild))
 $(eval $(call BuildPackage,node8))
