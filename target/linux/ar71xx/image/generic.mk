@@ -852,6 +852,9 @@ define Device/wpj344
   $(Device/wpj-16m)
   DEVICE_TITLE := Compex WPJ344 (16MB flash)
   BOARDNAME := WPJ344
+  SUPPORTED_DEVICES := wpj344
+  IMAGES := sysupgrade.bin
+  IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
 endef
 
 define Device/wpj531
@@ -864,6 +867,9 @@ define Device/wpj558
   $(Device/wpj-16m)
   DEVICE_TITLE := Compex WPJ558 (16MB flash)
   BOARDNAME := WPJ558
+  SUPPORTED_DEVICES := wpj558
+  IMAGES := sysupgrade.bin
+  IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
 endef
 
 define Device/wpj563
