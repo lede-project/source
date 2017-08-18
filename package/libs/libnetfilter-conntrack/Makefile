@@ -12,7 +12,7 @@ PKG_VERSION:=1.0.6
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:= \
+PKG_SOURCE_URL:=@DISTFILES \
 	http://www.netfilter.org/projects/libnetfilter_conntrack/files/ \
 	ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
 PKG_HASH:=efcc08021284e75f4d96d3581c5155a11f08fd63316b1938cbcb269c87f37feb

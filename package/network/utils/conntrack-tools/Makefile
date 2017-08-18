@@ -12,10 +12,9 @@ PKG_VERSION:=1.4.4
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:= \
+PKG_SOURCE_URL:=@DISTFILES \
 	http://www.netfilter.org/projects/conntrack-tools/files \
 	ftp://ftp.netfilter.org/pub/conntrack-tools \
-	http://mirrors.evolva.ro/netfilter.org/conntrack-tools
 PKG_HASH:=b7caf4fcc4c03575df57d25e5216584d597fd916c891f191dac616ce68bdba6c
 
 PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>

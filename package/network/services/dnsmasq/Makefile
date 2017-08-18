@@ -12,7 +12,7 @@ PKG_VERSION:=2.77
 PKG_RELEASE:=8
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=http://thekelleys.org.uk/dnsmasq/
+PKG_SOURCE_URL:=@DISTFILES http://thekelleys.org.uk/dnsmasq/
 PKG_HASH:=6eac3b1c50ae25170e3ff8c96ddb55236cf45007633fdb8a35b1f3e02f5f8b8a
 
 PKG_LICENSE:=GPL-2.0

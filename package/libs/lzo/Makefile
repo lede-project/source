@@ -12,7 +12,7 @@ PKG_VERSION:=2.10
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=http://www.oberhumer.com/opensource/lzo/download/
+PKG_SOURCE_URL:=@DISTFILES http://www.oberhumer.com/opensource/lzo/download/
 PKG_HASH:=c0f892943208266f9b6543b3ae308fab6284c5c90e627931446fb49b4221a072
 
 PKG_FIXUP:=autoreconf

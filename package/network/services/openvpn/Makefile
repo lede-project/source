@@ -12,7 +12,7 @@ PKG_NAME:=openvpn
 PKG_VERSION:=2.4.3
 PKG_RELEASE:=1
 
-PKG_SOURCE_URL:=\
+PKG_SOURCE_URL:=@DISTFLES \
 	https://build.openvpn.net/downloads/releases/ \
 	https://swupdate.openvpn.net/community/releases/ \
 	http://www.eurephia.net/openvpn/
