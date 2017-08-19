@@ -1,0 +1,73 @@
+#!/bin/sh
+LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+CONFIG=shadowsocks
+
+uci_get_by_type() {
+	local index=0
+	if [ -n $4 ]; then
+		index=$4
+	fi
+	local ret=$(uci get $CONFIG.@$1[$index].$2 2>/dev/null)
+	echo ${ret:=$3}
+}
+
+# version dectet
+version_gfwlist1=$(uci_get_by_type global gfwlist_version)
+
+echo ========================================================================================================== >> /var/log/shadowsocks.log
+echo $(date): 开始更新shadowsocks规则，请等待... > /var/log/shadowsocks.log
+wget --no-check-certificate -O - https://raw.githubusercontent.com/monokoo/koolshare.github.io/acelan_softcenter_ui/maintain_files/version1 > /tmp/version1
+online_content=$(cat /tmp/version1)
+if [ -z "$online_content" ];then
+	rm -rf /tmp/version1
+	echo $(date): 没有检测到在线版本欸，可能是访问github有问题，去大陆白名单模式试试吧！ >> /var/log/shadowsocks.log
+	exit
+fi
+
+
+git_line1=$(cat /tmp/version1 | sed -n 1p)
+
+version_gfwlist2=$(echo $git_line1 | sed 's/ /\n/g'| sed -n 1p)
+
+md5sum_gfwlist2=$(echo $git_line1 | sed 's/ /\n/g'| tail -n 2 | head -n 1)
+
+# detect ss version
+ss_basic_version_web1=`curl -s https://raw.githubusercontent.com/koolshare/koolshare.github.io/acelan_softcenter_ui/shadowsocks/version | sed -n 1p`
+
+# update gfwlist
+if [ ! -z "$version_gfwlist2" ];then
+		if [ "$version_gfwlist1" != "$version_gfwlist2" ];then
+			echo $(date): 检测到新版本gfwlist，开始更新... >> /var/log/shadowsocks.log
+			echo $(date): 下载gfwlist到临时文件... >> /var/log/shadowsocks.log
+			wget --no-check-certificate --timeout=15 -qO - https://raw.githubusercontent.com/monokoo/koolshare.github.io/acelan_softcenter_ui/maintain_files/gfwlist.conf > /tmp/gfwlist.conf
+			md5sum_gfwlist1=$(md5sum /tmp/gfwlist.conf | sed 's/ /\n/g'| sed -n 1p)
+			if [ "$md5sum_gfwlist1"x = "$md5sum_gfwlist2"x ];then
+				echo $(date): 下载完成，校验通过，将临时文件覆盖到原始gfwlist文件 >> /var/log/shadowsocks.log
+				mv /tmp/gfwlist.conf /etc/dnsmasq.d/gfwlist.conf
+				uci set shadowsocks.@global[0].gfwlist_version=$version_gfwlist2
+				rm -rf /tmp/dnsmasq.d/gfwlist.conf
+				reboot="1"
+				echo $(date): 你的gfwlist已经更新到最新了哦~ >> /var/log/shadowsocks.log
+			else
+				echo $(date): 下载完成，但是校验没有通过！ >> /var/log/shadowsocks.log
+			fi
+		else
+			echo $(date): 检测到gfwlist本地版本号和在线版本号相同，那还更新个毛啊! >> /var/log/shadowsocks.log
+		fi
+	else
+		echo $(date): gfwlist文件下载失败！ >> /var/log/shadowsocks.log
+fi
+
+
+rm -rf /tmp/gfwlist.conf
+
+echo $(date): Shadowsocks更新进程运行完毕！ >> /var/log/shadowsocks.log
+# write number
+uci commit
+# reboot ss
+if [ "$reboot" == "1" ];then
+echo $(date): 自动重启shadowsocks，以应用新的规则文件！请稍后！ >> /var/log/shadowsocks.log
+/etc/init.d/shadowsocks restart
+fi
+echo ========================================================================================================== >> /var/log/shadowsocks.log
+exit

@@ -1,0 +1,4 @@
+#!/bin/sh
+# shadowsocks integration for firewall3
+
+/etc/init.d/shadowsocks reload
