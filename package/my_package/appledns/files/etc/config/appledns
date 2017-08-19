@@ -1,0 +1,6 @@
+
+config base
+	option restart '0'
+	option enable '0'
+	option operators 'cncc'
+

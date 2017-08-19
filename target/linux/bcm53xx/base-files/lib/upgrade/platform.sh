@@ -1,11 +1,13 @@
-RAMFS_COPY_BIN='osafeloader oseama'
-
 PART_NAME=firmware
 
 # $(1): file to read magic from
 # $(2): offset in bytes
 get_magic_long_at() {
 	dd if="$1" skip=$2 bs=1 count=4 2>/dev/null | hexdump -v -e '1/1 "%02x"'
+}
+
+platform_machine() {
+	cat /proc/device-tree/compatible | tr '\0' '\t' | cut -f 1
 }
 
 platform_flash_type() {
@@ -19,7 +21,7 @@ platform_flash_type() {
 }
 
 platform_expected_image() {
-	local machine=$(board_name)
+	local machine=$(platform_machine)
 
 	case "$machine" in
 		"dlink,dir-885l")	echo "seama wrgac42_dlink.2015_dir885l"; return;;
@@ -258,6 +260,8 @@ platform_pre_upgrade_seama() {
 }
 
 platform_pre_upgrade() {
+	export RAMFS_COPY_BIN="${RAMFS_COPY_BIN} /usr/bin/osafeloader /usr/bin/oseama /bin/sed"
+
 	local file_type=$(platform_identify "$1")
 
 	[ "$(platform_flash_type)" != "nand" ] && return

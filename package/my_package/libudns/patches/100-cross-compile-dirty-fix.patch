@@ -1,0 +1,40 @@
+--- udns-0.2.orig/configure	2012-07-20 01:52:01.651187575 +0800
++++ udns-0.2/configure	2012-07-20 01:58:54.799186427 +0800
+@@ -12,7 +12,7 @@
+   exit 1
+ fi
+ 
+-options="ipv6"
++options="ipv6 cross_compile"
+ 
+ for opt in $options; do
+   eval enable_$opt=
+@@ -26,6 +26,7 @@
+   opt=`echo "$1" | sed 's/^--[^-]*-//'`
+   case "$opt" in
+     ipv6) ;;
++    cross_compile) ;;
+     *) echo "configure: unrecognized option \`$1'" >&2; exit 1;;
+   esac
+   eval enable_$opt=$2
+@@ -47,6 +48,7 @@
+  --help - print this help and exit
+ Optional features (all enabled by default if system supports a feature):
+   ipv6 - enable/disable IP version 6 (IPv6) support
++  cross_compile - enable/disable cross compile support
+ EOF
+       exit 0
+       ;;
+--- udns-0.2.orig/configure.lib	2012-07-20 02:00:42.771186490 +0800
++++ udns-0.2/configure.lib	2012-07-20 02:02:19.859187978 +0800
+@@ -46,6 +46,10 @@
+ # ac_run command...
+ # captures output in conftest.out
+ ac_run() {
++  # cross compile does not running target
++  if [ n != "$enable_cross_compile" ]; then
++    return 0
++  fi
+   # apparently UnixWare (for one) /bin/sh optimizes the following "if"
+   # "away", by checking if there's such a command BEFORE redirecting
+   # output.  So error message (like "gcc: command not found") goes

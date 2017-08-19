@@ -1,0 +1,35 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+# get config entity via UCI
+enabled=$(uci -q get shadowsocks.@global[0].dns_mode)
+[ "pcap-dnsproxy" = "$enabled" ] || exit 0
+
+# We only handle 'ifup' and 'ifdown' events
+[ "$ACTION" = ifup -o "$ACTION" = ifdown ] || exit 1
+# Exit if we don't have logger, this should not happen
+[ -x /usr/bin/logger ] || exit 2
+
+# only start if boot_delay is done
+[ -f /tmp/pcap-dnsproxy.hotplug ] || exit 0
+
+case "$ACTION" in
+	ifup)
+		# Restart, the default delay is 5 secs
+		# This hotplug script should be the last to execute
+		# due to high load on router
+		logger -p daemon.info -t "Pcap_DNSProxy" \
+				"Restart request sent due to '$ACTION' of '$INTERFACE'"
+		killall -q -9 pcap-dnsproxy
+		/usr/sbin/Pcap_DNSProxy -c /etc/pcap-dnsproxy
+	;;
+	ifdown)
+		# Shutdown
+		logger -p daemon.info -t "Pcap_DNSProxy" \
+				"Shutdown request sent due to '$ACTION' of '$INTERFACE'"
+		killall -q -9 pcap-dnsproxy
+	;;
+esac
+
+exit 0

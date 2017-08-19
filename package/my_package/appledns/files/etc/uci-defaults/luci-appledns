@@ -1,0 +1,11 @@
+#!/bin/sh
+
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@appledns[-1]
+	add ucitrack appledns
+	set ucitrack.@appledns[-1].init=appledns
+	commit ucitrack
+EOF
+
+rm -f /tmp/luci-indexcache
+exit 0

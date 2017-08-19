@@ -1,0 +1,78 @@
+--- a/Source/Pcap_DNSProxy/Platform.h
++++ b/Source/Pcap_DNSProxy/Platform.h
+@@ -372,7 +372,7 @@
+ 	#define SODIUM_STATIC
+ #endif
+ #if defined(ENABLE_LIBSODIUM)
+-	#include "..\\Dependency\\LibSodium\\sodium.h"
++	#include "LibSodium\\sodium.h"
+ #endif
+ 
+ //WinPcap header, always enabled(Windows)
+@@ -386,7 +386,7 @@
+ 	#define HAVE_REMOTE                //WinPcap preprocessor definitions
+ #endif
+ #if defined(ENABLE_PCAP)
+-	#include "..\\Dependency\\WinPcap\\pcap.h"
++	#include "WinPcap\\pcap.h"
+ #endif
+ 
+ //Windows API headers
+@@ -436,19 +436,19 @@
+ #endif
+ #if defined(PLATFORM_WIN64)
+ #if defined(ENABLE_LIBSODIUM)
+-	#pragma comment(lib, "..\\Dependency\\LibSodium\\LibSodium_x64.lib")
++	#pragma comment(lib, "LibSodium\\LibSodium_x64.lib")
+ #endif
+ #if defined(ENABLE_PCAP)
+-	#pragma comment(lib, "..\\Dependency\\WinPcap\\WPCAP_x64.lib")
+-	#pragma comment(lib, "..\\Dependency\\WinPcap\\Packet_x64.lib")
++	#pragma comment(lib, "WinPcap\\WPCAP_x64.lib")
++	#pragma comment(lib, "WinPcap\\Packet_x64.lib")
+ #endif
+ #elif defined(PLATFORM_WIN32)
+ #if defined(ENABLE_LIBSODIUM)
+-	#pragma comment(lib, "..\\Dependency\\LibSodium\\LibSodium_x86.lib")
++	#pragma comment(lib, "LibSodium\\LibSodium_x86.lib")
+ #endif
+ #if defined(ENABLE_PCAP)
+-	#pragma comment(lib, "..\\Dependency\\WinPcap\\WPCAP_x86.lib")
+-	#pragma comment(lib, "..\\Dependency\\WinPcap\\Packet_x86.lib")
++	#pragma comment(lib, "WinPcap\\WPCAP_x86.lib")
++	#pragma comment(lib, "WinPcap\\Packet_x86.lib")
+ #endif
+ #endif
+ 
+@@ -531,8 +531,8 @@
+ #ifndef SODIUM_STATIC
+ 	#define SODIUM_STATIC
+ #endif
+-	#include "../Dependency/LibSodium/sodium.h"
+-	#pragma comment(lib, "../Dependency/LibSodium/LibSodium_macOS.a")
++	#include "LibSodium/sodium.h"
++	#pragma comment(lib, "LibSodium/LibSodium_macOS.a")
+ #else
+ #if defined(ENABLE_LIBSODIUM)
+ #ifndef SODIUM_STATIC
+@@ -557,13 +557,13 @@
+ #ifndef ENABLE_TLS
+ 	#define ENABLE_TLS
+ #endif
+-	#include "../Dependency/OpenSSL/openssl/bio.h"
+-	#include "../Dependency/OpenSSL/openssl/conf.h"
+-	#include "../Dependency/OpenSSL/openssl/err.h"
+-	#include "../Dependency/OpenSSL/openssl/ssl.h"
+-	#include "../Dependency/OpenSSL/openssl/x509v3.h"
+-	#pragma comment(lib, "../Dependency/OpenSSL/LibCrypto_macOS.a")
+-	#pragma comment(lib, "../Dependency/OpenSSL/LibSSL_macOS.a")
++	#include "OpenSSL/openssl/bio.h"
++	#include "OpenSSL/openssl/conf.h"
++	#include "OpenSSL/openssl/err.h"
++	#include "OpenSSL/openssl/ssl.h"
++	#include "OpenSSL/openssl/x509v3.h"
++	#pragma comment(lib, "OpenSSL/LibCrypto_macOS.a")
++	#pragma comment(lib, "OpenSSL/LibSSL_macOS.a")
+ #else
+ #if defined(ENABLE_TLS)
+ 	#include <openssl/bio.h>
