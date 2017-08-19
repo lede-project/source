@@ -1,0 +1,73 @@
+#!/bin/sh /etc/rc.common
+#
+# Copyright (C) 2015 OpenWrt-dist
+# Copyright (C) 2016 fw867 <ffkykzs@gmail.com>
+#
+# This is free software, licensed under the GNU General Public License v3.
+# See /LICENSE for more information.
+#
+
+START=99
+
+CONFIG=appledns
+LOG_FILE=/var/log/$CONFIG.log
+
+uci_get_by_type() {
+	local index=0
+	if [ -n $4 ]; then
+		index=$4
+	fi
+	local ret=$(uci get $CONFIG.@$1[$index].$2 2>/dev/null)
+	echo ${ret:=$3}
+}
+
+is_true() {
+	case $1 in
+		1|on|true|yes|enabled) echo 0;;
+		*) echo 1;;
+	esac
+}
+
+load_config() {
+	ENABLED=$(uci_get_by_type base enable)
+  Restartconfig=$(uci_get_by_type base restart)
+	return $(is_true $ENABLED)
+}
+
+gen_appledns_conf() {
+operatorconfig=$(uci_get_by_type base operators)
+echo $operatorconfig
+[ "$operatorconfig" == "cmcc" ] && operatorfile="/usr/share/appledns/CMCC.json"
+[ "$operatorconfig" == "cncc" ] && operatorfile="/usr/share/appledns/ChinaNet.json"
+[ "$operatorconfig" == "cucc" ] && operatorfile="/usr/share/appledns/ChinaUnicom.json"
+/usr/bin/python /usr/share/appledns/fetch-timeout.py $operatorfile >> $LOG_FILE
+/usr/bin/python /usr/share/appledns/export-configure.py merlin > /tmp/appledns.conf
+userconf=$(grep -c "" /tmp/appledns.conf)
+if [ $userconf -gt 2 ]; then
+  mv /tmp/appledns.conf /etc/dnsmasq.d/appledns.conf
+  ln -s /etc/dnsmasq.d/appledns.conf /tmp/dnsmasq.d/appledns.conf
+  /etc/init.d/dnsmasq restart  2>/dev/null
+  uci set appledns.@base[0].restart="0"
+  uci commit
+fi
+}
+
+start() {
+	! load_config && exit 0
+  	if [ "$Restartconfig" == "1" ]; then
+		rm -rf /etc/dnsmasq.d/appledns.conf
+	fi
+	if [ -f /etc/dnsmasq.d/appledns.conf ]; then
+		ln -s /etc/dnsmasq.d/appledns.conf /tmp/dnsmasq.d/appledns.conf
+		/etc/init.d/dnsmasq restart  2>/dev/null
+	else
+    gen_appledns_conf
+	fi
+}
+
+stop() {
+	if [ -f /tmp/dnsmasq.d/appledns.conf ]; then
+		rm -rf /tmp/dnsmasq.d/appledns.conf
+		/etc/init.d/dnsmasq restart  2>/dev/null
+	fi
+}

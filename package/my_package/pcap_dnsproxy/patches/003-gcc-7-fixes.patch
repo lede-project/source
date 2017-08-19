@@ -1,0 +1,10 @@
+--- a/Source/Pcap_DNSProxy/Platform.h
++++ b/Source/Pcap_DNSProxy/Platform.h
+@@ -362,6 +362,7 @@
+ #include <regex>                   //Regular expression support
+ #include <set>                     //Set support
+ #include <thread>                  //Thread support
++#include <functional>
+ 
+ #if defined(PLATFORM_WIN)
+ //LibSodium header, always enabled(Windows)

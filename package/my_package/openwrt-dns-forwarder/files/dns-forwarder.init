@@ -1,0 +1,38 @@
+#!/bin/sh /etc/rc.common
+#
+# Copyright (C) 2016 Jian Chang <aa65535@live.com>
+#
+# This is free software, licensed under the GNU General Public License v3.
+# See /LICENSE for more information.
+#
+
+START=75
+
+SERVICE_USE_PID=1
+SERVICE_WRITE_PID=1
+SERVICE_DAEMONIZE=1
+
+start_instance() {
+	local enable
+	local listen_addr
+	local listen_port
+	local dns_servers
+	config_get_bool enable $1 enable
+	[ "$enable" = 1 ] || return 0
+	config_get listen_addr $1 listen_addr
+	config_get listen_port $1 listen_port
+	config_get dns_servers $1 dns_servers
+	service_start /usr/bin/dns-forwarder \
+		-b ${listen_addr:-0.0.0.0} \
+		-p ${listen_port:-5300} \
+		-s ${dns_servers:-8.8.8.8}
+}
+
+start() {
+	config_load dns-forwarder
+	config_foreach start_instance dns-forwarder
+}
+
+stop() {
+	service_stop /usr/bin/dns-forwarder
+}
