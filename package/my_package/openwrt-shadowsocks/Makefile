@@ -14,7 +14,7 @@ PKG_RELEASE:=1
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/shadowsocks/shadowsocks-libev.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_RELEASE)
-PKG_SOURCE_VERSION:=3f81ab316905b051f4b60ab5f537e439502448ae
+PKG_SOURCE_VERSION:=feeaff85e156e09f1636ed3a47ac9375c81ceb87
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
 
 PKG_LICENSE:=GPLv3
@@ -95,6 +95,7 @@ define Package/shadowsocks/install
 	$(INSTALL_DIR) $(1)/usr/share/shadowsocks
 	$(INSTALL_BIN) ./files/usr/share/shadowsocks/firewall.include $(1)/usr/share/shadowsocks/
 	$(INSTALL_BIN) ./files/usr/share/shadowsocks/ssruleupdate $(1)/usr/share/shadowsocks/
+	$(INSTALL_BIN) ./files/usr/share/shadowsocks/onlineconfig $(1)/usr/share/shadowsocks/
 	
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_BIN) ./files/etc/uci-defaults/96-shadowsocks $(1)/etc/uci-defaults/96-shadowsocks
