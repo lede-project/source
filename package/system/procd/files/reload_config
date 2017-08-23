@@ -1,5 +1,5 @@
 #!/bin/sh
-rm -rf /var/run/config.check
+[ -d /var/run/config.check ] && exit
 mkdir -p /var/run/config.check
 for config in /etc/config/*; do
 	file=${config##*/}
