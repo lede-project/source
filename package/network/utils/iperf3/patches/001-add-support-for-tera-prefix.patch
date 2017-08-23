@@ -1,0 +1,245 @@
+commit e9e2d6d19c713f9a849609eb32a6cc06d7cc211a
+Author: Bruce A. Mah <bmah@es.net>
+Date:   Fri Apr 14 13:14:44 2017 -0700
+
+    Add support for tera- prefix [Tt] in input and output.
+    Also add some more unit tests for this and prune unused code
+    from unit test program.
+    
+    Fixes #402.
+
+diff --git a/src/t_units.c b/src/t_units.c
+index 3fe8c4e..b4a87c3 100644
+--- a/src/t_units.c
++++ b/src/t_units.c
+@@ -1,5 +1,5 @@
+ /*
+- * iperf, Copyright (c) 2014, The Regents of the University of
++ * iperf, Copyright (c) 2014, 2017, The Regents of the University of
+  * California, through Lawrence Berkeley National Laboratory (subject
+  * to receipt of any required approvals from the U.S. Dept. of
+  * Energy).  All rights reserved.
+@@ -45,20 +45,13 @@ main(int argc, char **argv)
+     assert(1024.0 == unit_atof("1K"));
+     assert(1024.0 * 1024.0 == unit_atof("1M"));
+     assert(4.0 * 1024.0 * 1024.0 * 1024.0 == unit_atof("4G"));
++    assert(3.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 == unit_atof("3T"));
+ 
+-#ifdef notdef
+-    /* Obsolete - we no longer make a distinction between upper and lower
+-    ** case.
+-    */
+-    assert(1000.0 * 0.5 == unit_atof("0.5k"));
+-    assert(1000.0 == unit_atof("1k"));
+-    assert(1000.0 * 1000.0 == unit_atof("1m"));
+-    assert(4.0 * 1000.0 * 1000.0 * 1000.0 == unit_atof("4g"));
+-#endif
+     assert(1024.0 * 0.5 == unit_atof("0.5k"));
+     assert(1024.0 == unit_atof("1k"));
+     assert(1024.0 * 1024.0 == unit_atof("1m"));
+     assert(4.0 * 1024.0 * 1024.0 * 1024.0 == unit_atof("4g"));
++    assert(3.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 == unit_atof("3t"));
+ 
+     assert(1024 * 0.5 == unit_atoi("0.5K"));
+     assert(1024 == unit_atoi("1K"));
+@@ -66,22 +59,19 @@ main(int argc, char **argv)
+     d = 4.0 * 1024 * 1024 * 1024;
+     llu = (iperf_size_t) d;
+     assert(llu == unit_atoi("4G"));
+-
+-#ifdef notdef
+-    /* Also obsolete. */
+-    assert(1000 * 0.5 == unit_atoi("0.5k"));
+-    assert(1000 == unit_atoi("1k"));
+-    assert(1000 * 1000 == unit_atoi("1m"));
+-    d = 4.0 * 1000 * 1000 * 1000;
++    d = 3.0 * 1024 * 1024 * 1024 * 1024;
+     llu = (iperf_size_t) d;
+-    assert(llu == unit_atoi("4g"));
+-#endif
++    assert(llu == unit_atoi("3T"));
++
+     assert(1024 * 0.5 == unit_atoi("0.5k"));
+     assert(1024 == unit_atoi("1k"));
+     assert(1024 * 1024 == unit_atoi("1m"));
+     d = 4.0 * 1024 * 1024 * 1024;
+     llu = (iperf_size_t) d;
+     assert(llu == unit_atoi("4g"));
++    d = 3.0 * 1024 * 1024 * 1024 * 1024;
++    llu = (iperf_size_t) d;
++    assert(llu == unit_atoi("3t"));
+ 
+     unit_snprintf(s, 11, 1024.0, 'A');
+     assert(strncmp(s, "1.00 KByte", 11) == 0);
+@@ -102,5 +92,12 @@ main(int argc, char **argv)
+     unit_snprintf(s, 11, d, 'a');
+     assert(strncmp(s, "34.4 Gbit", 11) == 0);
+ 
++    d = 4.0 * 1024 * 1024 * 1024 * 1024;
++    unit_snprintf(s, 11, d, 'A');
++    assert(strncmp(s, "4.00 TByte", 11) == 0);
++
++    unit_snprintf(s, 11, d, 'a');
++    assert(strncmp(s, "35.2 Tbit", 11) == 0);
++
+     return 0;
+ }
+diff --git a/src/units.c b/src/units.c
+index b1cfb77..7c376a4 100644
+--- a/src/units.c
++++ b/src/units.c
+@@ -48,7 +48,7 @@
+  * by Mark Gates <mgates@nlanr.net>
+  * and Ajay Tirumalla <tirumala@ncsa.uiuc.edu>
+  * -------------------------------------------------------------------
+- * input and output numbers, converting with kilo, mega, giga
++ * input and output numbers, converting with kilo, mega, giga, tera
+  * ------------------------------------------------------------------- */
+ 
+ #include <stdio.h>
+@@ -72,10 +72,12 @@ extern    "C"
+     const long KILO_UNIT = 1024;
+     const long MEGA_UNIT = 1024 * 1024;
+     const long GIGA_UNIT = 1024 * 1024 * 1024;
++    const long TERA_UNIT = 1.0 * 1024 * 1024 * 1024 * 1024;
+ 
+     const long KILO_RATE_UNIT = 1000;
+     const long MEGA_RATE_UNIT = 1000 * 1000;
+     const long GIGA_RATE_UNIT = 1000 * 1000 * 1000;
++    const long TERA_RATE_UNIT = 1.0 * 1000 * 1000 * 1000 * 1000;
+ 
+ /* -------------------------------------------------------------------
+  * unit_atof
+@@ -95,9 +97,12 @@ extern    "C"
+ 	/* scan the number and any suffices */
+ 	          sscanf(s, "%lf%c", &n, &suffix);
+ 
+-	/* convert according to [Gg Mm Kk] */
++	/* convert according to [Tt Gg Mm Kk] */
+ 	switch    (suffix)
+ 	{
++	case 't': case 'T':
++	    n *= TERA_UNIT;
++	    break;
+ 	case 'g': case 'G':
+ 	    n *= GIGA_UNIT;
+ 	    break;
+@@ -131,9 +136,12 @@ extern    "C"
+ 	/* scan the number and any suffices */
+ 	          sscanf(s, "%lf%c", &n, &suffix);
+ 
+-	/* convert according to [Gg Mm Kk] */
++	/* convert according to [Tt Gg Mm Kk] */
+ 	switch    (suffix)
+ 	{
++	case 't': case 'T':
++	    n *= TERA_RATE_UNIT;
++	    break;
+ 	case 'g': case 'G':
+ 	    n *= GIGA_RATE_UNIT;
+ 	    break;
+@@ -156,7 +164,7 @@ extern    "C"
+  *
+  * Given a string of form #x where # is a number and x is a format
+  * character listed below, this returns the interpreted integer.
+- * Gg, Mm, Kk are giga, mega, kilo respectively
++ * Tt, Gg, Mm, Kk are tera, giga, mega, kilo respectively
+  * ------------------------------------------------------------------- */
+ 
+     iperf_size_t unit_atoi(const char *s)
+@@ -169,9 +177,12 @@ extern    "C"
+ 	/* scan the number and any suffices */
+ 	          sscanf(s, "%lf%c", &n, &suffix);
+ 
+-	/* convert according to [Gg Mm Kk] */
++	/* convert according to [Tt Gg Mm Kk] */
+ 	switch    (suffix)
+ 	{
++	case 't': case 'T':
++	    n *= TERA_UNIT;
++	    break;
+ 	case 'g': case 'G':
+ 	    n *= GIGA_UNIT;
+ 	    break;
+@@ -197,7 +208,8 @@ extern    "C"
+ 	UNIT_CONV,
+ 	KILO_CONV,
+ 	MEGA_CONV,
+-	GIGA_CONV
++	GIGA_CONV,
++	TERA_CONV
+     };
+ 
+ /* factor to multiply the number by */
+@@ -206,7 +218,8 @@ extern    "C"
+ 	1.0,			/* unit */
+ 	1.0 / 1024,		/* kilo */
+ 	1.0 / 1024 / 1024,	/* mega */
+-	1.0 / 1024 / 1024 / 1024/* giga */
++	1.0 / 1024 / 1024 / 1024, /* giga */
++	1.0 / 1024 / 1024 / 1024 / 1024 /* tera */
+     };
+ 
+ /* factor to multiply the number by for bits*/
+@@ -215,26 +228,29 @@ extern    "C"
+ 	1.0,			/* unit */
+ 	1.0 / 1000,		/* kilo */
+ 	1.0 / 1000 / 1000,	/* mega */
+-	1.0 / 1000 / 1000 / 1000/* giga */
++	1.0 / 1000 / 1000 / 1000, /* giga */
++	1.0 / 1000 / 1000 / 1000 / 1000 /* tera */
+     };
+ 
+ 
+-/* labels for Byte formats [KMG] */
++/* labels for Byte formats [KMGT] */
+     const char *label_byte[] =
+     {
+ 	"Byte",
+ 	"KByte",
+ 	"MByte",
+-	"GByte"
++	"GByte",
++	"TByte"
+     };
+ 
+-/* labels for bit formats [kmg] */
++/* labels for bit formats [kmgt] */
+     const char *label_bit[] =
+     {
+ 	"bit",
+ 	"Kbit",
+ 	"Mbit",
+-	"Gbit"
++	"Gbit",
++	"Tbit"
+     };
+ 
+ /* -------------------------------------------------------------------
+@@ -275,6 +291,9 @@ extern    "C"
+ 	case 'G':
+ 	    conv = GIGA_CONV;
+ 	    break;
++	case 'T':
++	    conv = TERA_CONV;
++	    break;
+ 
+ 	default:
+ 	case 'A':
+@@ -284,14 +303,14 @@ extern    "C"
+ 
+ 		if (isupper((int) inFormat))
+ 		{
+-		    while (tmpNum >= 1024.0 && conv <= GIGA_CONV)
++		    while (tmpNum >= 1024.0 && conv <= TERA_CONV)
+ 		    {
+ 			tmpNum /= 1024.0;
+ 			conv++;
+ 		    }
+ 		} else
+ 		{
+-		    while (tmpNum >= 1000.0 && conv <= GIGA_CONV)
++		    while (tmpNum >= 1000.0 && conv <= TERA_CONV)
+ 		    {
+ 			tmpNum /= 1000.0;
+ 			conv++;
