@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # Licensed under the terms of the GNU GPL License version 2 or later.
 #
@@ -25,11 +25,14 @@ usage() {
 	echo -e "\t-k ==> include kernel image 'kernel'"
 	echo -e "\t-D ==> human friendly Device Tree Blob 'name'"
 	echo -e "\t-d ==> include Device Tree Blob 'dtb'"
+	echo -e "\t-f ==> set dtb load address to 'addr' (hex)"
+	echo -e "\t-r ==> include ramdisk"
+	echo -e "\t-z ==> ramdisk compression type"
 	echo -e "\t-o ==> create output file 'its_file'"
 	exit 1
 }
 
-while getopts ":A:a:C:D:d:e:k:o:v:" OPTION
+while getopts ":A:a:C:D:d:e:f:k:o:v:r:z:" OPTION
 do
 	case $OPTION in
 		A ) ARCH=$OPTARG;;
@@ -38,9 +41,12 @@ do
 		D ) DEVICE=$OPTARG;;
 		d ) DTB=$OPTARG;;
 		e ) ENTRY_ADDR=$OPTARG;;
+		f ) FDT_LOAD=$OPTARG;;
 		k ) KERNEL=$OPTARG;;
 		o ) OUTPUT=$OPTARG;;
 		v ) VERSION=$OPTARG;;
+		r ) RAMDISK=$OPTARG;;
+		z ) RD_COMPRESS=$OPTARG;;
 		* ) echo "Invalid option passed to '$0' (options:$@)"
 		usage;;
 	esac
@@ -63,7 +69,12 @@ if [ -n "${DTB}" ]; then
 			data = /incbin/(\"${DTB}\");
 			type = \"flat_dt\";
 			arch = \"${ARCH}\";
-			compression = \"none\";
+			compression = \"none\";"
+	if [ -n "${FDT_LOAD}" ]; then
+		FDT="${FDT}
+			load = <${FDT_LOAD}>;"
+	fi
+	FDT="${FDT}
 			hash@1 {
 				algo = \"crc32\";
 			};
@@ -72,6 +83,34 @@ if [ -n "${DTB}" ]; then
 			};
 		};
 "
+		CONF="			fdt = \"fdt@1\";"
+fi
+
+# Conditionally create ramdisk node
+if [ -n "${RAMDISK}" ]; then
+	RD_COMPRESS=${RD_COMPRESS:-none}
+	RD="
+		ramdisk@1 {
+			description = \"${ARCH_UPPER} OpenWrt ${DEVICE} ramdisk\";
+			data = /incbin/(\"${RAMDISK}\");
+			type = \"ramdisk\";
+			arch = \"${ARCH}\";
+			os = \"linux\";
+			compression = \"${RD_COMPRESS}\";
+			hash@1 {
+				algo = \"crc32\";
+			};
+			hash@2 {
+				algo = \"sha1\";
+			};
+		};
+"
+	if [ -z "${CONF}" ]; then
+		CONF="			ramdisk = \"ramdisk@1\";"
+	else
+		CONF="$CONF
+			ramdisk = \"ramdisk@1\";"
+	fi
 fi
 
 # Create a default, fully populated DTS file
@@ -99,6 +138,7 @@ DATA="/dts-v1/;
 			};
 		};
 
+${RD}
 ${FDT}
 
 	};
@@ -108,7 +148,7 @@ ${FDT}
 		config@1 {
 			description = \"OpenWrt\";
 			kernel = \"kernel@1\";
-			fdt = \"fdt@1\";
+${CONF}
 		};
 	};
 };"

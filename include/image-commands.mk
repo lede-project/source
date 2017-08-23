@@ -123,6 +123,7 @@ define Build/fit
 	$(TOPDIR)/scripts/mkits.sh \
 		-D $(DEVICE_NAME) -o $@.its -k $@ \
 		$(if $(word 2,$(1)),-d $(word 2,$(1))) -C $(word 1,$(1)) \
+		$(if $(word 3,$(1)),-f $(word 3,$(1))) \
 		-a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
 		-A $(LINUX_KARCH) -v $(LINUX_VERSION)
 	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage -f $@.its $@.new
