@@ -1,0 +1,2 @@
+#每60分钟清空缓存
+*/600 * * * * echo 1 > /proc/sys/vm/drop_caches

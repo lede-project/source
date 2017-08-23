@@ -77,18 +77,18 @@ detect_mac80211() {
 		[ "$found" -gt 0 ] && continue
 
 		mode_band="g"
-		channel="11"
+		channel="6"
 		htmode=""
 		ht_capab=""
 
-		iw phy "$dev" info | grep -q 'Capabilities:' && htmode=HT20
-		iw phy "$dev" info | grep -q '2412 MHz' || { mode_band="a"; channel="36"; }
+		iw phy "$dev" info | grep -q 'Capabilities:' && htmode=HT40
+		iw phy "$dev" info | grep -q '2412 MHz' || { mode_band="a"; channel="149"; }
 
 		vht_cap=$(iw phy "$dev" info | grep -c 'VHT Capabilities')
 		cap_5ghz=$(iw phy "$dev" info | grep -c "Band 2")
 		[ "$vht_cap" -gt 0 -a "$cap_5ghz" -gt 0 ] && {
 			mode_band="a";
-			channel="36"
+			channel="149"
 			htmode="VHT80"
 		}
 
@@ -108,6 +108,8 @@ detect_mac80211() {
 		else
 			dev_id="set wireless.radio${devidx}.macaddr=$(cat /sys/class/ieee80211/${dev}/macaddress)"
 		fi
+	
+		[ "$mode_band" = "a" ]&&ssidz='-5GHz'||ssidz='-2.4GHz'
 
 		uci -q batch <<-EOF
 			set wireless.radio${devidx}=wifi-device
@@ -116,13 +118,14 @@ detect_mac80211() {
 			set wireless.radio${devidx}.hwmode=11${mode_band}
 			${dev_id}
 			${ht_capab}
-			set wireless.radio${devidx}.disabled=1
+			set wireless.radio${devidx}.noscan=1
+			set wireless.radio${devidx}.country=US
 
 			set wireless.default_radio${devidx}=wifi-iface
 			set wireless.default_radio${devidx}.device=radio${devidx}
 			set wireless.default_radio${devidx}.network=lan
 			set wireless.default_radio${devidx}.mode=ap
-			set wireless.default_radio${devidx}.ssid=LEDE
+			set wireless.default_radio${devidx}.ssid=@PHICOMM${ssidz}$(awk -F ":" '{print "-"toupper($4$5$6)}' /sys/class/ieee80211/${dev}/macaddress 2>/dev/null)
 			set wireless.default_radio${devidx}.encryption=none
 EOF
 		uci -q commit wireless
@@ -130,3 +133,4 @@ EOF
 		devidx=$(($devidx + 1))
 	done
 }
+
