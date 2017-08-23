@@ -1,0 +1,87 @@
+--- a/main.c
++++ b/main.c
+@@ -181,7 +181,10 @@ stop(bool complete)
+ 	}
+ 
+ 	if (!print_family && run_state)
++	{
++		fw3_hotplug("stop");
+ 		fw3_hotplug_zones(run_state, false);
++	}
+ 
+ 	for (family = FW3_FAMILY_V4; family <= FW3_FAMILY_V6; family++)
+ 	{
+@@ -304,6 +307,7 @@ start(void)
+ 		{
+ 			fw3_run_includes(cfg_state, false);
+ 			fw3_hotplug_zones(cfg_state, true);
++			fw3_hotplug("start");
+ 			fw3_write_statefile(cfg_state);
+ 		}
+ 	}
+@@ -324,6 +328,7 @@ reload(void)
+ 		return start();
+ 
+ 	fw3_hotplug_zones(run_state, false);
++	fw3_hotplug("reload");
+ 
+ 	for (family = FW3_FAMILY_V4; family <= FW3_FAMILY_V6; family++)
+ 	{
+--- a/utils.c
++++ b/utils.c
+@@ -749,6 +749,35 @@ fw3_hotplug_zone(bool add, void *zone, v
+ 	return false;
+ }
+ 
++bool
++fw3_hotplug(const char *event)
++{
++	switch (fork())
++	{
++	case -1:
++		warn("Unable to fork(): %s\n", strerror(errno));
++		return false;
++
++	case 0:
++		break;
++
++	default:
++		return true;
++	}
++
++	close(0);
++	close(1);
++	close(2);
++	if (chdir("/")) {};
++
++	clearenv();
++	setenv("ACTION", event, 1);
++	execl(FW3_HOTPLUG, FW3_HOTPLUG, "firewall", NULL);
++
++	/* unreached */
++	return false;
++}
++
+ int
+ fw3_netmask2bitlen(int family, void *mask)
+ {
+--- a/utils.h
++++ b/utils.h
+@@ -38,7 +38,7 @@
+ 
+ #define FW3_STATEFILE	"/var/run/fw3.state"
+ #define FW3_LOCKFILE	"/var/run/fw3.lock"
+-#define FW3_HOTPLUG     "/sbin/hotplug-call"
++#define FW3_HOTPLUG	"/sbin/hotplug-call"
+ 
+ extern bool fw3_pr_debug;
+ 
+@@ -108,6 +108,8 @@ void fw3_free_list(struct list_head *hea
+ 
+ bool fw3_hotplug_zone(bool add, void *zone, void *device);
+ 
++bool fw3_hotplug(const char *event);
++
+ int fw3_netmask2bitlen(int family, void *mask);
+ 
+ bool fw3_bitlen2netmask(int family, int bits, void *mask);
