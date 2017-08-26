@@ -8,7 +8,7 @@ This patch adds the DDR quad read support by the following:
   [1] add SPI_NOR_DDR_QUAD read mode.
 
   [2] add DDR Quad read opcodes:
-    SPINOR_OP_READ_1_4_4_D / SPINOR_OP_READ4_1_4_4_D
+    SPINOR_OP_READ_1_4_4_D / SPINOR_OP_READ_1_4_4_D_4B
 
   [3] add set_ddr_quad_mode() to initialize for the DDR quad read.
         Currently it only works for Spansion NOR.
@@ -32,9 +32,9 @@ Signed-off-by: Yunhui Cui <yunhui.cui@nxp.com>
 +#define SPI_NOR_DDR_QUAD_READ	0x80	/* Flash supports DDR Quad Read */
 +#define	USE_FSR			0x100	/* use flag status register */
  #define	SPI_NOR_HAS_LOCK	0x100	/* Flash supports lock/unlock via SR */
- };
- 
-@@ -145,13 +146,17 @@ static int read_cr(struct spi_nor *nor)
+ #define	SPI_NOR_4B_OPCODES	BIT(11) /*
+ 					 * Use dedicated 4byte address op codes
+@@ -149,13 +150,17 @@ static int read_cr(struct spi_nor *nor)
   * It can be used to support more commands with
   * different dummy cycle requirements.
   */
@@ -53,7 +53,15 @@ Signed-off-by: Yunhui Cui <yunhui.cui@nxp.com>
  	case SPI_NOR_NORMAL:
  		return 0;
  	}
-@@ -799,7 +804,8 @@ static const struct flash_info spi_nor_i
+@@ -216,6 +221,7 @@ static inline u8 spi_nor_convert_3to4_re
+ 		{ SPINOR_OP_READ_1_2_2,	SPINOR_OP_READ_1_2_2_4B },
+ 		{ SPINOR_OP_READ_1_1_4,	SPINOR_OP_READ_1_1_4_4B },
+ 		{ SPINOR_OP_READ_1_4_4,	SPINOR_OP_READ_1_4_4_4B },
++		{ SPINOR_OP_READ_1_4_4_D, SPINOR_OP_READ_1_4_4_D_4B },
+ 	};
+ 
+ 	return spi_nor_convert_opcode(opcode, spi_nor_3to4_read,
+@@ -875,7 +881,8 @@ static const struct flash_info spi_nor_i
  	{ "s70fl01gs",  INFO(0x010221, 0x4d00, 256 * 1024, 256, 0) },
  	{ "s25sl12800", INFO(0x012018, 0x0300, 256 * 1024,  64, 0) },
  	{ "s25sl12801", INFO(0x012018, 0x0301,  64 * 1024, 256, 0) },
@@ -63,7 +71,7 @@ Signed-off-by: Yunhui Cui <yunhui.cui@nxp.com>
  	{ "s25fl129p0", INFO(0x012018, 0x4d00, 256 * 1024,  64, SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },
  	{ "s25fl129p1", INFO(0x012018, 0x4d01,  64 * 1024, 256, SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },
  	{ "s25sl004a",  INFO(0x010212,      0,  64 * 1024,   8, 0) },
-@@ -1195,6 +1201,23 @@ static int spansion_quad_enable(struct s
+@@ -1271,6 +1278,23 @@ static int spansion_quad_enable(struct s
  	return 0;
  }
  
@@ -87,7 +95,7 @@ Signed-off-by: Yunhui Cui <yunhui.cui@nxp.com>
  static int set_quad_mode(struct spi_nor *nor, const struct flash_info *info)
  {
  	int status;
-@@ -1385,8 +1408,15 @@ int spi_nor_scan(struct spi_nor *nor, co
+@@ -1461,8 +1485,15 @@ int spi_nor_scan(struct spi_nor *nor, co
  	if (info->flags & SPI_NOR_NO_FR)
  		nor->flash_read = SPI_NOR_NORMAL;
  
@@ -105,7 +113,7 @@ Signed-off-by: Yunhui Cui <yunhui.cui@nxp.com>
  		ret = set_quad_mode(nor, info);
  		if (ret) {
  			dev_err(dev, "quad mode not supported\n");
-@@ -1399,6 +1429,14 @@ int spi_nor_scan(struct spi_nor *nor, co
+@@ -1475,6 +1506,14 @@ int spi_nor_scan(struct spi_nor *nor, co
  
  	/* Default commands */
  	switch (nor->flash_read) {
@@ -120,17 +128,7 @@ Signed-off-by: Yunhui Cui <yunhui.cui@nxp.com>
  	case SPI_NOR_QUAD:
  		nor->read_opcode = SPINOR_OP_READ_1_1_4;
  		break;
-@@ -1426,6 +1464,9 @@ int spi_nor_scan(struct spi_nor *nor, co
- 		if (JEDEC_MFR(info) == SNOR_MFR_SPANSION) {
- 			/* Dedicated 4-byte command set */
- 			switch (nor->flash_read) {
-+			case SPI_NOR_DDR_QUAD:
-+				nor->read_opcode = SPINOR_OP_READ4_1_4_4_D;
-+				break;
- 			case SPI_NOR_QUAD:
- 				nor->read_opcode = SPINOR_OP_READ4_1_1_4;
- 				break;
-@@ -1455,7 +1496,7 @@ int spi_nor_scan(struct spi_nor *nor, co
+@@ -1514,7 +1553,7 @@ int spi_nor_scan(struct spi_nor *nor, co
  		return -EINVAL;
  	}
  
@@ -155,23 +153,23 @@ Signed-off-by: Yunhui Cui <yunhui.cui@nxp.com>
   */
  
  /* Flash opcodes. */
-@@ -44,6 +45,7 @@
- #define SPINOR_OP_READ_FAST	0x0b	/* Read data bytes (high frequency) */
- #define SPINOR_OP_READ_1_1_2	0x3b	/* Read data bytes (Dual SPI) */
- #define SPINOR_OP_READ_1_1_4	0x6b	/* Read data bytes (Quad SPI) */
+@@ -46,6 +47,7 @@
+ #define SPINOR_OP_READ_1_2_2	0xbb	/* Read data bytes (Dual I/O SPI) */
+ #define SPINOR_OP_READ_1_1_4	0x6b	/* Read data bytes (Quad Output SPI) */
+ #define SPINOR_OP_READ_1_4_4	0xeb	/* Read data bytes (Quad I/O SPI) */
 +#define SPINOR_OP_READ_1_4_4_D	0xed	/* Read data bytes (DDR Quad SPI) */
  #define SPINOR_OP_PP		0x02	/* Page program (up to 256 bytes) */
- #define SPINOR_OP_BE_4K		0x20	/* Erase 4KiB block */
- #define SPINOR_OP_BE_4K_PMC	0xd7	/* Erase 4KiB block on PMC chips */
-@@ -59,6 +61,7 @@
- #define SPINOR_OP_READ4_FAST	0x0c	/* Read data bytes (high frequency) */
- #define SPINOR_OP_READ4_1_1_2	0x3c	/* Read data bytes (Dual SPI) */
- #define SPINOR_OP_READ4_1_1_4	0x6c	/* Read data bytes (Quad SPI) */
-+#define SPINOR_OP_READ4_1_4_4_D	0xee	/* Read data bytes (DDR Quad SPI) */
+ #define SPINOR_OP_PP_1_1_4	0x32	/* Quad page program */
+ #define SPINOR_OP_PP_1_4_4	0x38	/* Quad page program */
+@@ -65,6 +67,7 @@
+ #define SPINOR_OP_READ_1_2_2_4B	0xbc	/* Read data bytes (Dual I/O SPI) */
+ #define SPINOR_OP_READ_1_1_4_4B	0x6c	/* Read data bytes (Quad Output SPI) */
+ #define SPINOR_OP_READ_1_4_4_4B	0xec	/* Read data bytes (Quad I/O SPI) */
++#define SPINOR_OP_READ_1_4_4_D_4B	0xee	/* Read data bytes (DDR Quad SPI) */
  #define SPINOR_OP_PP_4B		0x12	/* Page program (up to 256 bytes) */
- #define SPINOR_OP_SE_4B		0xdc	/* Sector erase (usually 64KiB) */
- 
-@@ -107,6 +110,7 @@ enum read_mode {
+ #define SPINOR_OP_PP_1_1_4_4B	0x34	/* Quad page program */
+ #define SPINOR_OP_PP_1_4_4_4B	0x3e	/* Quad page program */
+@@ -117,6 +120,7 @@ enum read_mode {
  	SPI_NOR_FAST,
  	SPI_NOR_DUAL,
  	SPI_NOR_QUAD,

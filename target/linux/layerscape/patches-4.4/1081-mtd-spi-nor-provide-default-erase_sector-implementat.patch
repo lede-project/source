@@ -26,7 +26,7 @@ Signed-off-by: Brian Norris <computersforpeace@gmail.com>
  
  struct flash_info {
  	char		*name;
-@@ -314,6 +315,29 @@ static void spi_nor_unlock_and_unprep(st
+@@ -390,6 +391,29 @@ static void spi_nor_unlock_and_unprep(st
  }
  
  /*
@@ -56,7 +56,7 @@ Signed-off-by: Brian Norris <computersforpeace@gmail.com>
   * Erase an address range on the nor chip.  The address range may extend
   * one or more erase sectors.  Return an error is there is a problem erasing.
   */
-@@ -372,10 +396,9 @@ static int spi_nor_erase(struct mtd_info
+@@ -448,10 +472,9 @@ static int spi_nor_erase(struct mtd_info
  		while (len) {
  			write_enable(nor);
  
@@ -69,7 +69,7 @@ Signed-off-by: Brian Norris <computersforpeace@gmail.com>
  
  			addr += mtd->erasesize;
  			len -= mtd->erasesize;
-@@ -1107,7 +1130,7 @@ static int set_quad_mode(struct spi_nor
+@@ -1183,7 +1206,7 @@ static int set_quad_mode(struct spi_nor
  static int spi_nor_check(struct spi_nor *nor)
  {
  	if (!nor->dev || !nor->read || !nor->write ||
@@ -78,7 +78,7 @@ Signed-off-by: Brian Norris <computersforpeace@gmail.com>
  		pr_err("spi-nor: please fill all the necessary fields!\n");
  		return -EINVAL;
  	}
-@@ -1310,6 +1333,12 @@ int spi_nor_scan(struct spi_nor *nor, co
+@@ -1369,6 +1392,12 @@ int spi_nor_scan(struct spi_nor *nor, co
  		nor->addr_width = 3;
  	}
  
@@ -93,7 +93,7 @@ Signed-off-by: Brian Norris <computersforpeace@gmail.com>
  	dev_info(dev, "%s (%lld Kbytes)\n", info->name,
 --- a/include/linux/mtd/spi-nor.h
 +++ b/include/linux/mtd/spi-nor.h
-@@ -142,7 +142,8 @@ enum spi_nor_option_flags {
+@@ -152,7 +152,8 @@ enum spi_nor_option_flags {
   * @read:		[DRIVER-SPECIFIC] read data from the SPI NOR
   * @write:		[DRIVER-SPECIFIC] write data to the SPI NOR
   * @erase:		[DRIVER-SPECIFIC] erase a sector of the SPI NOR

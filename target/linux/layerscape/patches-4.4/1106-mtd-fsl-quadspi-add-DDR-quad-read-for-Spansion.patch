@@ -47,8 +47,8 @@ Signed-off-by: Yunhui Cui <yunhui.cui@nxp.com>
  {
  	switch (cmd) {
 +	case SPINOR_OP_READ_1_4_4_D:
-+	case SPINOR_OP_READ4_1_4_4_D:
- 	case SPINOR_OP_READ4_1_1_4:
++	case SPINOR_OP_READ_1_4_4_D_4B:
+ 	case SPINOR_OP_READ_1_1_4_4B:
  	case SPINOR_OP_READ_1_1_4:
  	case SPINOR_OP_READ_FAST:
 @@ -736,6 +752,32 @@ static void fsl_qspi_set_map_addr(struct

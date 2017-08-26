@@ -1,6 +1,6 @@
 --- a/drivers/mtd/spi-nor/spi-nor.c
 +++ b/drivers/mtd/spi-nor/spi-nor.c
-@@ -1014,6 +1014,66 @@ write_err:
+@@ -1090,6 +1090,66 @@ write_err:
  	return ret;
  }
  
@@ -67,7 +67,7 @@
  static int macronix_quad_enable(struct spi_nor *nor)
  {
  	int ret, val;
-@@ -1201,10 +1261,12 @@ int spi_nor_scan(struct spi_nor *nor, co
+@@ -1277,10 +1337,12 @@ int spi_nor_scan(struct spi_nor *nor, co
  	}
  
  	/* sst nor chips use AAI word program */
@@ -82,7 +82,7 @@
  
  	if (info->flags & USE_FSR)
  		nor->flags |= SNOR_F_USE_FSR;
-@@ -1232,11 +1294,20 @@ int spi_nor_scan(struct spi_nor *nor, co
+@@ -1308,11 +1370,20 @@ int spi_nor_scan(struct spi_nor *nor, co
  	mtd->writebufsize = nor->page_size;
  
  	if (np) {
@@ -105,7 +105,7 @@
  		nor->flash_read = SPI_NOR_FAST;
 --- a/include/linux/mtd/spi-nor.h
 +++ b/include/linux/mtd/spi-nor.h
-@@ -116,6 +116,7 @@ enum spi_nor_ops {
+@@ -126,6 +126,7 @@ enum spi_nor_ops {
  
  enum spi_nor_option_flags {
  	SNOR_F_USE_FSR		= BIT(0),
@@ -113,7 +113,7 @@
  };
  
  /**
-@@ -156,6 +157,7 @@ struct spi_nor {
+@@ -166,6 +167,7 @@ struct spi_nor {
  	struct device		*dev;
  	struct device_node	*flash_node;
  	u32			page_size;

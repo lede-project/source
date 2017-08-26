@@ -58,7 +58,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
 +				val |= SPINOR_OP_READ_FAST;
 +				break;
 +			case FLASH_CTRL_ADDR_BYTES_4:
-+				val |= SPINOR_OP_READ4_FAST;
++				val |= SPINOR_OP_READ_FAST_4B;
 +				break;
 +			case FLASH_CTRL_ADDR_BYTES_2:
 +			default:
@@ -70,7 +70,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
 +			/* ensure dummy bytes is set to 1 for _FAST reads */
 +			u8 cmd = val & FLASH_CTRL_READ_OPCODE_MASK;
 +
-+			if (cmd != SPINOR_OP_READ_FAST && cmd != SPINOR_OP_READ4_FAST)
++			if (cmd != SPINOR_OP_READ_FAST && cmd != SPINOR_OP_READ_FAST_4B)
 +				return;
 +
 +			val &= ~FLASH_CTRL_DUMMY_BYTES_MASK;

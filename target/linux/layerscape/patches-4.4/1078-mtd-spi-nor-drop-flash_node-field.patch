@@ -14,7 +14,7 @@ Reviewed-by: Boris Brezillon <boris.brezillon@free-electrons.com>
 
 --- a/drivers/mtd/spi-nor/spi-nor.c
 +++ b/drivers/mtd/spi-nor/spi-nor.c
-@@ -1228,7 +1228,6 @@ int spi_nor_scan(struct spi_nor *nor, co
+@@ -1304,7 +1304,6 @@ int spi_nor_scan(struct spi_nor *nor, co
  		mtd->flags |= MTD_NO_ERASE;
  
  	mtd->dev.parent = dev;
@@ -24,7 +24,7 @@ Reviewed-by: Boris Brezillon <boris.brezillon@free-electrons.com>
  
 --- a/include/linux/mtd/spi-nor.h
 +++ b/include/linux/mtd/spi-nor.h
-@@ -123,7 +123,6 @@ enum spi_nor_option_flags {
+@@ -133,7 +133,6 @@ enum spi_nor_option_flags {
   * @mtd:		point to a mtd_info structure
   * @lock:		the lock for the read/write/erase/lock/unlock operations
   * @dev:		point to a spi device, or a spi nor controller device.
@@ -32,7 +32,7 @@ Reviewed-by: Boris Brezillon <boris.brezillon@free-electrons.com>
   * @page_size:		the page size of the SPI NOR
   * @addr_width:		number of address bytes
   * @erase_opcode:	the opcode for erasing a sector
-@@ -154,7 +153,6 @@ struct spi_nor {
+@@ -164,7 +163,6 @@ struct spi_nor {
  	struct mtd_info		mtd;
  	struct mutex		lock;
  	struct device		*dev;
@@ -40,7 +40,7 @@ Reviewed-by: Boris Brezillon <boris.brezillon@free-electrons.com>
  	u32			page_size;
  	u8			addr_width;
  	u8			erase_opcode;
-@@ -187,12 +185,12 @@ struct spi_nor {
+@@ -197,12 +195,12 @@ struct spi_nor {
  static inline void spi_nor_set_flash_node(struct spi_nor *nor,
  					  struct device_node *np)
  {

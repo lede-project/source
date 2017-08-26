@@ -113,7 +113,7 @@ Integrated-by: Jiang Yutang <yutang.jiang@nxp.com>
  	u8 cmd = nor->read_opcode;
 --- a/drivers/mtd/spi-nor/spi-nor.c
 +++ b/drivers/mtd/spi-nor/spi-nor.c
-@@ -921,12 +921,13 @@ static int spi_nor_read(struct mtd_info
+@@ -997,12 +997,13 @@ static int spi_nor_read(struct mtd_info
  	if (ret)
  		return ret;
  
@@ -128,7 +128,7 @@ Integrated-by: Jiang Yutang <yutang.jiang@nxp.com>
  	return 0;
  }
  
-@@ -953,7 +954,7 @@ static int sst_write(struct mtd_info *mt
+@@ -1029,7 +1030,7 @@ static int sst_write(struct mtd_info *mt
  		nor->program_opcode = SPINOR_OP_BP;
  
  		/* write one byte. */
@@ -137,7 +137,7 @@ Integrated-by: Jiang Yutang <yutang.jiang@nxp.com>
  		if (ret < 0)
  			goto sst_write_err;
  		WARN(ret != 1, "While writing 1 byte written %i bytes\n",
-@@ -969,7 +970,7 @@ static int sst_write(struct mtd_info *mt
+@@ -1045,7 +1046,7 @@ static int sst_write(struct mtd_info *mt
  		nor->program_opcode = SPINOR_OP_AAI_WP;
  
  		/* write two bytes. */
@@ -146,7 +146,7 @@ Integrated-by: Jiang Yutang <yutang.jiang@nxp.com>
  		if (ret < 0)
  			goto sst_write_err;
  		WARN(ret != 2, "While writing 2 bytes written %i bytes\n",
-@@ -992,7 +993,7 @@ static int sst_write(struct mtd_info *mt
+@@ -1068,7 +1069,7 @@ static int sst_write(struct mtd_info *mt
  		write_enable(nor);
  
  		nor->program_opcode = SPINOR_OP_BP;
@@ -155,7 +155,7 @@ Integrated-by: Jiang Yutang <yutang.jiang@nxp.com>
  		if (ret < 0)
  			goto sst_write_err;
  		WARN(ret != 1, "While writing 1 byte written %i bytes\n",
-@@ -1001,8 +1002,10 @@ static int sst_write(struct mtd_info *mt
+@@ -1077,8 +1078,10 @@ static int sst_write(struct mtd_info *mt
  		if (ret)
  			goto sst_write_err;
  		write_disable(nor);
@@ -166,7 +166,7 @@ Integrated-by: Jiang Yutang <yutang.jiang@nxp.com>
  	spi_nor_unlock_and_unprep(nor, SPI_NOR_OPS_WRITE);
  	return ret;
  }
-@@ -1031,15 +1034,17 @@ static int spi_nor_write(struct mtd_info
+@@ -1107,15 +1110,17 @@ static int spi_nor_write(struct mtd_info
  
  	/* do all the bytes fit onto one page? */
  	if (page_offset + len <= nor->page_size) {
@@ -186,7 +186,7 @@ Integrated-by: Jiang Yutang <yutang.jiang@nxp.com>
  
  		/* write everything in nor->page_size chunks */
  		for (i = ret; i < len; ) {
-@@ -1053,10 +1058,10 @@ static int spi_nor_write(struct mtd_info
+@@ -1129,10 +1134,10 @@ static int spi_nor_write(struct mtd_info
  
  			write_enable(nor);
  
@@ -201,7 +201,7 @@ Integrated-by: Jiang Yutang <yutang.jiang@nxp.com>
  	}
 --- a/include/linux/mtd/spi-nor.h
 +++ b/include/linux/mtd/spi-nor.h
-@@ -171,9 +171,9 @@ struct spi_nor {
+@@ -181,9 +181,9 @@ struct spi_nor {
  	int (*write_reg)(struct spi_nor *nor, u8 opcode, u8 *buf, int len);
  
  	ssize_t (*read)(struct spi_nor *nor, loff_t from,

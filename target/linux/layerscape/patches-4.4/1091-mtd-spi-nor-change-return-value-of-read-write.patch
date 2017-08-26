@@ -68,7 +68,7 @@ Signed-off-by: Hou Zhiqiang <Zhiqiang.Hou@freescale.com>
  	struct fsl_qspi *q = nor->priv;
 --- a/include/linux/mtd/spi-nor.h
 +++ b/include/linux/mtd/spi-nor.h
-@@ -170,9 +170,9 @@ struct spi_nor {
+@@ -180,9 +180,9 @@ struct spi_nor {
  	int (*read_reg)(struct spi_nor *nor, u8 opcode, u8 *buf, int len);
  	int (*write_reg)(struct spi_nor *nor, u8 opcode, u8 *buf, int len);
  
