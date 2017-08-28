@@ -111,6 +111,7 @@ ramips_setup_interfaces()
 	wt1520-8M|\
 	y1|\
 	youku-yk1|\
+        yk-l2|\
 	zbt-ape522ii|\
 	zbt-we1326|\
 	zbt-we826-16M|\
