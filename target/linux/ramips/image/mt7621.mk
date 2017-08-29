@@ -321,6 +321,16 @@ define Device/zbt-we1326
 endef
 TARGET_DEVICES += zbt-we1326
 
+define Device/yk-l2
+  DTS := YOUKU-L2
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := YOUKU-L2
+  DEVICE_PACKAGES := \
+	kmod-mt7603 kmod-mt76x2 kmod-sdhci-mt7620 \
+	kmod-usb3 kmod-usb-ledtrig-usbport wpad
+endef
+TARGET_DEVICES += yk-l2
+
 define Device/zbt-wg2626
   DTS := ZBT-WG2626
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
