@@ -1,0 +1,143 @@
+--- a/main.c
++++ b/main.c
+@@ -504,7 +504,7 @@ static int
+ usage(void)
+ {
+ 	fprintf(stderr, "fw3 [-4] [-6] [-q] print\n");
+-	fprintf(stderr, "fw3 [-q] {start|stop|flush|reload|restart}\n");
++	fprintf(stderr, "fw3 [-q] [-e] {start|stop|flush|reload|restart}\n");
+ 	fprintf(stderr, "fw3 [-q] network {net}\n");
+ 	fprintf(stderr, "fw3 [-q] device {dev}\n");
+ 	fprintf(stderr, "fw3 [-q] zone {zone} [dev]\n");
+@@ -519,7 +519,7 @@ int main(int argc, char **argv)
+ 	enum fw3_family family = FW3_FAMILY_ANY;
+ 	struct fw3_defaults *defs = NULL;
+ 
+-	while ((ch = getopt(argc, argv, "46dqh")) != -1)
++	while ((ch = getopt(argc, argv, "46dqhe")) != -1)
+ 	{
+ 		switch (ch)
+ 		{
+@@ -539,6 +539,10 @@ int main(int argc, char **argv)
+ 			if (freopen("/dev/null", "w", stderr)) {}
+ 			break;
+ 
++		case 'e':
++			fw3_do_hotplug = true;
++			break;
++
+ 		case 'h':
+ 			rv = usage();
+ 			goto out;
+@@ -589,6 +593,7 @@ int main(int argc, char **argv)
+ 		{
+ 			build_state(true);
+ 			rv = start();
++			fw3_hotplug("start");
+ 			fw3_unlock();
+ 		}
+ 	}
+@@ -598,6 +603,7 @@ int main(int argc, char **argv)
+ 		{
+ 			build_state(true);
+ 			rv = stop(false);
++			fw3_hotplug("stop");
+ 			fw3_unlock();
+ 		}
+ 	}
+@@ -607,6 +613,7 @@ int main(int argc, char **argv)
+ 		{
+ 			build_state(true);
+ 			rv = stop(true);
++			fw3_hotplug("flush");
+ 			fw3_unlock();
+ 		}
+ 	}
+@@ -617,6 +624,7 @@ int main(int argc, char **argv)
+ 			build_state(true);
+ 			stop(true);
+ 			rv = start();
++			fw3_hotplug("restart");
+ 			fw3_unlock();
+ 		}
+ 	}
+@@ -626,6 +634,7 @@ int main(int argc, char **argv)
+ 		{
+ 			build_state(true);
+ 			rv = reload();
++			fw3_hotplug("reload");
+ 			fw3_unlock();
+ 		}
+ 	}
+--- a/utils.c
++++ b/utils.c
+@@ -29,6 +29,7 @@ static pid_t pipe_pid = -1;
+ static FILE *pipe_fd = NULL;
+ 
+ bool fw3_pr_debug = false;
++bool fw3_do_hotplug = false;
+ 
+ 
+ static void
+@@ -746,6 +747,38 @@ fw3_hotplug_zone(bool add, void *zone, v
+ 	execl(FW3_HOTPLUG, FW3_HOTPLUG, "firewall", NULL);
+ 
+ 	/* unreached */
++	return false;
++}
++
++bool
++fw3_hotplug(const char *event)
++{
++	if(!fw3_do_hotplug)
++		return false;
++
++	switch (fork())
++	{
++	case -1:
++		warn("Unable to fork(): %s\n", strerror(errno));
++		return false;
++
++	case 0:
++		break;
++
++	default:
++		return true;
++	}
++
++	close(0);
++	close(1);
++	close(2);
++	if (chdir("/")) {};
++
++	clearenv();
++	setenv("ACTION", event, 1);
++	execl(FW3_HOTPLUG, FW3_HOTPLUG, "firewall", NULL);
++
++	/* unreached */
+ 	return false;
+ }
+ 
+--- a/utils.h
++++ b/utils.h
+@@ -38,9 +38,10 @@
+ 
+ #define FW3_STATEFILE	"/var/run/fw3.state"
+ #define FW3_LOCKFILE	"/var/run/fw3.lock"
+-#define FW3_HOTPLUG     "/sbin/hotplug-call"
++#define FW3_HOTPLUG	"/sbin/hotplug-call"
+ 
+ extern bool fw3_pr_debug;
++extern bool fw3_do_hotplug;
+ 
+ void warn_elem(struct uci_element *e, const char *format, ...);
+ void warn(const char *format, ...);
+@@ -108,6 +109,8 @@ void fw3_free_list(struct list_head *hea
+ 
+ bool fw3_hotplug_zone(bool add, void *zone, void *device);
+ 
++bool fw3_hotplug(const char *event);
++
+ int fw3_netmask2bitlen(int family, void *mask);
+ 
+ bool fw3_bitlen2netmask(int family, int bits, void *mask);

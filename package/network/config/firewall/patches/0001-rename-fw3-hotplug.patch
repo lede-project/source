@@ -1,0 +1,33 @@
+--- a/utils.c
++++ b/utils.c
+@@ -711,7 +711,7 @@ fw3_free_list(struct list_head *head)
+ }
+ 
+ bool
+-fw3_hotplug(bool add, void *zone, void *device)
++fw3_hotplug_zone(bool add, void *zone, void *device)
+ {
+ 	struct fw3_zone *z = zone;
+ 	struct fw3_device *d = device;
+--- a/utils.h
++++ b/utils.h
+@@ -106,7 +106,7 @@ void fw3_free_object(void *obj, const vo
+ 
+ void fw3_free_list(struct list_head *head);
+ 
+-bool fw3_hotplug(bool add, void *zone, void *device);
++bool fw3_hotplug_zone(bool add, void *zone, void *device);
+ 
+ int fw3_netmask2bitlen(int family, void *mask);
+ 
+--- a/zones.c
++++ b/zones.c
+@@ -703,7 +703,7 @@ fw3_hotplug_zones(struct fw3_state *stat
+ 		if (add != fw3_hasbit(z->flags[0], FW3_FLAG_HOTPLUG))
+ 		{
+ 			list_for_each_entry(d, &z->devices, list)
+-				fw3_hotplug(add, z, d);
++				fw3_hotplug_zone(add, z, d);
+ 
+ 			if (add)
+ 				fw3_setbit(z->flags[0], FW3_FLAG_HOTPLUG);

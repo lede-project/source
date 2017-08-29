@@ -29,7 +29,7 @@ validate_firewall_rule()
 }
 
 service_triggers() {
-	procd_add_reload_trigger firewall	
+	procd_add_reload_trigger firewall
 
 	procd_open_validate
 	validate_firewall_redirect
@@ -38,19 +38,19 @@ service_triggers() {
 }
 
 restart() {
-	fw3 restart
+	fw3 -e restart
 }
 
 start_service() {
-	fw3 ${QUIET} start
+	fw3 -e ${QUIET} start
 }
 
 stop_service() {
-	fw3 flush
+	fw3 -e flush
 }
 
 reload_service() {
-	fw3 reload
+	fw3 -e reload
 }
 
 boot() {
