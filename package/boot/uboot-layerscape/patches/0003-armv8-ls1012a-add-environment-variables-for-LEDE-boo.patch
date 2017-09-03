@@ -1,0 +1,47 @@
+From 124837dd6114d2094e3092cdce06713968d72072 Mon Sep 17 00:00:00 2001
+From: Yangbo Lu <yangbo.lu@nxp.com>
+Date: Tue, 4 Jul 2017 21:22:28 +0800
+Subject: [PATCH 3/3] armv8: ls1012a: add environment variables for LEDE boot
+
+Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
+---
+ include/configs/ls1012a_common.h | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/include/configs/ls1012a_common.h b/include/configs/ls1012a_common.h
+index 84c03b7..f9d5131 100644
+--- a/include/configs/ls1012a_common.h
++++ b/include/configs/ls1012a_common.h
+@@ -102,12 +102,29 @@
+ 	"kernel_start=0xa00000\0"		\
+ 	"kernel_load=0xa0000000\0"		\
+ 	"kernel_size=0x2800000\0"		\
++	"lede_setenv=setenv loadaddr 82000000 && " \
++		"setenv fdtaddr 8f000000 && " \
++		"setenv bootargs root=/dev/mtdblock8 " \
++		"rootfstype=ext4 noinitrd " \
++		"earlycon=uart8250,mmio,0x21c0500 console=ttyS0,115200 " \
++		"mtdparts=1550000.quadspi:1M(rcw),2M(u-boot),1M(u-boot-env)," \
++		"5M(reserved-1),256k(fman),5888k(reserved-2),1M(dtb)," \
++		"16M(kernel),23M(ext4rfs),9M(user)\0" \
++	"lede_run=sf probe 0:0 && " \
++		"sf read $fdtaddr f00000 100000 && " \
++		"sf read $loadaddr 1000000 1000000 && " \
++		"bootm $loadaddr - $fdtaddr\0" \
++	"lede_boot=run lede_setenv;run lede_run\0"
+ 
+ #define CONFIG_BOOTARGS		"console=ttyS0,115200 root=/dev/ram0 " \
+ 				"earlycon=uart8250,mmio,0x21c0500 quiet lpj=250000"
+ #define CONFIG_BOOTCOMMAND		"sf probe 0:0; sf read $kernel_load "\
+ 					"$kernel_start $kernel_size && "\
+ 					"bootm $kernel_load"
++#undef CONFIG_BOOTDELAY
++#define CONFIG_BOOTDELAY		3
++#undef CONFIG_BOOTCOMMAND
++#define CONFIG_BOOTCOMMAND		"run lede_boot"
+ 
+ /* Monitor Command Prompt */
+ #define CONFIG_SYS_CBSIZE		512	/* Console I/O Buffer Size */
+-- 
+2.7.4
+

@@ -1,0 +1,768 @@
+diff --git a/drivers/cpufreq/Kconfig b/drivers/cpufreq/Kconfig
+index 659879a..32c69e9 100644
+--- a/drivers/cpufreq/Kconfig
++++ b/drivers/cpufreq/Kconfig
+@@ -295,7 +295,7 @@ endif
+ 
+ config QORIQ_CPUFREQ
+ 	tristate "CPU frequency scaling driver for Freescale QorIQ SoCs"
+-	depends on OF && COMMON_CLK && (PPC_E500MC || ARM)
++	depends on OF && COMMON_CLK && (PPC_E500MC || ARM || ARM64)
+ 	select CLK_QORIQ
+ 	help
+ 	  This adds the CPUFreq driver support for Freescale QorIQ SoCs
+diff --git a/drivers/cpufreq/qoriq-cpufreq.c b/drivers/cpufreq/qoriq-cpufreq.c
+index 358f075..e2ea433 100644
+--- a/drivers/cpufreq/qoriq-cpufreq.c
++++ b/drivers/cpufreq/qoriq-cpufreq.c
+@@ -11,7 +11,9 @@
+ #define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/clk.h>
++#include <linux/clk-provider.h>
+ #include <linux/cpufreq.h>
++#include <linux/cpu_cooling.h>
+ #include <linux/errno.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+@@ -21,10 +23,6 @@
+ #include <linux/slab.h>
+ #include <linux/smp.h>
+ 
+-#if !defined(CONFIG_ARM)
+-#include <asm/smp.h>	/* for get_hard_smp_processor_id() in UP configs */
+-#endif
+-
+ /**
+  * struct cpu_data
+  * @pclk: the parent clock of cpu
+@@ -33,75 +31,54 @@
+ struct cpu_data {
+ 	struct clk **pclk;
+ 	struct cpufreq_frequency_table *table;
++	struct thermal_cooling_device *cdev;
+ };
+ 
++/*
++ * Don't use cpufreq on this SoC -- used when the SoC would have otherwise
++ * matched a more generic compatible.
++ */
++#define SOC_BLACKLIST		1
++
+ /**
+  * struct soc_data - SoC specific data
+- * @freq_mask: mask the disallowed frequencies
+- * @flag: unique flags
++ * @flags: SOC_xxx
+  */
+ struct soc_data {
+-	u32 freq_mask[4];
+-	u32 flag;
++	u32 flags;
+ };
+ 
+-#define FREQ_MASK	1
+-/* see hardware specification for the allowed frqeuencies */
+-static const struct soc_data sdata[] = {
+-	{ /* used by p2041 and p3041 */
+-		.freq_mask = {0x8, 0x8, 0x2, 0x2},
+-		.flag = FREQ_MASK,
+-	},
+-	{ /* used by p5020 */
+-		.freq_mask = {0x8, 0x2},
+-		.flag = FREQ_MASK,
+-	},
+-	{ /* used by p4080, p5040 */
+-		.freq_mask = {0},
+-		.flag = 0,
+-	},
+-};
+-
+-/*
+- * the minimum allowed core frequency, in Hz
+- * for chassis v1.0, >= platform frequency
+- * for chassis v2.0, >= platform frequency / 2
+- */
+-static u32 min_cpufreq;
+-static const u32 *fmask;
+-
+-#if defined(CONFIG_ARM)
+-static int get_cpu_physical_id(int cpu)
+-{
+-	return topology_core_id(cpu);
+-}
+-#else
+-static int get_cpu_physical_id(int cpu)
+-{
+-	return get_hard_smp_processor_id(cpu);
+-}
+-#endif
+-
+ static u32 get_bus_freq(void)
+ {
+ 	struct device_node *soc;
+ 	u32 sysfreq;
++	struct clk *pltclk;
++	int ret;
+ 
++	/* get platform freq by searching bus-frequency property */
+ 	soc = of_find_node_by_type(NULL, "soc");
+-	if (!soc)
+-		return 0;
+-
+-	if (of_property_read_u32(soc, "bus-frequency", &sysfreq))
+-		sysfreq = 0;
++	if (soc) {
++		ret = of_property_read_u32(soc, "bus-frequency", &sysfreq);
++		of_node_put(soc);
++		if (!ret)
++			return sysfreq;
++	}
+ 
+-	of_node_put(soc);
++	/* get platform freq by its clock name */
++	pltclk = clk_get(NULL, "cg-pll0-div1");
++	if (IS_ERR(pltclk)) {
++		pr_err("%s: can't get bus frequency %ld\n",
++		       __func__, PTR_ERR(pltclk));
++		return PTR_ERR(pltclk);
++	}
+ 
+-	return sysfreq;
++	return clk_get_rate(pltclk);
+ }
+ 
+-static struct device_node *cpu_to_clk_node(int cpu)
++static struct clk *cpu_to_clk(int cpu)
+ {
+-	struct device_node *np, *clk_np;
++	struct device_node *np;
++	struct clk *clk;
+ 
+ 	if (!cpu_present(cpu))
+ 		return NULL;
+@@ -110,37 +87,28 @@ static struct device_node *cpu_to_clk_node(int cpu)
+ 	if (!np)
+ 		return NULL;
+ 
+-	clk_np = of_parse_phandle(np, "clocks", 0);
+-	if (!clk_np)
+-		return NULL;
+-
++	clk = of_clk_get(np, 0);
+ 	of_node_put(np);
+-
+-	return clk_np;
++	return clk;
+ }
+ 
+ /* traverse cpu nodes to get cpu mask of sharing clock wire */
+ static void set_affected_cpus(struct cpufreq_policy *policy)
+ {
+-	struct device_node *np, *clk_np;
+ 	struct cpumask *dstp = policy->cpus;
++	struct clk *clk;
+ 	int i;
+ 
+-	np = cpu_to_clk_node(policy->cpu);
+-	if (!np)
+-		return;
+-
+ 	for_each_present_cpu(i) {
+-		clk_np = cpu_to_clk_node(i);
+-		if (!clk_np)
++		clk = cpu_to_clk(i);
++		if (IS_ERR(clk)) {
++			pr_err("%s: no clock for cpu %d\n", __func__, i);
+ 			continue;
++		}
+ 
+-		if (clk_np == np)
++		if (clk_is_match(policy->clk, clk))
+ 			cpumask_set_cpu(i, dstp);
+-
+-		of_node_put(clk_np);
+ 	}
+-	of_node_put(np);
+ }
+ 
+ /* reduce the duplicated frequencies in frequency table */
+@@ -196,10 +164,11 @@ static void freq_table_sort(struct cpufreq_frequency_table *freq_table,
+ 
+ static int qoriq_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ {
+-	struct device_node *np, *pnode;
++	struct device_node *np;
+ 	int i, count, ret;
+-	u32 freq, mask;
++	u32 freq;
+ 	struct clk *clk;
++	const struct clk_hw *hwclk;
+ 	struct cpufreq_frequency_table *table;
+ 	struct cpu_data *data;
+ 	unsigned int cpu = policy->cpu;
+@@ -219,17 +188,13 @@ static int qoriq_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 		goto err_nomem2;
+ 	}
+ 
+-	pnode = of_parse_phandle(np, "clocks", 0);
+-	if (!pnode) {
+-		pr_err("%s: could not get clock information\n", __func__);
+-		goto err_nomem2;
+-	}
++	hwclk = __clk_get_hw(policy->clk);
++	count = clk_hw_get_num_parents(hwclk);
+ 
+-	count = of_property_count_strings(pnode, "clock-names");
+ 	data->pclk = kcalloc(count, sizeof(struct clk *), GFP_KERNEL);
+ 	if (!data->pclk) {
+ 		pr_err("%s: no memory\n", __func__);
+-		goto err_node;
++		goto err_nomem2;
+ 	}
+ 
+ 	table = kcalloc(count + 1, sizeof(*table), GFP_KERNEL);
+@@ -238,23 +203,11 @@ static int qoriq_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 		goto err_pclk;
+ 	}
+ 
+-	if (fmask)
+-		mask = fmask[get_cpu_physical_id(cpu)];
+-	else
+-		mask = 0x0;
+-
+ 	for (i = 0; i < count; i++) {
+-		clk = of_clk_get(pnode, i);
++		clk = clk_hw_get_parent_by_index(hwclk, i)->clk;
+ 		data->pclk[i] = clk;
+ 		freq = clk_get_rate(clk);
+-		/*
+-		 * the clock is valid if its frequency is not masked
+-		 * and large than minimum allowed frequency.
+-		 */
+-		if (freq < min_cpufreq || (mask & (1 << i)))
+-			table[i].frequency = CPUFREQ_ENTRY_INVALID;
+-		else
+-			table[i].frequency = freq / 1000;
++		table[i].frequency = freq / 1000;
+ 		table[i].driver_data = i;
+ 	}
+ 	freq_table_redup(table, count);
+@@ -280,7 +233,6 @@ static int qoriq_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 	policy->cpuinfo.transition_latency = u64temp + 1;
+ 
+ 	of_node_put(np);
+-	of_node_put(pnode);
+ 
+ 	return 0;
+ 
+@@ -288,10 +240,7 @@ err_nomem1:
+ 	kfree(table);
+ err_pclk:
+ 	kfree(data->pclk);
+-err_node:
+-	of_node_put(pnode);
+ err_nomem2:
+-	policy->driver_data = NULL;
+ 	kfree(data);
+ err_np:
+ 	of_node_put(np);
+@@ -299,10 +248,11 @@ err_np:
+ 	return -ENODEV;
+ }
+ 
+-static int __exit qoriq_cpufreq_cpu_exit(struct cpufreq_policy *policy)
++static int qoriq_cpufreq_cpu_exit(struct cpufreq_policy *policy)
+ {
+ 	struct cpu_data *data = policy->driver_data;
+ 
++	cpufreq_cooling_unregister(data->cdev);
+ 	kfree(data->pclk);
+ 	kfree(data->table);
+ 	kfree(data);
+@@ -321,23 +271,58 @@ static int qoriq_cpufreq_target(struct cpufreq_policy *policy,
+ 	return clk_set_parent(policy->clk, parent);
+ }
+ 
++
++static void qoriq_cpufreq_ready(struct cpufreq_policy *policy)
++{
++	struct cpu_data *cpud = policy->driver_data;
++	struct device_node *np = of_get_cpu_node(policy->cpu, NULL);
++
++	if (of_find_property(np, "#cooling-cells", NULL)) {
++		cpud->cdev = of_cpufreq_cooling_register(np,
++							 policy->related_cpus);
++
++		if (IS_ERR(cpud->cdev) && PTR_ERR(cpud->cdev) != -ENOSYS) {
++			pr_err("cpu%d is not running as cooling device: %ld\n",
++					policy->cpu, PTR_ERR(cpud->cdev));
++
++			cpud->cdev = NULL;
++		}
++	}
++
++	of_node_put(np);
++}
++
+ static struct cpufreq_driver qoriq_cpufreq_driver = {
+ 	.name		= "qoriq_cpufreq",
+ 	.flags		= CPUFREQ_CONST_LOOPS,
+ 	.init		= qoriq_cpufreq_cpu_init,
+-	.exit		= __exit_p(qoriq_cpufreq_cpu_exit),
++	.exit		= qoriq_cpufreq_cpu_exit,
+ 	.verify		= cpufreq_generic_frequency_table_verify,
+ 	.target_index	= qoriq_cpufreq_target,
+ 	.get		= cpufreq_generic_get,
++	.ready		= qoriq_cpufreq_ready,
+ 	.attr		= cpufreq_generic_attr,
+ };
+ 
++static const struct soc_data blacklist = {
++	.flags = SOC_BLACKLIST,
++};
++
+ static const struct of_device_id node_matches[] __initconst = {
+-	{ .compatible = "fsl,p2041-clockgen", .data = &sdata[0], },
+-	{ .compatible = "fsl,p3041-clockgen", .data = &sdata[0], },
+-	{ .compatible = "fsl,p5020-clockgen", .data = &sdata[1], },
+-	{ .compatible = "fsl,p4080-clockgen", .data = &sdata[2], },
+-	{ .compatible = "fsl,p5040-clockgen", .data = &sdata[2], },
++	/* e6500 cannot use cpufreq due to erratum A-008083 */
++	{ .compatible = "fsl,b4420-clockgen", &blacklist },
++	{ .compatible = "fsl,b4860-clockgen", &blacklist },
++	{ .compatible = "fsl,t2080-clockgen", &blacklist },
++	{ .compatible = "fsl,t4240-clockgen", &blacklist },
++
++	{ .compatible = "fsl,ls1012a-clockgen", },
++	{ .compatible = "fsl,ls1021a-clockgen", },
++	{ .compatible = "fsl,ls1043a-clockgen", },
++	{ .compatible = "fsl,ls1046a-clockgen", },
++	{ .compatible = "fsl,ls1088a-clockgen", },
++	{ .compatible = "fsl,ls2080a-clockgen", },
++	{ .compatible = "fsl,p4080-clockgen", },
++	{ .compatible = "fsl,qoriq-clockgen-1.0", },
+ 	{ .compatible = "fsl,qoriq-clockgen-2.0", },
+ 	{}
+ };
+@@ -355,16 +340,12 @@ static int __init qoriq_cpufreq_init(void)
+ 
+ 	match = of_match_node(node_matches, np);
+ 	data = match->data;
+-	if (data) {
+-		if (data->flag)
+-			fmask = data->freq_mask;
+-		min_cpufreq = get_bus_freq();
+-	} else {
+-		min_cpufreq = get_bus_freq() / 2;
+-	}
+ 
+ 	of_node_put(np);
+ 
++	if (data && data->flags & SOC_BLACKLIST)
++		return -ENODEV;
++
+ 	ret = cpufreq_register_driver(&qoriq_cpufreq_driver);
+ 	if (!ret)
+ 		pr_info("Freescale QorIQ CPU frequency scaling driver\n");
+diff --git a/drivers/firmware/psci.c b/drivers/firmware/psci.c
+index d24f35d..f2f780c 100644
+--- a/drivers/firmware/psci.c
++++ b/drivers/firmware/psci.c
+@@ -227,8 +227,7 @@ static int __init psci_features(u32 psci_func_id)
+ 
+ static int psci_system_suspend(unsigned long unused)
+ {
+-	return invoke_psci_fn(PSCI_FN_NATIVE(1_0, SYSTEM_SUSPEND),
+-			      virt_to_phys(cpu_resume), 0, 0);
++	return psci_cpu_suspend(0, virt_to_phys(cpu_resume));
+ }
+ 
+ static int psci_system_suspend_enter(suspend_state_t state)
+@@ -248,6 +247,8 @@ static void __init psci_init_system_suspend(void)
+ 	if (!IS_ENABLED(CONFIG_SUSPEND))
+ 		return;
+ 
++	suspend_set_ops(&psci_suspend_ops);
++
+ 	ret = psci_features(PSCI_FN_NATIVE(1_0, SYSTEM_SUSPEND));
+ 
+ 	if (ret != PSCI_RET_NOT_SUPPORTED)
+@@ -325,6 +326,7 @@ static void __init psci_0_2_set_functions(void)
+ 	arm_pm_restart = psci_sys_reset;
+ 
+ 	pm_power_off = psci_sys_poweroff;
++	psci_init_system_suspend();
+ }
+ 
+ /*
+diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+index bde5943..97b158d 100644
+--- a/drivers/thermal/Kconfig
++++ b/drivers/thermal/Kconfig
+@@ -194,6 +194,16 @@ config IMX_THERMAL
+ 	  cpufreq is used as the cooling device to throttle CPUs when the
+ 	  passive trip is crossed.
+ 
++config QORIQ_THERMAL
++	tristate "QorIQ Thermal Monitoring Unit"
++	depends on THERMAL_OF
++	depends on HAS_IOMEM
++	help
++	  Support for Thermal Monitoring Unit (TMU) found on QorIQ platforms.
++	  It supports one critical trip point and one passive trip point. The
++	  cpufreq is used as the cooling device to throttle CPUs when the
++	  passive trip is crossed.
++
+ config SPEAR_THERMAL
+ 	bool "SPEAr thermal sensor driver"
+ 	depends on PLAT_SPEAR || COMPILE_TEST
+diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
+index d3cc3b2..09a25e1 100644
+--- a/drivers/thermal/Makefile
++++ b/drivers/thermal/Makefile
+@@ -37,6 +37,7 @@ obj-$(CONFIG_DOVE_THERMAL)  	+= dove_thermal.o
+ obj-$(CONFIG_DB8500_THERMAL)	+= db8500_thermal.o
+ obj-$(CONFIG_ARMADA_THERMAL)	+= armada_thermal.o
+ obj-$(CONFIG_IMX_THERMAL)	+= imx_thermal.o
++obj-$(CONFIG_QORIQ_THERMAL)	+= qoriq_thermal.o
+ obj-$(CONFIG_DB8500_CPUFREQ_COOLING)	+= db8500_cpufreq_cooling.o
+ obj-$(CONFIG_INTEL_POWERCLAMP)	+= intel_powerclamp.o
+ obj-$(CONFIG_X86_PKG_TEMP_THERMAL)	+= x86_pkg_temp_thermal.o
+diff --git a/drivers/thermal/qoriq_thermal.c b/drivers/thermal/qoriq_thermal.c
+new file mode 100644
+index 0000000..644ba52
+--- /dev/null
++++ b/drivers/thermal/qoriq_thermal.c
+@@ -0,0 +1,328 @@
++/*
++ * Copyright 2016 Freescale Semiconductor, Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/err.h>
++#include <linux/io.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/thermal.h>
++
++#include "thermal_core.h"
++
++#define SITES_MAX	16
++
++/*
++ * QorIQ TMU Registers
++ */
++struct qoriq_tmu_site_regs {
++	u32 tritsr;		/* Immediate Temperature Site Register */
++	u32 tratsr;		/* Average Temperature Site Register */
++	u8 res0[0x8];
++};
++
++struct qoriq_tmu_regs {
++	u32 tmr;		/* Mode Register */
++#define TMR_DISABLE	0x0
++#define TMR_ME		0x80000000
++#define TMR_ALPF	0x0c000000
++	u32 tsr;		/* Status Register */
++	u32 tmtmir;		/* Temperature measurement interval Register */
++#define TMTMIR_DEFAULT	0x0000000f
++	u8 res0[0x14];
++	u32 tier;		/* Interrupt Enable Register */
++#define TIER_DISABLE	0x0
++	u32 tidr;		/* Interrupt Detect Register */
++	u32 tiscr;		/* Interrupt Site Capture Register */
++	u32 ticscr;		/* Interrupt Critical Site Capture Register */
++	u8 res1[0x10];
++	u32 tmhtcrh;		/* High Temperature Capture Register */
++	u32 tmhtcrl;		/* Low Temperature Capture Register */
++	u8 res2[0x8];
++	u32 tmhtitr;		/* High Temperature Immediate Threshold */
++	u32 tmhtatr;		/* High Temperature Average Threshold */
++	u32 tmhtactr;	/* High Temperature Average Crit Threshold */
++	u8 res3[0x24];
++	u32 ttcfgr;		/* Temperature Configuration Register */
++	u32 tscfgr;		/* Sensor Configuration Register */
++	u8 res4[0x78];
++	struct qoriq_tmu_site_regs site[SITES_MAX];
++	u8 res5[0x9f8];
++	u32 ipbrr0;		/* IP Block Revision Register 0 */
++	u32 ipbrr1;		/* IP Block Revision Register 1 */
++	u8 res6[0x310];
++	u32 ttr0cr;		/* Temperature Range 0 Control Register */
++	u32 ttr1cr;		/* Temperature Range 1 Control Register */
++	u32 ttr2cr;		/* Temperature Range 2 Control Register */
++	u32 ttr3cr;		/* Temperature Range 3 Control Register */
++};
++
++/*
++ * Thermal zone data
++ */
++struct qoriq_tmu_data {
++	struct thermal_zone_device *tz;
++	struct qoriq_tmu_regs __iomem *regs;
++	int sensor_id;
++	bool little_endian;
++};
++
++static void tmu_write(struct qoriq_tmu_data *p, u32 val, void __iomem *addr)
++{
++	if (p->little_endian)
++		iowrite32(val, addr);
++	else
++		iowrite32be(val, addr);
++}
++
++static u32 tmu_read(struct qoriq_tmu_data *p, void __iomem *addr)
++{
++	if (p->little_endian)
++		return ioread32(addr);
++	else
++		return ioread32be(addr);
++}
++
++static int tmu_get_temp(void *p, int *temp)
++{
++	u32 val;
++	struct qoriq_tmu_data *data = p;
++
++	val = tmu_read(data, &data->regs->site[data->sensor_id].tritsr);
++	*temp = (val & 0xff) * 1000;
++
++	return 0;
++}
++
++static int qoriq_tmu_get_sensor_id(void)
++{
++	int ret, id;
++	struct of_phandle_args sensor_specs;
++	struct device_node *np, *sensor_np;
++
++	np = of_find_node_by_name(NULL, "thermal-zones");
++	if (!np)
++		return -ENODEV;
++
++	sensor_np = of_get_next_child(np, NULL);
++	ret = of_parse_phandle_with_args(sensor_np, "thermal-sensors",
++			"#thermal-sensor-cells",
++			0, &sensor_specs);
++	if (ret) {
++		of_node_put(np);
++		of_node_put(sensor_np);
++		return ret;
++	}
++
++	if (sensor_specs.args_count >= 1) {
++		id = sensor_specs.args[0];
++		WARN(sensor_specs.args_count > 1,
++				"%s: too many cells in sensor specifier %d\n",
++				sensor_specs.np->name, sensor_specs.args_count);
++	} else {
++		id = 0;
++	}
++
++	of_node_put(np);
++	of_node_put(sensor_np);
++
++	return id;
++}
++
++static int qoriq_tmu_calibration(struct platform_device *pdev)
++{
++	int i, val, len;
++	u32 range[4];
++	const u32 *calibration;
++	struct device_node *np = pdev->dev.of_node;
++	struct qoriq_tmu_data *data = platform_get_drvdata(pdev);
++
++	if (of_property_read_u32_array(np, "fsl,tmu-range", range, 4)) {
++		dev_err(&pdev->dev, "missing calibration range.\n");
++		return -ENODEV;
++	}
++
++	/* Init temperature range registers */
++	tmu_write(data, range[0], &data->regs->ttr0cr);
++	tmu_write(data, range[1], &data->regs->ttr1cr);
++	tmu_write(data, range[2], &data->regs->ttr2cr);
++	tmu_write(data, range[3], &data->regs->ttr3cr);
++
++	calibration = of_get_property(np, "fsl,tmu-calibration", &len);
++	if (calibration == NULL || len % 8) {
++		dev_err(&pdev->dev, "invalid calibration data.\n");
++		return -ENODEV;
++	}
++
++	for (i = 0; i < len; i += 8, calibration += 2) {
++		val = of_read_number(calibration, 1);
++		tmu_write(data, val, &data->regs->ttcfgr);
++		val = of_read_number(calibration + 1, 1);
++		tmu_write(data, val, &data->regs->tscfgr);
++	}
++
++	return 0;
++}
++
++static void qoriq_tmu_init_device(struct qoriq_tmu_data *data)
++{
++	/* Disable interrupt, using polling instead */
++	tmu_write(data, TIER_DISABLE, &data->regs->tier);
++
++	/* Set update_interval */
++	tmu_write(data, TMTMIR_DEFAULT, &data->regs->tmtmir);
++
++	/* Disable monitoring */
++	tmu_write(data, TMR_DISABLE, &data->regs->tmr);
++}
++
++static struct thermal_zone_of_device_ops tmu_tz_ops = {
++	.get_temp = tmu_get_temp,
++};
++
++static int qoriq_tmu_probe(struct platform_device *pdev)
++{
++	int ret;
++	const struct thermal_trip *trip;
++	struct qoriq_tmu_data *data;
++	struct device_node *np = pdev->dev.of_node;
++	u32 site = 0;
++
++	if (!np) {
++		dev_err(&pdev->dev, "Device OF-Node is NULL");
++		return -ENODEV;
++	}
++
++	data = devm_kzalloc(&pdev->dev, sizeof(struct qoriq_tmu_data),
++			    GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	platform_set_drvdata(pdev, data);
++
++	data->little_endian = of_property_read_bool(np, "little-endian");
++
++	data->sensor_id = qoriq_tmu_get_sensor_id();
++	if (data->sensor_id < 0) {
++		dev_err(&pdev->dev, "Failed to get sensor id\n");
++		ret = -ENODEV;
++		goto err_iomap;
++	}
++
++	data->regs = of_iomap(np, 0);
++	if (!data->regs) {
++		dev_err(&pdev->dev, "Failed to get memory region\n");
++		ret = -ENODEV;
++		goto err_iomap;
++	}
++
++	qoriq_tmu_init_device(data);	/* TMU initialization */
++
++	ret = qoriq_tmu_calibration(pdev);	/* TMU calibration */
++	if (ret < 0)
++		goto err_tmu;
++
++	data->tz = thermal_zone_of_sensor_register(&pdev->dev, data->sensor_id,
++				data, &tmu_tz_ops);
++	if (IS_ERR(data->tz)) {
++		ret = PTR_ERR(data->tz);
++		dev_err(&pdev->dev,
++			"Failed to register thermal zone device %d\n", ret);
++		goto err_tmu;
++	}
++
++	trip = of_thermal_get_trip_points(data->tz);
++
++	/* Enable monitoring */
++	site |= 0x1 << (15 - data->sensor_id);
++	tmu_write(data, site | TMR_ME | TMR_ALPF, &data->regs->tmr);
++
++	return 0;
++
++err_tmu:
++	iounmap(data->regs);
++
++err_iomap:
++	platform_set_drvdata(pdev, NULL);
++
++	return ret;
++}
++
++static int qoriq_tmu_remove(struct platform_device *pdev)
++{
++	struct qoriq_tmu_data *data = platform_get_drvdata(pdev);
++
++	thermal_zone_of_sensor_unregister(&pdev->dev, data->tz);
++
++	/* Disable monitoring */
++	tmu_write(data, TMR_DISABLE, &data->regs->tmr);
++
++	iounmap(data->regs);
++	platform_set_drvdata(pdev, NULL);
++
++	return 0;
++}
++
++#ifdef CONFIG_PM_SLEEP
++static int qoriq_tmu_suspend(struct device *dev)
++{
++	u32 tmr;
++	struct qoriq_tmu_data *data = dev_get_drvdata(dev);
++
++	/* Disable monitoring */
++	tmr = tmu_read(data, &data->regs->tmr);
++	tmr &= ~TMR_ME;
++	tmu_write(data, tmr, &data->regs->tmr);
++
++	return 0;
++}
++
++static int qoriq_tmu_resume(struct device *dev)
++{
++	u32 tmr;
++	struct qoriq_tmu_data *data = dev_get_drvdata(dev);
++
++	/* Enable monitoring */
++	tmr = tmu_read(data, &data->regs->tmr);
++	tmr |= TMR_ME;
++	tmu_write(data, tmr, &data->regs->tmr);
++
++	return 0;
++}
++#endif
++
++static SIMPLE_DEV_PM_OPS(qoriq_tmu_pm_ops,
++			 qoriq_tmu_suspend, qoriq_tmu_resume);
++
++static const struct of_device_id qoriq_tmu_match[] = {
++	{ .compatible = "fsl,qoriq-tmu", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, qoriq_tmu_match);
++
++static struct platform_driver qoriq_tmu = {
++	.driver	= {
++		.name		= "qoriq_thermal",
++		.pm		= &qoriq_tmu_pm_ops,
++		.of_match_table	= qoriq_tmu_match,
++	},
++	.probe	= qoriq_tmu_probe,
++	.remove	= qoriq_tmu_remove,
++};
++module_platform_driver(qoriq_tmu);
++
++MODULE_AUTHOR("Jia Hongtao <hongtao.jia@nxp.com>");
++MODULE_DESCRIPTION("QorIQ Thermal Monitoring Unit driver");
++MODULE_LICENSE("GPL v2");
+-- 
+2.7.4
+

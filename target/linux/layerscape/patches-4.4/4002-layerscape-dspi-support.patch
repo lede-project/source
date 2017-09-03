@@ -1,0 +1,719 @@
+diff --git a/Documentation/devicetree/bindings/spi/spi-fsl-dspi.txt b/Documentation/devicetree/bindings/spi/spi-fsl-dspi.txt
+index fa77f87..ff5893d 100644
+--- a/Documentation/devicetree/bindings/spi/spi-fsl-dspi.txt
++++ b/Documentation/devicetree/bindings/spi/spi-fsl-dspi.txt
+@@ -1,7 +1,10 @@
+ ARM Freescale DSPI controller
+ 
+ Required properties:
+-- compatible : "fsl,vf610-dspi", "fsl,ls1021a-v1.0-dspi", "fsl,ls2085a-dspi"
++- compatible : "fsl,vf610-dspi", "fsl,ls1021a-v1.0-dspi",
++		"fsl,ls2085a-dspi"
++		or
++		"fsl,ls2080a-dspi" followed by "fsl,ls2085a-dspi"
+ - reg : Offset and length of the register set for the device
+ - interrupts : Should contain SPI controller interrupt
+ - clocks: from common clock binding: handle to dspi clock.
+@@ -13,8 +16,7 @@ Required properties:
+ 
+ Optional property:
+ - big-endian: If present the dspi device's registers are implemented
+-  in big endian mode, otherwise in native mode(same with CPU), for more
+-  detail please see: Documentation/devicetree/bindings/regmap/regmap.txt.
++  in big endian mode.
+ 
+ Optional SPI slave node properties:
+ - fsl,spi-cs-sck-delay: a delay in nanoseconds between activating chip
+diff --git a/drivers/spi/Kconfig b/drivers/spi/Kconfig
+index 618aa91..435b58c 100644
+--- a/drivers/spi/Kconfig
++++ b/drivers/spi/Kconfig
+@@ -324,6 +324,7 @@ config SPI_FSL_SPI
+ config SPI_FSL_DSPI
+ 	tristate "Freescale DSPI controller"
+ 	select REGMAP_MMIO
++	depends on HAS_DMA
+ 	depends on SOC_VF610 || SOC_LS1021A || ARCH_LAYERSCAPE || COMPILE_TEST
+ 	help
+ 	  This enables support for the Freescale DSPI controller in master
+diff --git a/drivers/spi/spi-fsl-dspi.c b/drivers/spi/spi-fsl-dspi.c
+index a3965ca..19e038d 100644
+--- a/drivers/spi/spi-fsl-dspi.c
++++ b/drivers/spi/spi-fsl-dspi.c
+@@ -15,6 +15,8 @@
+ 
+ #include <linux/clk.h>
+ #include <linux/delay.h>
++#include <linux/dmaengine.h>
++#include <linux/dma-mapping.h>
+ #include <linux/err.h>
+ #include <linux/errno.h>
+ #include <linux/interrupt.h>
+@@ -27,7 +29,6 @@
+ #include <linux/pinctrl/consumer.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+-#include <linux/regmap.h>
+ #include <linux/sched.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/spi_bitbang.h>
+@@ -40,6 +41,7 @@
+ #define TRAN_STATE_WORD_ODD_NUM	0x04
+ 
+ #define DSPI_FIFO_SIZE			4
++#define DSPI_DMA_BUFSIZE		(DSPI_FIFO_SIZE * 1024)
+ 
+ #define SPI_MCR		0x00
+ #define SPI_MCR_MASTER		(1 << 31)
+@@ -70,6 +72,12 @@
+ #define SPI_SR			0x2c
+ #define SPI_SR_EOQF		0x10000000
+ #define SPI_SR_TCFQF		0x80000000
++#define SPI_SR_CLEAR		0xdaad0000
++
++#define SPI_RSER_TFFFE		BIT(25)
++#define SPI_RSER_TFFFD		BIT(24)
++#define SPI_RSER_RFDFE		BIT(17)
++#define SPI_RSER_RFDFD		BIT(16)
+ 
+ #define SPI_RSER		0x30
+ #define SPI_RSER_EOQFE		0x10000000
+@@ -108,6 +116,8 @@
+ 
+ #define SPI_TCR_TCNT_MAX	0x10000
+ 
++#define DMA_COMPLETION_TIMEOUT	msecs_to_jiffies(3000)
++
+ struct chip_data {
+ 	u32 mcr_val;
+ 	u32 ctar_val;
+@@ -117,29 +127,50 @@ struct chip_data {
+ enum dspi_trans_mode {
+ 	DSPI_EOQ_MODE = 0,
+ 	DSPI_TCFQ_MODE,
++	DSPI_DMA_MODE,
+ };
+ 
+ struct fsl_dspi_devtype_data {
+ 	enum dspi_trans_mode trans_mode;
++	u8 max_clock_factor;
+ };
+ 
+ static const struct fsl_dspi_devtype_data vf610_data = {
+-	.trans_mode = DSPI_EOQ_MODE,
++	.trans_mode = DSPI_DMA_MODE,
++	.max_clock_factor = 2,
+ };
+ 
+ static const struct fsl_dspi_devtype_data ls1021a_v1_data = {
+ 	.trans_mode = DSPI_TCFQ_MODE,
++	.max_clock_factor = 8,
+ };
+ 
+ static const struct fsl_dspi_devtype_data ls2085a_data = {
+ 	.trans_mode = DSPI_TCFQ_MODE,
++	.max_clock_factor = 8,
++};
++
++struct fsl_dspi_dma {
++	u32 curr_xfer_len;
++
++	u32 *tx_dma_buf;
++	struct dma_chan *chan_tx;
++	dma_addr_t tx_dma_phys;
++	struct completion cmd_tx_complete;
++	struct dma_async_tx_descriptor *tx_desc;
++
++	u32 *rx_dma_buf;
++	struct dma_chan *chan_rx;
++	dma_addr_t rx_dma_phys;
++	struct completion cmd_rx_complete;
++	struct dma_async_tx_descriptor *rx_desc;
+ };
+ 
+ struct fsl_dspi {
+ 	struct spi_master	*master;
+ 	struct platform_device	*pdev;
+ 
+-	struct regmap		*regmap;
++	void __iomem		*iobase;
+ 	int			irq;
+ 	struct clk		*clk;
+ 
+@@ -155,23 +186,318 @@ struct fsl_dspi {
+ 	u8			cs;
+ 	u16			void_write_data;
+ 	u32			cs_change;
+-	struct fsl_dspi_devtype_data *devtype_data;
++	const struct fsl_dspi_devtype_data *devtype_data;
+ 
+ 	wait_queue_head_t	waitq;
+ 	u32			waitflags;
+ 
+ 	u32			spi_tcnt;
++	struct fsl_dspi_dma	*dma;
++	bool			big_endian;
+ };
+ 
++/*
++ * R/W functions for big- or little-endian registers:
++ * The qSPI controller's endian is independent of the CPU core's endian.
++ * So far, although the CPU core is little-endian but the qSPI have two
++ * versions for big-endian and little-endian.
++ */
++static void dspi_writel(struct fsl_dspi *d, u32 val, u32 offset)
++{
++	if (d->big_endian)
++		iowrite32be(val, d->iobase + offset);
++	else
++		iowrite32(val, d->iobase + offset);
++}
++
++static u32 dspi_readl(struct fsl_dspi *d, u32 offset)
++{
++	if (d->big_endian)
++		return ioread32be(d->iobase + offset);
++	else
++		return ioread32(d->iobase + offset);
++}
++
++static void dspi_updatel(struct fsl_dspi *d, u32 mask, u32 val, u32 offset)
++{
++	u32 tmp, orig;
++
++	orig = dspi_readl(d, offset);
++
++	tmp = orig & ~mask;
++	tmp |= val & mask;
++
++	dspi_writel(d, tmp, offset);
++}
++
+ static inline int is_double_byte_mode(struct fsl_dspi *dspi)
+ {
+ 	unsigned int val;
+ 
+-	regmap_read(dspi->regmap, SPI_CTAR(0), &val);
++	val = dspi_readl(dspi, SPI_CTAR(0));
+ 
+ 	return ((val & SPI_FRAME_BITS_MASK) == SPI_FRAME_BITS(8)) ? 0 : 1;
+ }
+ 
++static void dspi_tx_dma_callback(void *arg)
++{
++	struct fsl_dspi *dspi = arg;
++	struct fsl_dspi_dma *dma = dspi->dma;
++
++	complete(&dma->cmd_tx_complete);
++}
++
++static void dspi_rx_dma_callback(void *arg)
++{
++	struct fsl_dspi *dspi = arg;
++	struct fsl_dspi_dma *dma = dspi->dma;
++	int rx_word;
++	int i, len;
++	u16 d;
++
++	rx_word = is_double_byte_mode(dspi);
++
++	len = rx_word ? (dma->curr_xfer_len / 2) : dma->curr_xfer_len;
++
++	if (!(dspi->dataflags & TRAN_STATE_RX_VOID)) {
++		for (i = 0; i < len; i++) {
++			d = dspi->dma->rx_dma_buf[i];
++			rx_word ? (*(u16 *)dspi->rx = d) :
++						(*(u8 *)dspi->rx = d);
++			dspi->rx += rx_word + 1;
++		}
++	}
++
++	complete(&dma->cmd_rx_complete);
++}
++
++static int dspi_next_xfer_dma_submit(struct fsl_dspi *dspi)
++{
++	struct fsl_dspi_dma *dma = dspi->dma;
++	struct device *dev = &dspi->pdev->dev;
++	int time_left;
++	int tx_word;
++	int i, len;
++	u16 val;
++
++	tx_word = is_double_byte_mode(dspi);
++
++	len = tx_word ? (dma->curr_xfer_len / 2) : dma->curr_xfer_len;
++
++	for (i = 0; i < len - 1; i++) {
++		val = tx_word ? *(u16 *) dspi->tx : *(u8 *) dspi->tx;
++		dspi->dma->tx_dma_buf[i] =
++			SPI_PUSHR_TXDATA(val) | SPI_PUSHR_PCS(dspi->cs) |
++			SPI_PUSHR_CTAS(0) | SPI_PUSHR_CONT;
++		dspi->tx += tx_word + 1;
++	}
++
++	val = tx_word ? *(u16 *) dspi->tx : *(u8 *) dspi->tx;
++	dspi->dma->tx_dma_buf[i] = SPI_PUSHR_TXDATA(val) |
++					SPI_PUSHR_PCS(dspi->cs) |
++					SPI_PUSHR_CTAS(0);
++	dspi->tx += tx_word + 1;
++
++	dma->tx_desc = dmaengine_prep_slave_single(dma->chan_tx,
++					dma->tx_dma_phys,
++					DSPI_DMA_BUFSIZE, DMA_MEM_TO_DEV,
++					DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
++	if (!dma->tx_desc) {
++		dev_err(dev, "Not able to get desc for DMA xfer\n");
++		return -EIO;
++	}
++
++	dma->tx_desc->callback = dspi_tx_dma_callback;
++	dma->tx_desc->callback_param = dspi;
++	if (dma_submit_error(dmaengine_submit(dma->tx_desc))) {
++		dev_err(dev, "DMA submit failed\n");
++		return -EINVAL;
++	}
++
++	dma->rx_desc = dmaengine_prep_slave_single(dma->chan_rx,
++					dma->rx_dma_phys,
++					DSPI_DMA_BUFSIZE, DMA_DEV_TO_MEM,
++					DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
++	if (!dma->rx_desc) {
++		dev_err(dev, "Not able to get desc for DMA xfer\n");
++		return -EIO;
++	}
++
++	dma->rx_desc->callback = dspi_rx_dma_callback;
++	dma->rx_desc->callback_param = dspi;
++	if (dma_submit_error(dmaengine_submit(dma->rx_desc))) {
++		dev_err(dev, "DMA submit failed\n");
++		return -EINVAL;
++	}
++
++	reinit_completion(&dspi->dma->cmd_rx_complete);
++	reinit_completion(&dspi->dma->cmd_tx_complete);
++
++	dma_async_issue_pending(dma->chan_rx);
++	dma_async_issue_pending(dma->chan_tx);
++
++	time_left = wait_for_completion_timeout(&dspi->dma->cmd_tx_complete,
++					DMA_COMPLETION_TIMEOUT);
++	if (time_left == 0) {
++		dev_err(dev, "DMA tx timeout\n");
++		dmaengine_terminate_all(dma->chan_tx);
++		dmaengine_terminate_all(dma->chan_rx);
++		return -ETIMEDOUT;
++	}
++
++	time_left = wait_for_completion_timeout(&dspi->dma->cmd_rx_complete,
++					DMA_COMPLETION_TIMEOUT);
++	if (time_left == 0) {
++		dev_err(dev, "DMA rx timeout\n");
++		dmaengine_terminate_all(dma->chan_tx);
++		dmaengine_terminate_all(dma->chan_rx);
++		return -ETIMEDOUT;
++	}
++
++	return 0;
++}
++
++static int dspi_dma_xfer(struct fsl_dspi *dspi)
++{
++	struct fsl_dspi_dma *dma = dspi->dma;
++	struct device *dev = &dspi->pdev->dev;
++	int curr_remaining_bytes;
++	int bytes_per_buffer;
++	int tx_word;
++	int ret = 0;
++
++	tx_word = is_double_byte_mode(dspi);
++	curr_remaining_bytes = dspi->len;
++	while (curr_remaining_bytes) {
++		/* Check if current transfer fits the DMA buffer */
++		dma->curr_xfer_len = curr_remaining_bytes;
++		bytes_per_buffer = DSPI_DMA_BUFSIZE /
++				(DSPI_FIFO_SIZE / (tx_word ? 2 : 1));
++		if (curr_remaining_bytes > bytes_per_buffer)
++			dma->curr_xfer_len = bytes_per_buffer;
++
++		ret = dspi_next_xfer_dma_submit(dspi);
++		if (ret) {
++			dev_err(dev, "DMA transfer failed\n");
++			goto exit;
++
++		} else {
++			curr_remaining_bytes -= dma->curr_xfer_len;
++			if (curr_remaining_bytes < 0)
++				curr_remaining_bytes = 0;
++			dspi->len = curr_remaining_bytes;
++		}
++	}
++
++exit:
++	return ret;
++}
++
++static int dspi_request_dma(struct fsl_dspi *dspi, phys_addr_t phy_addr)
++{
++	struct fsl_dspi_dma *dma;
++	struct dma_slave_config cfg;
++	struct device *dev = &dspi->pdev->dev;
++	int ret;
++
++	dma = devm_kzalloc(dev, sizeof(*dma), GFP_KERNEL);
++	if (!dma)
++		return -ENOMEM;
++
++	dma->chan_rx = dma_request_slave_channel(dev, "rx");
++	if (!dma->chan_rx) {
++		dev_err(dev, "rx dma channel not available\n");
++		ret = -ENODEV;
++		return ret;
++	}
++
++	dma->chan_tx = dma_request_slave_channel(dev, "tx");
++	if (!dma->chan_tx) {
++		dev_err(dev, "tx dma channel not available\n");
++		ret = -ENODEV;
++		goto err_tx_channel;
++	}
++
++	dma->tx_dma_buf = dma_alloc_coherent(dev, DSPI_DMA_BUFSIZE,
++					&dma->tx_dma_phys, GFP_KERNEL);
++	if (!dma->tx_dma_buf) {
++		ret = -ENOMEM;
++		goto err_tx_dma_buf;
++	}
++
++	dma->rx_dma_buf = dma_alloc_coherent(dev, DSPI_DMA_BUFSIZE,
++					&dma->rx_dma_phys, GFP_KERNEL);
++	if (!dma->rx_dma_buf) {
++		ret = -ENOMEM;
++		goto err_rx_dma_buf;
++	}
++
++	cfg.src_addr = phy_addr + SPI_POPR;
++	cfg.dst_addr = phy_addr + SPI_PUSHR;
++	cfg.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
++	cfg.dst_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
++	cfg.src_maxburst = 1;
++	cfg.dst_maxburst = 1;
++
++	cfg.direction = DMA_DEV_TO_MEM;
++	ret = dmaengine_slave_config(dma->chan_rx, &cfg);
++	if (ret) {
++		dev_err(dev, "can't configure rx dma channel\n");
++		ret = -EINVAL;
++		goto err_slave_config;
++	}
++
++	cfg.direction = DMA_MEM_TO_DEV;
++	ret = dmaengine_slave_config(dma->chan_tx, &cfg);
++	if (ret) {
++		dev_err(dev, "can't configure tx dma channel\n");
++		ret = -EINVAL;
++		goto err_slave_config;
++	}
++
++	dspi->dma = dma;
++	init_completion(&dma->cmd_tx_complete);
++	init_completion(&dma->cmd_rx_complete);
++
++	return 0;
++
++err_slave_config:
++	dma_free_coherent(dev, DSPI_DMA_BUFSIZE,
++			dma->rx_dma_buf, dma->rx_dma_phys);
++err_rx_dma_buf:
++	dma_free_coherent(dev, DSPI_DMA_BUFSIZE,
++			dma->tx_dma_buf, dma->tx_dma_phys);
++err_tx_dma_buf:
++	dma_release_channel(dma->chan_tx);
++err_tx_channel:
++	dma_release_channel(dma->chan_rx);
++
++	devm_kfree(dev, dma);
++	dspi->dma = NULL;
++
++	return ret;
++}
++
++static void dspi_release_dma(struct fsl_dspi *dspi)
++{
++	struct fsl_dspi_dma *dma = dspi->dma;
++	struct device *dev = &dspi->pdev->dev;
++
++	if (dma) {
++		if (dma->chan_tx) {
++			dma_unmap_single(dev, dma->tx_dma_phys,
++					DSPI_DMA_BUFSIZE, DMA_TO_DEVICE);
++			dma_release_channel(dma->chan_tx);
++		}
++
++		if (dma->chan_rx) {
++			dma_unmap_single(dev, dma->rx_dma_phys,
++					DSPI_DMA_BUFSIZE, DMA_FROM_DEVICE);
++			dma_release_channel(dma->chan_rx);
++		}
++	}
++}
++
+ static void hz_to_spi_baud(char *pbr, char *br, int speed_hz,
+ 		unsigned long clkrate)
+ {
+@@ -266,7 +592,7 @@ static void dspi_data_from_popr(struct fsl_dspi *dspi, int rx_word)
+ 	u16 d;
+ 	unsigned int val;
+ 
+-	regmap_read(dspi->regmap, SPI_POPR, &val);
++	val = dspi_readl(dspi, SPI_POPR);
+ 	d = SPI_POPR_RXDATA(val);
+ 
+ 	if (!(dspi->dataflags & TRAN_STATE_RX_VOID))
+@@ -290,8 +616,8 @@ static int dspi_eoq_write(struct fsl_dspi *dspi)
+ 		 */
+ 		if (tx_word && (dspi->len == 1)) {
+ 			dspi->dataflags |= TRAN_STATE_WORD_ODD_NUM;
+-			regmap_update_bits(dspi->regmap, SPI_CTAR(0),
+-					SPI_FRAME_BITS_MASK, SPI_FRAME_BITS(8));
++			dspi_updatel(dspi, SPI_FRAME_BITS_MASK,
++					SPI_FRAME_BITS(8), SPI_CTAR(0));
+ 			tx_word = 0;
+ 		}
+ 
+@@ -305,7 +631,7 @@ static int dspi_eoq_write(struct fsl_dspi *dspi)
+ 		} else if (tx_word && (dspi->len == 1))
+ 			dspi_pushr |= SPI_PUSHR_EOQ;
+ 
+-		regmap_write(dspi->regmap, SPI_PUSHR, dspi_pushr);
++		dspi_writel(dspi, dspi_pushr, SPI_PUSHR);
+ 
+ 		tx_count++;
+ 	}
+@@ -339,8 +665,8 @@ static int dspi_tcfq_write(struct fsl_dspi *dspi)
+ 
+ 	if (tx_word && (dspi->len == 1)) {
+ 		dspi->dataflags |= TRAN_STATE_WORD_ODD_NUM;
+-		regmap_update_bits(dspi->regmap, SPI_CTAR(0),
+-				SPI_FRAME_BITS_MASK, SPI_FRAME_BITS(8));
++		dspi_updatel(dspi, SPI_FRAME_BITS_MASK,
++				SPI_FRAME_BITS(8), SPI_CTAR(0));
+ 		tx_word = 0;
+ 	}
+ 
+@@ -349,7 +675,7 @@ static int dspi_tcfq_write(struct fsl_dspi *dspi)
+ 	if ((dspi->cs_change) && (!dspi->len))
+ 		dspi_pushr &= ~SPI_PUSHR_CONT;
+ 
+-	regmap_write(dspi->regmap, SPI_PUSHR, dspi_pushr);
++	dspi_writel(dspi, dspi_pushr, SPI_PUSHR);
+ 
+ 	return tx_word + 1;
+ }
+@@ -374,7 +700,7 @@ static int dspi_transfer_one_message(struct spi_master *master,
+ 	enum dspi_trans_mode trans_mode;
+ 	u32 spi_tcr;
+ 
+-	regmap_read(dspi->regmap, SPI_TCR, &spi_tcr);
++	spi_tcr = dspi_readl(dspi, SPI_TCR);
+ 	dspi->spi_tcnt = SPI_TCR_GET_TCNT(spi_tcr);
+ 
+ 	message->actual_length = 0;
+@@ -385,8 +711,8 @@ static int dspi_transfer_one_message(struct spi_master *master,
+ 		dspi->cur_chip = spi_get_ctldata(spi);
+ 		dspi->cs = spi->chip_select;
+ 		dspi->cs_change = 0;
+-		if (dspi->cur_transfer->transfer_list.next
+-				== &dspi->cur_msg->transfers)
++		if (list_is_last(&dspi->cur_transfer->transfer_list,
++				 &dspi->cur_msg->transfers) || transfer->cs_change)
+ 			dspi->cs_change = 1;
+ 		dspi->void_write_data = dspi->cur_chip->void_write_data;
+ 
+@@ -403,23 +729,27 @@ static int dspi_transfer_one_message(struct spi_master *master,
+ 		if (!dspi->tx)
+ 			dspi->dataflags |= TRAN_STATE_TX_VOID;
+ 
+-		regmap_write(dspi->regmap, SPI_MCR, dspi->cur_chip->mcr_val);
+-		regmap_update_bits(dspi->regmap, SPI_MCR,
+-				SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF,
+-				SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF);
+-		regmap_write(dspi->regmap, SPI_CTAR(0),
+-				dspi->cur_chip->ctar_val);
++		dspi_writel(dspi, dspi->cur_chip->mcr_val, SPI_MCR);
++		dspi_updatel(dspi, SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF,
++				   SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF, SPI_MCR);
++		dspi_writel(dspi, dspi->cur_chip->ctar_val, SPI_CTAR(0));
+ 
+ 		trans_mode = dspi->devtype_data->trans_mode;
+ 		switch (trans_mode) {
+ 		case DSPI_EOQ_MODE:
+-			regmap_write(dspi->regmap, SPI_RSER, SPI_RSER_EOQFE);
++			dspi_writel(dspi, SPI_RSER_EOQFE, SPI_RSER);
+ 			dspi_eoq_write(dspi);
+ 			break;
+ 		case DSPI_TCFQ_MODE:
+-			regmap_write(dspi->regmap, SPI_RSER, SPI_RSER_TCFQE);
++			dspi_writel(dspi, SPI_RSER_TCFQE, SPI_RSER);
+ 			dspi_tcfq_write(dspi);
+ 			break;
++		case DSPI_DMA_MODE:
++			dspi_writel(dspi, SPI_RSER_TFFFE | SPI_RSER_TFFFD |
++					  SPI_RSER_RFDFE | SPI_RSER_RFDFD,
++					  SPI_RSER);
++			status = dspi_dma_xfer(dspi);
++			break;
+ 		default:
+ 			dev_err(&dspi->pdev->dev, "unsupported trans_mode %u\n",
+ 				trans_mode);
+@@ -427,9 +757,13 @@ static int dspi_transfer_one_message(struct spi_master *master,
+ 			goto out;
+ 		}
+ 
+-		if (wait_event_interruptible(dspi->waitq, dspi->waitflags))
+-			dev_err(&dspi->pdev->dev, "wait transfer complete fail!\n");
+-		dspi->waitflags = 0;
++		if (trans_mode != DSPI_DMA_MODE) {
++			if (wait_event_interruptible(dspi->waitq,
++						dspi->waitflags))
++				dev_err(&dspi->pdev->dev,
++					"wait transfer complete fail!\n");
++			dspi->waitflags = 0;
++		}
+ 
+ 		if (transfer->delay_usecs)
+ 			udelay(transfer->delay_usecs);
+@@ -521,14 +855,14 @@ static irqreturn_t dspi_interrupt(int irq, void *dev_id)
+ 	u32 spi_tcnt, tcnt_diff;
+ 	int tx_word;
+ 
+-	regmap_read(dspi->regmap, SPI_SR, &spi_sr);
+-	regmap_write(dspi->regmap, SPI_SR, spi_sr);
++	spi_sr = dspi_readl(dspi, SPI_SR);
++	dspi_writel(dspi, spi_sr, SPI_SR);
+ 
+ 
+ 	if (spi_sr & (SPI_SR_EOQF | SPI_SR_TCFQF)) {
+ 		tx_word = is_double_byte_mode(dspi);
+ 
+-		regmap_read(dspi->regmap, SPI_TCR, &spi_tcr);
++		spi_tcr = dspi_readl(dspi, SPI_TCR);
+ 		spi_tcnt = SPI_TCR_GET_TCNT(spi_tcr);
+ 		/*
+ 		 * The width of SPI Transfer Counter in SPI_TCR is 16bits,
+@@ -565,10 +899,10 @@ static irqreturn_t dspi_interrupt(int irq, void *dev_id)
+ 
+ 		if (!dspi->len) {
+ 			if (dspi->dataflags & TRAN_STATE_WORD_ODD_NUM) {
+-				regmap_update_bits(dspi->regmap,
+-						   SPI_CTAR(0),
+-						   SPI_FRAME_BITS_MASK,
+-						   SPI_FRAME_BITS(16));
++				dspi_updatel(dspi,
++					     SPI_FRAME_BITS_MASK,
++					     SPI_FRAME_BITS(16),
++					     SPI_CTAR(0));
+ 				dspi->dataflags &= ~TRAN_STATE_WORD_ODD_NUM;
+ 			}
+ 
+@@ -620,10 +954,13 @@ static int dspi_resume(struct device *dev)
+ {
+ 	struct spi_master *master = dev_get_drvdata(dev);
+ 	struct fsl_dspi *dspi = spi_master_get_devdata(master);
++	int ret;
+ 
+ 	pinctrl_pm_select_default_state(dev);
+ 
+-	clk_prepare_enable(dspi->clk);
++	ret = clk_prepare_enable(dspi->clk);
++	if (ret)
++		return ret;
+ 	spi_master_resume(master);
+ 
+ 	return 0;
+@@ -632,12 +969,10 @@ static int dspi_resume(struct device *dev)
+ 
+ static SIMPLE_DEV_PM_OPS(dspi_pm, dspi_suspend, dspi_resume);
+ 
+-static const struct regmap_config dspi_regmap_config = {
+-	.reg_bits = 32,
+-	.val_bits = 32,
+-	.reg_stride = 4,
+-	.max_register = 0x88,
+-};
++static void dspi_init(struct fsl_dspi *dspi)
++{
++	dspi_writel(dspi, SPI_SR_CLEAR, SPI_SR);
++}
+ 
+ static int dspi_probe(struct platform_device *pdev)
+ {
+@@ -647,8 +982,6 @@ static int dspi_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	void __iomem *base;
+ 	int ret = 0, cs_num, bus_num;
+-	const struct of_device_id *of_id =
+-			of_match_device(fsl_dspi_dt_ids, &pdev->dev);
+ 
+ 	master = spi_alloc_master(&pdev->dev, sizeof(struct fsl_dspi));
+ 	if (!master)
+@@ -682,7 +1015,7 @@ static int dspi_probe(struct platform_device *pdev)
+ 	}
+ 	master->bus_num = bus_num;
+ 
+-	dspi->devtype_data = (struct fsl_dspi_devtype_data *)of_id->data;
++	dspi->devtype_data = of_device_get_match_data(&pdev->dev);
+ 	if (!dspi->devtype_data) {
+ 		dev_err(&pdev->dev, "can't get devtype_data\n");
+ 		ret = -EFAULT;
+@@ -696,14 +1029,9 @@ static int dspi_probe(struct platform_device *pdev)
+ 		goto out_master_put;
+ 	}
+ 
+-	dspi->regmap = devm_regmap_init_mmio_clk(&pdev->dev, NULL, base,
+-						&dspi_regmap_config);
+-	if (IS_ERR(dspi->regmap)) {
+-		dev_err(&pdev->dev, "failed to init regmap: %ld\n",
+-				PTR_ERR(dspi->regmap));
+-		return PTR_ERR(dspi->regmap);
+-	}
++	dspi->iobase = base;
+ 
++	dspi_init(dspi);
+ 	dspi->irq = platform_get_irq(pdev, 0);
+ 	if (dspi->irq < 0) {
+ 		dev_err(&pdev->dev, "can't get platform irq\n");
+@@ -724,7 +1052,21 @@ static int dspi_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "unable to get clock\n");
+ 		goto out_master_put;
+ 	}
+-	clk_prepare_enable(dspi->clk);
++	ret = clk_prepare_enable(dspi->clk);
++	if (ret)
++		goto out_master_put;
++
++	if (dspi->devtype_data->trans_mode == DSPI_DMA_MODE) {
++		if (dspi_request_dma(dspi, res->start)) {
++			dev_err(&pdev->dev, "can't get dma channels\n");
++			goto out_clk_put;
++		}
++	}
++
++	master->max_speed_hz =
++		clk_get_rate(dspi->clk) / dspi->devtype_data->max_clock_factor;
++
++	dspi->big_endian = of_property_read_bool(np, "big-endian");
+ 
+ 	init_waitqueue_head(&dspi->waitq);
+ 	platform_set_drvdata(pdev, master);
+@@ -751,6 +1093,7 @@ static int dspi_remove(struct platform_device *pdev)
+ 	struct fsl_dspi *dspi = spi_master_get_devdata(master);
+ 
+ 	/* Disconnect from the SPI framework */
++	dspi_release_dma(dspi);
+ 	clk_disable_unprepare(dspi->clk);
+ 	spi_unregister_master(dspi->master);
+ 
+-- 
+2.7.4
+

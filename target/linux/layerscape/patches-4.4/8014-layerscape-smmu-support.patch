@@ -1,0 +1,351 @@
+diff --git a/drivers/iommu/arm-smmu.c b/drivers/iommu/arm-smmu.c
+index 47dc7a7..9b61c7d 100644
+--- a/drivers/iommu/arm-smmu.c
++++ b/drivers/iommu/arm-smmu.c
+@@ -47,6 +47,12 @@
+ 
+ #include "io-pgtable.h"
+ 
++#ifdef CONFIG_FSL_MC_BUS
++#include <../drivers/staging/fsl-mc/include/mc.h>
++#endif
++
++#include <asm/pgalloc.h>
++
+ /* Maximum number of stream IDs assigned to a single device */
+ #define MAX_MASTER_STREAMIDS		MAX_PHANDLE_ARGS
+ 
+@@ -96,6 +102,9 @@
+ #define sCR0_BSU_SHIFT			14
+ #define sCR0_BSU_MASK			0x3
+ 
++/* Auxiliary Configuration register */
++#define ARM_SMMU_GR0_sACR		0x10
++
+ /* Identification registers */
+ #define ARM_SMMU_GR0_ID0		0x20
+ #define ARM_SMMU_GR0_ID1		0x24
+@@ -226,6 +235,8 @@
+ #define SCTLR_M				(1 << 0)
+ #define SCTLR_EAE_SBOP			(SCTLR_AFE | SCTLR_TRE)
+ 
++#define ARM_MMU500_ACR_SMTNMB_TLBEN	(1 << 8)
++
+ #define CB_PAR_F			(1 << 0)
+ 
+ #define ATSR_ACTIVE			(1 << 0)
+@@ -275,6 +286,7 @@ struct arm_smmu_smr {
+ struct arm_smmu_master_cfg {
+ 	int				num_streamids;
+ 	u16				streamids[MAX_MASTER_STREAMIDS];
++	u16				mask;
+ 	struct arm_smmu_smr		*smrs;
+ };
+ 
+@@ -350,6 +362,9 @@ struct arm_smmu_domain {
+ };
+ 
+ static struct iommu_ops arm_smmu_ops;
++#ifdef CONFIG_FSL_MC_BUS
++static struct iommu_ops arm_fsl_mc_smmu_ops;
++#endif
+ 
+ static DEFINE_SPINLOCK(arm_smmu_devices_lock);
+ static LIST_HEAD(arm_smmu_devices);
+@@ -363,6 +378,38 @@ static struct arm_smmu_option_prop arm_smmu_options[] = {
+ 	{ ARM_SMMU_OPT_SECURE_CFG_ACCESS, "calxeda,smmu-secure-config-access" },
+ 	{ 0, NULL},
+ };
++#define CONFIG_AIOP_ERRATA
++#ifdef CONFIG_AIOP_ERRATA
++/*
++ * PL = 1, BMT = 1, VA = 1
++ */
++#define AIOP_SMR_VALUE 0x380
++/*
++ * Following should be set:
++ * SHCFG: 0x3
++ * MTCFG: 0x1
++ * MemAttr: 0xf
++ * Type: 0x1
++ * RACFG: 0x2
++ * WACFG: 0x2
++ */
++#define AIOP_S2CR_VALUE 0xA1FB00
++
++static void arm_smmu_aiop_attr_trans(struct arm_smmu_device *smmu)
++{
++	void __iomem *gr0_base = ARM_SMMU_GR0(smmu);
++	u16 mask = 0x7c7f;
++	int index;
++	u32 reg;
++	/* reserve one smr group for AIOP */
++	index = --smmu->num_mapping_groups;
++
++	reg = SMR_VALID | AIOP_SMR_VALUE << SMR_ID_SHIFT |
++		  mask << SMR_MASK_SHIFT;
++	writel(reg, gr0_base + ARM_SMMU_GR0_SMR(index));
++	writel(AIOP_S2CR_VALUE, gr0_base + ARM_SMMU_GR0_S2CR(index));
++}
++#endif
+ 
+ static struct arm_smmu_domain *to_smmu_domain(struct iommu_domain *dom)
+ {
+@@ -393,6 +440,16 @@ static struct device_node *dev_get_dev_node(struct device *dev)
+ 		return bus->bridge->parent->of_node;
+ 	}
+ 
++#ifdef CONFIG_FSL_MC_BUS
++	if (dev->bus == &fsl_mc_bus_type) {
++		/*
++		 * Get to the MC device tree node.
++		 */
++		while (dev->bus == &fsl_mc_bus_type)
++			dev = dev->parent;
++	}
++#endif
++
+ 	return dev->of_node;
+ }
+ 
+@@ -892,6 +949,9 @@ static int arm_smmu_init_domain_context(struct iommu_domain *domain,
+ 
+ 	/* Update our support page sizes to reflect the page table format */
+ 	arm_smmu_ops.pgsize_bitmap = pgtbl_cfg.pgsize_bitmap;
++#ifdef CONFIG_FSL_MC_BUS
++	arm_fsl_mc_smmu_ops.pgsize_bitmap = pgtbl_cfg.pgsize_bitmap;
++#endif
+ 
+ 	/* Initialise the context bank with our page table cfg */
+ 	arm_smmu_init_context_bank(smmu_domain, &pgtbl_cfg);
+@@ -1015,7 +1075,7 @@ static int arm_smmu_master_configure_smrs(struct arm_smmu_device *smmu,
+ 
+ 		smrs[i] = (struct arm_smmu_smr) {
+ 			.idx	= idx,
+-			.mask	= 0, /* We don't currently share SMRs */
++			.mask	= cfg->mask,
+ 			.id	= cfg->streamids[i],
+ 		};
+ 	}
+@@ -1453,6 +1513,91 @@ static struct iommu_ops arm_smmu_ops = {
+ 	.pgsize_bitmap		= -1UL, /* Restricted during device attach */
+ };
+ 
++#ifdef CONFIG_FSL_MC_BUS
++
++static void arm_smmu_release_fsl_mc_iommudata(void *data)
++{
++	kfree(data);
++}
++
++/*
++ * IOMMU group creation and stream ID programming for
++ * the LS devices
++ *
++ */
++static int arm_fsl_mc_smmu_add_device(struct device *dev)
++{
++	struct device *cont_dev;
++	struct fsl_mc_device *mc_dev;
++	struct iommu_group *group;
++	struct arm_smmu_master_cfg *cfg;
++	int ret = 0;
++
++	mc_dev = to_fsl_mc_device(dev);
++	if (mc_dev->flags & FSL_MC_IS_DPRC)
++		cont_dev = dev;
++	else
++		cont_dev = mc_dev->dev.parent;
++
++	get_device(cont_dev);
++	group = iommu_group_get(cont_dev);
++	put_device(cont_dev);
++	if (!group) {
++		void (*releasefn)(void *) = NULL;
++
++		group = iommu_group_alloc();
++		if (IS_ERR(group))
++			return PTR_ERR(group);
++		/*
++		 * allocate the cfg for the container and associate it with
++		 * the iommu group. In the find cfg function we get the cfg
++		 * from the iommu group.
++		 */
++		cfg = kzalloc(sizeof(*cfg), GFP_KERNEL);
++		if (!cfg)
++			return -ENOMEM;
++
++		mc_dev = to_fsl_mc_device(cont_dev);
++		cfg->num_streamids = 1;
++		cfg->streamids[0] = mc_dev->icid;
++		cfg->mask = 0x7c00;
++		releasefn = arm_smmu_release_fsl_mc_iommudata;
++		iommu_group_set_iommudata(group, cfg, releasefn);
++		ret = iommu_group_add_device(group, cont_dev);
++	}
++
++	if (!ret && cont_dev != dev)
++		ret = iommu_group_add_device(group, dev);
++
++	iommu_group_put(group);
++
++	return ret;
++}
++
++static void arm_fsl_mc_smmu_remove_device(struct device *dev)
++{
++	iommu_group_remove_device(dev);
++
++}
++
++static struct iommu_ops arm_fsl_mc_smmu_ops = {
++	.capable		= arm_smmu_capable,
++	.domain_alloc		= arm_smmu_domain_alloc,
++	.domain_free		= arm_smmu_domain_free,
++	.attach_dev		= arm_smmu_attach_dev,
++	.detach_dev		= arm_smmu_detach_dev,
++	.map			= arm_smmu_map,
++	.unmap			= arm_smmu_unmap,
++	.map_sg			= default_iommu_map_sg,
++	.iova_to_phys		= arm_smmu_iova_to_phys,
++	.add_device		= arm_fsl_mc_smmu_add_device,
++	.remove_device		= arm_fsl_mc_smmu_remove_device,
++	.domain_get_attr	= arm_smmu_domain_get_attr,
++	.domain_set_attr	= arm_smmu_domain_set_attr,
++	.pgsize_bitmap	= -1UL, /* Restricted during device attach */
++};
++#endif
++
+ static void arm_smmu_device_reset(struct arm_smmu_device *smmu)
+ {
+ 	void __iomem *gr0_base = ARM_SMMU_GR0(smmu);
+@@ -1471,6 +1616,16 @@ static void arm_smmu_device_reset(struct arm_smmu_device *smmu)
+ 			gr0_base + ARM_SMMU_GR0_S2CR(i));
+ 	}
+ 
++#ifdef CONFIG_FSL_MC_BUS
++	/*
++	 * Allow unmatched Stream IDs to allocate bypass
++	 * TLB entries for reduced latency for MMU-500.
++	 */
++	reg = readl_relaxed(gr0_base + ARM_SMMU_GR0_sACR);
++	reg |= ARM_MMU500_ACR_SMTNMB_TLBEN;
++	writel_relaxed(reg, gr0_base + ARM_SMMU_GR0_sACR);
++#endif
++
+ 	/* Make sure all context banks are disabled and clear CB_FSR  */
+ 	for (i = 0; i < smmu->num_context_banks; ++i) {
+ 		cb_base = ARM_SMMU_CB_BASE(smmu) + ARM_SMMU_CB(smmu, i);
+@@ -1812,6 +1967,10 @@ static int arm_smmu_device_dt_probe(struct platform_device *pdev)
+ 	spin_unlock(&arm_smmu_devices_lock);
+ 
+ 	arm_smmu_device_reset(smmu);
++		/* AIOP Rev1 errata work around */
++#ifdef CONFIG_AIOP_ERRATA
++		arm_smmu_aiop_attr_trans(smmu);
++#endif
+ 	return 0;
+ 
+ out_free_irqs:
+@@ -1908,6 +2067,10 @@ static int __init arm_smmu_init(void)
+ 		bus_set_iommu(&pci_bus_type, &arm_smmu_ops);
+ #endif
+ 
++#ifdef CONFIG_FSL_MC_BUS
++	if (!iommu_present(&fsl_mc_bus_type))
++		bus_set_iommu(&fsl_mc_bus_type, &arm_fsl_mc_smmu_ops);
++#endif
+ 	return 0;
+ }
+ 
+diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+index 515bb8b..79f1e5f 100644
+--- a/drivers/iommu/iommu.c
++++ b/drivers/iommu/iommu.c
+@@ -31,6 +31,7 @@
+ #include <linux/err.h>
+ #include <linux/pci.h>
+ #include <linux/bitops.h>
++#include <linux/property.h>
+ #include <trace/events/iommu.h>
+ 
+ static struct kset *iommu_group_kset;
+@@ -1626,3 +1627,60 @@ out:
+ 
+ 	return ret;
+ }
++
++int iommu_fwspec_init(struct device *dev, struct fwnode_handle *iommu_fwnode,
++		      const struct iommu_ops *ops)
++{
++	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
++
++	if (fwspec)
++		return ops == fwspec->ops ? 0 : -EINVAL;
++
++	fwspec = kzalloc(sizeof(*fwspec), GFP_KERNEL);
++	if (!fwspec)
++		return -ENOMEM;
++
++	of_node_get(to_of_node(iommu_fwnode));
++	fwspec->iommu_fwnode = iommu_fwnode;
++	fwspec->ops = ops;
++	dev->iommu_fwspec = fwspec;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(iommu_fwspec_init);
++
++void iommu_fwspec_free(struct device *dev)
++{
++	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
++
++	if (fwspec) {
++		fwnode_handle_put(fwspec->iommu_fwnode);
++		kfree(fwspec);
++		dev->iommu_fwspec = NULL;
++	}
++}
++EXPORT_SYMBOL_GPL(iommu_fwspec_free);
++
++int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids)
++{
++	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
++	size_t size;
++	int i;
++
++	if (!fwspec)
++		return -EINVAL;
++
++	size = offsetof(struct iommu_fwspec, ids[fwspec->num_ids + num_ids]);
++	if (size > sizeof(*fwspec)) {
++		fwspec = krealloc(dev->iommu_fwspec, size, GFP_KERNEL);
++		if (!fwspec)
++			return -ENOMEM;
++	}
++
++	for (i = 0; i < num_ids; i++)
++		fwspec->ids[fwspec->num_ids + i] = ids[i];
++
++	fwspec->num_ids += num_ids;
++	dev->iommu_fwspec = fwspec;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(iommu_fwspec_add_ids);
+diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+index 60ba238..91fcf2f 100644
+--- a/drivers/iommu/of_iommu.c
++++ b/drivers/iommu/of_iommu.c
+@@ -159,7 +159,9 @@ struct iommu_ops *of_iommu_configure(struct device *dev,
+ 		np = iommu_spec.np;
+ 		ops = of_iommu_get_ops(np);
+ 
+-		if (!ops || !ops->of_xlate || ops->of_xlate(dev, &iommu_spec))
++		if (!ops || !ops->of_xlate ||
++		    iommu_fwspec_init(dev, &np->fwnode, ops) ||
++		    ops->of_xlate(dev, &iommu_spec))
+ 			goto err_put_node;
+ 
+ 		of_node_put(np);
+-- 
+2.7.4
+

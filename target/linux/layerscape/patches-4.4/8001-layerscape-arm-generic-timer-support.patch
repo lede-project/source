@@ -1,0 +1,637 @@
+diff --git a/Documentation/arm64/silicon-errata.txt b/Documentation/arm64/silicon-errata.txt
+index 58b71dd..df22d2c 100644
+--- a/Documentation/arm64/silicon-errata.txt
++++ b/Documentation/arm64/silicon-errata.txt
+@@ -56,3 +56,5 @@ stable kernels.
+ |                |                 |                 |                         |
+ | Cavium         | ThunderX ITS    | #22375, #24313  | CAVIUM_ERRATUM_22375    |
+ | Cavium         | ThunderX GICv3  | #23154          | CAVIUM_ERRATUM_23154    |
++|                |                 |                 |                             |
++| Freescale/NXP  | LS2080A/LS1043A | A-008585        | FSL_ERRATUM_A008585         |
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index ca64ca5..031afa4 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -650,6 +650,15 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 			[SPARC64] tick
+ 			[X86-64] hpet,tsc
+ 
++	clocksource.arm_arch_timer.fsl-a008585=
++			[ARM64]
++			Format: <bool>
++			Enable/disable the workaround of Freescale/NXP
++			erratum A-008585.  This can be useful for KVM
++			guests, if the guest device tree doesn't show the
++			erratum.  If unspecified, the workaround is
++			enabled based on the device tree.
++
+ 	clearcpuid=BITNUM [X86]
+ 			Disable CPUID feature X for the kernel. See
+ 			arch/x86/include/asm/cpufeature.h for the valid bit
+diff --git a/arch/arm64/include/asm/arch_timer.h b/arch/arm64/include/asm/arch_timer.h
+index fbe0ca3..eaa5bbe 100644
+--- a/arch/arm64/include/asm/arch_timer.h
++++ b/arch/arm64/include/asm/arch_timer.h
+@@ -20,13 +20,55 @@
+ #define __ASM_ARCH_TIMER_H
+ 
+ #include <asm/barrier.h>
++#include <asm/sysreg.h>
+ 
+ #include <linux/bug.h>
+ #include <linux/init.h>
++#include <linux/jump_label.h>
+ #include <linux/types.h>
+ 
+ #include <clocksource/arm_arch_timer.h>
+ 
++#if IS_ENABLED(CONFIG_FSL_ERRATUM_A008585)
++extern struct static_key_false arch_timer_read_ool_enabled;
++#define needs_fsl_a008585_workaround() \
++	static_branch_unlikely(&arch_timer_read_ool_enabled)
++#else
++#define needs_fsl_a008585_workaround()  false
++#endif
++
++u32 __fsl_a008585_read_cntp_tval_el0(void);
++u32 __fsl_a008585_read_cntv_tval_el0(void);
++u64 __fsl_a008585_read_cntvct_el0(void);
++
++/*
++ * The number of retries is an arbitrary value well beyond the highest number
++ * of iterations the loop has been observed to take.
++ */
++#define __fsl_a008585_read_reg(reg) ({			\
++	u64 _old, _new;					\
++	int _retries = 200;				\
++							\
++	do {						\
++		_old = read_sysreg(reg);		\
++		_new = read_sysreg(reg);		\
++		_retries--;				\
++	} while (unlikely(_old != _new) && _retries);	\
++							\
++	WARN_ON_ONCE(!_retries);			\
++	_new;						\
++})
++
++#define arch_timer_reg_read_stable(reg) 		\
++({							\
++	u64 _val;					\
++	if (needs_fsl_a008585_workaround())		\
++		_val = __fsl_a008585_read_##reg();	\
++	else						\
++		_val = read_sysreg(reg);		\
++	_val;						\
++})
++
+ /*
+  * These register accessors are marked inline so the compiler can
+  * nicely work out which register we want, and chuck away the rest of
+@@ -38,19 +80,19 @@ void arch_timer_reg_write_cp15(int access, enum arch_timer_reg reg, u32 val)
+ 	if (access == ARCH_TIMER_PHYS_ACCESS) {
+ 		switch (reg) {
+ 		case ARCH_TIMER_REG_CTRL:
+-			asm volatile("msr cntp_ctl_el0,  %0" : : "r" (val));
++			write_sysreg(val, cntp_ctl_el0);
+ 			break;
+ 		case ARCH_TIMER_REG_TVAL:
+-			asm volatile("msr cntp_tval_el0, %0" : : "r" (val));
++			write_sysreg(val, cntp_tval_el0);
+ 			break;
+ 		}
+ 	} else if (access == ARCH_TIMER_VIRT_ACCESS) {
+ 		switch (reg) {
+ 		case ARCH_TIMER_REG_CTRL:
+-			asm volatile("msr cntv_ctl_el0,  %0" : : "r" (val));
++			write_sysreg(val, cntv_ctl_el0);
+ 			break;
+ 		case ARCH_TIMER_REG_TVAL:
+-			asm volatile("msr cntv_tval_el0, %0" : : "r" (val));
++			write_sysreg(val, cntv_tval_el0);
+ 			break;
+ 		}
+ 	}
+@@ -61,48 +103,38 @@ void arch_timer_reg_write_cp15(int access, enum arch_timer_reg reg, u32 val)
+ static __always_inline
+ u32 arch_timer_reg_read_cp15(int access, enum arch_timer_reg reg)
+ {
+-	u32 val;
+-
+ 	if (access == ARCH_TIMER_PHYS_ACCESS) {
+ 		switch (reg) {
+ 		case ARCH_TIMER_REG_CTRL:
+-			asm volatile("mrs %0,  cntp_ctl_el0" : "=r" (val));
+-			break;
++			return read_sysreg(cntp_ctl_el0);
+ 		case ARCH_TIMER_REG_TVAL:
+-			asm volatile("mrs %0, cntp_tval_el0" : "=r" (val));
+-			break;
++			return arch_timer_reg_read_stable(cntp_tval_el0);
+ 		}
+ 	} else if (access == ARCH_TIMER_VIRT_ACCESS) {
+ 		switch (reg) {
+ 		case ARCH_TIMER_REG_CTRL:
+-			asm volatile("mrs %0,  cntv_ctl_el0" : "=r" (val));
+-			break;
++			return read_sysreg(cntv_ctl_el0);
+ 		case ARCH_TIMER_REG_TVAL:
+-			asm volatile("mrs %0, cntv_tval_el0" : "=r" (val));
+-			break;
++			return arch_timer_reg_read_stable(cntv_tval_el0);
+ 		}
+ 	}
+ 
+-	return val;
++	BUG();
+ }
+ 
+ static inline u32 arch_timer_get_cntfrq(void)
+ {
+-	u32 val;
+-	asm volatile("mrs %0,   cntfrq_el0" : "=r" (val));
+-	return val;
++	return read_sysreg(cntfrq_el0);
+ }
+ 
+ static inline u32 arch_timer_get_cntkctl(void)
+ {
+-	u32 cntkctl;
+-	asm volatile("mrs	%0, cntkctl_el1" : "=r" (cntkctl));
+-	return cntkctl;
++	return read_sysreg(cntkctl_el1);
+ }
+ 
+ static inline void arch_timer_set_cntkctl(u32 cntkctl)
+ {
+-	asm volatile("msr	cntkctl_el1, %0" : : "r" (cntkctl));
++	write_sysreg(cntkctl, cntkctl_el1);
+ }
+ 
+ static inline u64 arch_counter_get_cntpct(void)
+@@ -116,12 +148,8 @@ static inline u64 arch_counter_get_cntpct(void)
+ 
+ static inline u64 arch_counter_get_cntvct(void)
+ {
+-	u64 cval;
+-
+ 	isb();
+-	asm volatile("mrs %0, cntvct_el0" : "=r" (cval));
+-
+-	return cval;
++	return arch_timer_reg_read_stable(cntvct_el0);
+ }
+ 
+ static inline int arch_timer_arch_init(void)
+diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
+index 2eb5f0e..42b0106 100644
+--- a/drivers/clocksource/Kconfig
++++ b/drivers/clocksource/Kconfig
+@@ -158,6 +158,16 @@ config ARM_ARCH_TIMER_EVTSTREAM
+ 	  This must be disabled for hardware validation purposes to detect any
+ 	  hardware anomalies of missing events.
+ 
++config FSL_ERRATUM_A008585
++	bool "Workaround for Freescale/NXP Erratum A-008585"
++	default y
++	depends on ARM_ARCH_TIMER && ARM64
++	help
++	  This option enables a workaround for Freescale/NXP Erratum
++	  A-008585 ("ARM generic timer may contain an erroneous
++	  value").  The workaround will only be active if the
++	  fsl,erratum-a008585 property is found in the timer node.
++
+ config ARM_GLOBAL_TIMER
+ 	bool
+ 	select CLKSRC_OF if OF
+diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+index c64d543..d06370f 100644
+--- a/drivers/clocksource/arm_arch_timer.c
++++ b/drivers/clocksource/arm_arch_timer.c
+@@ -32,6 +32,14 @@
+ #define CNTTIDR		0x08
+ #define CNTTIDR_VIRT(n)	(BIT(1) << ((n) * 4))
+ 
++#define CNTACR(n)	(0x40 + ((n) * 4))
++#define CNTACR_RPCT	BIT(0)
++#define CNTACR_RVCT	BIT(1)
++#define CNTACR_RFRQ	BIT(2)
++#define CNTACR_RVOFF	BIT(3)
++#define CNTACR_RWVT	BIT(4)
++#define CNTACR_RWPT	BIT(5)
++
+ #define CNTVCT_LO	0x08
+ #define CNTVCT_HI	0x0c
+ #define CNTFRQ		0x10
+@@ -67,7 +75,7 @@ static int arch_timer_ppi[MAX_TIMER_PPI];
+ 
+ static struct clock_event_device __percpu *arch_timer_evt;
+ 
+-static bool arch_timer_use_virtual = true;
++static enum ppi_nr arch_timer_uses_ppi = VIRT_PPI;
+ static bool arch_timer_c3stop;
+ static bool arch_timer_mem_use_virtual;
+ 
+@@ -75,6 +83,43 @@ static bool arch_timer_mem_use_virtual;
+  * Architected system timer support.
+  */
+ 
++#ifdef CONFIG_FSL_ERRATUM_A008585
++DEFINE_STATIC_KEY_FALSE(arch_timer_read_ool_enabled);
++EXPORT_SYMBOL_GPL(arch_timer_read_ool_enabled);
++
++static int fsl_a008585_enable = -1;
++
++static int __init early_fsl_a008585_cfg(char *buf)
++{
++	int ret;
++	bool val;
++
++	ret = strtobool(buf, &val);
++	if (ret)
++		return ret;
++
++	fsl_a008585_enable = val;
++	return 0;
++}
++early_param("clocksource.arm_arch_timer.fsl-a008585", early_fsl_a008585_cfg);
++
++u32 __fsl_a008585_read_cntp_tval_el0(void)
++{
++	return __fsl_a008585_read_reg(cntp_tval_el0);
++}
++
++u32 __fsl_a008585_read_cntv_tval_el0(void)
++{
++	return __fsl_a008585_read_reg(cntv_tval_el0);
++}
++
++u64 __fsl_a008585_read_cntvct_el0(void)
++{
++	return __fsl_a008585_read_reg(cntvct_el0);
++}
++EXPORT_SYMBOL(__fsl_a008585_read_cntvct_el0);
++#endif /* CONFIG_FSL_ERRATUM_A008585 */
++
+ static __always_inline
+ void arch_timer_reg_write(int access, enum arch_timer_reg reg, u32 val,
+ 			  struct clock_event_device *clk)
+@@ -224,6 +269,40 @@ static __always_inline void set_next_event(const int access, unsigned long evt,
+ 	arch_timer_reg_write(access, ARCH_TIMER_REG_CTRL, ctrl, clk);
+ }
+ 
++#ifdef CONFIG_FSL_ERRATUM_A008585
++static __always_inline void fsl_a008585_set_next_event(const int access,
++		unsigned long evt, struct clock_event_device *clk)
++{
++	unsigned long ctrl;
++	u64 cval = evt + arch_counter_get_cntvct();
++
++	ctrl = arch_timer_reg_read(access, ARCH_TIMER_REG_CTRL, clk);
++	ctrl |= ARCH_TIMER_CTRL_ENABLE;
++	ctrl &= ~ARCH_TIMER_CTRL_IT_MASK;
++
++	if (access == ARCH_TIMER_PHYS_ACCESS)
++		write_sysreg(cval, cntp_cval_el0);
++	else if (access == ARCH_TIMER_VIRT_ACCESS)
++		write_sysreg(cval, cntv_cval_el0);
++
++	arch_timer_reg_write(access, ARCH_TIMER_REG_CTRL, ctrl, clk);
++}
++
++static int fsl_a008585_set_next_event_virt(unsigned long evt,
++					   struct clock_event_device *clk)
++{
++	fsl_a008585_set_next_event(ARCH_TIMER_VIRT_ACCESS, evt, clk);
++	return 0;
++}
++
++static int fsl_a008585_set_next_event_phys(unsigned long evt,
++					   struct clock_event_device *clk)
++{
++	fsl_a008585_set_next_event(ARCH_TIMER_PHYS_ACCESS, evt, clk);
++	return 0;
++}
++#endif /* CONFIG_FSL_ERRATUM_A008585 */
++
+ static int arch_timer_set_next_event_virt(unsigned long evt,
+ 					  struct clock_event_device *clk)
+ {
+@@ -252,6 +331,19 @@ static int arch_timer_set_next_event_phys_mem(unsigned long evt,
+ 	return 0;
+ }
+ 
++static void fsl_a008585_set_sne(struct clock_event_device *clk)
++{
++#ifdef CONFIG_FSL_ERRATUM_A008585
++	if (!static_branch_unlikely(&arch_timer_read_ool_enabled))
++		return;
++
++	if (arch_timer_uses_ppi == VIRT_PPI)
++		clk->set_next_event = fsl_a008585_set_next_event_virt;
++	else
++		clk->set_next_event = fsl_a008585_set_next_event_phys;
++#endif
++}
++
+ static void __arch_timer_setup(unsigned type,
+ 			       struct clock_event_device *clk)
+ {
+@@ -263,15 +355,23 @@ static void __arch_timer_setup(unsigned type,
+ 		clk->name = "arch_sys_timer";
+ 		clk->rating = 450;
+ 		clk->cpumask = cpumask_of(smp_processor_id());
+-		if (arch_timer_use_virtual) {
+-			clk->irq = arch_timer_ppi[VIRT_PPI];
++		clk->irq = arch_timer_ppi[arch_timer_uses_ppi];
++		switch (arch_timer_uses_ppi) {
++		case VIRT_PPI:
+ 			clk->set_state_shutdown = arch_timer_shutdown_virt;
+ 			clk->set_next_event = arch_timer_set_next_event_virt;
+-		} else {
+-			clk->irq = arch_timer_ppi[PHYS_SECURE_PPI];
++			break;
++		case PHYS_SECURE_PPI:
++		case PHYS_NONSECURE_PPI:
++		case HYP_PPI:
+ 			clk->set_state_shutdown = arch_timer_shutdown_phys;
+ 			clk->set_next_event = arch_timer_set_next_event_phys;
++			break;
++		default:
++			BUG();
+ 		}
++
++		fsl_a008585_set_sne(clk);
+ 	} else {
+ 		clk->features |= CLOCK_EVT_FEAT_DYNIRQ;
+ 		clk->name = "arch_mem_timer";
+@@ -279,10 +379,12 @@ static void __arch_timer_setup(unsigned type,
+ 		clk->cpumask = cpu_all_mask;
+ 		if (arch_timer_mem_use_virtual) {
+ 			clk->set_state_shutdown = arch_timer_shutdown_virt_mem;
++			clk->set_state_oneshot_stopped = arch_timer_shutdown_virt_mem;
+ 			clk->set_next_event =
+ 				arch_timer_set_next_event_virt_mem;
+ 		} else {
+ 			clk->set_state_shutdown = arch_timer_shutdown_phys_mem;
++			clk->set_state_oneshot_stopped = arch_timer_shutdown_phys_mem;
+ 			clk->set_next_event =
+ 				arch_timer_set_next_event_phys_mem;
+ 		}
+@@ -338,17 +440,20 @@ static void arch_counter_set_user_access(void)
+ 	arch_timer_set_cntkctl(cntkctl);
+ }
+ 
++static bool arch_timer_has_nonsecure_ppi(void)
++{
++	return (arch_timer_uses_ppi == PHYS_SECURE_PPI &&
++		arch_timer_ppi[PHYS_NONSECURE_PPI]);
++}
++
+ static int arch_timer_setup(struct clock_event_device *clk)
+ {
+ 	__arch_timer_setup(ARCH_CP15_TIMER, clk);
+ 
+-	if (arch_timer_use_virtual)
+-		enable_percpu_irq(arch_timer_ppi[VIRT_PPI], 0);
+-	else {
+-		enable_percpu_irq(arch_timer_ppi[PHYS_SECURE_PPI], 0);
+-		if (arch_timer_ppi[PHYS_NONSECURE_PPI])
+-			enable_percpu_irq(arch_timer_ppi[PHYS_NONSECURE_PPI], 0);
+-	}
++	enable_percpu_irq(arch_timer_ppi[arch_timer_uses_ppi], 0);
++
++	if (arch_timer_has_nonsecure_ppi())
++		enable_percpu_irq(arch_timer_ppi[PHYS_NONSECURE_PPI], 0);
+ 
+ 	arch_counter_set_user_access();
+ 	if (IS_ENABLED(CONFIG_ARM_ARCH_TIMER_EVTSTREAM))
+@@ -390,7 +495,7 @@ static void arch_timer_banner(unsigned type)
+ 		     (unsigned long)arch_timer_rate / 1000000,
+ 		     (unsigned long)(arch_timer_rate / 10000) % 100,
+ 		     type & ARCH_CP15_TIMER ?
+-			arch_timer_use_virtual ? "virt" : "phys" :
++		     (arch_timer_uses_ppi == VIRT_PPI) ? "virt" : "phys" :
+ 			"",
+ 		     type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  "/" : "",
+ 		     type & ARCH_MEM_TIMER ?
+@@ -460,10 +565,19 @@ static void __init arch_counter_register(unsigned type)
+ 
+ 	/* Register the CP15 based counter if we have one */
+ 	if (type & ARCH_CP15_TIMER) {
+-		if (IS_ENABLED(CONFIG_ARM64) || arch_timer_use_virtual)
++		if (IS_ENABLED(CONFIG_ARM64) || arch_timer_uses_ppi == VIRT_PPI)
+ 			arch_timer_read_counter = arch_counter_get_cntvct;
+ 		else
+ 			arch_timer_read_counter = arch_counter_get_cntpct;
++
++#ifdef CONFIG_FSL_ERRATUM_A008585
++		/*
++		 * Don't use the vdso fastpath if errata require using
++		 * the out-of-line counter accessor.
++		 */
++		if (static_branch_unlikely(&arch_timer_read_ool_enabled))
++			clocksource_counter.name = "arch_sys_counter_ool";
++#endif
+ 	} else {
+ 		arch_timer_read_counter = arch_counter_get_cntvct_mem;
+ 
+@@ -490,13 +604,9 @@ static void arch_timer_stop(struct clock_event_device *clk)
+ 	pr_debug("arch_timer_teardown disable IRQ%d cpu #%d\n",
+ 		 clk->irq, smp_processor_id());
+ 
+-	if (arch_timer_use_virtual)
+-		disable_percpu_irq(arch_timer_ppi[VIRT_PPI]);
+-	else {
+-		disable_percpu_irq(arch_timer_ppi[PHYS_SECURE_PPI]);
+-		if (arch_timer_ppi[PHYS_NONSECURE_PPI])
+-			disable_percpu_irq(arch_timer_ppi[PHYS_NONSECURE_PPI]);
+-	}
++	disable_percpu_irq(arch_timer_ppi[arch_timer_uses_ppi]);
++	if (arch_timer_has_nonsecure_ppi())
++		disable_percpu_irq(arch_timer_ppi[PHYS_NONSECURE_PPI]);
+ 
+ 	clk->set_state_shutdown(clk);
+ }
+@@ -562,12 +672,14 @@ static int __init arch_timer_register(void)
+ 		goto out;
+ 	}
+ 
+-	if (arch_timer_use_virtual) {
+-		ppi = arch_timer_ppi[VIRT_PPI];
++	ppi = arch_timer_ppi[arch_timer_uses_ppi];
++	switch (arch_timer_uses_ppi) {
++	case VIRT_PPI:
+ 		err = request_percpu_irq(ppi, arch_timer_handler_virt,
+ 					 "arch_timer", arch_timer_evt);
+-	} else {
+-		ppi = arch_timer_ppi[PHYS_SECURE_PPI];
++		break;
++	case PHYS_SECURE_PPI:
++	case PHYS_NONSECURE_PPI:
+ 		err = request_percpu_irq(ppi, arch_timer_handler_phys,
+ 					 "arch_timer", arch_timer_evt);
+ 		if (!err && arch_timer_ppi[PHYS_NONSECURE_PPI]) {
+@@ -578,6 +690,13 @@ static int __init arch_timer_register(void)
+ 				free_percpu_irq(arch_timer_ppi[PHYS_SECURE_PPI],
+ 						arch_timer_evt);
+ 		}
++		break;
++	case HYP_PPI:
++		err = request_percpu_irq(ppi, arch_timer_handler_phys,
++					 "arch_timer", arch_timer_evt);
++		break;
++	default:
++		BUG();
+ 	}
+ 
+ 	if (err) {
+@@ -602,15 +721,10 @@ static int __init arch_timer_register(void)
+ out_unreg_notify:
+ 	unregister_cpu_notifier(&arch_timer_cpu_nb);
+ out_free_irq:
+-	if (arch_timer_use_virtual)
+-		free_percpu_irq(arch_timer_ppi[VIRT_PPI], arch_timer_evt);
+-	else {
+-		free_percpu_irq(arch_timer_ppi[PHYS_SECURE_PPI],
++	free_percpu_irq(arch_timer_ppi[arch_timer_uses_ppi], arch_timer_evt);
++	if (arch_timer_has_nonsecure_ppi())
++		free_percpu_irq(arch_timer_ppi[PHYS_NONSECURE_PPI],
+ 				arch_timer_evt);
+-		if (arch_timer_ppi[PHYS_NONSECURE_PPI])
+-			free_percpu_irq(arch_timer_ppi[PHYS_NONSECURE_PPI],
+-					arch_timer_evt);
+-	}
+ 
+ out_free:
+ 	free_percpu(arch_timer_evt);
+@@ -697,12 +811,25 @@ static void __init arch_timer_init(void)
+ 	 *
+ 	 * If no interrupt provided for virtual timer, we'll have to
+ 	 * stick to the physical timer. It'd better be accessible...
++	 *
++	 * On ARMv8.1 with VH extensions, the kernel runs in HYP. VHE
++	 * accesses to CNTP_*_EL1 registers are silently redirected to
++	 * their CNTHP_*_EL2 counterparts, and use a different PPI
++	 * number.
+ 	 */
+ 	if (is_hyp_mode_available() || !arch_timer_ppi[VIRT_PPI]) {
+-		arch_timer_use_virtual = false;
++		bool has_ppi;
+ 
+-		if (!arch_timer_ppi[PHYS_SECURE_PPI] ||
+-		    !arch_timer_ppi[PHYS_NONSECURE_PPI]) {
++		if (is_kernel_in_hyp_mode()) {
++			arch_timer_uses_ppi = HYP_PPI;
++			has_ppi = !!arch_timer_ppi[HYP_PPI];
++		} else {
++			arch_timer_uses_ppi = PHYS_SECURE_PPI;
++			has_ppi = (!!arch_timer_ppi[PHYS_SECURE_PPI] ||
++				   !!arch_timer_ppi[PHYS_NONSECURE_PPI]);
++		}
++
++		if (!has_ppi) {
+ 			pr_warn("arch_timer: No interrupt available, giving up\n");
+ 			return;
+ 		}
+@@ -729,13 +856,22 @@ static void __init arch_timer_of_init(struct device_node *np)
+ 
+ 	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
+ 
++#ifdef CONFIG_FSL_ERRATUM_A008585
++	if (fsl_a008585_enable < 0)
++		fsl_a008585_enable = of_property_read_bool(np, "fsl,erratum-a008585");
++	if (fsl_a008585_enable) {
++		static_branch_enable(&arch_timer_read_ool_enabled);
++		pr_info("Enabling workaround for FSL erratum A-008585\n");
++	}
++#endif
++
+ 	/*
+ 	 * If we cannot rely on firmware initializing the timer registers then
+ 	 * we should use the physical timers instead.
+ 	 */
+ 	if (IS_ENABLED(CONFIG_ARM) &&
+ 	    of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
+-			arch_timer_use_virtual = false;
++		arch_timer_uses_ppi = PHYS_SECURE_PPI;
+ 
+ 	arch_timer_init();
+ }
+@@ -757,7 +893,6 @@ static void __init arch_timer_mem_init(struct device_node *np)
+ 	}
+ 
+ 	cnttidr = readl_relaxed(cntctlbase + CNTTIDR);
+-	iounmap(cntctlbase);
+ 
+ 	/*
+ 	 * Try to find a virtual capable frame. Otherwise fall back to a
+@@ -765,20 +900,31 @@ static void __init arch_timer_mem_init(struct device_node *np)
+ 	 */
+ 	for_each_available_child_of_node(np, frame) {
+ 		int n;
++		u32 cntacr;
+ 
+ 		if (of_property_read_u32(frame, "frame-number", &n)) {
+ 			pr_err("arch_timer: Missing frame-number\n");
+-			of_node_put(best_frame);
+ 			of_node_put(frame);
+-			return;
++			goto out;
+ 		}
+ 
+-		if (cnttidr & CNTTIDR_VIRT(n)) {
++		/* Try enabling everything, and see what sticks */
++		cntacr = CNTACR_RFRQ | CNTACR_RWPT | CNTACR_RPCT |
++			 CNTACR_RWVT | CNTACR_RVOFF | CNTACR_RVCT;
++		writel_relaxed(cntacr, cntctlbase + CNTACR(n));
++		cntacr = readl_relaxed(cntctlbase + CNTACR(n));
++
++		if ((cnttidr & CNTTIDR_VIRT(n)) &&
++		    !(~cntacr & (CNTACR_RWVT | CNTACR_RVCT))) {
+ 			of_node_put(best_frame);
+ 			best_frame = frame;
+ 			arch_timer_mem_use_virtual = true;
+ 			break;
+ 		}
++
++		if (~cntacr & (CNTACR_RWPT | CNTACR_RPCT))
++			continue;
++
+ 		of_node_put(best_frame);
+ 		best_frame = of_node_get(frame);
+ 	}
+@@ -786,24 +932,26 @@ static void __init arch_timer_mem_init(struct device_node *np)
+ 	base = arch_counter_base = of_iomap(best_frame, 0);
+ 	if (!base) {
+ 		pr_err("arch_timer: Can't map frame's registers\n");
+-		of_node_put(best_frame);
+-		return;
++		goto out;
+ 	}
+ 
+ 	if (arch_timer_mem_use_virtual)
+ 		irq = irq_of_parse_and_map(best_frame, 1);
+ 	else
+ 		irq = irq_of_parse_and_map(best_frame, 0);
+-	of_node_put(best_frame);
++
+ 	if (!irq) {
+ 		pr_err("arch_timer: Frame missing %s irq",
+ 		       arch_timer_mem_use_virtual ? "virt" : "phys");
+-		return;
++		goto out;
+ 	}
+ 
+ 	arch_timer_detect_rate(base, np);
+ 	arch_timer_mem_register(base, irq);
+ 	arch_timer_common_init();
++out:
++	iounmap(cntctlbase);
++	of_node_put(best_frame);
+ }
+ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
+ 		       arch_timer_mem_init);
+-- 
+2.7.4
+

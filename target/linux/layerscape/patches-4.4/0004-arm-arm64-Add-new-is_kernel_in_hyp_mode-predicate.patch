@@ -1,0 +1,80 @@
+From baf8b41c950e6536f750146ae27c0dbd307ebc94 Mon Sep 17 00:00:00 2001
+From: Marc Zyngier <marc.zyngier@arm.com>
+Date: Mon, 9 Jun 2014 19:47:09 +0100
+Subject: [PATCH] arm/arm64: Add new is_kernel_in_hyp_mode predicate
+
+With ARMv8.1 VHE extension, it will be possible to run the kernel
+at EL2 (aka HYP mode). In order for the kernel to easily find out
+where it is running, add a new predicate that returns whether or
+not the kernel is in HYP mode.
+
+For completeness, the 32bit code also get such a predicate (always
+returning false) so that code common to both architecture (timers,
+KVM) can use it transparently.
+
+Acked-by: Christoffer Dall <christoffer.dall@linaro.org>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+(cherry picked from commit 82deae0fc8ba256c1061dd4de42f0ef6cb9f954f)
+Signed-off-by: Alex Shi <alex.shi@linaro.org>
+
+Conflicts:
+	arch/arm/include/asm/virt.h
+[cherry-pick for lede]
+Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
+---
+ arch/arm/include/asm/virt.h   |  9 +++++++++
+ arch/arm64/include/asm/virt.h | 10 ++++++++++
+ 2 files changed, 19 insertions(+)
+
+diff --git a/arch/arm/include/asm/virt.h b/arch/arm/include/asm/virt.h
+index 4371f45..d4ceaf5 100644
+--- a/arch/arm/include/asm/virt.h
++++ b/arch/arm/include/asm/virt.h
+@@ -74,6 +74,15 @@ static inline bool is_hyp_mode_mismatched(void)
+ {
+ 	return !!(__boot_cpu_mode & BOOT_CPU_MODE_MISMATCH);
+ }
++
++static inline bool is_kernel_in_hyp_mode(void)
++{
++	return false;
++}
++
++/* The section containing the hypervisor text */
++extern char __hyp_text_start[];
++extern char __hyp_text_end[];
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff --git a/arch/arm64/include/asm/virt.h b/arch/arm64/include/asm/virt.h
+index 7a5df52..9f22dd6 100644
+--- a/arch/arm64/include/asm/virt.h
++++ b/arch/arm64/include/asm/virt.h
+@@ -23,6 +23,8 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
++#include <asm/ptrace.h>
++
+ /*
+  * __boot_cpu_mode records what mode CPUs were booted in.
+  * A correctly-implemented bootloader must start all CPUs in the same mode:
+@@ -50,6 +52,14 @@ static inline bool is_hyp_mode_mismatched(void)
+ 	return __boot_cpu_mode[0] != __boot_cpu_mode[1];
+ }
+ 
++static inline bool is_kernel_in_hyp_mode(void)
++{
++	u64 el;
++
++	asm("mrs %0, CurrentEL" : "=r" (el));
++	return el == CurrentEL_EL2;
++}
++
+ /* The section containing the hypervisor text */
+ extern char __hyp_text_start[];
+ extern char __hyp_text_end[];
+-- 
+2.1.0.27.g96db324
+
