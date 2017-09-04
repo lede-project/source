@@ -52,6 +52,19 @@ define Package/libiw/description
  "Linux Wireless Extensions".
 endef
 
+define Package/ifrename
+$(call Package/wireless-tools/Default)
+  SECTION:=utils
+  CATEGORY:=Utilities
+  TITLE:=Tool to rename network interfaces
+  DEPENDS:= +libiw
+endef
+
+define Package/ifrename/description
+ This package installs the tool ifrename from wireless-tools,
+ which makes it possible to rename network interfaces.
+endef
+
 define Build/Compile
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)
@@ -60,12 +73,13 @@ define Build/Compile
 		CFLAGS="$(TARGET_CFLAGS) -I." \
 		BUILD_WE_ESSENTIAL=y \
 		LIBS="-lm -Wl,--gc-sections" \
-		libiw.so.$(PKG_VERSION) iwmulticall
+		libiw.so.$(PKG_VERSION) iwmulticall ifrename
 	$(MAKE) -C $(PKG_BUILD_DIR) \
 		PREFIX="$(PKG_INSTALL_DIR)" \
 		INSTALL_DIR="$(PKG_INSTALL_DIR)/usr/sbin" \
 		INSTALL_LIB="$(PKG_INSTALL_DIR)/usr/lib" \
 		install-iwmulticall
+	install -m 755 $(PKG_BUILD_DIR)/ifrename $(PKG_INSTALL_DIR)/usr/sbin
 endef
 
 define Build/InstallDev
@@ -88,5 +102,11 @@ define Package/libiw/install
 	$(CP) $(PKG_BUILD_DIR)/libiw.so.* $(1)/usr/lib/
 endef
 
+define Package/ifrename/install
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/ifrename $(1)/usr/sbin/
+endef
+
 $(eval $(call BuildPackage,wireless-tools))
 $(eval $(call BuildPackage,libiw))
+$(eval $(call BuildPackage,ifrename))

@@ -1,0 +1,39 @@
+Don't load mapping file if using options '-n' + '-i' [ifrename]
+
+Backport from version 30-pre9
+
+--- a/ifrename.c
++++ b/ifrename.c
+@@ -2666,10 +2666,6 @@ main(int	argc,
+ 	}
+     }
+ 
+-  /* Read the specified/default config file, or stdin. */
+-  if(mapping_readfile(conf_file) < 0)
+-    return(-1);
+-
+   /* Create a channel to the NET kernel. */
+   if((skfd = iw_sockets_open()) < 0)
+     {
+@@ -2688,6 +2684,10 @@ main(int	argc,
+ 	}
+       else
+ 	{
++	  /* Read the specified/default config file, or stdin. */
++	  if(mapping_readfile(conf_file) < 0)
++	    return(-1);
++
+ 	  /* Rename only this interface based on mappings
+ 	   * Mostly used for HotPlug processing (from /etc/hotplug/net.agent)
+ 	   * or udev processing (from a udev IMPORT rule).
+@@ -2700,6 +2700,10 @@ main(int	argc,
+     }
+   else
+     {
++      /* Read the specified/default config file, or stdin. */
++      if(mapping_readfile(conf_file) < 0)
++	return(-1);
++
+       /* Load all the necesary modules */
+       if(use_probe)
+ 	{
