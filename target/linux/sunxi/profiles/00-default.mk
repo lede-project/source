@@ -11,7 +11,6 @@ define Profile/Default
 	kmod-ata-core \
 	kmod-ata-sunxi \
 	kmod-brcmfmac \
-	kmod-rtc-sunxi \
 	kmod-rtl8192cu \
 	kmod-rtl8xxxu \
 	kmod-sun4i-emac \
