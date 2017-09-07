@@ -159,6 +159,15 @@ endef
 TARGET_DEVICES += sun6i-a31-m9
 
 
+define Device/sun8i-h3-orangepi-pc
+  DEVICE_TITLE:=Xunlong Orange Pi PC
+  SUPPORTED_DEVICES:=xunlong,orangepi-pc
+  SUNXI_DTS:=sun8i-h3-orangepi-pc
+endef
+
+TARGET_DEVICES += sun8i-h3-orangepi-pc
+
+
 define Device/sun8i-h3-orangepi-plus
   DEVICE_TITLE:=Xunlong Orange Pi Plus
   SUPPORTED_DEVICES:=xunlong,orangepi-plus
