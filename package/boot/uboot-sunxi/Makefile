@@ -79,11 +79,6 @@ define U-Boot/Mele_M9
   BUILD_DEVICES:=sun6i-a31-m9
 endef
 
-define U-Boot/OLIMEX_A13_SOM
-  NAME:=Olimex A13 SOM
-  BUILD_DEVICES:=sun5i-a13-olimex-som
-endef
-
 define U-Boot/Linksprite_pcDuino
   NAME:=Linksprite pcDuino
   BUILD_DEVICES:=sun4i-a10-pcduino
@@ -116,7 +111,6 @@ UBOOT_TARGETS := \
 	Cubietruck \
 	Hummingbird_A31 \
 	Mele_M9 \
-	OLIMEX_A13_SOM \
 	Linksprite_pcDuino \
 	Linksprite_pcDuino3 \
 	Lamobo_R1 \
