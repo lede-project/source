@@ -104,7 +104,7 @@ Acked-by: Ian Campbell <ijc@hellion.org.uk>
  dtb-$(CONFIG_MACH_SUN5I) += \
  	sun5i-a10s-auxtek-t003.dtb \
 @@ -155,7 +156,9 @@ dtb-$(CONFIG_MACH_SUN6I) += \
- 	sun6i-a31-pangolin.dtb \
+ 	sun6i-a31-mixtile-loftq.dtb \
  	sun6i-a31s-cs908.dtb \
  	sun6i-a31s-primo81.dtb \
 -	sun6i-a31s-sinovoip-bpi-m2.dtb

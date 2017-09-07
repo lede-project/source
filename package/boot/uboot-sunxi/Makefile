@@ -104,11 +104,6 @@ define U-Boot/orangepi_plus
   BUILD_DEVICES:=sun8i-h3-orangepi-plus
 endef
 
-define U-Boot/pangolin
-  NAME:=Theobroma A31-yQ7 devboard
-  UENV:=pangolin
-endef
-
 UBOOT_TARGETS := \
 	A10-OLinuXino-Lime \
 	A13-OLinuXino \
@@ -125,8 +120,7 @@ UBOOT_TARGETS := \
 	Linksprite_pcDuino \
 	Linksprite_pcDuino3 \
 	Lamobo_R1 \
-	orangepi_plus \
-	pangolin
+	orangepi_plus
 
 UBOOT_CONFIGURE_VARS += USE_PRIVATE_LIBGCC=yes
 
