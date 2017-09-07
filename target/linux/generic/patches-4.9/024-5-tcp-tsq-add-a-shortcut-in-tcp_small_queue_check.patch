@@ -1,0 +1,42 @@
+From bda25879334f00b1a6b67cd2fc01def14209273c Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Sat, 3 Dec 2016 11:14:54 -0800
+Subject: [PATCH 05/10] tcp: tsq: add a shortcut in tcp_small_queue_check()
+
+Always allow the two first skbs in write queue to be sent,
+regardless of sk_wmem_alloc/sk_pacing_rate values.
+
+This helps a lot in situations where TX completions are delayed either
+because of driver latencies or softirq latencies.
+
+Test is done with no cache line misses.
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ net/ipv4/tcp_output.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
+index 796e310..28ed01b 100644
+--- a/net/ipv4/tcp_output.c
++++ b/net/ipv4/tcp_output.c
+@@ -2084,6 +2084,15 @@ static bool tcp_small_queue_check(struct sock *sk, const struct sk_buff *skb,
+ 	limit <<= factor;
+ 
+ 	if (atomic_read(&sk->sk_wmem_alloc) > limit) {
++		/* Always send the 1st or 2nd skb in write queue.
++		 * No need to wait for TX completion to call us back,
++		 * after softirq/tasklet schedule.
++		 * This helps when TX completions are delayed too much.
++		 */
++		if (skb == sk->sk_write_queue.next ||
++		    skb->prev == sk->sk_write_queue.next)
++			return false;
++
+ 		set_bit(TSQ_THROTTLED, &tcp_sk(sk)->tsq_flags);
+ 		/* It is possible TX completion already happened
+ 		 * before we set TSQ_THROTTLED, so we must
+-- 
+2.7.4
+
