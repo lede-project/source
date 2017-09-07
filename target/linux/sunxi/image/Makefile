@@ -89,6 +89,16 @@ endef
 TARGET_DEVICES += sun7i-a20-bananapi
 
 
+define Device/sun7i-a20-bananapi-m1-plus
+  DEVICE_TITLE:=Sinovoip Banana Pi M1 Plus
+  DEVICE_PACKAGES:=brcmfmac-firmware-43362-sdio kmod-ata-core kmod-ata-sunxi kmod-brcmfmac
+  SUPPORTED_DEVICES:=sinovoip,bpi-m1-plus
+  SUNXI_DTS:=sun7i-a20-bananapi-m1-plus
+endef
+
+TARGET_DEVICES += sun7i-a20-bananapi-m1-plus
+
+
 define Device/sun7i-a20-bananapro
   DEVICE_TITLE:=LeMaker Banana Pro
   DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-brcmfmac

@@ -8,6 +8,7 @@
 define Profile/Default
   NAME:=Default Profile (all drivers)
   PACKAGES:= \
+	brcmfmac-firmware-43362-sdio \
 	kmod-ata-core \
 	kmod-ata-sunxi \
 	kmod-brcmfmac \

@@ -1,0 +1,231 @@
+From e54bc89cd1e708c09acb402b570db4d5dd7e00a8 Mon Sep 17 00:00:00 2001
+From: Jagan Teki <jagan@amarulasolutions.com>
+Date: Sun, 20 Aug 2017 11:10:05 +0530
+Subject: [PATCH] sun7i: a20: Add Bananapi M1 Plus support
+
+Banana Pi M1 Plus is an open-source single-board computer
+that adds more connectivity to the classic board using
+Allwinner A20 SOC.
+
+Bananapi M1-Plus features:
+- A20 Dual-core 1.0GHz
+- 1 GB DDR3 SDRAM
+- MicroSD
+- 10/100/1000 Ethernet RJ45
+- WiFi b/g/n
+- 5V DC Micro USB power-supply
+
+For dts file,
+Sync with Linux commit f92ca09("Merge branch 'akpm/master'").
+
+Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
+---
+ arch/arm/dts/sun7i-a20-bananapi-m1-plus.dts | 91 +++++++++++++++++++++--------
+ board/sunxi/MAINTAINERS                     |  5 ++
+ configs/bananapi_m1_plus_defconfig          | 24 ++++++++
+ 3 files changed, 97 insertions(+), 23 deletions(-)
+ create mode 100644 configs/bananapi_m1_plus_defconfig
+
+diff --git a/arch/arm/dts/sun7i-a20-bananapi-m1-plus.dts b/arch/arm/dts/sun7i-a20-bananapi-m1-plus.dts
+index ba5bca0fe9..4c03cc3fd7 100644
+--- a/arch/arm/dts/sun7i-a20-bananapi-m1-plus.dts
++++ b/arch/arm/dts/sun7i-a20-bananapi-m1-plus.dts
+@@ -105,6 +105,10 @@
+ 	status = "okay";
+ };
+ 
++&cpu0 {
++	cpu-supply = <&reg_dcdc2>;
++};
++
+ &ehci0 {
+ 	status = "okay";
+ };
+@@ -132,16 +136,14 @@
+ 	status = "okay";
+ 
+ 	axp209: pmic@34 {
+-		compatible = "x-powers,axp209";
+ 		reg = <0x34>;
+ 		interrupt-parent = <&nmi_intc>;
+ 		interrupts = <0 IRQ_TYPE_LEVEL_LOW>;
+-
+-		interrupt-controller;
+-		#interrupt-cells = <1>;
+ 	};
+ };
+ 
++#include "axp209.dtsi"
++
+ &ir0 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&ir0_rx_pins_a>;
+@@ -167,10 +169,10 @@
+ 	mmc-pwrseq = <&mmc3_pwrseq>;
+ 	bus-width = <4>;
+ 	non-removable;
+-	enable-sdio-wakeup;
++	wakeup-source;
+ 	status = "okay";
+ 
+-	brcmf: bcrmf@1 {
++	brcmf: wifi@1 {
+ 		reg = <1>;
+ 		compatible = "brcm,bcm4329-fmac";
+ 		interrupt-parent = <&pio>;
+@@ -181,7 +183,7 @@
+ 
+ &mmc3_pins_a {
+ 	/* AP6210 requires pull-up */
+-	allwinner,pull = <SUN4I_PINCTRL_PULL_UP>;
++	bias-pull-up;
+ };
+ 
+ &ohci0 {
+@@ -192,38 +194,81 @@
+ 	status = "okay";
+ };
+ 
++&otg_sram {
++	status = "okay";
++};
++
+ &pio {
+ 	gmac_power_pin_bpi_m1p: gmac_power_pin@0 {
+-		allwinner,pins = "PH23";
+-		allwinner,function = "gpio_out";
+-		allwinner,drive = <SUN4I_PINCTRL_10_MA>;
+-		allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
++		pins = "PH23";
++		function = "gpio_out";
+ 	};
+ 
+ 	led_pins_bpi_m1p: led_pins@0 {
+-		allwinner,pins = "PH24", "PH25";
+-		allwinner,function = "gpio_out";
+-		allwinner,drive = <SUN4I_PINCTRL_10_MA>;
+-		allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
++		pins = "PH24", "PH25";
++		function = "gpio_out";
+ 	};
+ 
+ 	mmc0_cd_pin_bpi_m1p: mmc0_cd_pin@0 {
+-		allwinner,pins = "PH10";
+-		allwinner,function = "gpio_in";
+-		allwinner,drive = <SUN4I_PINCTRL_10_MA>;
+-		allwinner,pull = <SUN4I_PINCTRL_PULL_UP>;
++		pins = "PH10";
++		function = "gpio_in";
++		bias-pull-up;
+ 	};
+ 
+ 	mmc3_pwrseq_pin_bpi_m1p: mmc3_pwrseq_pin@0 {
+-		allwinner,pins = "PH22";
+-		allwinner,function = "gpio_out";
+-		allwinner,drive = <SUN4I_PINCTRL_10_MA>;
+-		allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
++		pins = "PH22";
++		function = "gpio_out";
+ 	};
+ };
+ 
++&reg_dcdc2 {
++	regulator-always-on;
++	regulator-min-microvolt = <1000000>;
++	regulator-max-microvolt = <1400000>;
++	regulator-name = "vdd-cpu";
++};
++
++&reg_dcdc3 {
++	regulator-always-on;
++	regulator-min-microvolt = <1000000>;
++	regulator-max-microvolt = <1400000>;
++	regulator-name = "vdd-int-dll";
++};
++
++&reg_ldo1 {
++	regulator-name = "vdd-rtc";
++};
++
++&reg_ldo2 {
++	regulator-always-on;
++	regulator-min-microvolt = <3000000>;
++	regulator-max-microvolt = <3000000>;
++	regulator-name = "avcc";
++};
++
++&reg_usb0_vbus {
++	status = "okay";
++};
++
+ &uart0 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart0_pins_a>;
+ 	status = "okay";
+ };
++
++&usb_otg {
++	dr_mode = "otg";
++	status = "okay";
++};
++
++&usb_power_supply {
++	status = "okay";
++};
++
++&usbphy {
++	usb0_id_det-gpios = <&pio 7 4 GPIO_ACTIVE_HIGH>; /* PH4 */
++	usb0_vbus_power-supply = <&usb_power_supply>;
++	usb0_vbus-supply = <&reg_usb0_vbus>;
++	/* VBUS on usb host ports are tied to DC5V and therefore always on */
++	status = "okay";
++};
+diff --git a/board/sunxi/MAINTAINERS b/board/sunxi/MAINTAINERS
+index ff6eea24a5..26c452e1b3 100644
+--- a/board/sunxi/MAINTAINERS
++++ b/board/sunxi/MAINTAINERS
+@@ -118,6 +118,11 @@ M:	Paul Kocialkowski <contact@paulk.fr>
+ S:	Maintained
+ F:	configs/Ampe_A76_defconfig
+ 
++BANANAPI M1 PLUS
++M:	Jagan Teki <jagan@amarulasolutions.com>
++S:	Maintained
++F:	configs/bananapi_m1_plus_defconfig
++
+ BANANAPI M2 ULTRA BOARD
+ M:	Chen-Yu Tsai <wens@csie.org>
+ S:	Maintained
+diff --git a/configs/bananapi_m1_plus_defconfig b/configs/bananapi_m1_plus_defconfig
+new file mode 100644
+index 0000000000..dc4c82f861
+--- /dev/null
++++ b/configs/bananapi_m1_plus_defconfig
+@@ -0,0 +1,24 @@
++CONFIG_ARM=y
++CONFIG_ARCH_SUNXI=y
++CONFIG_MACH_SUN7I=y
++CONFIG_DRAM_CLK=432
++CONFIG_MACPWR="PH23"
++CONFIG_VIDEO_COMPOSITE=y
++CONFIG_GMAC_TX_DELAY=3
++CONFIG_DEFAULT_DEVICE_TREE="sun7i-a20-bananapi-m1-plus"
++CONFIG_AHCI=y
++# CONFIG_SYS_MALLOC_CLEAR_ON_INIT is not set
++CONFIG_SPL=y
++CONFIG_SPL_I2C_SUPPORT=y
++# CONFIG_CMD_IMLS is not set
++# CONFIG_CMD_FLASH is not set
++# CONFIG_CMD_FPGA is not set
++# CONFIG_SPL_DOS_PARTITION is not set
++# CONFIG_SPL_ISO_PARTITION is not set
++# CONFIG_SPL_EFI_PARTITION is not set
++CONFIG_NETCONSOLE=y
++CONFIG_ETH_DESIGNWARE=y
++CONFIG_RGMII=y
++CONFIG_SUN7I_GMAC=y
++CONFIG_SCSI=y
++CONFIG_USB_EHCI_HCD=y
+-- 
+2.13.5
+

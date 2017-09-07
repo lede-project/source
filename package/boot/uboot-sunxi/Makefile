@@ -50,6 +50,11 @@ define U-Boot/Bananapi
   BUILD_DEVICES:=sun7i-a20-bananapi
 endef
 
+define U-Boot/bananapi_m1_plus
+  NAME:=Banana Pi M1 Plus
+  BUILD_DEVICES:=sun7i-a20-bananapi-m1-plus
+endef
+
 define U-Boot/Bananapro
   NAME:=Bananapro
   BUILD_DEVICES:=sun7i-a20-bananapro
@@ -105,6 +110,7 @@ UBOOT_TARGETS := \
 	A20-OLinuXino-Lime \
 	A20-OLinuXino_MICRO \
 	Bananapi \
+	bananapi_m1_plus \
 	Bananapro \
 	Cubieboard \
 	Cubieboard2 \
