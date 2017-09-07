@@ -49,16 +49,6 @@ endef
 TARGET_DEVICES += sun4i-a10-olinuxino-lime
 
 
-define Device/sun5i-a13-olimex-som
-  DEVICE_TITLE:=Olimex A13 SOM
-  DEVICE_PACKAGES:=kmod-rtl8192cu
-  SUPPORTED_DEVICES:=olimex,a13-olinuxino
-  SUNXI_DTS:=sun5i-a13-olinuxino
-endef
-
-TARGET_DEVICES += sun5i-a13-olimex-som
-
-
 define Device/sun5i-a13-olinuxino
   DEVICE_TITLE:=Olimex A13-Olinuxino
   DEVICE_PACKAGES:=kmod-rtl8192cu
