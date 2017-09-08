@@ -114,6 +114,11 @@ define U-Boot/orangepi_plus
   BUILD_DEVICES:=sun8i-h3-orangepi-plus
 endef
 
+define U-Boot/orangepi_zero
+  NAME:=Orange Pi Zero
+  BUILD_DEVICES:=sun8i-h2-plus-orangepi-zero
+endef
+
 UBOOT_TARGETS := \
 	A10-OLinuXino-Lime \
 	A13-OLinuXino \
@@ -132,7 +137,8 @@ UBOOT_TARGETS := \
 	Lamobo_R1 \
 	orangepi_one \
 	orangepi_pc \
-	orangepi_plus
+	orangepi_plus \
+	orangepi_zero
 
 UBOOT_CONFIGURE_VARS += USE_PRIVATE_LIBGCC=yes
 
