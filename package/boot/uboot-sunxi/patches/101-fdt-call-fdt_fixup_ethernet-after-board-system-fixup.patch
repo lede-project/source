@@ -1,0 +1,45 @@
+From fca564c4f6fcb822f9a0f064d51f841158230da7 Mon Sep 17 00:00:00 2001
+From: Icenowy Zheng <icenowy@aosc.io>
+Date: Sat, 9 Sep 2017 01:33:50 +0800
+Subject: [PATCH] fdt: call fdt_fixup_ethernet after board/system fixups
+
+In commit 26d61195f870 we added fdt_fixup_ethernet to a common code
+path, which executes before board/system fixups.
+
+However, on sunxi platform board-specific fixup will create ethaddr for
+ethernet aliases not present in U-Boot FDT, which won't be used in this
+situation.
+
+Move the call of fdt_fixup_ethernet after board/system fixups, so that
+board/system fixups can create ethaddr.
+
+Signed-off-by: Icenowy Zheng <icenowy@aosc.io>
+---
+ common/image-fdt.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/common/image-fdt.c b/common/image-fdt.c
+index c6e8832d66..f57525f865 100644
+--- a/common/image-fdt.c
++++ b/common/image-fdt.c
+@@ -478,8 +478,6 @@ int image_setup_libfdt(bootm_headers_t *images, void *blob,
+ 		printf("ERROR: arch-specific fdt fixup failed\n");
+ 		goto err;
+ 	}
+-	/* Update ethernet nodes */
+-	fdt_fixup_ethernet(blob);
+ 	if (IMAGE_OF_BOARD_SETUP) {
+ 		fdt_ret = ft_board_setup(blob, gd->bd);
+ 		if (fdt_ret) {
+@@ -496,6 +494,8 @@ int image_setup_libfdt(bootm_headers_t *images, void *blob,
+ 			goto err;
+ 		}
+ 	}
++	/* Update ethernet nodes */
++	fdt_fixup_ethernet(blob);
+ 
+ 	/* Delete the old LMB reservation */
+ 	if (lmb)
+-- 
+2.13.5
+
