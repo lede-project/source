@@ -84,6 +84,11 @@ define U-Boot/Mele_M9
   BUILD_DEVICES:=sun6i-a31-m9
 endef
 
+define U-Boot/LicheePi_Zero
+  NAME:=Lichee Pi Zero
+  BUILD_DEVICES:=sun8i-v3s-licheepi-zero-dock
+endef
+
 define U-Boot/Linksprite_pcDuino
   NAME:=Linksprite pcDuino
   BUILD_DEVICES:=sun4i-a10-pcduino
@@ -132,6 +137,7 @@ UBOOT_TARGETS := \
 	Cubietruck \
 	Hummingbird_A31 \
 	Mele_M9 \
+	LicheePi_Zero \
 	Linksprite_pcDuino \
 	Linksprite_pcDuino3 \
 	Lamobo_R1 \

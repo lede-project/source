@@ -195,6 +195,14 @@ endef
 TARGET_DEVICES += sun8i-h3-orangepi-plus
 
 
+define Device/sun8i-v3s-licheepi-zero-dock
+  DEVICE_TITLE:=Lichee Pi Zero with Dock
+  SUPPORTED_DEVICES:=licheepi,licheepi-zero-dock
+  SUNXI_DTS:=sun8i-v3s-licheepi-zero-dock
+endef
+
+TARGET_DEVICES += sun8i-v3s-licheepi-zero-dock
+
 define Device/sun7i-a20-pcduino3
   DEVICE_TITLE:=LinkSprite pcDuino3
   DEVICE_PACKAGES:=kmod-sun4i-emac kmod-ata-core kmod-ata-sunxi kmod-rtl8xxxu rtl8188eu-firmware
