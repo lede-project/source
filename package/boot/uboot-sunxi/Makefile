@@ -99,6 +99,11 @@ define U-Boot/Lamobo_R1
   BUILD_DEVICES:=sun7i-a20-lamobo-r1
 endef
 
+define U-Boot/orangepi_one
+  NAME:=Orange Pi One
+  BUILD_DEVICES:=sun8i-h3-orangepi-one
+endef
+
 define U-Boot/orangepi_pc
   NAME:=Orange Pi PC
   BUILD_DEVICES:=sun8i-h3-orangepi-pc
@@ -125,6 +130,7 @@ UBOOT_TARGETS := \
 	Linksprite_pcDuino \
 	Linksprite_pcDuino3 \
 	Lamobo_R1 \
+	orangepi_one \
 	orangepi_pc \
 	orangepi_plus
 
