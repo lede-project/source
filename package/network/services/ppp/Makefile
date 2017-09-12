@@ -10,7 +10,7 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=ppp
 PKG_VERSION:=2.4.7
-PKG_RELEASE:=11
+PKG_RELEASE:=12
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://download.samba.org/pub/ppp/
@@ -35,7 +35,7 @@ endef
 
 define Package/ppp
 $(call Package/ppp/Default)
-  DEPENDS:=+kmod-ppp
+  DEPENDS:=+kmod-ppp +libpthread +shellsync
   TITLE:=PPP daemon
   VARIANT:=default
 endef

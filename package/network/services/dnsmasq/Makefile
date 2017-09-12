@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dnsmasq
-PKG_VERSION:=2.77
-PKG_RELEASE:=6
+PKG_VERSION:=2.76
+PKG_RELEASE:=12
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=http://thekelleys.org.uk/dnsmasq/
-PKG_HASH:=6eac3b1c50ae25170e3ff8c96ddb55236cf45007633fdb8a35b1f3e02f5f8b8a
+PKG_SOURCE_URL:=http://thekelleys.org.uk/dnsmasq
+PKG_MD5SUM:=00f5ee66b4e4b7f14538bf62ae3c9461
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=COPYING
@@ -88,22 +88,22 @@ define Package/dnsmasq-full/config
 	config PACKAGE_dnsmasq_full_dhcpv6
 		bool "Build with DHCPv6 support."
 		depends on IPV6
-		default y
+		default n
 	config PACKAGE_dnsmasq_full_dnssec
 		bool "Build with DNSSEC support."
-		default y
+		default n
 	config PACKAGE_dnsmasq_full_auth
 		bool "Build with the facility to act as an authoritative DNS server."
-		default y
+		default n
 	config PACKAGE_dnsmasq_full_ipset
 		bool "Build with IPset support."
 		default y
 	config PACKAGE_dnsmasq_full_conntrack
 		bool "Build with Conntrack support."
-		default y
+		default n
 	config PACKAGE_dnsmasq_full_noid
 		bool "Build with NO_ID. (hide *.bind pseudo domain)"
-		default y
+		default n
 	config PACKAGE_dnsmasq_full_broken_rtc
 		bool "Build with HAVE_BROKEN_RTC."
 		default n
