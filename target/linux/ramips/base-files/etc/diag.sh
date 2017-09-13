@@ -118,6 +118,7 @@ get_status_led() {
 	w502u)
 		status_led="$board:blue:wps"
 		;;
+	c20|\
 	d240|\
 	dap-1350|\
 	na930|\
