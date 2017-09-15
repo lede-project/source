@@ -457,7 +457,6 @@ dhcp_add() {
 	config_get networkid "$cfg" networkid
 	[ -n "$networkid" ] || networkid="$net"
 
-	network_get_subnet subnet "$net" || return 0
 	network_get_device ifname "$net" || return 0
 	network_get_protocol proto "$net" || return 0
 
@@ -475,6 +474,7 @@ dhcp_add() {
 	[ static = "$proto" ] || return 0
 
 	# Override interface netmask with dhcp config if applicable
+	network_get_subnet subnet "$net" || return 0
 	config_get netmask "$cfg" netmask "${subnet##*/}"
 
 	#check for an already active dhcp server on the interface, unless 'force' is set
