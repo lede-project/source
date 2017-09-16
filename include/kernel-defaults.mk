@@ -18,8 +18,10 @@ endif
 
 export HOST_EXTRACFLAGS=-I$(STAGING_DIR_HOST)/include
 
+ifneq ($(CONFIG_UNPATCHED_KERNEL),y)
 # defined in quilt.mk
 Kernel/Patch:=$(Kernel/Patch/Default)
+endif
 
 ifeq ($(strip $(CONFIG_EXTERNAL_KERNEL_TREE)),"")
   ifeq ($(strip $(CONFIG_KERNEL_GIT_CLONE_URI)),"")

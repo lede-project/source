@@ -118,3 +118,12 @@ menuconfig DEVEL
 		default "-fno-caller-saves"
 		help
 		  Extra target-independent optimizations to use when building for the target.
+
+	config UNPATCHED_KERNEL
+		bool
+		default n
+		help
+		  Disable kernel patches if you want to generate a baseline image
+		  or suspect a patch might be the source of a regression.  This
+		  may cause some functionality to fail.
+
