@@ -73,3 +73,12 @@ define Package/bnx2-firmware/install
 		$(1)/lib/firmware/bnx2/
 endef
 $(eval $(call BuildPackage,bnx2-firmware))
+
+Package/brcmfmac-firmware-bluetooth = $(call Package/firmware-default,Broadcom BCM43xx UART bluetooth firmware)
+define Package/brcmfmac-firmware-bluetooth/install
+	$(INSTALL_DIR) $(1)/lib/firmware/brcm
+	$(INSTALL_DATA) \
+		./files/BCM43430A1.hcd \
+		$(1)/lib/firmware/brcm/
+endef
+$(eval $(call BuildPackage,brcmfmac-firmware-bluetooth))
