@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=bluez
-PKG_VERSION:=5.44
+PKG_VERSION:=5.47
 PKG_RELEASE:=7
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/bluetooth/
-PKG_MD5SUM:=94273617129ced06612fcb9f5273d14c
+PKG_MD5SUM:=783e15f65e70cdb8f721c659e140dd56
 
 PKG_LICENSE:=GPL-2.0+
 PKG_LICENSE_FILES:=COPYING
@@ -82,7 +82,6 @@ define Package/bluez-daemon/conffiles
 /etc/bluetooth/main.conf
 /etc/bluetooth/network.conf
 /etc/bluetooth/input.conf
-/etc/bluetooth/proximity.conf
 /etc/bluetooth/audio.conf
 /etc/config/bluetooth
 endef
@@ -93,7 +92,6 @@ endef
 
 CONFIGURE_ARGS += \
 	--enable-static \
-	--enable-shared \
 	--enable-client \
 	--enable-datafiles \
 	--enable-experimental \
@@ -178,7 +176,6 @@ define Package/bluez-daemon/install
 	$(INSTALL_DATA) ./files/audio.conf $(1)/etc/bluetooth/audio.conf
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/profiles/network/network.conf $(1)/etc/bluetooth/network.conf
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/profiles/input/input.conf $(1)/etc/bluetooth/input.conf
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/profiles/proximity/proximity.conf $(1)/etc/bluetooth/proximity.conf
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/bluetoothd.init $(1)/etc/init.d/bluetoothd
 endef
