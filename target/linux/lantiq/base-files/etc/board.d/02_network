@@ -119,6 +119,11 @@ FRITZ3370)
 	wan_mac=$(macaddr_add "$(mtd_get_mac_binary urlader 2439)" 1)
 	;;
 
+FRITZ7312)
+	wan_mac=$(macaddr_add "$(mtd_get_mac_binary urlader 2820)" 1)
+	ucidef_set_interface_lan 'eth0'
+	;;
+
 FRITZ7320)
 	wan_mac=$(macaddr_add "$(mtd_get_mac_binary urlader 2705)" 1)
 	;;
