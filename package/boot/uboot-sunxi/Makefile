@@ -9,9 +9,9 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
-PKG_VERSION:=2016.03
+PKG_VERSION:=2017.07
 
-PKG_HASH:=e49337262ecac44dbdeac140f2c6ebd1eba345e0162b0464172e7f05583ed7bb
+PKG_HASH:=5374bfdc8acb9a38c025371b1ff20f45e7533668e84e685d0df5d9e7c0e4feff
 
 PKG_MAINTAINER:=Zoltan HERPAI <wigyori@uid0.hu>
 
@@ -50,6 +50,11 @@ define U-Boot/Bananapi
   BUILD_DEVICES:=sun7i-a20-bananapi
 endef
 
+define U-Boot/bananapi_m1_plus
+  NAME:=Banana Pi M1 Plus
+  BUILD_DEVICES:=sun7i-a20-bananapi-m1-plus
+endef
+
 define U-Boot/Bananapro
   NAME:=Bananapro
   BUILD_DEVICES:=sun7i-a20-bananapro
@@ -79,9 +84,9 @@ define U-Boot/Mele_M9
   BUILD_DEVICES:=sun6i-a31-m9
 endef
 
-define U-Boot/OLIMEX_A13_SOM
-  NAME:=Olimex A13 SOM
-  BUILD_DEVICES:=sun5i-a13-olimex-som
+define U-Boot/LicheePi_Zero
+  NAME:=Lichee Pi Zero
+  BUILD_DEVICES:=sun8i-v3s-licheepi-zero-dock
 endef
 
 define U-Boot/Linksprite_pcDuino
@@ -99,14 +104,24 @@ define U-Boot/Lamobo_R1
   BUILD_DEVICES:=sun7i-a20-lamobo-r1
 endef
 
+define U-Boot/orangepi_one
+  NAME:=Orange Pi One
+  BUILD_DEVICES:=sun8i-h3-orangepi-one
+endef
+
+define U-Boot/orangepi_pc
+  NAME:=Orange Pi PC
+  BUILD_DEVICES:=sun8i-h3-orangepi-pc
+endef
+
 define U-Boot/orangepi_plus
   NAME:=Orange Pi Plus (H3)
   BUILD_DEVICES:=sun8i-h3-orangepi-plus
 endef
 
-define U-Boot/pangolin
-  NAME:=Theobroma A31-yQ7 devboard
-  UENV:=pangolin
+define U-Boot/orangepi_zero
+  NAME:=Orange Pi Zero
+  BUILD_DEVICES:=sun8i-h2-plus-orangepi-zero
 endef
 
 UBOOT_TARGETS := \
@@ -115,18 +130,21 @@ UBOOT_TARGETS := \
 	A20-OLinuXino-Lime \
 	A20-OLinuXino_MICRO \
 	Bananapi \
+	bananapi_m1_plus \
 	Bananapro \
 	Cubieboard \
 	Cubieboard2 \
 	Cubietruck \
 	Hummingbird_A31 \
 	Mele_M9 \
-	OLIMEX_A13_SOM \
+	LicheePi_Zero \
 	Linksprite_pcDuino \
 	Linksprite_pcDuino3 \
 	Lamobo_R1 \
+	orangepi_one \
+	orangepi_pc \
 	orangepi_plus \
-	pangolin
+	orangepi_zero
 
 UBOOT_CONFIGURE_VARS += USE_PRIVATE_LIBGCC=yes
 

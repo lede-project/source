@@ -1,0 +1,35 @@
+From 33e4cfd3a0d6bee4b1ae1c728894ab88f51ab294 Mon Sep 17 00:00:00 2001
+From: Icenowy Zheng <icenowy@aosc.io>
+Date: Mon, 14 Aug 2017 23:00:11 +0800
+Subject: [PATCH] sunxi: defaultly enable SPL for Lichee Pi Zero
+
+As we have already DRAM initialization code for V3s SoC, we can
+defaultly enable SPL now on Lichee Pi Zero.
+
+Add CONFIG_SPL in Lichee Pi Zero defconfig.
+
+Signed-off-by: Icenowy Zheng <icenowy@aosc.io>
+Reviewed-by: Jagan Teki <jagan@openedev.com>
+---
+ configs/LicheePi_Zero_defconfig | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/configs/LicheePi_Zero_defconfig b/configs/LicheePi_Zero_defconfig
+index 887997bd4f..de90a4c6ce 100644
+--- a/configs/LicheePi_Zero_defconfig
++++ b/configs/LicheePi_Zero_defconfig
+@@ -4,7 +4,11 @@ CONFIG_MACH_SUN8I_V3S=y
+ CONFIG_DRAM_CLK=360
+ CONFIG_DRAM_ZQ=14779
+ CONFIG_DEFAULT_DEVICE_TREE="sun8i-v3s-licheepi-zero"
++CONFIG_SPL=y
+ # CONFIG_CMD_IMLS is not set
+ # CONFIG_CMD_FLASH is not set
+ # CONFIG_CMD_FPGA is not set
+ # CONFIG_NETDEVICES is not set
++# CONFIG_SPL_DOS_PARTITION is not set
++# CONFIG_SPL_ISO_PARTITION is not set
++# CONFIG_SPL_EFI_PARTITION is not set
+-- 
+2.13.5
+

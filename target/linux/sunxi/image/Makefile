@@ -41,22 +41,12 @@ endef
 
 define Device/sun4i-a10-olinuxino-lime
   DEVICE_TITLE:=Olimex A10-OLinuXino-LIME
-  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-sun4i-emac kmod-rtc-sunxi
+  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-sun4i-emac
   SUPPORTED_DEVICES:=olimex,a10-olinuxino-lime
   SUNXI_DTS:=sun4i-a10-olinuxino-lime
 endef
 
 TARGET_DEVICES += sun4i-a10-olinuxino-lime
-
-
-define Device/sun5i-a13-olimex-som
-  DEVICE_TITLE:=Olimex A13 SOM
-  DEVICE_PACKAGES:=kmod-rtl8192cu
-  SUPPORTED_DEVICES:=olimex,a13-olinuxino
-  SUNXI_DTS:=sun5i-a13-olinuxino
-endef
-
-TARGET_DEVICES += sun5i-a13-olimex-som
 
 
 define Device/sun5i-a13-olinuxino
@@ -71,7 +61,7 @@ TARGET_DEVICES += sun5i-a13-olinuxino
 
 define Device/sun7i-a20-olinuxino-lime
   DEVICE_TITLE:=Olimex A20-OLinuXino-LIME
-  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-rtc-sunxi
+  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi
   SUPPORTED_DEVICES:=olimex,a20-olinuxino-lime
   SUNXI_DTS:=sun7i-a20-olinuxino-lime
 endef
@@ -81,7 +71,7 @@ TARGET_DEVICES += sun7i-a20-olinuxino-lime
 
 define Device/sun7i-a20-olinuxino-micro
   DEVICE_TITLE:=Olimex A20-Olinuxino Micro
-  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-sun4i-emac kmod-rtc-sunxi
+  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-sun4i-emac
   SUPPORTED_DEVICES:=olimex,a20-olinuxino-micro
   SUNXI_DTS:=sun7i-a20-olinuxino-micro
 endef
@@ -91,7 +81,7 @@ TARGET_DEVICES += sun7i-a20-olinuxino-micro
 
 define Device/sun7i-a20-bananapi
   DEVICE_TITLE:=LeMaker Banana Pi
-  DEVICE_PACKAGES:=kmod-rtc-sunxi kmod-ata-core kmod-ata-sunxi
+  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi
   SUPPORTED_DEVICES:=lemaker,bananapi
   SUNXI_DTS:=sun7i-a20-bananapi
 endef
@@ -99,9 +89,19 @@ endef
 TARGET_DEVICES += sun7i-a20-bananapi
 
 
+define Device/sun7i-a20-bananapi-m1-plus
+  DEVICE_TITLE:=Sinovoip Banana Pi M1 Plus
+  DEVICE_PACKAGES:=brcmfmac-firmware-43362-sdio kmod-ata-core kmod-ata-sunxi kmod-brcmfmac
+  SUPPORTED_DEVICES:=sinovoip,bpi-m1-plus
+  SUNXI_DTS:=sun7i-a20-bananapi-m1-plus
+endef
+
+TARGET_DEVICES += sun7i-a20-bananapi-m1-plus
+
+
 define Device/sun7i-a20-bananapro
   DEVICE_TITLE:=LeMaker Banana Pro
-  DEVICE_PACKAGES:=kmod-rtc-sunxi kmod-ata-core kmod-ata-sunxi kmod-brcmfmac
+  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-brcmfmac
   SUPPORTED_DEVICES:=lemaker,bananapro
   SUNXI_DTS:=sun7i-a20-bananapro
 endef
@@ -111,7 +111,7 @@ TARGET_DEVICES += sun7i-a20-bananapro
 
 define Device/sun7i-a20-cubieboard2
   DEVICE_TITLE:=Cubietech Cubieboard2
-  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-sun4i-emac kmod-rtc-sunxi
+  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-sun4i-emac
   SUPPORTED_DEVICES:=cubietech,cubieboard2
   SUNXI_DTS:=sun7i-a20-cubieboard2
 endef
@@ -121,7 +121,7 @@ TARGET_DEVICES += sun7i-a20-cubieboard2
 
 define Device/sun4i-a10-cubieboard
   DEVICE_TITLE:=Cubietech Cubieboard
-  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-sun4i-emac kmod-rtc-sunxi
+  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-sun4i-emac
   SUPPORTED_DEVICES:=cubietech,a10-cubieboard
   SUNXI_DTS:=sun4i-a10-cubieboard
 endef
@@ -131,7 +131,7 @@ TARGET_DEVICES += sun4i-a10-cubieboard
 
 define Device/sun7i-a20-cubietruck
   DEVICE_TITLE:=Cubietech Cubietruck
-  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-rtc-sunxi kmod-brcmfmac
+  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-brcmfmac
   SUPPORTED_DEVICES:=cubietech,cubietruck
   SUNXI_DTS:=sun7i-a20-cubietruck
 endef
@@ -151,7 +151,7 @@ TARGET_DEVICES += sun7i-a20-lamobo-r1
 
 define Device/sun6i-a31-m9
   DEVICE_TITLE:=Mele M9 top set box
-  DEVICE_PACKAGES:=kmod-sun4i-emac kmod-rtc-sunxi kmod-rtl8192cu
+  DEVICE_PACKAGES:=kmod-sun4i-emac kmod-rtl8192cu
   SUPPORTED_DEVICES:=mele,m9
   SUNXI_DTS:=sun6i-a31-m9
 endef
@@ -159,9 +159,35 @@ endef
 TARGET_DEVICES += sun6i-a31-m9
 
 
+define Device/sun8i-h2-plus-orangepi-zero
+  DEVICE_TITLE:=Xunlong Orange Pi Zero
+  SUPPORTED_DEVICES:=xunlong,orangepi-zero
+  SUNXI_DTS:=sun8i-h2-plus-orangepi-zero
+endef
+
+TARGET_DEVICES += sun8i-h2-plus-orangepi-zero
+
+
+define Device/sun8i-h3-orangepi-one
+  DEVICE_TITLE:=Xunlong Orange Pi One
+  SUPPORTED_DEVICES:=xunlong,orangepi-one
+  SUNXI_DTS:=sun8i-h3-orangepi-one
+endef
+
+TARGET_DEVICES += sun8i-h3-orangepi-one
+
+
+define Device/sun8i-h3-orangepi-pc
+  DEVICE_TITLE:=Xunlong Orange Pi PC
+  SUPPORTED_DEVICES:=xunlong,orangepi-pc
+  SUNXI_DTS:=sun8i-h3-orangepi-pc
+endef
+
+TARGET_DEVICES += sun8i-h3-orangepi-pc
+
+
 define Device/sun8i-h3-orangepi-plus
   DEVICE_TITLE:=Xunlong Orange Pi Plus
-  DEVICE_PACKAGES:=kmod-rtc-sunxi
   SUPPORTED_DEVICES:=xunlong,orangepi-plus
   SUNXI_DTS:=sun8i-h3-orangepi-plus
 endef
@@ -169,9 +195,17 @@ endef
 TARGET_DEVICES += sun8i-h3-orangepi-plus
 
 
+define Device/sun8i-v3s-licheepi-zero-dock
+  DEVICE_TITLE:=Lichee Pi Zero with Dock
+  SUPPORTED_DEVICES:=licheepi,licheepi-zero-dock
+  SUNXI_DTS:=sun8i-v3s-licheepi-zero-dock
+endef
+
+TARGET_DEVICES += sun8i-v3s-licheepi-zero-dock
+
 define Device/sun7i-a20-pcduino3
   DEVICE_TITLE:=LinkSprite pcDuino3
-  DEVICE_PACKAGES:=kmod-sun4i-emac kmod-rtc-sunxi kmod-ata-core kmod-ata-sunxi kmod-rtl8xxxu rtl8188eu-firmware
+  DEVICE_PACKAGES:=kmod-sun4i-emac kmod-ata-core kmod-ata-sunxi kmod-rtl8xxxu rtl8188eu-firmware
   SUPPORTED_DEVICES:=linksprite,pcduino3
   SUNXI_DTS:=sun7i-a20-pcduino3
 endef
@@ -181,7 +215,7 @@ TARGET_DEVICES += sun7i-a20-pcduino3
 
 define Device/sun4i-a10-pcduino
   DEVICE_TITLE:=LinkSprite pcDuino
-  DEVICE_PACKAGES:=kmod-sun4i-emac kmod-rtc-sunxi kmod-rtl8192cu
+  DEVICE_PACKAGES:=kmod-sun4i-emac kmod-rtl8192cu
   SUPPORTED_DEVICES:=linksprite,a10-pcduino
   SUNXI_DTS:=sun4i-a10-pcduino
 endef

@@ -10,12 +10,12 @@ include $(TOPDIR)/rules.mk
 ARCH:=arm
 BOARD:=sunxi
 BOARDNAME:=Allwinner A1x/A20/A3x
-FEATURES:=fpu usb ext4 display rtc squashfs
+FEATURES:=fpu usb ext4 display rtc squashfs usbgadget
 CPU_TYPE:=cortex-a8
 CPU_SUBTYPE:=vfpv3
 MAINTAINER:=Zoltan HERPAI <wigyori@uid0.hu>
 
-KERNEL_PATCHVER:=4.4
+KERNEL_PATCHVER:=4.9
 KERNELNAME:=zImage dtbs
 
 # A10: Cortex-A8

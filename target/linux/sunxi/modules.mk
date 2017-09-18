@@ -4,23 +4,65 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 
-define KernelPackage/rtc-sunxi
-    SUBMENU:=$(OTHER_MENU)
-    TITLE:=Sunxi SoC built-in RTC support
-    DEPENDS:=@TARGET_sunxi
-    $(call AddDepends/rtc)
-    KCONFIG:= \
-	CONFIG_RTC_CLASS=y \
-	CONFIG_RTC_DRV_SUNXI=m
-    FILES:=$(LINUX_DIR)/drivers/rtc/rtc-sunxi.ko
-    AUTOLOAD:=$(call AutoLoad,50,rtc-sunxi)
+define KernelPackage/axp20x-adc
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=X-Powers AXP20X PMIC ADC support
+  KCONFIG:=CONFIG_AXP20X_ADC
+  FILES:=$(LINUX_DIR)/drivers/iio/adc/axp20x_adc.ko
+  AUTOLOAD:=$(call AutoProbe,axp20x_adc)
+  DEPENDS:=@TARGET_sunxi +kmod-iio-core
 endef
 
-define KernelPackage/rtc-sunxi/description
- Support for the AllWinner sunXi SoC's onboard RTC
+define KernelPackage/axp20x-adc/description
+  Kernel support for AXP20X PMIC ADC
 endef
 
-$(eval $(call KernelPackage,rtc-sunxi))
+$(eval $(call KernelPackage,axp20x-adc))
+
+define KernelPackage/axp20x-ac-power
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=X-Powers AXP20X PMIC AC power supply support
+  KCONFIG:=CONFIG_CHARGER_AXP20X
+  FILES:=$(LINUX_DIR)/drivers/power/supply/axp20x_ac_power.ko
+  AUTOLOAD:=$(call AutoProbe,axp20x_ac_power)
+  DEPENDS:=@TARGET_sunxi +kmod-axp20x-adc
+endef
+
+define KernelPackage/axp20x-ac-power/description
+  Kernel support for AXP20X PMIC AC power supply
+endef
+
+$(eval $(call KernelPackage,axp20x-ac-power))
+
+define KernelPackage/axp20x-battery
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=X-Powers AXP20X PMIC battery support
+  KCONFIG:=CONFIG_BATTERY_AXP20X
+  FILES:=$(LINUX_DIR)/drivers/power/supply/axp20x_battery.ko
+  AUTOLOAD:=$(call AutoProbe,axp20x_battery)
+  DEPENDS:=@TARGET_sunxi +kmod-axp20x-adc
+endef
+
+define KernelPackage/axp20x-battery/description
+  Kernel support for AXP20X PMIC battery
+endef
+
+$(eval $(call KernelPackage,axp20x-battery))
+
+define KernelPackage/axp20x-usb-power
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=X-Powers AXP20X PMIC USB power supply support
+  KCONFIG:=CONFIG_AXP20X_POWER
+  FILES:=$(LINUX_DIR)/drivers/power/supply/axp20x_usb_power.ko
+  AUTOLOAD:=$(call AutoProbe,axp20x_usb_power)
+  DEPENDS:=@TARGET_sunxi +kmod-axp20x-adc
+endef
+
+define KernelPackage/axp20x-usb-power/description
+  Kernel support for AXP20X PMIC USB power supply
+endef
+
+$(eval $(call KernelPackage,axp20x-usb-power))
 
 define KernelPackage/sunxi-ir
     SUBMENU:=$(OTHER_MENU)
