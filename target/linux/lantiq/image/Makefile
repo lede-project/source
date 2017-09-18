@@ -438,6 +438,18 @@ define Device/WBMRB
 endef
 TARGET_DEVICES += WBMRB
 
+define Device/FRITZ7312
+  $(Device/AVM)
+  IMAGE_SIZE := 15744k
+  DEVICE_TITLE := 1&1 WLanModem - FRITZ7312
+  DEVICE_PACKAGES := kmod-ath9k kmod-owl-loader wpad-mini \
+	kmod-ltq-adsl-ar9-mei kmod-ltq-adsl-ar9 \
+	kmod-ltq-adsl-ar9-fw-b kmod-ltq-atm-ar9 \
+	ltq-adsl-app ppp-mod-pppoa \
+	kmod-ltq-deu-ar9 kmod-usb-dwc2 -swconfig
+endef
+TARGET_DEVICES += FRITZ7312
+
 define Device/FRITZ7320
   $(Device/AVM)
   IMAGE_SIZE := 15744k
