@@ -1,0 +1,30 @@
+From 0af7a014b34dd5b3ea68665532da05e2cf87a8b9 Mon Sep 17 00:00:00 2001
+From: Sudeep Biswas <sudeep.biswas@st.com>
+Date: Fri, 29 Apr 2016 14:17:07 +0530
+Subject: [PATCH (neard) 1/1] neard: src: Fix for Big endian system support
+
+Modification to retrieve value of U8 type netlink
+attribute using nla_get_u8 instead of nla_get_u16
+
+Signed-off-by: Shikha Singh <shikha.singh@st.com>
+Signed-off-by: Sudeep Biswas <sudeep.biswas@st.com>
+---
+ src/netlink.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/src/netlink.c b/src/netlink.c
+index 9155f62..12397b8 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -474,7 +474,7 @@ static int get_targets_handler(struct nl_msg *n, void *arg)
+ 
+ 	if (attrs[NFC_ATTR_TARGET_SEL_RES])
+ 		sel_res =
+-			nla_get_u16(attrs[NFC_ATTR_TARGET_SEL_RES]);
++			nla_get_u8(attrs[NFC_ATTR_TARGET_SEL_RES]);
+ 
+ 	if (attrs[NFC_ATTR_TARGET_NFCID1]) {
+ 		nfcid_len = nla_len(attrs[NFC_ATTR_TARGET_NFCID1]);
+-- 
+1.7.5.4
+

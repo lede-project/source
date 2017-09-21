@@ -1,0 +1,18 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2008 OpenWrt.org
+
+START=99
+
+boot () {
+	if [ -e /etc/config/alljoyn ]
+	then
+	
+	      net=$(cat /etc/config/alljoyn | grep all_networks | awk {'print $3'})
+	      
+	      if [ $net == "'0'" ]
+	      then
+		    sed -i "s/option all_networks '0'/option all_networks '1'/g" /etc/config/alljoyn
+	      fi
+	      
+	fi
+}

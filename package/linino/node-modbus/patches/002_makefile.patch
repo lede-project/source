@@ -1,0 +1,8 @@
+--- a/make_libmodbus.sh	2014-01-07 08:39:09.000000000 +0100
++++ b/make_libmodbus.sh	2014-09-11 12:23:18.499706926 +0200
+@@ -10,4 +10,4 @@
+ patch -c -p2 < ../mt.patch
+ 
+ #./autogen.sh && ./configure --enable-static=yes --enable-shared=no && make
+-./autogen.sh && ./configure && make
++./autogen.sh && ./configure --host=mips-openwrt-linux CFLAGS="-fPIC $(TARGET_CFLAGS) $(TARGET_CPPFLAGS)" && make

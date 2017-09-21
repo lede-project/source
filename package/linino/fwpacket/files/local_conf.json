@@ -1,0 +1,7 @@
+{
+/* Put there parameters that are different for each gateway (eg. pointing one gateway to a test server while the others stay in production) */
+/* Settings defined in global_conf will be overwritten by those in local_conf */
+    "gateway_conf": {
+        "gateway_ID": "AA555A0000000101" /* you must pick a unique 64b number for each gateway (represented by an hex string) */
+    }
+}

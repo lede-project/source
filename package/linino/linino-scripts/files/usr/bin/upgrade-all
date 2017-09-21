@@ -1,0 +1,14 @@
+#!/bin/sh
+
+mount | grep ^/dev/sda | grep 'on /overlay' &> /dev/null
+
+if [ $? -ne 0 ]
+then
+	echo "Error:"
+	echo "$0 is only available when using an external SD card. See http://arduino.cc/en/Tutorial/ExpandingYunDiskSpace"
+	echo
+	exit 1
+fi
+
+opkg upgrade `opkg list-upgradable | awk '{print $1}'`
+

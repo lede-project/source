@@ -1,0 +1,41 @@
+From 431eb172f97434a3b0868a610bc14d8ff7d9efd9 Mon Sep 17 00:00:00 2001
+From: Ben Noordhuis <info@bnoordhuis.nl>
+Date: Fri, 16 Jan 2015 13:44:42 +0100
+Subject: [PATCH] deps: log V8 version in profiler log file
+
+Patch from issue 800293002 authored by ben@strongloop.com
+
+Review URL: https://codereview.chromium.org/806143002
+
+PR-URL: https://github.com/joyent/node/pull/9043
+Reviewed-by: Trevor Norris <trev.norris@gmail.com>
+Reviewed-By: Timothy J Fontaine <tjfontaine@gmail.com>
+---
+ deps/v8/src/log-utils.cc | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/deps/v8/src/log-utils.cc b/deps/v8/src/log-utils.cc
+index 5e607da..622cc51 100644
+--- a/src/log-utils.cc
++++ b/src/log-utils.cc
+@@ -29,6 +29,7 @@
+
+ #include "log-utils.h"
+ #include "string-stream.h"
++#include "version.h"
+
+ namespace v8 {
+ namespace internal {
+@@ -132,6 +133,14 @@ void Log::Initialize() {
+       }
+     }
+   }
++
++  if (output_handle_ != NULL) {
++    LogMessageBuilder msg(logger_);
++    msg.Append("v8-version,%d,%d,%d,%d,%d\n", Version::GetMajor(),
++               Version::GetMinor(), Version::GetBuild(), Version::GetPatch(),
++               Version::IsCandidate());
++    msg.WriteToLogFile();
++  }
+ }

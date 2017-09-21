@@ -1,0 +1,24 @@
+From eab402bae42c3ea5caa8d540b6702d39e56c84c1 Mon Sep 17 00:00:00 2001
+From: Oleg Zhurakivskyy <oleg.zhurakivskyy at intel.com>
+Date: Tue, 10 Feb 2015 12:58:39 +0200
+Subject: [PATCH] build: Install ncl
+
+Signed-off-by: Oleg Zhurakivskyy <oleg.zhurakivskyy at intel.com>
+---
+ ncl/Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ncl/Makefile.am b/ncl/Makefile.am
+index beda75b..c06742f 100644
+--- a/ncl/Makefile.am
++++ b/ncl/Makefile.am
+@@ -1,6 +1,6 @@
+ AM_CPPFLAGS = @gio_CFLAGS@ -I$(top_builddir)/lib -I$(top_srcdir)/lib
+
+-noinst_PROGRAMS=ncl
++libexec_PROGRAMS = ncl
+
+ ncl_SOURCES = \
+ 	$(srcdir)/ncl.c $(srcdir)/ncl.h \
+---
+2.1.0

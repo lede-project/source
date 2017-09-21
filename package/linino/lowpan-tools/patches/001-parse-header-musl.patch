@@ -1,0 +1,11 @@
+--- a/addrdb/coord-config-parse.h	2015-10-25 02:02:34.252328459 +0100
++++ b/addrdb/coord-config-parse.h	2015-10-25 02:03:39.889503096 +0100
+@@ -30,6 +30,8 @@
+    This special exception was added by the Free Software Foundation in
+    version 2.2 of Bison.  */
+ 
++#include <time.h>
++
+ #ifndef YY_YY_COORD_CONFIG_PARSE_H_INCLUDED
+ # define YY_YY_COORD_CONFIG_PARSE_H_INCLUDED
+ /* Debug traces.  */

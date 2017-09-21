@@ -110,3 +110,7 @@ VERSION_SED:=$(SED) 's,%U,$(VERSION_REPO),g' \
 	-e 's,%h,$(VERSION_HWREV),g'
 
 VERSION_SED_SCRIPT:=$(subst '\'','\'\\\\\'\'',$(VERSION_SED))
+
+LININO_SED:=$(SED) 's,%U,$(VERSION_REPO),g' \
+	-e 's,%n,\L$(subst $(space),_,$(VERSION_NICK)),g' \
+	-e 's/\/targets.*//g'

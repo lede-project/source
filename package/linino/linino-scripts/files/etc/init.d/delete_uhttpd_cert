@@ -1,0 +1,10 @@
+#!/bin/sh /etc/rc.common
+
+START=49
+
+start() {
+	CERT=`uci get uhttpd.main.cert`
+	KEY=`uci get uhttpd.main.key`
+	rm -f $CERT $KEY
+}
+

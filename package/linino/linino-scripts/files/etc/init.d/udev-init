@@ -1,0 +1,13 @@
+#!/bin/sh /etc/rc.common
+#Init script for udevd
+
+START=30
+
+start() {
+    #----------- START the UDEV daemon --------------
+    /sbin/udevd --daemon &
+    }
+
+stop() {
+    killall udevd
+}

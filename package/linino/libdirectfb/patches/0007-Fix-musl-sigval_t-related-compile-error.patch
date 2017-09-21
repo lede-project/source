@@ -1,0 +1,39 @@
+From fdc648277b65e657cebb5c1095a82445d6c2c914 Mon Sep 17 00:00:00 2001
+From: Peter Seiderer <ps.report@gmx.net>
+Date: Mon, 9 Nov 2015 22:57:42 +0100
+Subject: [PATCH] Fix musl/sigval_t related compile error.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Use 'union sigval' instead of sigval_t (same as suggested
+for canfestival by Yann E. MORIN, see [1]).
+
+Fixes the following compile error with musl libc:
+
+  system.c:114:6: error: unknown type name ‘sigval_t’
+      sigval_t val;
+
+[1] https://patchwork.ozlabs.org/patch/509731
+
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+---
+ lib/direct/os/linux/glibc/system.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/direct/os/linux/glibc/system.c b/lib/direct/os/linux/glibc/system.c
+index 32086a2..373a711 100644
+--- a/lib/direct/os/linux/glibc/system.c
++++ b/lib/direct/os/linux/glibc/system.c
+@@ -111,7 +111,7 @@ direct_tgkill( int tgid, int tid, int sig )
+ void
+ direct_trap( const char *domain, int sig )
+ {
+-     sigval_t val;
++     union sigval val;
+ 
+      if (direct_config->delay_trap_ms) {
+           D_LOG( Direct_Trap, VERBOSE, "NOT RAISING signal %d from %s, waiting for %dms... attach gdb --pid=%d\n", sig, domain, direct_config->delay_trap_ms, getpid() );
+-- 
+2.1.4
+

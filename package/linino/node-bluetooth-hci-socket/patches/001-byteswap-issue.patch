@@ -1,0 +1,10 @@
+--- a/src/BluetoothHciSocket.cpp	2016-07-08 14:17:53.156569860 +0200
++++ b/src/BluetoothHciSocket.cpp	2016-07-08 14:18:27.785177495 +0200
+@@ -3,6 +3,7 @@
+ #include <sys/socket.h>
+ #include <sys/types.h>
+ #include <unistd.h>
++#include <byteswap.h>
+ 
+ #include <node_buffer.h>
+ #include <nan.h>

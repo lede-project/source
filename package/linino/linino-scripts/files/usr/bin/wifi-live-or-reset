@@ -1,0 +1,59 @@
+#!/bin/sh
+
+blink-start 200
+
+IFACE="wlan0"
+SLEEP_TIME=2
+MAX_SLEEP=60
+
+slept=0
+
+iface_exists=""
+iface_is_managed=""
+iface_has_ssid=""
+iface_is_access_point=""
+
+update_vars() {
+	iface_exists=`/usr/sbin/iwconfig $IFACE`
+	iface_has_no_ssid=`/usr/sbin/iwconfig $IFACE | grep ESSID\:off\/any`
+	iface_is_access_point=`/usr/sbin/iwconfig $IFACE | grep Mode\:Master`
+}
+
+wait_for_iface() {
+	if [ $slept -gt $MAX_SLEEP ]
+	then
+		/bin/dmesg > /last_dmesg_with_wifi_errors.log
+		/bin/sync
+		/sbin/uci set "arduino.@arduino[0].wifi_reset_step=timed_out"
+		/sbin/uci commit arduino
+		/usr/bin/wifi-reset-and-reboot
+		exit 1
+	fi
+
+	sleep $SLEEP_TIME
+	slept=$(($slept + $SLEEP_TIME))
+
+	update_vars
+}
+
+update_vars
+
+while [ true ]
+do
+	if [ "$iface_exists" = "" ]
+	then
+		wait_for_iface
+	elif [ "$iface_is_access_point" != "" ]
+	then
+		blink-stop
+		exit 0
+	elif [ "$iface_has_no_ssid" != "" ]
+	then
+		wait_for_iface
+	else
+		blink-stop
+		rm -f /last_dmesg_with_wifi_errors.log
+		exit 0
+	fi
+done
+

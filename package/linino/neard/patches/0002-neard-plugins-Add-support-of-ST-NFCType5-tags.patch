@@ -1,0 +1,133 @@
+From 0e442f8a1bb073fbf95ec555b00d97afb5ef92f4 Mon Sep 17 00:00:00 2001
+From: Sudeep Biswas <sudeep.biswas@st.com>
+Date: Fri, 1 Apr 2016 13:49:48 +0530
+Subject: [PATCH (linux-nfc) 1/1] neard: plugins:  Add support of ST NFCType5
+ tags
+
+Modification in nfctype5.c to ignore multi block read for ST Type5
+tags ex. M24LR04E, even if it is set in tag.
+
+Signed-off-by: Sudeep Biswas <sudeep.biswas@st.com>
+Signed-off-by: Shikha Singh  <shikha.singh@st.com>
+---
+ plugins/nfctype5.c |   55 +++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 files changed, 50 insertions(+), 5 deletions(-)
+
+diff --git a/plugins/nfctype5.c b/plugins/nfctype5.c
+index 6b50585..d2bfb06 100644
+--- a/plugins/nfctype5.c
++++ b/plugins/nfctype5.c
+@@ -115,6 +115,9 @@
+ #define GET_SYS_INFO_FLAG_IC_REF	0x08
+ #define GET_SYS_INFO_FLAG_16B_NB_BLOCK	0x10
+ 
++#define TYPE5_UID_MANUFAC_IDX		0x06
++#define TYPE5_UID_STMICRO_MANUFAC_ID	0x02
++
+ struct type5_cmd_hdr {
+ 	uint8_t			flags;
+ 	uint8_t			cmd;
+@@ -389,6 +392,26 @@ static int t5_read(struct near_tag *tag, uint8_t offset, uint8_t *buf,
+ 			cookie, t5_cookie_release_local);
+ }
+ 
++static bool t5_manufacturer_stmicro(struct near_tag *tag)
++{
++        uint8_t *uid;
++
++        uid = near_tag_get_iso15693_uid(near_tag_get_adapter_idx(tag),
++                                        near_tag_get_target_idx(tag));
++        if (!uid) {
++                near_error("No type 5 UID");
++                return false;
++        }
++
++        if (uid[TYPE5_UID_MANUFAC_IDX] != TYPE5_UID_STMICRO_MANUFAC_ID) {
++                g_free(uid);
++                return false;
++        }
++
++        g_free(uid);
++        return true;
++}
++
+ static int t5_write_resp(uint8_t *resp, int length, void *data)
+ {
+ 	struct type5_write_single_block_resp *t5_resp =
+@@ -432,7 +455,9 @@ static int t5_write_resp(uint8_t *resp, int length, void *data)
+ 	if (err)
+ 		goto out_done;
+ 
+-	t5_cmd->hdr.flags |= CMD_FLAG_OPTION;
++	/* CMD_FLAG_OPTION should be set for non ST tags */
++	if(!(t5_manufacturer_stmicro(tag)))
++		t5_cmd->hdr.flags |= CMD_FLAG_OPTION;
+ 
+ 	t5_cmd->blk_no = cookie->blk;
+ 	memcpy(t5_cmd->data, &cookie->buf[cookie->src_offset], blk_size);
+@@ -442,6 +467,7 @@ static int t5_write_resp(uint8_t *resp, int length, void *data)
+ 			t5_write_resp, cookie, t5_cookie_release_local);
+ 
+ 	g_free(t5_cmd);
++
+ 	return err;
+ 
+ out_done:
+@@ -484,7 +510,14 @@ static int t5_write(struct near_tag *tag, uint8_t offset, uint8_t *buf,
+ 	 * is set on write and lock commands.  To ensure that writes to
+ 	 * those tags work, always enable the OPTION flag.
+ 	 */
+-	t5_cmd->hdr.flags |= CMD_FLAG_OPTION;
++
++	/*
++	 * Above workaround : OPTION flag setting done for TI tags
++	 * does not work with ST Type5 tags.
++	 * So, implemeting OPTION flag set only for non ST tags.
++	 */
++	if(!(t5_manufacturer_stmicro(tag)))
++		t5_cmd->hdr.flags |= CMD_FLAG_OPTION;
+ 
+ 	t5_cmd->blk_no = offset / blk_size;
+ 	memcpy(t5_cmd->data, buf, blk_size);
+@@ -508,6 +541,7 @@ static int t5_write(struct near_tag *tag, uint8_t offset, uint8_t *buf,
+ 
+ out_err:
+ 	g_free(t5_cmd);
++
+ 	return err;
+ }
+ 
+@@ -665,7 +699,11 @@ static int t5_read_meta_resp(struct near_tag *tag, int err, void *data)
+ 		else
+ 			near_tag_set_ro(tag, FALSE);
+ 
+-		rmb_supported = t5_cc->cc3 & TYPE5_CC3_MBREAD_FLAG;
++		/* Ignore multi block read for ST tags even if set */
++		if(!(t5_manufacturer_stmicro(tag)))
++			rmb_supported = t5_cc->cc3 & TYPE5_CC3_MBREAD_FLAG;
++		else
++			rmb_supported = 0;
+ 
+ 		g_free(cookie->buf);
+ 
+@@ -1009,8 +1047,15 @@ static int t5_format_read_multiple_blocks_resp(uint8_t *resp, int length,
+ 	 */
+ 	t5_cc.cc3 = 0;
+ 
+-	if (read_multiple_supported)
+-		t5_cc.cc3 |= TYPE5_CC3_MBREAD_FLAG;
++	/*
++	 * ST Type5 tags does not support multiblock read for blocks lying in
++	 * different sectors. So, doing multi block read support setting only
++	 * for non ST tags.
++	 */
++	if(!(t5_manufacturer_stmicro(tag))) {
++		if (read_multiple_supported)
++			t5_cc.cc3 |= TYPE5_CC3_MBREAD_FLAG;
++	}
+ 
+ 	err = t5_write(tag, TYPE5_META_START_OFFSET, (uint8_t *)&t5_cc,
+ 			sizeof(t5_cc), nfctype5_format_resp, cookie);
+-- 
+1.7.5.4
+

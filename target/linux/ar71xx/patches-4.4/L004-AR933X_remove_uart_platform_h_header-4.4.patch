@@ -1,0 +1,70 @@
+From 98f3deb3723e18768c37225ecba32c1311ba39c2 Mon Sep 17 00:00:00 2001
+From: Aurelio Colosimo <aurelio@aureliocolosimo.it>
+Date: Tue, 19 May 2015 12:36:33 +0200
+Subject: [PATCH] Revert "MIPS: ath79: Remove ar933x_uart_platform.h header"
+
+This reverts commit 1a9db0a9ea11ebf2d83d928f4933f21bf6a808e9.
+
+Signed-off-by: Aurelio Colosimo <aurelio@aureliocolosimo.it>
+---
+ arch/mips/ath79/dev-common.c                           |  6 ++++++
+ .../mips/include/asm/mach-ath79/ar933x_uart_platform.h | 18 ++++++++++++++++++
+ 2 files changed, 24 insertions(+)
+ create mode 100644 arch/mips/include/asm/mach-ath79/ar933x_uart_platform.h
+
+--- a/arch/mips/ath79/dev-common.c
++++ b/arch/mips/ath79/dev-common.c
+@@ -21,6 +21,7 @@
+
+ #include <asm/mach-ath79/ath79.h>
+ #include <asm/mach-ath79/ar71xx_regs.h>
++#include <asm/mach-ath79/ar933x_uart_platform.h>
+ #include "common.h"
+ #include "dev-common.h"
+
+@@ -68,11 +69,15 @@ static struct resource ar933x_uart_resources[] = {
+ 	},
+ };
+
++static struct ar933x_uart_platform_data ar93xx_uart_data;
+ static struct platform_device ar933x_uart_device = {
+ 	.name		= "ar933x-uart",
+ 	.id		= -1,
+ 	.resource	= ar933x_uart_resources,
+ 	.num_resources	= ARRAY_SIZE(ar933x_uart_resources),
++	.dev = {
++		.platform_data	= &ar93xx_uart_data,
++	},
+ };
+
+ void __init ath79_register_uart(void)
+@@ -101,6 +106,7 @@ void __init ath79_register_uart(void)
+ 		ath79_uart_data[0].uartclk = uart_clk_rate;
+ 		platform_device_register(&ath79_uart_device);
+ 	} else if (soc_is_ar933x()) {
++		ar93xx_uart_data.uartclk = uart_clk_rate;
+ 		platform_device_register(&ar933x_uart_device);
+ 	} else {
+ 		BUG();
+
+--- a/dev/null
++++ b/arch/mips/include/asm/mach-ath79/ar933x_uart_platform.h
+@@ -0,0 +1,18 @@
++/*
++ *  Platform data definition for Atheros AR933X UART
++ *
++ *  Copyright (C) 2011 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ */
++
++#ifndef _AR933X_UART_PLATFORM_H
++#define _AR933X_UART_PLATFORM_H
++
++struct ar933x_uart_platform_data {
++	unsigned	uartclk;
++};
++
++#endif /* _AR933X_UART_PLATFORM_H */

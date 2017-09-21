@@ -1,0 +1,29 @@
+#!/bin/sh
+
+PROGRAM=$1
+OPTIONS=$2
+
+DIR_CLK_GPIO=12
+DIR_DIO_GPIO=11
+CLK_PATH=/sys/class/gpio/gpio$DIR_CLK_GPIO/
+DIO_PATH=/sys/class/gpio/gpio$DIR_DIO_GPIO/
+
+
+if [ "x$PROGRAM" == "x" ]; then
+	echo "usage: run-swddude program.bin [options]"
+	exit
+fi
+
+# Enable level shifter as output (low for input, high for output)
+echo 1 > $DIR_CLK_PATH/value
+echo 1 > $DIR_DIO_PATH/value
+
+# Program with swddude
+echo "swddude -target kl25 -driver gpio -programmer freedog -flash $PROGRAM $OPTIONS"
+
+swddude -target kl25 -driver gpio -programmer freedog -flash $PROGRAM $OPTIONS
+
+# Disable level shifter as output (low for input, high for output)
+echo 0 > $DIR_CLK_PATH/value
+echo 0 > $DIR_DIO_PATH/value
+

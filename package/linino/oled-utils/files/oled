@@ -1,0 +1,47 @@
+#!/bin/sh
+
+if [ $# -eq 0 ]; then
+   echo "on -> register oled"
+   echo "off -> unregister oled"
+   echo "gif -> animation like as gif image"
+   echo "echo -> write string on OLED"
+fi
+
+for i in $@; do
+  case $i in
+       "on")
+	    echo dogoled > /sys/devices/mcuio/shield_register
+            sleep 2
+            cat /root/image/linino_log.1bpp > /dev/fb0
+            echo "register oled"
+         
+       ;;
+	"echo")
+
+            echo "cooming soon"
+         
+       ;;
+       "gif")
+	    cat /dev/zero > /dev/fb0
+	    echo "press ctrl + x for exit"
+	    while true; do 
+		cat /root/image_gif/1.1bpp > /dev/fb0
+	        cat /root/image_gif/2.1bpp > /dev/fb0
+		cat /root/image_gif/3.1bpp > /dev/fb0
+		cat /root/image_gif/2.1bpp > /dev/fb0
+		done
+       ;;
+       "off")
+	    cat /dev/zero > /dev/fb0
+	    echo dogoled > /sys/devices/mcuio/shield_unregister
+	    echo "unregister oled"
+       ;;
+       *)
+            echo "error cmd !"
+            exit 1
+       ;;
+  esac
+done
+
+exit 0
+

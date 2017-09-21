@@ -1,0 +1,18 @@
+#!/bin/sh
+
+OPKG=/bin/opkg
+
+$OPKG update
+
+checkup=`opkg list-upgradable | awk {'print $1'} | head -n 1`
+
+if [ -z $checkup ]
+then
+    echo ""
+    echo "No updates are available for your system ! ! !"
+    echo ""
+else
+    #
+    $OPKG update && $OPKG list-upgradable | awk {'print $1'} | sed /kmod/d | xargs $OPKG upgrade
+    #
+fi

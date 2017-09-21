@@ -1,0 +1,2400 @@
+From 72c3e53097a9b813dee420698291d152aeb1cb47 Mon Sep 17 00:00:00 2001
+From: Shikha Singh <shikha.singh@st.com>
+Date: Mon, 1 Jun 2015 01:33:05 -0400
+Subject: [[linux-nfc] PATCH v1.0 1/5] :net :nfc Modification in
+ digital_core.c to support ISO14443
+ TypeA RF technology.
+
+Signed-off-by: Shikha Singh <shikha.singh@st.com>
+Signed-off-by: Sudeep Biswas <sudeep.biswas@st.com>
+---
+ net/nfc/digital_core.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/nfc/digital_core.c b/net/nfc/digital_core.c
+index 8970b76..246bed2 100644
+--- a/net/nfc/digital_core.c
++++ b/net/nfc/digital_core.c
+@@ -20,7 +20,7 @@
+ #include "digital.h"
+
+ #define DIGITAL_PROTO_NFCA_RF_TECH \
+-	(NFC_PROTO_JEWEL_MASK | NFC_PROTO_MIFARE_MASK | NFC_PROTO_NFC_DEP_MASK)
++	(NFC_PROTO_JEWEL_MASK | NFC_PROTO_MIFARE_MASK | NFC_PROTO_NFC_DEP_MASK | NFC_PROTO_ISO14443_MASK)
+
+ #define DIGITAL_PROTO_NFCB_RF_TECH	NFC_PROTO_ISO14443_B_MASK
+
+--
+1.7.5.4
+
+--- /dev/null
++++ b/include/net/nfc/digital_uart.h
+@@ -0,0 +1,103 @@
++/*
++ * NFC Digital UART Line Discipline Framework API
++ *
++ * Copyright (c) 2016, STMicroelectronics Pvt. Ltd.
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ */
++
++#ifndef __NFC_DIGITAL_UART_H
++#define __NFC_DIGITAL_UART_H
++
++#include <linux/tty.h>
++#include <linux/skbuff.h>
++
++/**
++ * Drivers that can register with DIGITAL UART LDISC Framework
++ */
++enum digital_uart_driver {
++	DIGITAL_UART_DRIVER_ST = 0,
++	DIGITAL_UART_DRIVER_MAX,
++};
++
++enum digital_uart_stop_bits {
++	DIGITAL_UART_STOP_BIT_1 = 0,
++	DIGITAL_UART_STOP_BIT_2,
++};
++
++struct digital_uart;
++
++#define DIGITALUARTSETDRIVER	_IOW('V', 0, char *)
++
++/*
++ * DIGITAL UART LDISC Framework ops
++ */
++struct digital_uart_ops {
++	/* called when SETDRIVER IOCTL called on tty */
++	int (*open)(struct digital_uart *du);
++	/* called when ldisc of tty changed to other than N_DIGITAL */
++	void (*close)(struct digital_uart *du);
++	/* called after a frame is received */
++	int (*recv)(struct digital_uart *du, struct sk_buff *skb);
++	/* called by low level uart driver's tty layer when the data is
++	 * received at UART port.
++	 */
++	int (*recv_buff)(struct digital_uart *du, const u8 *data, char *flags,
++			 int count);
++	/* called for sending a frame through UART */
++	int (*send)(struct digital_uart *du, struct sk_buff *skb);
++	/* if required to do some special handling before starting the
++	 * transmission */
++	void (*tx_start)(struct digital_uart *du);
++	/* if required to do some special handling before ending the
++	 * transmission */
++	void (*tx_done)(struct digital_uart *du);
++	/* returns the received frame header size */
++	/* called at the time of received frame processing */
++	int (*recv_fr_hdr_sz)(struct digital_uart *du,
++			      const u8 *data, int count);
++	/* returns the max size of frame that can be received*/
++	int (*recv_fr_max_sz)(struct digital_uart *du);
++	/* return payload size */
++	int (*recv_pl_sz)(struct digital_uart *du, const u8 *data, int count);
++};
++
++struct digital_uart {
++	struct module *owner;
++	struct digital_uart_ops ops;
++	const char *name;
++	enum digital_uart_driver driver;
++	/* Pointer of corresponding TTY */
++	struct tty_struct *tty;
++	/* worker for writing the frame */
++	struct work_struct write_work;
++	/* lock to serialize the frame read operation */
++	spinlock_t rx_lock;
++	unsigned long tx_state;
++	/* queue of frames to be written */
++	struct sk_buff_head tx_q;
++	/* current write frame */
++	struct sk_buff *tx_skb;
++	/* current read frame */
++	struct sk_buff *rx_skb;
++	/* store received pkt length in ldisc context */
++	int rx_packet_len;
++	/* store drive specific data */
++	void *drv_data;
++};
++
++/* exported helper functions */
++int digital_uart_register(struct digital_uart *du);
++void digital_uart_unregister(struct digital_uart *du);
++void digital_uart_set_config(struct digital_uart *du, int baudrate,
++			     int flow_ctrl,
++			     enum digital_uart_stop_bits stop_bits);
++
++#endif /* __NFC_DIGITAL_UART_H */
+
+--- a/net/nfc/Kconfig
++++ b/net/nfc/Kconfig
+@@ -28,6 +28,18 @@ config NFC_DIGITAL
+ 	  To compile this support as a module, choose M here: the module will
+ 	  be called nfc_digital.
+
++config NFC_DIGITAL_UART
++	depends on NFC_DIGITAL && TTY
++	tristate "Digital over UART protocol support"
++	default n
++	help
++	  This implements an UART LDisc framework for digital core based
++	  drivers.
++
++	  Say Y if you use a digital driver that requires UART link layer.
++	  Choose M to build this support as a module.
++	  The module will be called nfc_digital_uart.
++
+ source "net/nfc/nci/Kconfig"
+ source "net/nfc/hci/Kconfig"
+
+--- a/net/nfc/Makefile
++++ b/net/nfc/Makefile
+@@ -6,8 +6,11 @@ obj-$(CONFIG_NFC) += nfc.o
+ obj-$(CONFIG_NFC_NCI) += nci/
+ obj-$(CONFIG_NFC_HCI) += hci/
+ obj-$(CONFIG_NFC_DIGITAL) += nfc_digital.o
++obj-$(CONFIG_NFC_DIGITAL_UART) += nfc_digital_uart.o
+
+ nfc-objs := core.o netlink.o af_nfc.o rawsock.o llcp_core.o llcp_commands.o \
+ 		llcp_sock.o
+
+ nfc_digital-objs := digital_core.o digital_technology.o digital_dep.o
++
++nfc_digital_uart-objs := digital_uart.o
+
+--- /dev/null
++++ b/net/nfc/digital_uart.c
+@@ -0,0 +1,517 @@
++/*
++ * NFC Digital UART Line Discipline Framework
++ *
++ * Copyright (C) 2016, STMicroelectronics Pvt. Ltd.
++ *
++ * This software file (the "File") is distributed by STMicroelectronics Pvt.
++ * Ltd. under the terms of the GNU General Public License Version 2, June 1991
++ * (the "License").  You may use, redistribute and/or modify this File in
++ * accordance with the terms and conditions of the License, a copy of which
++ * is available on the worldwide web at
++ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
++ *
++ * THE FILE IS DISTRIBUTED AS-IS, WITHOUT WARRANTY OF ANY KIND, AND THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE
++ * ARE EXPRESSLY DISCLAIMED.  The License provides additional details about
++ * this warranty disclaimer.
++ */
++
++/* Inspired (hugely) by NCI LDISC implementation in NFC. */
++
++#include <linux/module.h>
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <linux/fcntl.h>
++#include <linux/poll.h>
++
++#include <linux/slab.h>
++#include <linux/tty.h>
++#include <linux/errno.h>
++#include <linux/string.h>
++#include <linux/ioctl.h>
++#include <linux/skbuff.h>
++
++#include <net/nfc/digital.h>
++#include <net/nfc/digital_uart.h>
++
++/* TX states  */
++#define DIGITAL_UART_SENDING	1
++#define DIGITAL_UART_TX_WAKEUP	2
++
++static struct digital_uart *digital_uart_drivers[DIGITAL_UART_DRIVER_MAX];
++
++static inline struct sk_buff *digital_uart_dequeue(struct digital_uart *du)
++{
++	struct sk_buff *skb = du->tx_skb;
++
++	if (!skb)
++		skb = skb_dequeue(&du->tx_q);
++	else
++		du->tx_skb = NULL;
++
++	return skb;
++}
++
++static inline int digital_uart_queue_empty(struct digital_uart *du)
++{
++	if (du->tx_skb)
++		return 0;
++
++	return skb_queue_empty(&du->tx_q);
++}
++
++static int digital_uart_tx_wakeup(struct digital_uart *du)
++{
++	if (test_and_set_bit(DIGITAL_UART_SENDING, &du->tx_state)) {
++		set_bit(DIGITAL_UART_TX_WAKEUP, &du->tx_state);
++		return 0;
++	}
++
++	schedule_work(&du->write_work);
++
++	return 0;
++}
++
++static void digital_uart_write_work(struct work_struct *work)
++{
++	struct digital_uart *du = container_of(work,
++					       struct digital_uart,
++					       write_work);
++	struct tty_struct *tty = du->tty;
++	struct sk_buff *skb;
++
++restart:
++	clear_bit(DIGITAL_UART_TX_WAKEUP, &du->tx_state);
++
++	if (du->ops.tx_start)
++		du->ops.tx_start(du);
++
++	while ((skb = digital_uart_dequeue(du))) {
++		int len;
++
++		set_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
++		len = tty->ops->write(tty, skb->data, skb->len);
++		skb_pull(skb, len);
++		if (skb->len) {
++			du->tx_skb = skb;
++			break;
++		}
++		kfree_skb(skb);
++	}
++
++	if (test_bit(DIGITAL_UART_TX_WAKEUP, &du->tx_state))
++		goto restart;
++
++	if (du->ops.tx_done && digital_uart_queue_empty(du))
++		du->ops.tx_done(du);
++
++	clear_bit(DIGITAL_UART_SENDING, &du->tx_state);
++}
++
++static int digital_uart_set_driver(struct tty_struct *tty, unsigned int driver)
++{
++	struct digital_uart *du = NULL;
++	int ret;
++
++	if (driver >= DIGITAL_UART_DRIVER_MAX)
++		return -EINVAL;
++
++	if (!digital_uart_drivers[driver])
++		return -ENOENT;
++
++	du = kzalloc(sizeof(*du), GFP_KERNEL);
++	if (!du)
++		return -ENOMEM;
++
++	memcpy(du, digital_uart_drivers[driver], sizeof(struct digital_uart));
++	du->tty = tty;
++	tty->disc_data = du;
++	skb_queue_head_init(&du->tx_q);
++	INIT_WORK(&du->write_work, digital_uart_write_work);
++	spin_lock_init(&du->rx_lock);
++
++	ret = du->ops.open(du);
++	if (ret) {
++		tty->disc_data = NULL;
++		kfree(du);
++	} else if (!try_module_get(du->owner)) {
++		du->ops.close(du);
++		tty->disc_data = NULL;
++		kfree(du);
++		return -ENOENT;
++	}
++
++	tty->receive_room = du->ops.recv_fr_max_sz(du);
++
++	return ret;
++}
++
++/* ------ LDISC part ------ */
++
++/* digital_uart_tty_open
++ *
++ *     Called when line discipline changed to DIGITAL_UART.
++ *
++ * Arguments:
++ *     tty pointer to tty info structure
++ * Return Value:
++ *     0 if success, otherwise error code
++ */
++static int digital_uart_tty_open(struct tty_struct *tty)
++{
++	/* Error if the tty has no write op */
++	if (!tty->ops->write)
++		return -EOPNOTSUPP;
++
++	tty->disc_data = NULL;
++
++	/* Flush any pending characters in the driver and line discipline. */
++
++	/* Note don't use ldisc_ref here as the
++	 * open path is before the ldisc is referencable.
++	 */
++
++	if (tty->ldisc->ops->flush_buffer)
++		tty->ldisc->ops->flush_buffer(tty);
++	tty_driver_flush_buffer(tty);
++
++	return 0;
++}
++
++/* digital_uart_tty_close()
++ *
++ *    Called when the line discipline is changed to something
++ *    else, the tty is closed, or the tty detects a hangup.
++ */
++static void digital_uart_tty_close(struct tty_struct *tty)
++{
++	struct digital_uart *du = (void *)tty->disc_data;
++
++	/* Detach from the tty */
++	tty->disc_data = NULL;
++
++	if (!du)
++		return;
++
++	if (du->tx_skb)
++		kfree_skb(du->tx_skb);
++	if (du->rx_skb)
++		kfree_skb(du->rx_skb);
++
++	skb_queue_purge(&du->tx_q);
++
++	du->ops.close(du);
++	du->tty = NULL;
++	module_put(du->owner);
++
++	cancel_work_sync(&du->write_work);
++
++	kfree(du);
++}
++
++/* digital_uart_tty_wakeup()
++ *
++ *    Callback for transmit wakeup. Called when low level
++ *    device driver can accept more send data.
++ *
++ * Arguments:        tty    pointer to associated tty instance data
++ * Return Value:    None
++ */
++static void digital_uart_tty_wakeup(struct tty_struct *tty)
++{
++	struct digital_uart *du = (void *)tty->disc_data;
++
++	if (!du)
++		return;
++
++	clear_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
++
++	if (tty != du->tty)
++		return;
++
++	digital_uart_tx_wakeup(du);
++}
++
++/* digital_uart_tty_receive()
++ *
++ *     Called by tty low level driver when receive data is
++ *     available.
++ *
++ * Arguments:  tty          pointer to tty isntance data
++ *             data         pointer to received data
++ *             flags        pointer to flags for data
++ *             count        count of received data in bytes
++ *
++ * Return Value:    None
++ */
++static void digital_uart_tty_receive(struct tty_struct *tty, const u8 *data,
++				     char *flags, int count)
++{
++	struct digital_uart *du = (void *)tty->disc_data;
++
++	if (!du || tty != du->tty)
++		return;
++
++	spin_lock(&du->rx_lock);
++	du->ops.recv_buff(du, (void *)data, flags, count);
++	spin_unlock(&du->rx_lock);
++
++	tty_unthrottle(tty);
++}
++
++/* digital_uart_tty_ioctl()
++ *
++ *    Process IOCTL system call for the tty device.
++ *
++ * Arguments:
++ *
++ *    tty        pointer to tty instance data
++ *    file       pointer to open file object for device
++ *    cmd        IOCTL command code
++ *    arg        argument for IOCTL call (cmd dependent)
++ *
++ * Return Value:    Command dependent
++ */
++static int digital_uart_tty_ioctl(struct tty_struct *tty, struct file *file,
++				  unsigned int cmd, unsigned long arg)
++{
++	struct digital_uart *du = (void *)tty->disc_data;
++	int err = 0;
++
++	switch (cmd) {
++	case DIGITALUARTSETDRIVER:
++		if (!du)
++			return digital_uart_set_driver(tty, (unsigned int)arg);
++		else
++			return -EBUSY;
++		break;
++	default:
++		err = n_tty_ioctl_helper(tty, file, cmd, arg);
++		break;
++	}
++
++	return err;
++}
++
++/* We don't provide read/write/poll interface for user space. */
++static ssize_t digital_uart_tty_read(struct tty_struct *tty, struct file *file,
++				     unsigned char __user *buf, size_t nr)
++{
++	return 0;
++}
++
++static ssize_t digital_uart_tty_write(struct tty_struct *tty, struct file *file,
++				      const unsigned char *data, size_t count)
++{
++	return 0;
++}
++
++static unsigned int digital_uart_tty_poll(struct tty_struct *tty,
++					  struct file *filp, poll_table *wait)
++{
++	return 0;
++}
++
++static int digital_uart_send(struct digital_uart *du, struct sk_buff *skb)
++{
++	/* Queue TX packet */
++	skb_queue_tail(&du->tx_q, skb);
++
++	/* Try to start TX (if possible) */
++	digital_uart_tx_wakeup(du);
++
++	return 0;
++}
++
++/*  -- Default recv_buf handler --
++ *
++ * This handler receives the data from UART read the header to
++ * retrieve the frame length.
++ * This function can be hit multiple time to receive complete frame.
++ * Once complete frame is received, the frame is passed to the digital layer.
++ */
++static int digital_uart_default_recv_buf(struct digital_uart *du,
++					 const u8 *data,
++					 char *flags,
++					 int count)
++{
++	int chunk_len, err;
++	static int header_len;
++	unsigned int recv_fr_sz;
++
++	/* Decode all incoming data in packets
++	 * and enqueue then for processing.
++	 */
++	while (count > 0) {
++		/* If this is the first data of a packet, allocate a buffer */
++		if (!du->rx_skb) {
++			du->rx_packet_len = -1;
++			recv_fr_sz = du->ops.recv_fr_max_sz(du);
++			du->rx_skb = nfc_alloc_recv_skb(recv_fr_sz, GFP_KERNEL);
++			if (!du->rx_skb)
++				return -ENOMEM;
++			header_len = du->ops.recv_fr_hdr_sz(du, data, count);
++		}
++
++		/* Eat byte after byte till full packet header is received */
++		if (du->rx_skb->len < header_len) {
++			*skb_put(du->rx_skb, 1) = *data++;
++			--count;
++			if (count)
++				continue;
++		}
++
++		/* if count is zero and hdr not fully received
++		 * continue, otherwise go ahead to check if
++		 * hdr is enough to complete the frame and
++		 * we will not receive any payload
++		 */
++		if (!count && du->rx_skb->len < header_len)
++			continue;
++
++		/* Header was received but packet len (if any) was not read */
++		if (du->rx_packet_len < 0) {
++			if (!header_len)
++				du->rx_packet_len =
++					du->ops.recv_pl_sz(du,
++							   data,
++							   count);
++			else
++				du->rx_packet_len = header_len +
++					du->ops.recv_pl_sz(du,
++							   du->rx_skb->data,
++							   du->rx_skb->len);
++		}
++
++		/* Compute how many bytes are missing and how many bytes can
++		 * be consumed.
++		 */
++		chunk_len = du->rx_packet_len - du->rx_skb->len;
++		if (count < chunk_len)
++			chunk_len = count;
++		if (chunk_len)
++			memcpy(skb_put(du->rx_skb, chunk_len), data, chunk_len);
++
++		/* if multiple frames are received, adjust data and count for
++		 * next frame, to be ready for next iterate of while (count > 0)
++		 */
++		data += chunk_len;
++		count -= chunk_len;
++
++		/* Chcek if packet is fully received */
++		if (du->rx_packet_len == du->rx_skb->len) {
++			/* Pass RX packet to driver */
++			err = du->ops.recv(du, du->rx_skb);
++			if (err)
++				nfc_err(du->tty->dev, "corrupted RX packet, err =%d\n",
++					err);
++			/* Next packet will be a new one */
++			du->rx_skb = NULL;
++		}
++	}
++
++	return 0;
++}
++
++int digital_uart_register(struct digital_uart *du)
++{
++	if (!du || !du->ops.open ||
++	    !du->ops.recv || !du->ops.close ||
++	    !du->ops.recv_fr_max_sz || !du->ops.recv_fr_hdr_sz ||
++	    !du->ops.recv_pl_sz)
++		return -EINVAL;
++
++	/* Set the send callback */
++	du->ops.send = digital_uart_send;
++
++	/* Install default handlers if not overridden */
++	if (!du->ops.recv_buff)
++		du->ops.recv_buff = digital_uart_default_recv_buf;
++
++	/* Add this driver in the driver list */
++	if (digital_uart_drivers[du->driver]) {
++		pr_err("driver %d is already registered\n", du->driver);
++		return -EBUSY;
++	}
++	digital_uart_drivers[du->driver] = du;
++
++	pr_info("DIGITAL uart driver '%s [%d]' registered\n",
++		du->name, du->driver);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(digital_uart_register);
++
++void digital_uart_unregister(struct digital_uart *du)
++{
++	pr_info("DIGITAL uart driver '%s [%d]' unregistered\n", du->name,
++		du->driver);
++
++	/* Remove this driver from the driver list */
++	digital_uart_drivers[du->driver] = NULL;
++}
++EXPORT_SYMBOL_GPL(digital_uart_unregister);
++
++void digital_uart_set_config(struct digital_uart *du,
++			     int baudrate,
++			     int flow_ctrl,
++			     enum digital_uart_stop_bits stop_bits)
++{
++	struct ktermios new_termios;
++
++	if (!du->tty)
++		return;
++
++	down_read(&du->tty->termios_rwsem);
++	new_termios = du->tty->termios;
++	up_read(&du->tty->termios_rwsem);
++	tty_termios_encode_baud_rate(&new_termios, baudrate, baudrate);
++
++	if (flow_ctrl)
++		new_termios.c_cflag |= CRTSCTS;
++	else
++		new_termios.c_cflag &= ~CRTSCTS;
++
++	if (stop_bits == DIGITAL_UART_STOP_BIT_2)
++		new_termios.c_cflag |= CSTOPB;
++
++	/* 8 bit data with no parity is default */
++	new_termios.c_cflag |= CS8;
++
++	tty_set_termios(du->tty, &new_termios);
++}
++EXPORT_SYMBOL_GPL(digital_uart_set_config);
++
++static struct tty_ldisc_ops digital_uart_ldisc = {
++	.magic		= TTY_LDISC_MAGIC,
++	.owner		= THIS_MODULE,
++	.name		= "n_digital",
++	.open		= digital_uart_tty_open,
++	.close		= digital_uart_tty_close,
++	.read		= digital_uart_tty_read,
++	.write		= digital_uart_tty_write,
++	.poll		= digital_uart_tty_poll,
++	.receive_buf	= digital_uart_tty_receive,
++	.write_wakeup	= digital_uart_tty_wakeup,
++	.ioctl		= digital_uart_tty_ioctl,
++};
++
++static int __init digital_uart_init(void)
++{
++	return tty_register_ldisc(N_DIGITAL, &digital_uart_ldisc);
++}
++
++static void __exit digital_uart_exit(void)
++{
++	tty_unregister_ldisc(N_DIGITAL);
++}
++
++module_init(digital_uart_init);
++module_exit(digital_uart_exit);
++
++MODULE_AUTHOR("STMicroelectronics Pvt. Ltd.");
++MODULE_DESCRIPTION("NFC Digital UART driver");
++MODULE_LICENSE("GPL v2");
++MODULE_ALIAS_LDISC(N_DIGITAL);
+
+--- a/include/uapi/linux/tty.h	2016-08-01 19:50:45.646276414 +0200
++++ b/include/uapi/linux/tty.h	2016-08-01 19:53:32.814762710 +0200
+@@ -35,5 +35,6 @@
+ #define N_TRACESINK	23	/* Trace data routing for MIPI P1149.7 */
+ #define N_TRACEROUTER	24	/* Trace data routing for MIPI P1149.7 */
+ #define N_NCI		25	/* NFC NCI UART */
++#define N_DIGITAL	26	/* NFC DIGITAL UART */
+
+ #endif /* _UAPI_LINUX_TTY_H */
+From eed70ef28a5f666c348c83af47cc311a1bb5a5f6 Mon Sep 17 00:00:00 2001
+From: Sudeep Biswas <sudeep.biswas@st.com>
+Date: Fri, 1 Apr 2016 11:50:36 +0530
+Subject: [[linux-nfc] PATCH v1.0 4/5] NFC: nfcst: Add ST NFC Transceiver core
+ framework
+
+This patch implements the ST NFC Transceiver
+core framework.
+These Transceivers (CR95HF / ST95HF) implements the
+digital specifications.
+Phy drivers such as SPI, UART can register with this
+framework when a Transceiver is connected to the
+respective interface.
+
+Following the modular design approach, the core framework
+exports helper functions that groups common features
+required by all the phy drivers.
+On the other hand it expects phy specific ops to be
+implemented by the phy drivers.
+
+Signed-off-by: Sudeep Biswas <sudeep.biswas@st.com>
+Signed-off-by: Shikha Singh <shikha.singh@st.com>
+
+--- /dev/null
++++ b/drivers/nfc/nfcst/Kconfig
+@@ -0,0 +1,17 @@
++config NFC_ST
++	tristate "ST NFC Transceiver driver"
++	depends on NFC_DIGITAL
++	help
++	  This enables the ST NFC transceiver (e.g. CR95HF / ST95HF)
++	  core framework. These transceivers implement the
++	  digital specifications.
++	  The core framework registers with the digital core and
++	  implements the digital ops. On the other side, it
++	  exposes a framework for the phy drivers. Phy drivers
++	  implements ops that are required by the core for
++	  communication between the transceiver and the host.
++	  Phy driver can be an UART LDisc driver or an SPI slave
++	  driver.
++
++	  Say Y here to compile support for ST NFC transceiver core
++	  framework into the kernel or say M to compile it as module.
+
+--- /dev/null
++++ b/drivers/nfc/nfcst/Makefile
+@@ -0,0 +1,6 @@
++#
++# Makefile for STMicroelectronics NFC transceiver driver
++#
++
++nfcst-y += core.o
++obj-$(CONFIG_NFC_ST) += nfcst.o
+
+--- /dev/null
++++ b/drivers/nfc/nfcst/core.c
+@@ -0,0 +1,1086 @@
++/*
++ * --------------------------------------------------------------------
++ * Core driver framework for ST NFC Transceiver
++ * --------------------------------------------------------------------
++ * Copyright (C) 2015 STMicroelectronics Pvt. Ltd. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/err.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netdevice.h>
++#include <linux/nfc.h>
++#include <linux/wait.h>
++#include <net/nfc/digital.h>
++#include <net/nfc/nfc.h>
++#include "stnfcdev.h"
++
++/* supported protocols */
++#define DEVICE_SUPPORTED_PROT		(NFC_PROTO_ISO14443_MASK | \
++					NFC_PROTO_ISO14443_B_MASK | \
++					NFC_PROTO_ISO15693_MASK)
++/* driver capabilities */
++#define DEVICE_CAPABILITIES		NFC_DIGITAL_DRV_CAPS_IN_CRC
++
++/* Command Send Interface */
++/* DEVICE_COMMAND_SEND CMD Ids */
++#define ECHO_CMD			0x55
++#define WRITE_REGISTER_CMD		0x9
++#define PROTOCOL_SELECT_CMD		0x2
++#define SEND_RECEIVE_CMD		0x4
++
++/* Select protocol codes */
++#define ISO15693_PROTOCOL_CODE		0x1
++#define ISO14443A_PROTOCOL_CODE		0x2
++#define ISO14443B_PROTOCOL_CODE		0x3
++
++/*
++ * head room len is 2
++ * 1 byte for cmd
++ * 1 byte for size
++ */
++#define DEVICE_HEADROOM_LEN		2
++
++/*
++ * tailroom is 1 for ISO14443A
++ * and 0 for ISO14443B/ISO15693,
++ * hence the max value 1 should be
++ * taken.
++ */
++#define DEVICE_TAILROOM_LEN		1
++
++/* Command Response interface */
++#define MAX_RESPONSE_BUFFER_SIZE	280
++#define ECHORESPONSE			0x55
++#define DEVICE_ERR_MASK			0xF
++#define DEVICE_TIMEOUT_ERROR		0x87
++#define DEVICE_NFCA_CRC_ERR_MASK	0x20
++#define DEVICE_NFCB_CRC_ERR_MASK	0x01
++
++/* device transmission flag values */
++#define TRFLAG_NFCA_SHORT_FRAME		0x07
++#define TRFLAG_NFCA_STD_FRAME		0x08
++#define TRFLAG_NFCA_STD_FRAME_CRC	0x28
++
++/* Misc defs */
++#define HIGH				1
++#define LOW				0
++#define ISO14443A_RATS_REQ		0xE0
++#define RATS_TB1_PRESENT_MASK		0x20
++#define RATS_TA1_PRESENT_MASK		0x10
++#define TB1_FWI_MASK			0xF0
++#define WTX_REQ_FROM_TAG		0xF2
++
++#define MAX_CMD_LEN			0x6
++
++#define MAX_CMD_PARAMS			4
++
++/* flag to differentiate synchronous & asynchronous request */
++enum req_type {
++	SYNC,
++	ASYNC,
++};
++
++struct cmd {
++	int cmd_len;
++	unsigned char cmd_id;
++	unsigned char no_cmd_params;
++	unsigned char cmd_params[MAX_CMD_PARAMS];
++	enum req_type req;
++};
++
++struct param_list {
++	int param_offset;
++	int new_param_val;
++};
++
++/*
++ * List of top-level cmds to be used internally by the driver.
++ * All these commands are build on top of basic commands
++ * such as SEND_RECEIVE_CMD, PROTOCOL_SELECT_CMD, etc.
++ * These top level cmds are used internally while implementing various ops of
++ * digital layer/driver probe or extending the digital framework layer for
++ * features that are not yet implemented there, for example, WTX cmd handling.
++ */
++enum nfcst_cmd_list {
++	CMD_ECHO,
++	CMD_ISO14443A_CONFIG,
++	CMD_ISO14443A_DEMOGAIN,
++	CMD_ISO14443B_DEMOGAIN,
++	CMD_ISO14443A_PROTOCOL_SELECT,
++	CMD_ISO14443B_PROTOCOL_SELECT,
++	CMD_WTX_RESPONSE,
++	CMD_FIELD_OFF,
++	CMD_ISO15693_PROTOCOL_SELECT,
++};
++
++static const struct cmd cmd_array[] = {
++	[CMD_ECHO] = {
++		.cmd_len = 0x1,
++		.cmd_id = ECHO_CMD,
++		.no_cmd_params = 0,
++		.req = SYNC,
++	},
++	[CMD_ISO14443A_CONFIG] = {
++		.cmd_len = 0x6,
++		.cmd_id = WRITE_REGISTER_CMD,
++		.no_cmd_params = 0x4,
++		.cmd_params = {0x3A, 0x00, 0x5A, 0x04},
++		.req = SYNC,
++	},
++	[CMD_ISO14443A_DEMOGAIN] = {
++		.cmd_len = 0x6,
++		.cmd_id = WRITE_REGISTER_CMD,
++		.no_cmd_params = 0x4,
++		.cmd_params = {0x68, 0x01, 0x01, 0xDF},
++		.req = SYNC,
++	},
++	[CMD_ISO14443B_DEMOGAIN] = {
++		.cmd_len = 0x6,
++		.cmd_id = WRITE_REGISTER_CMD,
++		.no_cmd_params = 0x4,
++		.cmd_params = {0x68, 0x01, 0x01, 0x51},
++		.req = SYNC,
++	},
++	[CMD_ISO14443A_PROTOCOL_SELECT] = {
++		.cmd_len = 0x6,
++		.cmd_id = PROTOCOL_SELECT_CMD,
++		.no_cmd_params = 0x4,
++		.cmd_params = {ISO14443A_PROTOCOL_CODE, 0x00, 0x01, 0xA0},
++		.req = SYNC,
++	},
++	[CMD_ISO14443B_PROTOCOL_SELECT] = {
++		.cmd_len = 0x6,
++		.cmd_id = PROTOCOL_SELECT_CMD,
++		.no_cmd_params = 0x4,
++		.cmd_params = {ISO14443B_PROTOCOL_CODE, 0x01, 0x03, 0xFF},
++		.req = SYNC,
++	},
++	[CMD_WTX_RESPONSE] = {
++		.cmd_len = 0x5,
++		.cmd_id = SEND_RECEIVE_CMD,
++		.no_cmd_params = 0x3,
++		.cmd_params = {0xF2, 0x00, TRFLAG_NFCA_STD_FRAME_CRC},
++		.req = ASYNC,
++	},
++	[CMD_FIELD_OFF] = {
++		.cmd_len = 0x4,
++		.cmd_id = PROTOCOL_SELECT_CMD,
++		.no_cmd_params = 0x2,
++		.cmd_params = {0x0, 0x0},
++		.req = SYNC,
++	},
++	[CMD_ISO15693_PROTOCOL_SELECT] = {
++		.cmd_len = 0x4,
++		.cmd_id = PROTOCOL_SELECT_CMD,
++		.no_cmd_params = 0x2,
++		.cmd_params = {ISO15693_PROTOCOL_CODE, 0x0D},
++		.req = SYNC,
++	},
++};
++
++/* digital_cmd_complete_arg stores client context */
++struct digital_cmd_complete_arg {
++	nfc_digital_cmd_complete_t complete_cb;
++	void *cb_usrarg;
++	bool rats;
++};
++
++struct nfcst_context {
++	struct nfc_digital_dev *ddev;
++	struct nfc_dev *nfcdev;
++	struct digital_cmd_complete_arg complete_cb_arg;
++	unsigned char sendrcv_trflag;
++	struct semaphore exchange_lock;
++	u8 current_protocol;
++	u8 current_rf_tech;
++	int fwi;
++	struct work_struct write_work;
++	int wtx_mm;
++	struct device *dev;
++	void *phy_ctx;
++	enum nfcst_phy phy;
++	struct nfcst_if_ops *if_ops;
++	struct nfcst_pltf_data cfg;
++	bool req_is_sync;
++	struct completion done;
++	bool nfcst_power;
++	bool trig_config;
++	struct sk_buff *recv_buff;
++};
++
++static struct sk_buff *nfcst_send_recv_fr(struct nfcst_context *ctx,
++					  struct sk_buff *send_buf,
++					  enum req_type req)
++{
++	int err;
++
++	if (!send_buf || !ctx || !ctx->if_ops->phy_send || !ctx->dev ||
++	    !ctx->phy_ctx)
++		return NULL;
++
++	reinit_completion(&ctx->done);
++
++	ctx->recv_buff = NULL;
++	ctx->req_is_sync = req;
++
++	err = ctx->if_ops->phy_send(ctx->phy_ctx, send_buf);
++	if (err) {
++		dev_err(ctx->dev, "phy_send error %d\n", err);
++		return ERR_PTR(err);
++	}
++
++	if (req == ASYNC)
++		return NULL;
++
++	err = wait_for_completion_timeout(&ctx->done, msecs_to_jiffies(1000));
++	if (!err) {
++		dev_err(ctx->dev, "phy timeout error\n");
++		return ERR_PTR(-ETIMEDOUT);
++	}
++
++	return ctx->recv_buff;
++}
++
++/*
++ * nfcst_send_recv_cmd() is for sending commands to device
++ * that are described in the cmd_array[]. It can optionally
++ * receive the response if the cmd request is of type
++ * SYNC.
++ */
++static int nfcst_send_recv_cmd(struct nfcst_context *context,
++			       enum nfcst_cmd_list cmd,
++			       int no_modif,
++			       struct param_list *list_array)
++{
++	int i, ret = 0;
++	struct sk_buff *skb_send, *skb_recv;
++
++	if (cmd_array[cmd].cmd_len > MAX_CMD_LEN)
++		return -EINVAL;
++	if (cmd_array[cmd].no_cmd_params < no_modif)
++		return -EINVAL;
++	if (no_modif && !list_array)
++		return -EINVAL;
++
++	skb_send = alloc_skb(MAX_CMD_LEN, GFP_KERNEL);
++	if (!skb_send)
++		return -ENOMEM;
++
++	skb_reserve(skb_send, cmd_array[cmd].cmd_len);
++	skb_push(skb_send, cmd_array[cmd].cmd_len);
++
++	skb_send->data[0] = cmd_array[cmd].cmd_id;
++	if (cmd_array[cmd].no_cmd_params > 0) {
++		skb_send->data[1] = cmd_array[cmd].no_cmd_params;
++		memcpy(&skb_send->data[2], cmd_array[cmd].cmd_params,
++		       cmd_array[cmd].no_cmd_params);
++	}
++
++	for (i = 0; i < no_modif; i++) {
++		if (list_array[i].param_offset >= cmd_array[cmd].no_cmd_params)
++			return -EINVAL;
++
++		skb_send->data[2 + list_array[i].param_offset] =
++						list_array[i].new_param_val;
++	}
++
++	skb_recv = nfcst_send_recv_fr(context, skb_send, cmd_array[cmd].req);
++	if (IS_ERR(skb_recv)) {
++		dev_err(context->dev, "send receive of frame fail with %ld\n",
++			PTR_ERR(skb_recv));
++		return PTR_ERR(skb_recv);
++	}
++
++	if (cmd_array[cmd].req == SYNC) {
++		ret = -EIO;
++		if (!skb_recv)
++			return ret;
++
++		if (cmd_array[cmd].cmd_id == ECHO_CMD) {
++			if (skb_recv->data[0] != ECHORESPONSE)
++				dev_err(context->dev, "echo failed, recv 0x%x\n",
++					skb_recv->data[0]);
++			else
++				ret = 0;
++		} else if (skb_recv->data[0]) {
++			dev_err(context->dev, "send recv frame, err = 0x%x\n",
++				skb_recv->data[0]);
++		} else {
++			ret = 0;
++		}
++
++		kfree_skb(skb_recv);
++	}
++
++	return ret;
++}
++
++static int secondary_configuration_type4a(struct nfcst_context *context)
++{
++	int result = 0;
++	struct device *dev = &context->nfcdev->dev;
++
++	/* 14443A config setting after select protocol */
++	result = nfcst_send_recv_cmd(context,
++				     CMD_ISO14443A_CONFIG,
++				     0,
++				     NULL);
++	if (result) {
++		dev_err(dev, "type a config cmd, err = 0x%x\n", result);
++		return result;
++	}
++
++	/* 14443A demo gain setting */
++	result = nfcst_send_recv_cmd(context,
++				     CMD_ISO14443A_DEMOGAIN,
++				     0,
++				     NULL);
++	if (result)
++		dev_err(dev, "type a demogain cmd, err = 0x%x\n", result);
++
++	return result;
++}
++
++static int secondary_configuration_type4b(struct nfcst_context *context)
++{
++	int result = 0;
++	struct device *dev = &context->nfcdev->dev;
++
++	result = nfcst_send_recv_cmd(context,
++				     CMD_ISO14443B_DEMOGAIN,
++				     0,
++				     NULL);
++	if (result)
++		dev_err(dev, "type b demogain cmd, err = 0x%x\n", result);
++
++	return result;
++}
++
++static int nfcst_select_protocol(struct nfcst_context *context, int type)
++{
++	int result = 0;
++	struct device *dev;
++
++	dev = &context->nfcdev->dev;
++
++	switch (type) {
++	case NFC_DIGITAL_RF_TECH_106A:
++		context->current_rf_tech = NFC_DIGITAL_RF_TECH_106A;
++		result = nfcst_send_recv_cmd(context,
++					     CMD_ISO14443A_PROTOCOL_SELECT,
++					     0,
++					     NULL);
++		if (result) {
++			dev_err(dev, "protocol sel, err = 0x%x\n",
++				result);
++			return result;
++		}
++
++		/* secondary config. for 14443Type 4A after protocol select */
++		result = secondary_configuration_type4a(context);
++		if (result) {
++			dev_err(dev, "type a secondary config, err = 0x%x\n",
++				result);
++			return result;
++		}
++		break;
++	case NFC_DIGITAL_RF_TECH_106B:
++		context->current_rf_tech = NFC_DIGITAL_RF_TECH_106B;
++		result = nfcst_send_recv_cmd(context,
++					     CMD_ISO14443B_PROTOCOL_SELECT,
++					     0,
++					     NULL);
++		if (result) {
++			dev_err(dev, "protocol sel send, err = 0x%x\n",
++				result);
++			return result;
++		}
++
++		/*
++		 * delay of 5-6 ms is required after select protocol
++		 * command in case of ISO14443 Type B
++		 */
++		usleep_range(50000, 60000);
++
++		/* secondary config. for 14443Type 4B after protocol select */
++		result = secondary_configuration_type4b(context);
++		if (result) {
++			dev_err(dev, "type b secondary config, err = 0x%x\n",
++				result);
++			return result;
++		}
++		break;
++	case NFC_DIGITAL_RF_TECH_ISO15693:
++		context->current_rf_tech = NFC_DIGITAL_RF_TECH_ISO15693;
++		result = nfcst_send_recv_cmd(context,
++					     CMD_ISO15693_PROTOCOL_SELECT,
++					     0,
++					     NULL);
++		if (result) {
++			dev_err(dev, "protocol sel send, err = 0x%x\n",
++				result);
++			return result;
++		}
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int iso14443_config_fdt(struct nfcst_context *context, int wtxm)
++{
++	int result = 0;
++	struct nfc_digital_dev *nfcddev = context->ddev;
++	unsigned char pp_typeb;
++	struct param_list new_params[2];
++
++	struct device *dev = &context->nfcdev->dev;
++
++	pp_typeb = cmd_array[CMD_ISO14443B_PROTOCOL_SELECT].cmd_params[2];
++
++	if (nfcddev->curr_protocol == NFC_PROTO_ISO14443 && context->fwi < 4)
++		context->fwi = 4;
++
++	new_params[0].param_offset = 2;
++	if (nfcddev->curr_protocol == NFC_PROTO_ISO14443)
++		new_params[0].new_param_val = context->fwi;
++	else if (nfcddev->curr_protocol == NFC_PROTO_ISO14443_B)
++		new_params[0].new_param_val = pp_typeb;
++
++	new_params[1].param_offset = 3;
++	new_params[1].new_param_val = wtxm;
++
++	switch (nfcddev->curr_protocol) {
++	case NFC_PROTO_ISO14443:
++		result = nfcst_send_recv_cmd(context,
++					     CMD_ISO14443A_PROTOCOL_SELECT,
++					     2,
++					     new_params);
++		if (result) {
++			dev_err(dev, "iso14443_config_fdt: nfcst_send_recv_cmd fails, err = %d\n",
++				result);
++			return result;
++		}
++
++		/* secondary config. for 14443Type 4A after protocol select */
++		result = secondary_configuration_type4a(context);
++		if (result) {
++			dev_err(dev, "iso14443_config_fdt: secondary_configuration_type4a, err = %d\n",
++				result);
++			return result;
++		}
++		break;
++	case NFC_PROTO_ISO14443_B:
++		result = nfcst_send_recv_cmd(context,
++					     CMD_ISO14443B_PROTOCOL_SELECT,
++					     2,
++					     new_params);
++		if (result) {
++			dev_err(dev, "WTX type b sel proto,err = %d\n", result);
++			return result;
++		}
++
++		/* secondary config. for 14443Type 4B after protocol select */
++		result = secondary_configuration_type4b(context);
++		if (result) {
++			dev_err(dev, "WTX type b second. config, err = 0x%x\n",
++				result);
++			return result;
++		}
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int nfcst_handle_config_fdt(struct nfcst_context *context,
++				   bool new_wtx)
++{
++	int result = 0;
++	unsigned char val_mm = 0;
++	struct param_list new_params[1];
++	struct nfc_digital_dev *nfcddev = context->ddev;
++	struct device *dev = &context->nfcdev->dev;
++	int wtx_val;
++
++	if (new_wtx) {
++		wtx_val = context->wtx_mm;
++		result = iso14443_config_fdt(context, wtx_val & 0x3f);
++		if (result) {
++			dev_err(dev, "Config. setting error on WTX req, err = %d\n",
++				result);
++			return result;
++		}
++
++		/* Send response of wtx with ASYNC as no response expected */
++		new_params[0].param_offset = 1;
++		new_params[0].new_param_val = wtx_val;
++
++		result = nfcst_send_recv_cmd(context,
++					     CMD_WTX_RESPONSE,
++					     1,
++					     new_params);
++		if (result)
++			dev_err(dev, "WTX response send, err = %d\n", result);
++		return result;
++	}
++
++	/* if no new wtx, cofigure with default values */
++	if (nfcddev->curr_protocol == NFC_PROTO_ISO14443)
++		val_mm = cmd_array[CMD_ISO14443A_PROTOCOL_SELECT].cmd_params[3];
++	else if (nfcddev->curr_protocol == NFC_PROTO_ISO14443_B)
++		val_mm = cmd_array[CMD_ISO14443B_PROTOCOL_SELECT].cmd_params[3];
++	result = iso14443_config_fdt(context, val_mm);
++	if (result)
++		dev_err(dev, "Default config. setting error, err = %d\n",
++			result);
++
++	return result;
++}
++
++static void nfcst_handle_wtx(struct work_struct *work)
++{
++	int ret;
++	struct nfcst_context *ctx = container_of(work,
++						 struct nfcst_context,
++						 write_work);
++
++	struct device *dev = &ctx->nfcdev->dev;
++
++	ret = nfcst_handle_config_fdt(ctx, true);
++	if (ret)
++		dev_err(dev, "nfcst_handle_wtx:: nfcst_handle_config_fdt, err = %d\n",
++			ret);
++
++	ctx->trig_config = true;
++}
++
++static int nfcst_error_handling(struct nfcst_context *context,
++				struct sk_buff *skb_resp,
++				int res_len)
++{
++	int result = 0;
++	unsigned char error_byte;
++	struct device *dev = &context->nfcdev->dev;
++
++	/* First check device specific error */
++	if (skb_resp->data[0] & DEVICE_ERR_MASK) {
++		if (skb_resp->data[0] == DEVICE_TIMEOUT_ERROR)
++			result = -ETIMEDOUT;
++		else
++			result = -EIO;
++		dev_info(dev, "Error frame[0]: 0x%x and result %d\n",
++			 skb_resp->data[0], result);
++		return  result;
++	}
++
++	/* Check for CRC err only if CRC is present in the tag response */
++	switch (context->current_rf_tech) {
++	case NFC_DIGITAL_RF_TECH_106A:
++		if (context->sendrcv_trflag == TRFLAG_NFCA_STD_FRAME_CRC) {
++			error_byte = skb_resp->data[res_len - 3];
++			if (error_byte & DEVICE_NFCA_CRC_ERR_MASK) {
++				/* CRC error occurred */
++				dev_err(dev, "CRC error, byte received = 0x%x\n",
++					error_byte);
++				result = -EIO;
++			}
++		}
++		break;
++	case NFC_DIGITAL_RF_TECH_106B:
++	case NFC_DIGITAL_RF_TECH_ISO15693:
++		error_byte = skb_resp->data[res_len - 1];
++		if (error_byte & DEVICE_NFCB_CRC_ERR_MASK) {
++			/* CRC error occurred */
++			dev_err(dev, "CRC error, byte received = 0x%x\n",
++				error_byte);
++			result = -EIO;
++		}
++		break;
++	}
++
++	return result;
++}
++
++static void nfcst_response_handler(struct nfcst_context *context,
++				   struct sk_buff *skb_resp)
++{
++	int skb_len;
++	struct digital_cmd_complete_arg *cb_arg;
++
++	cb_arg = &context->complete_cb_arg;
++
++	/* Remove device specific header */
++	skb_pull(skb_resp, 2);
++
++	skb_len = skb_resp->len;
++
++	/* check if it is case of RATS request reply & FWI is present */
++	if (context->current_rf_tech == NFC_DIGITAL_RF_TECH_106A &&
++	    cb_arg->rats && (skb_resp->data[1] & RATS_TB1_PRESENT_MASK)) {
++		if (skb_resp->data[1] & RATS_TA1_PRESENT_MASK)
++			context->fwi =
++				(skb_resp->data[3] & TB1_FWI_MASK) >> 4;
++		else
++			context->fwi =
++				(skb_resp->data[2] & TB1_FWI_MASK) >> 4;
++
++		context->trig_config = true;
++	}
++	cb_arg->rats = false;
++
++	/* Remove CRC bytes only if received frames data has an eod (CRC) */
++	switch (context->current_rf_tech) {
++	case NFC_DIGITAL_RF_TECH_106A:
++		if (context->sendrcv_trflag == TRFLAG_NFCA_STD_FRAME_CRC)
++			skb_trim(skb_resp, (skb_len - 5));
++		else
++			skb_trim(skb_resp, (skb_len - 3));
++		break;
++	case NFC_DIGITAL_RF_TECH_106B:
++	case NFC_DIGITAL_RF_TECH_ISO15693:
++		skb_trim(skb_resp, (skb_len - 3));
++		break;
++	}
++}
++
++static int nfcst_wake(void *context)
++{
++	int nth_attempt = 1;
++	int result;
++	struct nfcst_context *ctx = (struct nfcst_context *)context;
++
++	if (ctx->phy == PHY_UART) {
++		do {
++			result = nfcst_send_recv_cmd(ctx,
++						     CMD_ECHO,
++						     0,
++						     NULL);
++			if (!result) {
++				ctx->nfcst_power = true;
++
++				/*
++				 * TBD: If baud rate is set different than
++				 * the default, (i.e. nfcst_pltf_data contains
++				 * a baudrate different than default), then
++				 * we need to set the baudrate of our device.
++				 * This is done by sending the 0xA command.
++				 * The response of the command should be ignored
++				 * because the response is received on the
++				 * new baudrate and we have not yet
++				 * re-configured our tty device on the new
++				 * baudrate. So the received response of 0xA,
++				 * which should be 0x55 (only one byte) could be
++				 * some other value (so ignore it).
++				 * Once the response of 1 byte is received, we
++				 * must re-configure our tty device to the new
++				 * baudrate.
++				 * This must be done using the UART phy driver.
++				 * For that we need to introduce a new ops
++				 * (such as setconfig) and pass the
++				 * nfcst_pltf_data struct saved in nfcst_context
++				 * to it. SPI based phy driver could also need
++				 * to implement this new ops for example to set
++				 * some parameters specific to spi such as clk
++				 * frequency (to be stored in nfcst_pltf_data)
++				 */
++				return 0;
++			}
++		} while (nth_attempt++ < 4);
++	} else { /* TBD: Support for SPI interface */
++		return -EINVAL;
++	}
++
++	return -ETIMEDOUT;
++}
++
++/* NFC ops functions definition */
++static int nfcst_in_configure_hw(struct nfc_digital_dev *ddev, int type,
++				 int param)
++{
++	struct nfcst_context *context = nfc_digital_get_drvdata(ddev);
++
++	if (!context->nfcst_power)
++		return -EIO;
++
++	if (type == NFC_DIGITAL_CONFIG_RF_TECH)
++		return nfcst_select_protocol(context, param);
++
++	if (type == NFC_DIGITAL_CONFIG_FRAMING) {
++		switch (param) {
++		case NFC_DIGITAL_FRAMING_NFCA_SHORT:
++			context->sendrcv_trflag = TRFLAG_NFCA_SHORT_FRAME;
++			break;
++		case NFC_DIGITAL_FRAMING_NFCA_STANDARD:
++			context->sendrcv_trflag = TRFLAG_NFCA_STD_FRAME;
++			break;
++		case NFC_DIGITAL_FRAMING_NFCA_T4T:
++		case NFC_DIGITAL_FRAMING_NFCA_NFC_DEP:
++		case NFC_DIGITAL_FRAMING_NFCA_STANDARD_WITH_CRC_A:
++			context->sendrcv_trflag = TRFLAG_NFCA_STD_FRAME_CRC;
++			break;
++		case NFC_DIGITAL_FRAMING_NFCB:
++		case NFC_DIGITAL_FRAMING_ISO15693_INVENTORY:
++		case NFC_DIGITAL_FRAMING_ISO15693_T5T:
++			break;
++		}
++	}
++
++	return 0;
++}
++
++static int rf_off(struct nfcst_context *context)
++{
++	int rc;
++	struct device *dev;
++
++	dev = &context->nfcdev->dev;
++
++	/*
++	 * TBD: Currently basic pwr mgmt. is implemented !
++	 * (switching off the field)
++	 * In a better approach, we can send the idle command
++	 * after switching off the field. This will save
++	 * more power.
++	 * In fact even better is to switch off the device
++	 * assuming the power to device is coming from a
++	 * regulator which can be turned off/on.
++	 */
++	rc = nfcst_send_recv_cmd(context, CMD_FIELD_OFF, 0, NULL);
++	if (rc)
++		dev_err(dev, "protocol sel send field off, err = %d\n", rc);
++
++	return rc;
++}
++
++static int nfcst_in_send_cmd(struct nfc_digital_dev *ddev,
++			     struct sk_buff *skb,
++			     u16 timeout,
++			     nfc_digital_cmd_complete_t cb,
++			     void *arg)
++{
++	struct nfcst_context *context = nfc_digital_get_drvdata(ddev);
++	int rc;
++	int len_data_to_tag = 0;
++
++	if (!context->nfcst_power)
++		return -EIO;
++
++	/*
++	 * down the semaphore to indicate that last nfcst_in_send_cmd()
++	 * call is pending, If interrupted, WARN and return !
++	 */
++	rc = down_killable(&context->exchange_lock);
++	if (rc) {
++		WARN(1, "Semaphore wait is interrupted in nfcst_in_send_cmd\n");
++		return rc;
++	}
++
++	if (context->trig_config) {
++		context->trig_config = false;
++		rc = nfcst_handle_config_fdt(context, false);
++		if (rc) {
++			dev_err(&context->nfcdev->dev, "config fdt failed from nfcst_in_send_cmd %d\n",
++				rc);
++			return rc;
++		}
++	}
++
++	switch (context->current_rf_tech) {
++	case NFC_DIGITAL_RF_TECH_106A:
++		len_data_to_tag = skb->len + 1;
++		*skb_put(skb, 1) = context->sendrcv_trflag;
++		break;
++	case NFC_DIGITAL_RF_TECH_106B:
++	case NFC_DIGITAL_RF_TECH_ISO15693:
++		len_data_to_tag = skb->len;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	skb_push(skb, 2);
++	skb->data[0] = SEND_RECEIVE_CMD;
++	skb->data[1] = len_data_to_tag;
++
++	context->complete_cb_arg.cb_usrarg = arg;
++	context->complete_cb_arg.complete_cb = cb;
++
++	if ((skb->data[2] == ISO14443A_RATS_REQ) &&
++	    context->current_rf_tech == NFC_DIGITAL_RF_TECH_106A)
++		context->complete_cb_arg.rats = true;
++
++	rc = PTR_ERR(nfcst_send_recv_fr(context, skb, ASYNC));
++	if (rc) {
++		dev_err(&context->nfcdev->dev,
++			"Error %d trying to perform data_exchange", rc);
++		up(&context->exchange_lock);
++	}
++
++	return rc;
++}
++
++/* p2p will be supported in a later release ! */
++static int nfcst_tg_configure_hw(struct nfc_digital_dev *ddev,
++				 int type,
++				 int param)
++{
++	return 0;
++}
++
++static int nfcst_tg_send_cmd(struct nfc_digital_dev *ddev,
++			     struct sk_buff *skb,
++			     u16 timeout,
++			     nfc_digital_cmd_complete_t cb,
++			     void *arg)
++{
++	return 0;
++}
++
++static int nfcst_tg_listen(struct nfc_digital_dev *ddev,
++			   u16 timeout,
++			   nfc_digital_cmd_complete_t cb,
++			   void *arg)
++{
++	return 0;
++}
++
++static int nfcst_tg_get_rf_tech(struct nfc_digital_dev *ddev, u8 *rf_tech)
++{
++	return 0;
++}
++
++static int nfcst_switch_rf(struct nfc_digital_dev *ddev, bool on)
++{
++	u8 rf_tech;
++	int rc;
++
++	struct nfcst_context *context = nfc_digital_get_drvdata(ddev);
++
++	if (!context->nfcst_power) {
++		if (on) {
++			rc = nfcst_wake(context);
++			if (rc)
++				return rc;
++		} else {
++			return 0;
++		}
++	}
++
++	rf_tech = ddev->curr_rf_tech;
++
++	if (on)
++		/* switch on RF field */
++		return nfcst_select_protocol(context, rf_tech);
++
++	/* switch OFF RF field */
++	return rf_off(context);
++}
++
++/* TODO nfcst_abort_cmd */
++static void nfcst_abort_cmd(struct nfc_digital_dev *ddev)
++{
++}
++
++static struct nfc_digital_ops nfcst_nfc_digital_ops = {
++	.in_configure_hw = nfcst_in_configure_hw,
++	.in_send_cmd = nfcst_in_send_cmd,
++
++	.tg_listen = nfcst_tg_listen,
++	.tg_configure_hw = nfcst_tg_configure_hw,
++	.tg_send_cmd = nfcst_tg_send_cmd,
++	.tg_get_rf_tech = nfcst_tg_get_rf_tech,
++
++	.switch_rf = nfcst_switch_rf,
++	.abort_cmd = nfcst_abort_cmd,
++};
++
++/*
++ * phy drivers can register with the framework,
++ * this will return the new (attached) nfcst_context object
++ */
++void *nfcst_register_phy(enum nfcst_phy phy,
++			 void *phy_ctx,
++			 struct nfcst_if_ops *ops,
++			 struct device *dev,
++			 struct nfcst_pltf_data *pdata)
++{
++	int ret;
++	struct nfcst_context *ctx;
++
++	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
++	if (!ctx)
++		return ERR_PTR(-ENOMEM);
++
++	ctx->phy_ctx = phy_ctx;
++	ctx->if_ops = ops;
++	ctx->dev = dev;
++	ctx->phy = phy;
++
++	memcpy(&ctx->cfg, pdata, sizeof(*pdata));
++
++	ctx->fwi = cmd_array[CMD_ISO14443A_PROTOCOL_SELECT].cmd_params[2];
++
++	init_completion(&ctx->done);
++
++	/* create NFC dev object and register with NFC Subsystem */
++	ctx->ddev = nfc_digital_allocate_device(&nfcst_nfc_digital_ops,
++						DEVICE_SUPPORTED_PROT,
++						DEVICE_CAPABILITIES,
++						DEVICE_HEADROOM_LEN,
++						DEVICE_TAILROOM_LEN);
++	if (!ctx->ddev) {
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	ctx->nfcdev = ctx->ddev->nfc_dev;
++	nfc_digital_set_parent_dev(ctx->ddev, dev);
++
++	ret = nfc_digital_register_device(ctx->ddev);
++	if (ret) {
++		dev_err(&ctx->nfcdev->dev, "st nfc device registration failed\n");
++		goto err_free_digital_device;
++	}
++
++	nfc_digital_set_drvdata(ctx->ddev, ctx);
++
++	sema_init(&ctx->exchange_lock, 1);
++	INIT_WORK(&ctx->write_work, nfcst_handle_wtx);
++
++	return (void *)ctx;
++
++err_free_digital_device:
++	nfc_digital_free_device(ctx->ddev);
++
++error:
++	kfree(ctx);
++	return ERR_PTR(ret);
++}
++EXPORT_SYMBOL_GPL(nfcst_register_phy);
++
++void nfcst_unregister_phy(void *context)
++{
++	struct nfcst_context *ctx = (struct nfcst_context *)context;
++
++	up(&ctx->exchange_lock);
++	nfc_digital_unregister_device(ctx->ddev);
++	nfc_digital_free_device(ctx->ddev);
++	kfree(ctx);
++}
++EXPORT_SYMBOL_GPL(nfcst_unregister_phy);
++
++int nfcst_recv_frame(void *context, struct sk_buff *skb_res)
++{
++	int result;
++	struct digital_cmd_complete_arg *cb_arg;
++
++	struct nfcst_context *ctx = (struct nfcst_context *)context;
++
++	/* first check the sync request */
++	if (ctx->req_is_sync == SYNC) {
++		ctx->recv_buff = skb_res;
++		complete(&ctx->done);
++		return 0;
++	}
++
++	/* now check for async request */
++	cb_arg = &ctx->complete_cb_arg;
++
++	result = nfcst_error_handling(ctx, skb_res, skb_res->len);
++	if (result)
++		goto end;
++
++	if (skb_res->len > 2 && skb_res->data[2] == WTX_REQ_FROM_TAG) {
++		ctx->wtx_mm = skb_res->data[3];
++		kfree_skb(skb_res);
++		schedule_work(&ctx->write_work);
++		return 0;
++	}
++
++	nfcst_response_handler(ctx, skb_res);
++
++	/* call digital layer callback */
++	cb_arg->complete_cb(ctx->ddev, cb_arg->cb_usrarg, skb_res);
++
++	/* up the semaphore before returning */
++	up(&ctx->exchange_lock);
++
++	return 0;
++
++end:
++	kfree_skb(skb_res);
++	cb_arg->rats = false;
++	skb_res = ERR_PTR(result);
++	/* callback with error */
++	cb_arg->complete_cb(ctx->ddev, cb_arg->cb_usrarg, skb_res);
++	/* up the semaphore before returning */
++	up(&ctx->exchange_lock);
++
++	/*
++	 * frame is received with success, though frame itself can
++	 * contain error or new error generated. In later case we
++	 * already inform the digital layer about the error, but
++	 * the underlying phy layer must be reported as no error
++	 */
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nfcst_recv_frame);
++
++int nfcst_recv_fr_len(void *context, const u8 *hdr, int count)
++{
++	/* if echo response, nothing to read after */
++	if (hdr[0] == ECHORESPONSE)
++		return 1;
++
++	if (hdr[0] & 0x60)
++		return (((hdr[0] & 0x60) >> 5) << 8) | hdr[1];
++	else
++		return hdr[1];
++}
++EXPORT_SYMBOL_GPL(nfcst_recv_fr_len);
++
++int nfcst_recv_hdr_len(void *context, const u8 *data, int count)
++{
++	if (data[0] == ECHORESPONSE)
++		return 0;
++
++	return DEVICE_HEADROOM_LEN;
++}
++EXPORT_SYMBOL_GPL(nfcst_recv_hdr_len);
++
++int nfcst_recv_max_fr_sz(void *context)
++{
++	return MAX_RESPONSE_BUFFER_SIZE;
++}
++EXPORT_SYMBOL_GPL(nfcst_recv_max_fr_sz);
++
++struct nfcst_pltf_data *nfcst_pltf_data(void *context)
++{
++	struct nfcst_context *ctx = (struct nfcst_context *)context;
++
++	return &ctx->cfg;
++}
++EXPORT_SYMBOL_GPL(nfcst_pltf_data);
++
++MODULE_AUTHOR("Shikha Singh <shikha.singh@st.com>");
++MODULE_AUTHOR("Sudeep Biswas <sudeep.biswas@st.com>");
++MODULE_DESCRIPTION("ST NFC Transceiver device driver core");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/nfc/nfcst/stnfcdev.h b/drivers/nfc/nfcst/stnfcdev.h
+new file mode 100644
+index 0000000..5f04802
+--- /dev/null
++++ b/drivers/nfc/nfcst/stnfcdev.h
+@@ -0,0 +1,63 @@
++/*
++ * --------------------------------------------------------------------
++ * API defination provided by ST NFC Transceiver core framework
++ * --------------------------------------------------------------------
++ * Copyright (C) 2015 STMicroelectronics Pvt. Ltd. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef _STNFCDEV_H_
++#define _STNFCDEV_H_
++
++/* phy type */
++enum nfcst_phy {
++	PHY_SPI = 0,
++	PHY_UART,
++};
++
++struct nfcst_pltf_data {
++	/* UART specific */
++	unsigned int baudrate;
++
++	/* TBD: SPI specific */
++
++	/*
++	 * TBD: Generic stuff that can be required for any interface
++	 * such as regulator (device can receive power from a
++	 * regulator which needs to be enabled in the device
++	 * wake-up. Also it can help power mgmt., for example
++	 * switching off the regulator when the device is
++	 * disabled (off) and then switching it on when the
++	 * device is again enabled (on))
++	 */
++};
++
++struct nfcst_if_ops {
++	int (*phy_send)(void *phy_ctx, struct sk_buff *skb);
++};
++
++void *nfcst_register_phy(enum nfcst_phy phy,
++			 void *phy_ctx,
++			   struct nfcst_if_ops *ops,
++			   struct device *dev,
++			   struct nfcst_pltf_data *pdata);
++
++void nfcst_unregister_phy(void *context);
++int nfcst_recv_frame(void *context, struct sk_buff *skb_res);
++int nfcst_recv_fr_len(void *context, const u8 *data, int count);
++int nfcst_recv_hdr_len(void *context, const u8 *data, int count);
++int nfcst_recv_max_fr_sz(void *context);
++struct nfcst_pltf_data *nfcst_pltf_data(void *context);
++
++#endif
+--- a/drivers/nfc/Kconfig	2016-08-01 20:07:26.824835000 +0200
++++ b/drivers/nfc/Kconfig	2016-08-01 20:09:37.295356658 +0200
+@@ -76,4 +76,5 @@
+ source "drivers/nfc/st-nci/Kconfig"
+ source "drivers/nfc/nxp-nci/Kconfig"
+ source "drivers/nfc/s3fwrn5/Kconfig"
++source "drivers/nfc/nfcst/Kconfig"
+ endmenu
+
+--- a/drivers/nfc/Makefile	2016-08-01 20:07:26.824835000 +0200
++++ b/drivers/nfc/Makefile	2016-08-01 20:10:24.396125235 +0200
+@@ -16,3 +16,4 @@
+ obj-$(CONFIG_NFC_ST_NCI)	+= st-nci/
+ obj-$(CONFIG_NFC_NXP_NCI)	+= nxp-nci/
+ obj-$(CONFIG_NFC_S3FWRN5)	+= s3fwrn5/
++obj-$(CONFIG_NFC_ST)		+= nfcst/
+From 48119b18d85c3a0aa5d677ce6fd1e03fca4d6b95 Mon Sep 17 00:00:00 2001
+From: Sudeep Biswas <sudeep.biswas@st.com>
+Date: Fri, 1 Apr 2016 12:15:56 +0530
+Subject: [[linux-nfc] PATCH v1.0 5/5] NFC: nfctst: Add UART LDisc Driver
+
+Add support of ST NFC transceiver controlled over UART.
+
+This driver registers with the digital LDisc UART
+framework as an UART LDisc driver, and as a phy driver
+with the ST NFC transceiver core framework.
+
+Signed-off-by: Sudeep Biswas <sudeep.biswas@st.com>
+Signed-off-by: Shikha Singh <shikha.singh@st.com>
+---
+ drivers/nfc/nfcst/Kconfig  |   17 +++++
+ drivers/nfc/nfcst/Makefile |    3 +
+ drivers/nfc/nfcst/uart.c   |  163 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 183 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/nfc/nfcst/uart.c
+
+diff --git a/drivers/nfc/nfcst/Kconfig b/drivers/nfc/nfcst/Kconfig
+index 9f6f05b..b8ae792 100644
+--- a/drivers/nfc/nfcst/Kconfig
++++ b/drivers/nfc/nfcst/Kconfig
+@@ -15,3 +15,20 @@ config NFC_ST
+ 
+ 	  Say Y here to compile support for ST NFC transceiver core
+ 	  framework into the kernel or say M to compile it as module.
++
++config NFC_ST_UART
++	tristate "ST NFC-over-UART driver"
++	depends on NFC_DIGITAL && NFC_DIGITAL_UART
++	select NFC_ST
++	help
++	  ST NFC-over-UART driver.
++
++	  This driver is an UART LDisc driver that helps
++	  ST NFC transceiver core framework communicate with
++	  the transceiver device over the UART interface.
++	  The driver registers as a phy driver with the core,
++	  and as an LDisc driver with the digital UART LDisc
++	  framework.
++
++	  Say Y here to compile support for ST NFC-over-UART driver
++	  into the kernel or say M to compile it as module.
+diff --git a/drivers/nfc/nfcst/Makefile b/drivers/nfc/nfcst/Makefile
+index d46acc5..a90055a 100644
+--- a/drivers/nfc/nfcst/Makefile
++++ b/drivers/nfc/nfcst/Makefile
+@@ -4,3 +4,6 @@
+ 
+ nfcst-y += core.o
+ obj-$(CONFIG_NFC_ST) += nfcst.o
++
++nfcst_uart-y += uart.o
++obj-$(CONFIG_NFC_ST_UART) += nfcst_uart.o
+diff --git a/drivers/nfc/nfcst/uart.c b/drivers/nfc/nfcst/uart.c
+new file mode 100644
+index 0000000..341c390
+--- /dev/null
++++ b/drivers/nfc/nfcst/uart.c
+@@ -0,0 +1,163 @@
++/*
++ * --------------------------------------------------------------------
++ * LDisc UART Driver for ST NFC Transceiver
++ * --------------------------------------------------------------------
++ * Copyright (C) 2015 STMicroelectronics Pvt. Ltd. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/of.h>
++#include <net/nfc/digital_uart.h>
++#include "stnfcdev.h"
++
++#define DEVICE_DEFAULT_BAUD 57600
++
++static unsigned int baud = DEVICE_DEFAULT_BAUD;
++
++static int nfcst_uart_digital_send(void *phy_ctx, struct sk_buff *skb)
++{
++	struct digital_uart *du = (struct digital_uart *)phy_ctx;
++
++	return du->ops.send(du, skb);
++}
++
++static struct nfcst_if_ops uart_ops = {
++	.phy_send = nfcst_uart_digital_send,
++};
++
++static int nfcst_uart_parse_dt(struct device_node *node,
++			       struct nfcst_pltf_data *pdata)
++{
++	struct device_node *matched_node;
++	const void *ptr;
++
++	matched_node = of_find_compatible_node(node, NULL, "st,nfc-uart");
++	if (!matched_node)
++		return -ENODEV;
++
++	ptr = of_get_property(matched_node, "st,baudrate", NULL);
++	if (!ptr)
++		return -ENODEV;
++
++	pdata->baudrate = be32_to_cpup(ptr);
++
++	return 0;
++}
++
++/*
++** DIGITAL UART OPS
++*/
++static int nfcst_digital_uart_open(struct digital_uart *du)
++{
++	void *priv;
++	int err;
++	struct nfcst_pltf_data config;
++	struct nfcst_pltf_data *pdata = NULL;
++
++	if (du->tty->dev->parent && du->tty->dev->parent->of_node) {
++		err = nfcst_uart_parse_dt(du->tty->dev->parent->of_node,
++					  &config);
++		if (err)
++			dev_err(du->tty->dev, "No st nfc uart platform data found in DT\n");
++		else
++			pdata = &config;
++	}
++
++	if (!pdata) {
++		dev_info(du->tty->dev, "No platform data / DT -> fallback to module params\n");
++		config.baudrate = baud;
++		pdata = &config;
++	}
++	priv = nfcst_register_phy(PHY_UART, (void *)du, &uart_ops,
++				  du->tty->dev, pdata);
++	if (IS_ERR(priv))
++		return PTR_ERR(priv);
++
++	du->drv_data = priv;
++
++	/* set the default configuration */
++	digital_uart_set_config(du,
++				DEVICE_DEFAULT_BAUD,
++				0,
++				DIGITAL_UART_STOP_BIT_2);
++
++	return 0;
++}
++
++static void nfcst_digital_uart_close(struct digital_uart *du)
++{
++	nfcst_unregister_phy(du->drv_data);
++}
++
++static int nfcst_digital_uart_recv(struct digital_uart *du, struct sk_buff *skb)
++{
++	return nfcst_recv_frame(du->drv_data, skb);
++}
++
++static int nfcst_digital_uart_recv_hdr_len(struct digital_uart *du,
++					   const u8 *data,
++					   int count)
++{
++	return nfcst_recv_hdr_len(du->drv_data, data, count);
++}
++
++static int nfcst_digital_uart_fr_len(struct digital_uart *du,
++				     const u8 *data,
++				     int count)
++{
++	return nfcst_recv_fr_len(du->drv_data, data, count);
++}
++
++static int nfcst_digital_uart_max_fr_sz(struct digital_uart *du)
++{
++	return nfcst_recv_max_fr_sz(du->drv_data);
++}
++
++static struct digital_uart nfcst_nci_uart = {
++	.owner  = THIS_MODULE,
++	.name   = "nfcst_uart",
++	.driver = DIGITAL_UART_DRIVER_ST,
++	.ops	= {
++		.open		= nfcst_digital_uart_open,
++		.close		= nfcst_digital_uart_close,
++		.recv		= nfcst_digital_uart_recv,
++		.recv_fr_hdr_sz	= nfcst_digital_uart_recv_hdr_len,
++		.recv_pl_sz	= nfcst_digital_uart_fr_len,
++		.recv_fr_max_sz	= nfcst_digital_uart_max_fr_sz,
++	}
++};
++
++/*
++** Module init
++*/
++static int nfcst_uart_init_module(void)
++{
++	return digital_uart_register(&nfcst_nci_uart);
++}
++
++static void nfcst_uart_exit_module(void)
++{
++	digital_uart_unregister(&nfcst_nci_uart);
++}
++
++module_init(nfcst_uart_init_module);
++module_exit(nfcst_uart_exit_module);
++
++MODULE_AUTHOR("Sudeep Biswas <sudeep.biswas@st.com>");
++MODULE_DESCRIPTION("ST NFC-over-UART");
++MODULE_LICENSE("GPL v2");
++
++module_param(baud, uint, 0);
++MODULE_PARM_DESC(baud, "Tell the UART baudrate for communication");
+-- 
+1.7.5.4
+
+From 9f63c9540c48ea96ee4c0c4d0a969ce355c0b957 Mon Sep 17 00:00:00 2001
+From: Sudeep Biswas <sudeep.biswas@st.com>
+Date: Wed, 20 Apr 2016 15:32:02 +0530
+Subject: [PATCH v1.0[nfc-linux] 1/2] drivers: nfc: nfcst: Add NFC Type2 tag
+ support
+
+This patch provides the support of NFC forum Type2 tags
+in CR95HF Linux kernel driver.
+
+Signed-off-by: Shikha Singh <shikha.singh@st.com>
+Signed-off-by: Sudeep Biswas <sudeep.biswas@st.com>
+---
+ drivers/nfc/nfcst/core.c |   30 +++++++++++++++++-------------
+ 1 files changed, 17 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/nfc/nfcst/core.c b/drivers/nfc/nfcst/core.c
+index 613077e..3bdd8b9 100644
+--- a/drivers/nfc/nfcst/core.c
++++ b/drivers/nfc/nfcst/core.c
+@@ -30,7 +30,8 @@
+ /* supported protocols */
+ #define DEVICE_SUPPORTED_PROT		(NFC_PROTO_ISO14443_MASK | \
+ 					NFC_PROTO_ISO14443_B_MASK | \
+-					NFC_PROTO_ISO15693_MASK)
++					NFC_PROTO_ISO15693_MASK | \
++					NFC_PROTO_MIFARE_MASK)
+ /* driver capabilities */
+ #define DEVICE_CAPABILITIES		NFC_DIGITAL_DRV_CAPS_IN_CRC
+ 
+@@ -116,10 +117,10 @@ struct param_list {
+  */
+ enum nfcst_cmd_list {
+ 	CMD_ECHO,
+-	CMD_ISO14443A_CONFIG,
+-	CMD_ISO14443A_DEMOGAIN,
++	CMD_NFCA_CONFIG,
++	CMD_NFCA_DEMOGAIN,
+ 	CMD_ISO14443B_DEMOGAIN,
+-	CMD_ISO14443A_PROTOCOL_SELECT,
++	CMD_NFCA_PROTOCOL_SELECT,
+ 	CMD_ISO14443B_PROTOCOL_SELECT,
+ 	CMD_WTX_RESPONSE,
+ 	CMD_FIELD_OFF,
+@@ -133,14 +134,14 @@ static const struct cmd cmd_array[] = {
+ 		.no_cmd_params = 0,
+ 		.req = SYNC,
+ 	},
+-	[CMD_ISO14443A_CONFIG] = {
++	[CMD_NFCA_CONFIG] = {
+ 		.cmd_len = 0x6,
+ 		.cmd_id = WRITE_REGISTER_CMD,
+ 		.no_cmd_params = 0x4,
+ 		.cmd_params = {0x3A, 0x00, 0x5A, 0x04},
+ 		.req = SYNC,
+ 	},
+-	[CMD_ISO14443A_DEMOGAIN] = {
++	[CMD_NFCA_DEMOGAIN] = {
+ 		.cmd_len = 0x6,
+ 		.cmd_id = WRITE_REGISTER_CMD,
+ 		.no_cmd_params = 0x4,
+@@ -154,7 +155,7 @@ static const struct cmd cmd_array[] = {
+ 		.cmd_params = {0x68, 0x01, 0x01, 0x51},
+ 		.req = SYNC,
+ 	},
+-	[CMD_ISO14443A_PROTOCOL_SELECT] = {
++	[CMD_NFCA_PROTOCOL_SELECT] = {
+ 		.cmd_len = 0x6,
+ 		.cmd_id = PROTOCOL_SELECT_CMD,
+ 		.no_cmd_params = 0x4,
+@@ -335,7 +336,7 @@ static int secondary_configuration_type4a(struct nfcst_context *context)
+ 
+ 	/* 14443A config setting after select protocol */
+ 	result = nfcst_send_recv_cmd(context,
+-				     CMD_ISO14443A_CONFIG,
++				     CMD_NFCA_CONFIG,
+ 				     0,
+ 				     NULL);
+ 	if (result) {
+@@ -345,7 +346,7 @@ static int secondary_configuration_type4a(struct nfcst_context *context)
+ 
+ 	/* 14443A demo gain setting */
+ 	result = nfcst_send_recv_cmd(context,
+-				     CMD_ISO14443A_DEMOGAIN,
++				     CMD_NFCA_DEMOGAIN,
+ 				     0,
+ 				     NULL);
+ 	if (result)
+@@ -380,7 +381,7 @@ static int nfcst_select_protocol(struct nfcst_context *context, int type)
+ 	case NFC_DIGITAL_RF_TECH_106A:
+ 		context->current_rf_tech = NFC_DIGITAL_RF_TECH_106A;
+ 		result = nfcst_send_recv_cmd(context,
+-					     CMD_ISO14443A_PROTOCOL_SELECT,
++					     CMD_NFCA_PROTOCOL_SELECT,
+ 					     0,
+ 					     NULL);
+ 		if (result) {
+@@ -465,10 +466,12 @@ static int iso14443_config_fdt(struct nfcst_context *context, int wtxm)
+ 	new_params[1].param_offset = 3;
+ 	new_params[1].new_param_val = wtxm;
+ 
++	printk("curr_protocol is %d\n", nfcddev->curr_protocol);
++
+ 	switch (nfcddev->curr_protocol) {
+ 	case NFC_PROTO_ISO14443:
+ 		result = nfcst_send_recv_cmd(context,
+-					     CMD_ISO14443A_PROTOCOL_SELECT,
++					     CMD_NFCA_PROTOCOL_SELECT,
+ 					     2,
+ 					     new_params);
+ 		if (result) {
+@@ -544,7 +547,7 @@ static int nfcst_handle_config_fdt(struct nfcst_context *context,
+ 
+ 	/* if no new wtx, cofigure with default values */
+ 	if (nfcddev->curr_protocol == NFC_PROTO_ISO14443)
+-		val_mm = cmd_array[CMD_ISO14443A_PROTOCOL_SELECT].cmd_params[3];
++		val_mm = cmd_array[CMD_NFCA_PROTOCOL_SELECT].cmd_params[3];
+ 	else if (nfcddev->curr_protocol == NFC_PROTO_ISO14443_B)
+ 		val_mm = cmd_array[CMD_ISO14443B_PROTOCOL_SELECT].cmd_params[3];
+ 	result = iso14443_config_fdt(context, val_mm);
+@@ -732,6 +735,7 @@ static int nfcst_in_configure_hw(struct nfc_digital_dev *ddev, int type,
+ 			context->sendrcv_trflag = TRFLAG_NFCA_STD_FRAME;
+ 			break;
+ 		case NFC_DIGITAL_FRAMING_NFCA_T4T:
++		case NFC_DIGITAL_FRAMING_NFCA_T2T:
+ 		case NFC_DIGITAL_FRAMING_NFCA_NFC_DEP:
+ 		case NFC_DIGITAL_FRAMING_NFCA_STANDARD_WITH_CRC_A:
+ 			context->sendrcv_trflag = TRFLAG_NFCA_STD_FRAME_CRC;
+@@ -936,7 +940,7 @@ void *nfcst_register_phy(enum nfcst_phy phy,
+ 
+ 	memcpy(&ctx->cfg, pdata, sizeof(*pdata));
+ 
+-	ctx->fwi = cmd_array[CMD_ISO14443A_PROTOCOL_SELECT].cmd_params[2];
++	ctx->fwi = cmd_array[CMD_NFCA_PROTOCOL_SELECT].cmd_params[2];
+ 
+ 	init_completion(&ctx->done);
+ 
+-- 
+1.7.5.4
+
+From ce841620f8c66a418fe9f2002960cfd6207cade4 Mon Sep 17 00:00:00 2001
+From: Sudeep Biswas <sudeep.biswas@st.com>
+Date: Thu, 28 Apr 2016 14:26:38 +0530
+Subject: [PATCH v1.0[nfc-linux] 2/2] drivers: nfc: nfcst: Proper Type2
+ ACK-NAK handling
+
+Modification to handle ACK/NACK response from type2
+tag in CR95HF driver and to leave CRC handling for
+digital core framework in case of Type2 tags rather
+than handling it in CR95HF driver.
+
+Signed-off-by: Shikha Singh <shikha.singh@st.com>
+Signed-off-by: Sudeep Biswas <sudeep.biswas@st.com>
+---
+ drivers/nfc/nfcst/core.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/nfc/nfcst/core.c b/drivers/nfc/nfcst/core.c
+index 3bdd8b9..d05bf52 100644
+--- a/drivers/nfc/nfcst/core.c
++++ b/drivers/nfc/nfcst/core.c
+@@ -69,6 +69,7 @@
+ #define DEVICE_TIMEOUT_ERROR		0x87
+ #define DEVICE_NFCA_CRC_ERR_MASK	0x20
+ #define DEVICE_NFCB_CRC_ERR_MASK	0x01
++#define TYPE2_RESP_ACK_NACK		0x90
+ 
+ /* device transmission flag values */
+ #define TRFLAG_NFCA_SHORT_FRAME		0x07
+@@ -597,6 +598,11 @@ static int nfcst_error_handling(struct nfcst_context *context,
+ 	/* Check for CRC err only if CRC is present in the tag response */
+ 	switch (context->current_rf_tech) {
+ 	case NFC_DIGITAL_RF_TECH_106A:
++		/* In case of Type2 ACK and NACK response, no CRC check*/
++		if (context->ddev->curr_protocol == NFC_PROTO_MIFARE){
++			if(skb_resp->data[0] == TYPE2_RESP_ACK_NACK)
++				break;
++		}
+ 		if (context->sendrcv_trflag == TRFLAG_NFCA_STD_FRAME_CRC) {
+ 			error_byte = skb_resp->data[res_len - 3];
+ 			if (error_byte & DEVICE_NFCA_CRC_ERR_MASK) {
+@@ -649,6 +655,14 @@ static void nfcst_response_handler(struct nfcst_context *context,
+ 	}
+ 	cb_arg->rats = false;
+ 
++	/** CRC handling **/
++	/* For MIFARE Type2, CRC handling will be done by digital framework */
++	if (context->current_rf_tech == NFC_DIGITAL_RF_TECH_106A &&
++	    context->ddev->curr_protocol == NFC_PROTO_MIFARE) {
++		/* Removing Transceiver specific data */
++		skb_trim(skb_resp, (skb_len - 3));
++		return;
++	}
+ 	/* Remove CRC bytes only if received frames data has an eod (CRC) */
+ 	switch (context->current_rf_tech) {
+ 	case NFC_DIGITAL_RF_TECH_106A:
+-- 
+1.7.5.4
+
+From be1077a995ab0145825711c76b1abe71109e6297 Mon Sep 17 00:00:00 2001
+From: Arturo Rinaldi <arty.net2@gmail.com>
+Date: Tue, 17 May 2016 13:21:46 +0200
+Subject: [PATCH] disabling DEBUG information from nfcst driver and nfc-digital
+ core
+
+---
+ drivers/nfc/nfcst/core.c | 8 +++-----
+ net/nfc/digital_core.c   | 3 ---
+ 2 files changed, 3 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/nfc/nfcst/core.c b/drivers/nfc/nfcst/core.c
+index d05bf52..d07a4b2 100644
+--- a/drivers/nfc/nfcst/core.c
++++ b/drivers/nfc/nfcst/core.c
+@@ -467,8 +467,6 @@ static int iso14443_config_fdt(struct nfcst_context *context, int wtxm)
+ 	new_params[1].param_offset = 3;
+ 	new_params[1].new_param_val = wtxm;
+
+-	printk("curr_protocol is %d\n", nfcddev->curr_protocol);
+-
+ 	switch (nfcddev->curr_protocol) {
+ 	case NFC_PROTO_ISO14443:
+ 		result = nfcst_send_recv_cmd(context,
+@@ -590,7 +588,7 @@ static int nfcst_error_handling(struct nfcst_context *context,
+ 			result = -ETIMEDOUT;
+ 		else
+ 			result = -EIO;
+-		dev_info(dev, "Error frame[0]: 0x%x and result %d\n",
++		dev_dbg(dev, "Error frame[0]: 0x%x and result %d\n",
+ 			 skb_resp->data[0], result);
+ 		return  result;
+ 	}
+@@ -599,8 +597,8 @@ static int nfcst_error_handling(struct nfcst_context *context,
+ 	switch (context->current_rf_tech) {
+ 	case NFC_DIGITAL_RF_TECH_106A:
+ 		/* In case of Type2 ACK and NACK response, no CRC check*/
+-		if (context->ddev->curr_protocol == NFC_PROTO_MIFARE){
+-			if(skb_resp->data[0] == TYPE2_RESP_ACK_NACK)
++		if (context->ddev->curr_protocol == NFC_PROTO_MIFARE) {
++			if (skb_resp->data[0] == TYPE2_RESP_ACK_NACK)
+ 				break;
+ 		}
+ 		if (context->sendrcv_trflag == TRFLAG_NFCA_STD_FRAME_CRC) {

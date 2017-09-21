@@ -1,0 +1,153 @@
+From d508bc1821cab8f41919fd92fa2473b2a605adec Mon Sep 17 00:00:00 2001
+From: Sudeep Biswas <sudeep.biswas@st.com>
+Date: Fri, 1 Apr 2016 11:48:24 +0530
+Subject: [PATCH (linux-nfc) 1/1] neard: Add support for CR95HF & ST tag M24SR
+
+Workaround in nfctype4.c for CR95HF as CR95HF does not
+support the long frame of total length graeter than 255.
+Modification in nfctype4.c for support of ST Type4A tag M24SR.
+This modification skip the optimization of neard to skip the
+complete NDEF detection procedure everytime.
+
+Signed-off-by: Sudeep Biswas <sudeep.biswas@st.com>
+Signed-off-by: Shikha Singh <shikha.singh@st.com>
+---
+ plugins/nfctype4.c |   23 +++++++++++++++++++----
+ src/main.c         |   21 ++++++++++++++++++++-
+ src/main.conf      |   10 ++++++++++
+ 3 files changed, 49 insertions(+), 5 deletions(-)
+
+diff --git a/plugins/nfctype4.c b/plugins/nfctype4.c
+index eae6c64..877bfbc 100644
+--- a/plugins/nfctype4.c
++++ b/plugins/nfctype4.c
+@@ -439,6 +439,7 @@ static int t4_select_NDEF_ID(uint8_t *resp, int length, void *data)
+ static int t4_readbin_cc(uint8_t *resp, int length, void *data)
+ {
+ 	struct t4_cookie *cookie = data;
++	bool st_cr95hf;
+ 	struct type4_cc *read_cc = (struct type4_cc *)&resp[1];
+ 
+ 	DBG("%d", length);
+@@ -458,6 +459,12 @@ static int t4_readbin_cc(uint8_t *resp, int length, void *data)
+ 	cookie->c_apdu_max_size = g_ntohs(read_cc->max_C_apdu_data_size);
+ 	cookie->max_ndef_size = g_ntohs(read_cc->tlv_fc.max_ndef_size);
+ 
++	/* Work around for CR95HF as it does not support long frame */
++	st_cr95hf = near_setting_get_bool("STCR95HF");
++	if(st_cr95hf){
++		cookie->r_apdu_max_size = 246;
++	}
++
+ 	near_tag_set_max_ndef_size(cookie->tag, cookie->max_ndef_size);
+ 	near_tag_set_c_apdu_max_size(cookie->tag, cookie->c_apdu_max_size);
+ 	near_tag_set_r_apdu_max_size(cookie->tag, cookie->r_apdu_max_size);
+@@ -575,6 +582,7 @@ static int nfctype4_read(uint32_t adapter_idx,
+ 		uint32_t target_idx, near_tag_io_cb cb)
+ {
+ 	struct t4_cookie *cookie;
++	bool  stm24sr_tag;
+ 
+ 	DBG("");
+ 
+@@ -598,11 +606,18 @@ static int nfctype4_read(uint32_t adapter_idx,
+ 	 * complete NDEF detection procedure.  If near_tag_get_r_apdu_max_size()
+ 	 * returns anything other than 0, we know the NDEF file is selected.
+ 	 */
+-	if (near_tag_get_r_apdu_max_size(cookie->tag))
+-		return t4_get_file_len(cookie);
+-	else
++	/* Workaround for ST Type4A tag M24SR, skipping the above optimization */
++	stm24sr_tag = near_setting_get_bool("STType4ATagM24SR");
++	if(stm24sr_tag){
+ 		return ISO_Select(iso_appname_v2, ARRAY_SIZE(iso_appname_v2),
+-				0x4, t4_select_file_by_name_v2, cookie);
++				  0x4, t4_select_file_by_name_v2, cookie);
++	} else {
++		if (near_tag_get_r_apdu_max_size(cookie->tag))
++			return t4_get_file_len(cookie);
++		else
++			return ISO_Select(iso_appname_v2, ARRAY_SIZE(iso_appname_v2),
++					0x4, t4_select_file_by_name_v2, cookie);
++	}
+ }
+ 
+ static int data_write_cb(uint8_t *resp, int length, void *data)
+diff --git a/src/main.c b/src/main.c
+index a2c3a84..0c17420 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -38,10 +38,14 @@ static struct {
+ 	bool constant_poll;
+ 	bool default_powered;
+ 	bool reset_on_error;
++	bool st_type4a_tag;
++	bool st_cr95hf;
+ } near_settings  = {
+ 	.constant_poll = FALSE,
+ 	.default_powered = FALSE,
+ 	.reset_on_error = TRUE,
++	.st_type4a_tag	= TRUE,
++	.st_cr95hf	= TRUE,
+ };
+ 
+ static GKeyFile *load_config(const char *file)
+@@ -63,7 +67,6 @@ static GKeyFile *load_config(const char *file)
+ 		g_key_file_free(keyfile);
+ 		return NULL;
+ 	}
+-
+ 	return keyfile;
+ }
+ 
+@@ -92,6 +95,16 @@ static void parse_config(GKeyFile *config)
+ 	if (!error)
+ 		near_settings.reset_on_error = boolean;
+ 
++	boolean = g_key_file_get_boolean(config, "General",
++						"STType4ATagM24SR", &error);
++	if (!error)
++		near_settings.st_type4a_tag = boolean;
++
++	boolean = g_key_file_get_boolean(config, "General",
++						"STCR95HF", &error);
++	if (!error)
++		near_settings.st_cr95hf = boolean;
++
+ 	g_clear_error(&error);
+ }
+ 
+@@ -218,6 +231,12 @@ bool near_setting_get_bool(const char *key)
+ 	if (g_str_equal(key, "ResetOnError"))
+ 		return near_settings.reset_on_error;
+ 
++	if (g_str_equal(key, "STType4ATagM24SR"))
++		return near_settings.st_type4a_tag;
++
++	if (g_str_equal(key, "STCR95HF"))
++		return near_settings.st_cr95hf;
++
+ 	return false;
+ }
+ 
+diff --git a/src/main.conf b/src/main.conf
+index 70c2697..27e6358 100644
+--- a/src/main.conf
++++ b/src/main.conf
+@@ -14,3 +14,13 @@ DefaultPowered = true
+ # the kernel.
+ # Default value is true.
+ ResetOnError = true
++
++# To make the workaround for ST M24SR tag effective
++# in nfctype4.c file.
++# Default value is true.
++STType4ATagM24SR = true
++
++# Workaround for working with NFC transceiver CR95HF.
++# CR95HF does not have long frame support so it can not handle
++# the total frame length graeater than 255.
++STCR95HF = true
+-- 
+1.7.5.4
+

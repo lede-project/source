@@ -1,0 +1,43 @@
+Index: swddude-1.0/swddude-src/libs/error/error_stack.cpp
+===================================================================
+--- swddude-1.0.orig/swddude-src/libs/error/error_stack.cpp	2014-06-04 16:07:32.000000000 +0200
++++ swddude-1.0/swddude-src/libs/error/error_stack.cpp	2014-06-04 16:08:32.000000000 +0200
+@@ -25,7 +25,9 @@
+  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  */
+ 
++#ifdef HAVE_EXECINFO_H
+ #include <execinfo.h>
++#endif
+ #include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -154,6 +156,7 @@
+ /******************************************************************************/
+ void Err::print_trace()
+ {
++#ifdef HAVE_EXECINFO_H
+     void *      addresses[64];
+     unsigned	length  = backtrace(addresses, 64);
+     char * *    strings = backtrace_symbols(addresses, length);
+@@ -162,5 +165,8 @@
+ 	fprintf(stderr, "%s\n", strings[i]);
+ 
+     free(strings);
++#else
++    fprintf(stderr, "Cannot print trace\n");
++#endif
+ }
+ /******************************************************************************/
+Index: swddude-1.0/swddude-src/libs/sys/error_module.cpp
+===================================================================
+--- swddude-1.0.orig/swddude-src/libs/sys/error_module.cpp	2014-06-04 16:08:05.000000000 +0200
++++ swddude-1.0/swddude-src/libs/sys/error_module.cpp	2014-06-04 16:08:47.000000000 +0200
+@@ -28,7 +28,6 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <signal.h>
+-#include <execinfo.h>
+ 
+ #include "libs/error/error.h"
+ #include "libs/sys/module.h"

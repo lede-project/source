@@ -1,0 +1,7 @@
+# Copyright (C) 2013 DogHunter
+
+export COMPRESSED_UBOOT=0
+export FLASH_SIZE=16
+export CONFIG_HORNET_XTAL=25
+export CONFIG_LININO_IO=0
+

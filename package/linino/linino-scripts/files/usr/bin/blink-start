@@ -1,0 +1,6 @@
+#!/bin/sh
+
+echo "timer" > /sys/class/leds/wlan/trigger
+echo $1 > /sys/class/leds/wlan/delay_on
+echo $1 > /sys/class/leds/wlan/delay_off
+

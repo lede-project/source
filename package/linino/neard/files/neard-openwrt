@@ -1,0 +1,31 @@
+#!/bin/sh /etc/rc.common
+#
+# Copyright (c) 2016 Arduino Srl
+#
+# Starts neard
+#
+
+START=62
+STOP=62
+
+NAME=neard
+DAEMON=/usr/bin/$NAME
+
+# Exit gracefully if the package has been removed
+# [ -x $DAEMON ] || exit 0
+
+start () {
+    echo -n "Starting $NAME: "
+    service_start $DAEMON
+    echo "OK"
+}
+
+stop () {
+    echo -n "Stopping $NAME: "
+    service_stop $DAEMON
+    echo "OK"
+}
+
+reload () {
+    service_reload $DAEMON
+}

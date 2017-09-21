@@ -1,0 +1,14 @@
+#!/bin/sh -e
+
+SYSUPGRADE_IMAGE=$1
+TMP=`mktemp -d`
+
+mount $SYSUPGRADE_IMAGE $TMP
+
+BUILT_DATE=`extract-built-date $TMP/etc/arduino/openwrt-yun-release`
+
+umount -d $TMP
+rmdir $TMP
+
+echo $BUILT_DATE
+

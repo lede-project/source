@@ -1,0 +1,61 @@
+#!/bin/sh
+
+# Linux NFC tag detector, run this script in background with &
+
+# ConstantPoll must be set to true and NORDICTYPE2 (if defined)
+# must be set to false in /etc/neard/main.conf, otherwise this
+# script will not work !!
+
+result=""
+cmd1="test-tag list"
+cmd2="test-tag dump"
+
+if [ -z $NEARD_TEST_PATH ]
+then
+        testpath=""
+else
+        testpath="$NEARD_TEST_PATH/"
+fi
+
+"$testpath"test-adapter powered $1 on > /dev/null 2>&1
+"$testpath"test-adapter poll $1 on > /dev/null 2>&1
+
+while [ 1 ]
+do
+        prev=$result
+
+        temp1=$($testpath$cmd1)
+
+        result=$(echo "$temp1" | grep tag)
+
+        if [ "$prev" != "$result"  ]
+        then
+                if [ -z "$result" ]
+                then
+                        echo -e "\nTag lost\n"
+                else
+                        echo -e "\nNew Tag found:"
+                        echo "$temp1"
+                        echo -e "\nTag Dump:"
+                        temp2=$($testpath$cmd2)
+                        result1=$(echo "$temp2" | grep Type)
+                        while [ -z "$result1" ]
+                        do
+                                temp1=$($testpath$cmd1)
+                                result=$(echo "$temp1" | grep tag)
+                                if [ ! -z "$result" ]
+                                then
+                                        temp2=$($testpath$cmd2)
+                                        result1=$(echo "$temp2" | grep Type)
+                                else
+                                        echo -e "\nTag Lost\n"
+                                        break
+                                fi
+                        done
+                        if [ ! -z "$result1" ]
+                        then
+                                echo "$temp2"
+                        fi
+                fi
+        fi
+done

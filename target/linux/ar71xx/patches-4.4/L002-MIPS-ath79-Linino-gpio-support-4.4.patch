@@ -1,0 +1,12 @@
+--- a/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2015-11-28 17:36:31.000000000 +0100
++++ b/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2015-11-28 18:14:46.603010624 +0100
+@@ -994,6 +994,9 @@
+ #define AR724X_GPIO_FUNC_JTAG_DISABLE		BIT(0)
+
+ #define AR933X_GPIO_FUNC2_JUMPSTART_DISABLE 	BIT(9)
++#define AR933X_GPIO_FUNC2_WPS_DISABLE			BIT(8)
++#define AR933X_GPIO_FUNC2_I2SD_ON_12			BIT(5)
++#define AR933X_GPIO_FUNC2_DIS_MIC				BIT(0)
+
+ #define AR913X_GPIO_FUNC_WMAC_LED_EN		BIT(22)
+ #define AR913X_GPIO_FUNC_EXP_PORT_CS_EN		BIT(21)

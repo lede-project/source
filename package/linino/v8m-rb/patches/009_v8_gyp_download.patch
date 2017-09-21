@@ -1,0 +1,9 @@
+--- a/Makefile	2016-05-14 03:16:45.897431121 +0200
++++ b/Makefile	2016-05-14 03:17:39.262311308 +0200
+@@ -282,5 +282,4 @@
+ # Dependencies.
+ # Remember to keep these in sync with the DEPS file.
+ dependencies:
+-	svn checkout --force http://gyp.googlecode.com/svn/trunk build/gyp \
+-	    --revision 1501
++	git clone https://chromium.googlesource.com/external/gyp build/gyp

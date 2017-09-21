@@ -1,0 +1,16 @@
+#!/bin/sh
+
+for fol in `ls -d /mnt/sd??`
+do
+	if [ -d $fol ]
+	then
+		how_many_bins=`ls $fol/*squashfs-sysupgrade.bin | wc -l`
+		if [ $how_many_bins -eq 1 ]
+		then
+			bins=`ls $fol/*squashfs-sysupgrade.bin`
+			echo $bins
+			exit
+		fi
+	fi
+done
+

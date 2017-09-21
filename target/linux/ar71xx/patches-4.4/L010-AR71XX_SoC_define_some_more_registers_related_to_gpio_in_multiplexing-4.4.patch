@@ -1,0 +1,15 @@
+--- a/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2015-12-18 18:27:37.452784740 +0100
++++ b/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2015-12-18 18:46:29.713790460 +0100
+@@ -878,6 +878,12 @@
+ #define AR934X_GPIO_REG_OUT_FUNC3	0x38
+ #define AR934X_GPIO_REG_OUT_FUNC4	0x3c
+ #define AR934X_GPIO_REG_OUT_FUNC5	0x40
++#define AR934X_GPIO_IN_ENABLE0		0x44
++#define AR934X_GPIO_IN_ENABLE1		0x48
++#define AR934X_GPIO_IN_ENABLE2		0x4c
++#define AR934X_GPIO_IN_ENABLE3		0x50
++#define AR934X_GPIO_IN_ENABLE4		0x54
++#define AR934X_GPIO_IN_ENABLE9		0x68
+ #define AR934X_GPIO_REG_FUNC		0x6c
+
+ #define QCA953X_GPIO_REG_OUT_FUNC0	0x2c

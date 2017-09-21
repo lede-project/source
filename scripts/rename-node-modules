@@ -1,0 +1,5 @@
+#!/bin/bash
+
+[ -z $1 ] || [ -z $2 ] && echo "insert missing version !" && exit 0
+
+find package/linino/node-*/ -maxdepth 1 -name Makefile | xargs sed -i "s/$1/$2/g"

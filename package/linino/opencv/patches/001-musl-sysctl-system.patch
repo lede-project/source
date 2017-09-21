@@ -1,0 +1,11 @@
+--- a/modules/core/src/system.cpp	2015-02-25 13:10:31.000000000 +0100
++++ b/modules/core/src/system.cpp	2015-10-24 17:02:49.489958665 +0200
+@@ -163,8 +163,6 @@
+ #include <sys/types.h>
+ #if defined ANDROID
+ #include <sys/sysconf.h>
+-#else
+-#include <sys/sysctl.h>
+ #endif
+ #endif
+ 

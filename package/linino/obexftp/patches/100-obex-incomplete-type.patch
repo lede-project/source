@@ -1,0 +1,246 @@
+From b19cf4f6aa6133568f96aaeb17cf428a9e847cb2 Mon Sep 17 00:00:00 2001
+From: Hendrik Sattler <post@hendrik-sattler.de>
+Date: Sun, 21 Mar 2010 13:54:16 +0100
+Subject: [PATCH] Adapt to OpenOBEX API changes
+
+---
+ apps/obexftpd.c      |    6 +++---
+ obexftp/client.c     |   18 ++++++++++--------
+ obexftp/obexftp_io.c |    2 +-
+ obexftp/object.c     |   12 ++++++------
+ obexftp/object.h     |   12 ++++++------
+ obexftp/unicode.c    |   36 ++++++++++++++++++++++++++++++++++--
+ 6 files changed, 60 insertions(+), 26 deletions(-)
+
+diff --git a/apps/obexftpd.c b/apps/obexftpd.c
+--- a/apps/obexftpd.c
++++ b/apps/obexftpd.c
+@@ -335,7 +335,7 @@ static void set_server_path(obex_t *handle, obex_object_t *object)
+ 			if (0 < hlen)
+ 			{
+ 				if( (name = malloc(hlen / 2)))	{
+-					OBEX_UnicodeToChar((uint8_t*)name, hv.bs, hlen);
++					UnicodeToChar((uint8_t*)name, hv.bs, hlen);
+ 					printf("name:%s\n", name);
+ 				}
+ 			}
+@@ -442,7 +442,7 @@ static void get_server(obex_t *handle, obex_object_t *object)
+ 		case OBEX_HDR_NAME:
+ 			printf("%s() Found name\n", __FUNCTION__);
+ 			if( (name = malloc(hlen / 2)))	{
+-				OBEX_UnicodeToChar((uint8_t*)name, hv.bs, hlen);
++				UnicodeToChar((uint8_t*)name, hv.bs, hlen);
+ 				printf("name:%s\n", name);
+ 			}
+ 			break;
+@@ -653,7 +653,7 @@ static void put_done(obex_t *handle, obex_object_t *object, int final)
+ 				free(name);
+ 			}
+ 			if( (name = malloc(hlen / 2)))	{
+-				OBEX_UnicodeToChar((uint8_t *)name, hv.bs, hlen);
++				UnicodeToChar((uint8_t *)name, hv.bs, hlen);
+ 				fprintf(stderr, "put file name: %s\n", name);
+ 			}
+ 			break;
+diff --git a/obexftp/client.c b/obexftp/client.c
+--- a/obexftp/client.c
++++ b/obexftp/client.c
+@@ -639,7 +639,7 @@ int obexftp_connect_src(obexftp_client_t *cli, const char *src, const char *devi
+ 		if (ret) {
+ 			peer.sin_family = AF_INET;
+ 			peer.sin_port = htons(port); /* overridden with OBEX_PORT 650 anyhow */
+-			ret = InOBEX_TransportConnect(cli->obexhandle, (struct sockaddr *) &peer,
++			ret = TcpOBEX_TransportConnect(cli->obexhandle, (struct sockaddr *) &peer,
+ 						  sizeof(struct sockaddr_in));
+ 			DEBUG(3, "%s() TCP %d\n", __func__, ret);
+ 		} else
+@@ -697,7 +697,7 @@ int obexftp_connect_src(obexftp_client_t *cli, const char *src, const char *devi
+ 
+ #ifdef HAVE_USB
+ 	case OBEX_TRANS_USB:
+-		obex_intf_cnt = OBEX_FindInterfaces(cli->obexhandle, &obex_intf);
++		obex_intf_cnt = OBEX_EnumerateInterfaces(cli->obexhandle);
+ 		DEBUG(3, "%s() \n", __func__);
+ 		if (obex_intf_cnt <= 0) {
+ 			DEBUG(1, "%s() there are no valid USB interfaces\n", __func__);
+@@ -707,7 +707,8 @@ int obexftp_connect_src(obexftp_client_t *cli, const char *src, const char *devi
+ 			DEBUG(1, "%s() %d is an invalid USB interface number\n", __func__, port);
+ 			ret = -EINVAL; /* is there a better errno? */
+ 		} else
+-			ret = OBEX_InterfaceConnect(cli->obexhandle, &obex_intf[port]);
++			obex_intf = OBEX_GetInterfaceByIndex(cli->obexhandle, port);
++			ret = OBEX_InterfaceConnect(cli->obexhandle, obex_intf);
+ 		DEBUG(3, "%s() USB %d\n", __func__, ret);
+ 		break;
+ #endif /* HAVE_USB */
+@@ -1205,17 +1206,18 @@ static char **discover_usb()
+ 		DEBUG(1, "%s() OBEX_Init failed\n", __func__);
+ 		return NULL;
+ 	}
+-	interfaces_number = OBEX_FindInterfaces(handle, &obex_intf);
++	interfaces_number = OBEX_EnumerateInterfaces(handle);
+ 
+ 	res = calloc(interfaces_number + 1, sizeof(char *));
+ 	
+ 	for (i=0; i < interfaces_number; i++) {
+ 		res[i] = malloc(201);
++		obex_intf = OBEX_GetInterfaceByIndex(handle, i);
+ 		snprintf(res[i], 200, "%d (Manufacturer: %s Product: %s Serial: %s Interface description: %s)", i,
+-			obex_intf[i].usb.manufacturer,
+-			obex_intf[i].usb.product,
+-			obex_intf[i].usb.serial,
+-		       	obex_intf[i].usb.control_interface);
++			obex_intf->usb.manufacturer,
++			obex_intf->usb.product,
++			obex_intf->usb.serial,
++		       	obex_intf->usb.control_interface);
+ 	}
+ 	/* OBEX_FreeInterfaces(handle); OpenOBEX 1.2 will crash */
+ 	OBEX_Cleanup(handle);
+diff --git a/obexftp/obexftp_io.c b/obexftp/obexftp_io.c
+--- a/obexftp/obexftp_io.c
++++ b/obexftp/obexftp_io.c
+@@ -90,7 +90,7 @@ obex_object_t *build_object_from_file(obex_t *obex, uint32_t conn, const char *l
+ 		return NULL;
+ 	}
+ 
+-	ucname_len = OBEX_CharToUnicode(ucname, (uint8_t*)remotename, ucname_len);
++	ucname_len = CharToUnicode(ucname, (uint8_t*)remotename, ucname_len);
+ 
+ 	hv.bs = ucname;
+ 	(void ) OBEX_ObjectAddHeader(obex, object, OBEX_HDR_NAME, hv, ucname_len, 0);
+diff --git a/obexftp/object.c b/obexftp/object.c
+--- a/obexftp/object.c
++++ b/obexftp/object.c
+@@ -36,7 +36,7 @@
+ 	 mem installed (0x01) or free mem (0x02)
+ 	\return a new obex object if successful, NULL otherwise
+  */
+-obex_object_t *obexftp_build_info (obex_t obex, uint32_t conn, uint8_t opcode)
++obex_object_t *obexftp_build_info (obex_t *obex, uint32_t conn, uint8_t opcode)
+ {
+ 	obex_object_t *object;
+ 	obex_headerdata_t hv;
+@@ -70,7 +70,7 @@ obex_object_t *obexftp_build_info (obex_t obex, uint32_t conn, uint8_t opcode)
+ 
+ 	\note \a name and \a type musn't both be NULL
+  */
+-obex_object_t *obexftp_build_get (obex_t obex, uint32_t conn, const char *name, const char *type)
++obex_object_t *obexftp_build_get (obex_t *obex, uint32_t conn, const char *name, const char *type)
+ {
+ 	obex_object_t *object;
+ 	obex_headerdata_t hv;
+@@ -122,7 +122,7 @@ obex_object_t *obexftp_build_get (obex_t obex, uint32_t conn, const char *name,
+ 
+ 	\note neither filename may be NULL
+  */
+-obex_object_t *obexftp_build_rename (obex_t obex, uint32_t conn, const char *from, const char *to)
++obex_object_t *obexftp_build_rename (obex_t *obex, uint32_t conn, const char *from, const char *to)
+ {
+ 	obex_object_t *object;
+ 	obex_headerdata_t hv;
+@@ -186,7 +186,7 @@ obex_object_t *obexftp_build_rename (obex_t obex, uint32_t conn, const char *fro
+ 
+ 	\note \a name may not be NULL
+  */
+-obex_object_t *obexftp_build_del (obex_t obex, uint32_t conn, const char *name)
++obex_object_t *obexftp_build_del (obex_t *obex, uint32_t conn, const char *name)
+ {
+ 	obex_object_t *object;
+ 	obex_headerdata_t hv;
+@@ -235,7 +235,7 @@ obex_object_t *obexftp_build_del (obex_t obex, uint32_t conn, const char *name)
+ 	 if \a name is NULL ascend one directory 
+ 	 if \a name is empty change to top/default directory
+  */
+-obex_object_t *obexftp_build_setpath (obex_t obex, uint32_t conn, const char *name, int create)
++obex_object_t *obexftp_build_setpath (obex_t *obex, uint32_t conn, const char *name, int create)
+ {
+ 	obex_object_t *object;
+ 	obex_headerdata_t hv;
+@@ -296,7 +296,7 @@ obex_object_t *obexftp_build_setpath (obex_t obex, uint32_t conn, const char *na
+ 
+ 	\note use build_object_from_file() instead
+  */
+-obex_object_t *obexftp_build_put (obex_t obex, uint32_t conn, const char *name, const int size)
++obex_object_t *obexftp_build_put (obex_t *obex, uint32_t conn, const char *name, const int size)
+ {
+ 	obex_object_t *object;
+ 	obex_headerdata_t hv;
+diff --git a/obexftp/object.h b/obexftp/object.h
+--- a/obexftp/object.h
++++ b/obexftp/object.h
+@@ -44,12 +44,12 @@ extern "C" {
+ #define APPARAM_INFO_CODE '2'
+ 
+ 
+-/*@null@*/ obex_object_t *obexftp_build_info (obex_t obex, uint32_t conn, uint8_t opcode);
+-/*@null@*/ obex_object_t *obexftp_build_get (obex_t obex, uint32_t conn, const char *name, const char *type);
+-/*@null@*/ obex_object_t *obexftp_build_rename (obex_t obex, uint32_t conn, const char *from, const char *to);
+-/*@null@*/ obex_object_t *obexftp_build_del (obex_t obex, uint32_t conn, const char *name);
+-/*@null@*/ obex_object_t *obexftp_build_setpath (obex_t obex, uint32_t conn, const char *name, int create);
+-/*@null@*/ obex_object_t *obexftp_build_put (obex_t obex, uint32_t conn, const char *name, int size);
++/*@null@*/ obex_object_t *obexftp_build_info (obex_t *obex, uint32_t conn, uint8_t opcode);
++/*@null@*/ obex_object_t *obexftp_build_get (obex_t *obex, uint32_t conn, const char *name, const char *type);
++/*@null@*/ obex_object_t *obexftp_build_rename (obex_t *obex, uint32_t conn, const char *from, const char *to);
++/*@null@*/ obex_object_t *obexftp_build_del (obex_t *obex, uint32_t conn, const char *name);
++/*@null@*/ obex_object_t *obexftp_build_setpath (obex_t *obex, uint32_t conn, const char *name, int create);
++/*@null@*/ obex_object_t *obexftp_build_put (obex_t *obex, uint32_t conn, const char *name, int size);
+ 
+ #ifdef __cplusplus
+ }
+diff --git a/obexftp/unicode.c b/obexftp/unicode.c
+--- a/obexftp/unicode.c
++++ b/obexftp/unicode.c
+@@ -131,7 +131,24 @@ int CharToUnicode(uint8_t *uc, const uint8_t *c, int size)
+ 
+ 	return size-no;
+ #else /* HAVE_ICONV */
+-	return OBEX_CharToUnicode(uc, c, size);
++	int len, n;
++
++	if (uc == NULL || c == NULL)
++		return -1;
++
++	len = n = strlen((char *) c);
++	if (n*2+2 > size)
++		return -1;
++
++	uc[n*2+1] = 0;
++	uc[n*2] = 0;
++
++	while (n--) {
++		uc[n*2+1] = c[n];
++		uc[n*2] = 0;
++	}
++
++	return (len * 2) + 2;
+ #endif /* HAVE_ICONV */
+ 
+ #endif /* _WIN32 */
+@@ -193,7 +210,22 @@ int UnicodeToChar(uint8_t *c, const uint8_t *uc, int size)
+ 	}
+ 	return size-no;
+ #else /* HAVE_ICONV */
+-	return OBEX_UnicodeToChar(c, uc, size);
++	int n;
++
++	if (uc == NULL || c == NULL)
++		return -1;
++
++	/* Make sure buffer is big enough! */
++	for (n = 0; uc[n*2+1] != 0; n++);
++
++	if (n >= size)
++		return -1;
++
++	for (n = 0; uc[n*2+1] != 0; n++)
++		c[n] = uc[n*2+1];
++	c[n] = 0;
++
++	return 0;
+ #endif /* HAVE_ICONV */
+ 
+ #endif /* _WIN32 */
+-- 
+1.7.10
+

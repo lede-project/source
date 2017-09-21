@@ -1,0 +1,94 @@
+--- a/arch/mips/ath79/dev-common.c	2015-12-18 13:51:40.513915155 +0100
++++ b/arch/mips/ath79/dev-common.c	2015-12-18 13:55:35.247817870 +0100
+@@ -80,6 +80,30 @@
+ 	},
+ };
+
++static struct resource ar934x_uart_resources[] = {
++	{
++		.start	= AR934X_UART_HS_BASE,
++		.end	= AR934X_UART_HS_BASE + AR71XX_UART_SIZE - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= ATH79_MISC_IRQ(6),
++		.end	= ATH79_MISC_IRQ(6),
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct platform_device ar934x_uart_device = {
++	.name		= "ar933x-uart",
++	.id		= -1,
++	.resource	= ar934x_uart_resources,
++	.num_resources	= ARRAY_SIZE(ar934x_uart_resources),
++	.dev = {
++		.platform_data	= &ar93xx_uart_data,
++ 	},
++ };
++
++
+ void __init ath79_register_uart(void)
+ {
+ 	unsigned long uart_clk_rate;
+@@ -98,7 +122,6 @@
+ 	if (soc_is_ar71xx() ||
+ 	    soc_is_ar724x() ||
+ 	    soc_is_ar913x() ||
+-	    soc_is_ar934x() ||
+ 	    soc_is_qca953x() ||
+ 	    soc_is_qca955x() ||
+ 	    soc_is_qca956x()) {
+@@ -108,6 +131,11 @@
+ 	} else if (soc_is_ar933x()) {
+ 		ar933x_uart_data.uartclk = uart_clk_rate;
+ 		platform_device_register(&ar933x_uart_device);
++	} else if (soc_is_ar934x()) {
++		ath79_uart_data[0].uartclk = uart_clk_rate;
++		platform_device_register(&ath79_uart_device);
++		ar93xx_uart_data.uartclk = uart_clk_rate;
++		platform_device_register(&ar934x_uart_device);
+ 	} else {
+ 		BUG();
+ 	}
+
+--- a/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2015-12-18 13:51:40.481915529 +0100
++++ b/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2015-12-18 13:56:41.303189545 +0100
+@@ -113,6 +113,8 @@
+ #define QCA953X_EHCI_SIZE	0x200
+ #define QCA953X_SRIF_BASE	(AR71XX_APB_BASE + 0x00116000)
+ #define QCA953X_SRIF_SIZE	0x1000
++#define AR934X_UART_HS_BASE	(AR71XX_APB_BASE + 0x00500000)
++#define AR934X_UART_HS_SIZE	0x14
+
+ #define QCA953X_PCI_CFG_BASE0	0x14000000
+ #define QCA953X_PCI_CTRL_BASE0	(AR71XX_APB_BASE + 0x000f0000)
+
+--- a/drivers/tty/serial/Kconfig	2015-10-22 23:43:44.000000000 +0200
++++ b/drivers/tty/serial/Kconfig	2015-12-18 13:57:46.198568034 +0100
+@@ -1440,7 +1440,7 @@
+ 	  Enable a Cadence UART port to be the system console.
+
+ config SERIAL_AR933X
+-	tristate "AR933X serial port support"
++	tristate "AR933X serial / AR9342 high speed serial port support"
+ 	depends on HAVE_CLK && SOC_AR933X
+ 	select SERIAL_CORE
+ 	help
+@@ -1451,14 +1451,14 @@
+ 	  module will be called ar933x_uart.
+
+ config SERIAL_AR933X_CONSOLE
+-	bool "Console on AR933X serial port"
++	bool "Console on AR933X serial / AR934X high speed serial port"
+ 	depends on SERIAL_AR933X=y
+ 	select SERIAL_CORE_CONSOLE
+ 	help
+ 	  Enable a built-in UART port of the AR933X to be the system console.
+
+ config SERIAL_AR933X_NR_UARTS
+-	int "Maximum number of AR933X serial ports"
++	int "Maximum number of AR933X serial / AR934X high speed serial ports"
+ 	depends on SERIAL_AR933X
+ 	default "2"
+ 	help

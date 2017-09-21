@@ -1,0 +1,11 @@
+--- a/package.json	2017-04-03 17:40:01.874522987 +0200
++++ b/package.json	2017-04-03 17:40:57.135164675 +0200
+@@ -11,7 +11,7 @@
+     "pty.js": "~0.3.0",
+     "redis": "~2.4.2",
+     "rimraf": "^2.5.4",
+-    "serialport": "~2.0.6",
++    "serialport": "*",
+     "wireless-tools": "~0.15.0"
+   },
+   "devDependencies": {},

@@ -1,0 +1,38 @@
+#!/bin/sh
+
+###  BOARD GPIO  ###
+#GPIO	OUTPUT	board
+# 104	D8
+# 105	D9
+# 106	D10
+# 107	D11
+# 114	D5
+# 115	D13
+# 116	D3
+# 117	D2
+# 120	D4
+# 122	D12
+# 123	D6
+
+
+for i in 104 105 106 107 114 115 116 117 120 122 123; do
+	echo $i > /sys/class/gpio/unexport
+done
+
+# enable ADC
+echo 0 > /sys/bus/iio/devices/iio:device0/enable
+
+#enable PWM
+# PWM n.  OUTPUT
+#   0	  D3
+#   1	  D9
+#   2	  D10
+#   3	  D11
+#   4	  D5
+#   5	  D6
+
+pwm=$(seq 0 5)
+
+for i in $pwm;do
+	echo $i > /sys/class/pwm/pwmchip0/unexport
+done

@@ -1,0 +1,194 @@
+From b9ca504e6658238afcf7030e21b18eb257566ff0 Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Tue, 28 Feb 2017 15:47:35 +0100
+Subject: [PATCH 16/21] Added reset radio when application starts.
+
+---
+ libloragw/inc/loragw_spi.h       |  2 +-
+ libloragw/src/loragw_spi-stm32.c | 93 +++++++++++++++++++++++++---------------
+ 2 files changed, 59 insertions(+), 36 deletions(-)
+
+diff --git a/libloragw/inc/loragw_spi.h b/libloragw/inc/loragw_spi.h
+index fef1f48..46f5304 100644
+--- a/libloragw/inc/loragw_spi.h
++++ b/libloragw/inc/loragw_spi.h
+@@ -33,7 +33,7 @@ Maintainer: Sylvain Miermont
+ 
+ #define LGW_SPI_SUCCESS     0
+ #define LGW_SPI_ERROR       -1
+-#define LGW_BURST_CHUNK     1024
++#define LGW_BURST_CHUNK     64
+ 
+ #define LGW_SPI_MUX_MODE0   0x0     /* No FPGA */
+ #define LGW_SPI_MUX_MODE1   0x1     /* FPGA, with spi mux header */
+diff --git a/libloragw/src/loragw_spi-stm32.c b/libloragw/src/loragw_spi-stm32.c
+index c6649b2..49f9156 100644
+--- a/libloragw/src/loragw_spi-stm32.c
++++ b/libloragw/src/loragw_spi-stm32.c
+@@ -54,20 +54,21 @@ Maintainer: Sylvain Miermont
+     #define DUMP_BUFFER_W(a, b)			do { fprintf(stderr, "-W- "); DUMP_BUFFER(a, b);  fprintf(stderr, " ");} while(0);
+     #define DUMP_STATS(a, b)			do { fprintf(stderr, "-S- "); fprintf(stderr, "nw=%d nr=%d ", a, b);} while(0);
+ #else
++	#define DEBUG_TIMEOUT_MSG(str)		fprintf(stderr, str)
+     #define DEBUG_MSG(str)
+     #define DEBUG_PRINTF(fmt, args...)
+     #define CHECK_NULL(a)                if(a==NULL){return LGW_SPI_ERROR;}
+     #define DUMP_BUFFER(a, b)
+     #define DUMP_BUFFER_R(a, b)
+     #define DUMP_BUFFER_W(a, b)
+-    #define DUMP_STATS(a, b)
++    #define DUMP_STATS(a, b)		do { fprintf(stderr, "-S- "); fprintf(stderr, "nw=%d nr=%d ", a, b);} while(0);
+ #endif
+ 
+ // If enabled during the read block the write buffer will be filled by incremental values 0-255 and during the read will be verified. 
+ // Need to add a hardware loop between MISO and MOSI. The test pass if the read buffer is equal to the sent buffer
+ //#define TEST_BUFFER_LOOP
+ //#define READ_BLOCK
+-#define READ_TIMEOUT 10
++#define READ_TIMEOUT 100
+ 
+ #ifdef READ_BLOCK	
+ ssize_t read_spi(int fd, void *buf, size_t count)
+@@ -82,19 +83,58 @@ ssize_t read_spi(int fd, void *buf, size_t count)
+ 		do {
+ 		int n = read(fd, (void*)(buf + nr), 1);
+ 		if (n > 0) nr += n;
+-		if (n <= 0) { DEBUG_MSG("."); ++timeout; }
++		if (n <= 0) { DEBUG_TIMEOUT_MSG("."); ++timeout; }
+ 		} while ((nr < count)&&(timeout<READ_TIMEOUT));
+ 		return nr;
+ }
+ #endif
+ 
++int setSerialSpeed(int _dev, speed_t _speed)
++{
++	struct termios options;
++    tcgetattr(_dev, &options);
++    cfsetispeed(&options, _speed);
++    cfsetospeed(&options, _speed);
++    // Set the new attributes
++    int ret = tcsetattr(_dev, TCSANOW, &options);
++
++    if (ret != 0)
++    {
++    	DEBUG_MSG("Error setting baudrate:\n");
++    	perror("stdin");
++    }
++	return ret;
++}
++
++
++int enable_CS(int dev)
++{
++	return setSerialSpeed(dev, B1200);
++}
++
++int disable_CS(int dev)
++{
++	return setSerialSpeed(dev, B2400);
++}
++
++int reset_SX1301(int dev)
++{
++    return setSerialSpeed(dev, B600);
++}
++
++int set_default_speed(int dev)
++{
++    return setSerialSpeed(dev, B115200);
++}
++
++
+ /* -------------------------------------------------------------------------- */
+ /* --- PRIVATE CONSTANTS ---------------------------------------------------- */
+ 
+ #define READ_ACCESS     0x00
+ #define WRITE_ACCESS    0x80
+ #define SPI_SPEED       8000000
+-#define SPI_DEV_PATH    "/dev/ttyACM0"
++#define SPI_DEV_PATH    "/dev/ttyLRA"
+ 
+ uint8_t dummy[LGW_BURST_CHUNK] = {0};
+ 
+@@ -141,9 +181,13 @@ int lgw_spi_open(void **spi_target_ptr) {
+     options.c_cflag &= ~CSIZE;              // Mask data size
+     options.c_cflag |=  CS8;                // Select 8 data bits
+     options.c_cflag &= ~CRTSCTS;            // Disable hardware flow control  
++#ifdef READ_BLOCK
++    options.c_cc[VMIN]   =  0;              // read doesn't block
++	options.c_cc[VTIME]  =  0;              // 0.5 seconds read timeout
++#else
+     options.c_cc[VMIN]   =  1;              // read doesn't block
+ 	options.c_cc[VTIME]  =  5;              // 0.5 seconds read timeout
+-
++#endif
+     // Enable data to be processed as raw input
+     options.c_lflag &= ~(ICANON | ECHO | ISIG);
+ 
+@@ -154,16 +198,17 @@ int lgw_spi_open(void **spi_target_ptr) {
+ 	
+     // Set the new attributes
+     tcsetattr(dev, TCSANOW, &options);
+-     
+ 
+-  speed_t ispeed = cfgetispeed(&options);
+-  speed_t ospeed = cfgetospeed(&options);
+-  printf("baud rate in: 0%o\n", ispeed);
+-  printf("baud rate out: 0%o\n", ospeed);
+-  
+     *spi_device = dev;
+     *spi_target_ptr = (void *)spi_device;
+     DEBUG_MSG("Note: SPI port opened and configured ok\n");
++    if (reset_SX1301(dev) == 0)
++    {
++        DEBUG_MSG("Note: radio reset ok\n");
++    }
++    set_default_speed(dev);
++    sleep(3);
++
+     return LGW_SPI_SUCCESS;
+ }
+ 
+@@ -192,29 +237,6 @@ int lgw_spi_close(void *spi_target) {
+     }
+ }
+ 
+-int enable_CS(int dev)
+-{
+-	struct termios options;
+-    tcgetattr(dev, &options);       
+-    cfsetispeed(&options, B1200);    
+-    cfsetospeed(&options, B1200);
+-    // Set the new attributes
+-    int ret = tcsetattr(dev, TCSANOW, &options);
+-
+-	return ret;
+-}
+-
+-int disable_CS(int dev)
+-{
+-	struct termios options;
+-    tcgetattr(dev, &options);      
+-    cfsetispeed(&options, B2400);
+-    cfsetospeed(&options, B2400);
+-    // Set the new attributes
+-    int ret = tcsetattr(dev, TCSANOW, &options);
+-
+-	return ret;
+-}
+ 
+ /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+ 
+@@ -307,7 +329,8 @@ int lgw_spi_r(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+ 		DUMP_BUFFER_W( out_buf, command_size);
+ 		DUMP_BUFFER_R( in_buf, command_size);
+ 		DUMP_STATS(nw, nr);
+-        ERROR_MSG("[FAIL]\n");
++		ERROR_PRINTF("[FAIL] write:%d read:%d\n", nw, nr);
++        //ERROR_MSG("[FAIL]\n");
+         return LGW_SPI_ERROR;
+     } else {
+         //DEBUG_MSG("[ OK ]\n");
+-- 
+2.11.0
+

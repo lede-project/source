@@ -1,0 +1,84 @@
+From 85057029179c65bb31a1fdf44121773178e33cf4 Mon Sep 17 00:00:00 2001
+From: Peter Seiderer <ps.report@gmx.net>
+Date: Mon, 9 Nov 2015 23:40:28 +0100
+Subject: [PATCH] Fix musl PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP compile
+ error.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- delete DIRECT_RECURSIVE_MUTEX_INITIALIZER define (which uses unknown
+  PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP)
+- use DIRECT_MUTEX_INITIALIZER instead for trace.c (no recursive
+  mutex needed)
+- use pthread_once and direct_recursive_mutex_init instead for
+  directfb.c
+
+Fixes:
+
+  ../lib/direct/os/linux/glibc/mutex.h:49:53: error: ‘PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP’ undeclared (first use in this function)
+
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+---
+ lib/direct/os/linux/glibc/mutex.h |  1 -
+ lib/direct/trace.c                |  2 +-
+ src/directfb.c                    | 11 ++++++++++-
+ 3 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/lib/direct/os/linux/glibc/mutex.h b/lib/direct/os/linux/glibc/mutex.h
+index 1049c14..37573b2 100644
+--- a/lib/direct/os/linux/glibc/mutex.h
++++ b/lib/direct/os/linux/glibc/mutex.h
+@@ -46,7 +46,6 @@ struct __D_DirectMutex {
+ /**********************************************************************************************************************/
+ 
+ #define DIRECT_MUTEX_INITIALIZER(name)            { PTHREAD_MUTEX_INITIALIZER }
+-#define DIRECT_RECURSIVE_MUTEX_INITIALIZER(name)  { PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP }
+ 
+ #endif
+ 
+diff --git a/lib/direct/trace.c b/lib/direct/trace.c
+index cb43954..88d8e5d 100644
+--- a/lib/direct/trace.c
++++ b/lib/direct/trace.c
+@@ -89,7 +89,7 @@ struct __D_DirectTraceBuffer {
+ /**************************************************************************************************/
+ 
+ static DirectLink  *buffers;
+-static DirectMutex  buffers_lock = DIRECT_RECURSIVE_MUTEX_INITIALIZER(buffers_lock);
++static DirectMutex  buffers_lock = DIRECT_MUTEX_INITIALIZER(buffers_lock);
+ 
+ /**************************************************************************************************/
+ 
+diff --git a/src/directfb.c b/src/directfb.c
+index 713f6c4..d060e58 100644
+--- a/src/directfb.c
++++ b/src/directfb.c
+@@ -163,6 +163,15 @@ DirectFBSetOption( const char *name, const char *value )
+      return DFB_OK;
+ }
+ 
++
++static pthread_once_t lock_init_once = PTHREAD_ONCE_INIT;
++static DirectMutex lock;
++
++static void lock_init(void)
++{
++    direct_recursive_mutex_init(&lock);
++}
++
+ /*
+  * Programs have to call this to get the super interface
+  * which is needed to access other functions
+@@ -215,7 +224,7 @@ DirectFBCreate( IDirectFB **interface_ptr )
+      if (dfb_config->remote.host)
+           return CreateRemote( dfb_config->remote.host, dfb_config->remote.port, interface_ptr );
+ 
+-     static DirectMutex lock = DIRECT_RECURSIVE_MUTEX_INITIALIZER(lock);
++     pthread_once(&lock_init_once, lock_init);
+ 
+      direct_mutex_lock( &lock );
+ 
+-- 
+2.1.4
+

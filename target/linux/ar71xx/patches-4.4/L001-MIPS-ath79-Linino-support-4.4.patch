@@ -1,0 +1,30 @@
+--- a/arch/mips/ath79/Makefile	2016-11-07 12:55:11.838599263 +0100
++++ b/arch/mips/ath79/Makefile	2016-11-07 13:59:05.042058549 +0100
+@@ -257,3 +257,10 @@
+ obj-$(CONFIG_ATH79_MACH_Z1)			+= mach-z1.o
+ obj-$(CONFIG_ATH79_MACH_ZBT_WE1526)		+= mach-zbt-we1526.o
+ obj-$(CONFIG_ATH79_MACH_ZCN_1523H)		+= mach-zcn-1523h.o
++obj-$(CONFIG_ATH79_MACH_LININO_YUN) += mach-linino-yun.o
++obj-$(CONFIG_ATH79_MACH_LININO_ONE) += mach-linino-yun.o
++obj-$(CONFIG_ATH79_MACH_LININO_FREEDOG) += mach-linino-freedog.o
++obj-$(CONFIG_ATH79_MACH_LININO_LEI) += mach-linino-lei.o
++obj-$(CONFIG_ATH79_MACH_LININO_TIAN) += mach-linino-tian.o
++obj-$(CONFIG_ATH79_MACH_LININO_CHIWAWA) += mach-linino-chiwawa.o
++obj-$(CONFIG_ATH79_MACH_LININO_YUN_MINI) += mach-linino-yun.o
+
+--- a/arch/mips/ath79/machtypes.h	2016-11-07 12:55:11.838599263 +0100
++++ b/arch/mips/ath79/machtypes.h	2016-11-07 14:00:22.231518655 +0100
+@@ -332,6 +332,13 @@
+ 	ATH79_MACH_ZBT_WE1526,			/* Zbtlink ZBT-WE1526 */
+ 	ATH79_MACH_ZCN_1523H_2,			/* Zcomax ZCN-1523H-2-xx */
+ 	ATH79_MACH_ZCN_1523H_5,			/* Zcomax ZCN-1523H-5-xx */
++	ATH79_MACH_LININO_YUN,		/* Linino Yun */
++	ATH79_MACH_LININO_ONE,		/* Linino One */
++	ATH79_MACH_LININO_FREEDOG,	/* Linino Freedog */
++	ATH79_MACH_LININO_LEI,		/* Linino Lei */
++	ATH79_MACH_LININO_TIAN,		/* Linino Tian */
++	ATH79_MACH_LININO_CHIWAWA,	/* Linino Chiwawa */
++	ATH79_MACH_LININO_YUN_MINI,	/* Linino Yun mini */
+ };
+
+ #endif /* _ATH79_MACHTYPE_H */

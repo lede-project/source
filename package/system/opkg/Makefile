@@ -11,7 +11,7 @@ include $(INCLUDE_DIR)/version.mk
 include $(INCLUDE_DIR)/feeds.mk
 
 PKG_NAME:=opkg
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 PKG_FLAGS:=essential
 
 PKG_SOURCE_PROTO:=git
@@ -94,7 +94,7 @@ define Package/opkg/install
 	$(INSTALL_DATA) ./files/customfeeds.conf $(1)/etc/opkg/customfeeds.conf
 	$(INSTALL_DATA) ./files/opkg$(2).conf $(1)/etc/opkg.conf
 	$(call FeedSourcesAppend,$(1)/etc/opkg/distfeeds.conf)
-	$(VERSION_SED) $(1)/etc/opkg/distfeeds.conf
+	$(LININO_SED) $(1)/etc/opkg/distfeeds.conf
 	$(INSTALL_BIN) ./files/20_migrate-feeds $(1)/etc/uci-defaults/
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/opkg-cl $(1)/bin/opkg
   ifneq ($(CONFIG_SIGNED_PACKAGES),)

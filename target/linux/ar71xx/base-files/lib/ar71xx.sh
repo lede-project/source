@@ -1336,6 +1336,27 @@ ar71xx_board_detect() {
 	*"ZCN-1523H-5")
 		name="zcn-1523h-5"
 		;;
+	*"Linino Chiwawa")
+		name="linino-chiwawa"
+		;;
+	*"Linino Freedog")
+		name="linino-freedog"
+		;;
+	*"Linino One")
+		name="linino-one"
+		;;
+	*"Linino Lei")
+		name="linino-lei"
+		;;
+	*"Linino Tian")
+		name="linino-tian"
+		;;
+	*"Linino Yun-Mini")
+		name="linino-yun-mini"
+		;;
+	*"Linino Yun")
+		name="linino-yun"
+		;;
 	esac
 
 	[ -z "$AR71XX_MODEL" ] && [ "${machine:0:8}" = 'TP-LINK ' ] && \

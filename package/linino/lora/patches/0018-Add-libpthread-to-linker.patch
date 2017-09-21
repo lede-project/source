@@ -1,0 +1,95 @@
+From f417a5a28ec911841b7a07a72c44bbf0e65854eb Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Fri, 3 Mar 2017 13:21:13 +0100
+Subject: [PATCH 18/21] Add libpthread to linker
+
+---
+ util_lbt_test/Makefile      | 2 +-
+ util_pkt_logger/Makefile    | 2 +-
+ util_spectral_scan/Makefile | 2 +-
+ util_spi_stress/Makefile    | 2 +-
+ util_tx_continuous/Makefile | 2 +-
+ util_tx_test/Makefile       | 2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/util_lbt_test/Makefile b/util_lbt_test/Makefile
+index de937e4..6364ef8 100644
+--- a/util_lbt_test/Makefile
++++ b/util_lbt_test/Makefile
+@@ -30,7 +30,7 @@ LGW_INC += $(LGW_PATH)/inc/loragw_fpga.h
+ 
+ ### Linking options
+ 
+-LIBS := -lloragw -lrt -lm
++LIBS := -lloragw -lrt -lm -lpthread
+ 
+ ### General build targets
+ 
+diff --git a/util_pkt_logger/Makefile b/util_pkt_logger/Makefile
+index 264ccc1..befae8b 100644
+--- a/util_pkt_logger/Makefile
++++ b/util_pkt_logger/Makefile
+@@ -29,7 +29,7 @@ LGW_INC += $(LGW_PATH)/inc/loragw_hal.h
+ 
+ ### Linking options
+ 
+-LIBS := -lloragw -lrt -lm
++LIBS := -lloragw -lrt -lm -lpthread
+ 
+ ### General build targets
+ 
+diff --git a/util_spectral_scan/Makefile b/util_spectral_scan/Makefile
+index 35d625f..40c1119 100644
+--- a/util_spectral_scan/Makefile
++++ b/util_spectral_scan/Makefile
+@@ -25,7 +25,7 @@ LGW_INC += $(LGW_PATH)/inc/loragw_hal.h
+ 
+ ### Linking options
+ 
+-LIBS := -lloragw -lrt
++LIBS := -lloragw -lrt -lpthread
+ 
+ ### General build targets
+ 
+diff --git a/util_spi_stress/Makefile b/util_spi_stress/Makefile
+index 23e3c88..5e61486 100644
+--- a/util_spi_stress/Makefile
++++ b/util_spi_stress/Makefile
+@@ -30,7 +30,7 @@ LGW_INC += $(LGW_PATH)/inc/loragw_reg.h
+ 
+ ### Linking options
+ 
+-LIBS := -lloragw -lrt -lm
++LIBS := -lloragw -lrt -lm -lpthread
+ 
+ ### General build targets
+ 
+diff --git a/util_tx_continuous/Makefile b/util_tx_continuous/Makefile
+index b07419b..2d76e45 100644
+--- a/util_tx_continuous/Makefile
++++ b/util_tx_continuous/Makefile
+@@ -32,7 +32,7 @@ LGW_INC += $(LGW_PATH)/inc/loragw_aux.h
+ 
+ ### Linking options
+ 
+-LIBS := -lloragw -lrt -lm
++LIBS := -lloragw -lrt -lm -lpthread
+ 
+ ### General build targets
+ 
+diff --git a/util_tx_test/Makefile b/util_tx_test/Makefile
+index 8c35229..0f50528 100644
+--- a/util_tx_test/Makefile
++++ b/util_tx_test/Makefile
+@@ -31,7 +31,7 @@ LGW_INC += $(LGW_PATH)/inc/loragw_aux.h
+ 
+ ### Linking options
+ 
+-LIBS := -lloragw -lrt -lm
++LIBS := -lloragw -lrt -lm -lpthread
+ 
+ ### General build targets
+ 
+-- 
+2.11.0
+

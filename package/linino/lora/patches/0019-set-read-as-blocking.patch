@@ -1,0 +1,139 @@
+From 2e1d9a68999404b1d9ba9a9a7632dc00a3388f15 Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Fri, 3 Mar 2017 16:01:35 +0100
+Subject: [PATCH 19/21] set read as blocking
+
+---
+ libloragw/src/loragw_spi-stm32.c | 56 ++++++++++++++--------------------------
+ 1 file changed, 19 insertions(+), 37 deletions(-)
+
+diff --git a/libloragw/src/loragw_spi-stm32.c b/libloragw/src/loragw_spi-stm32.c
+index e256f2d..5db085c 100644
+--- a/libloragw/src/loragw_spi-stm32.c
++++ b/libloragw/src/loragw_spi-stm32.c
+@@ -68,10 +68,16 @@ extern int errno;
+     #define DUMP_STATS(a, b)		do { fprintf(stderr, "-S- "); fprintf(stderr, "nw=%d nr=%d ", a, b);} while(0);
+ #endif
+ 
++#define BAUDRATE B115200
++#define BAUDRATE_TO_RESET_SX1301	B600
++#define BAUDRATE_FOR_CS_ENABLED		B1200
++#define BAUDRATE_FOR_CS_DISABLED	B2400
++
++#define SPI_SPEED       8000000
++#define SPI_DEV_PATH    "/dev/ttyLRA"
++
+ // If enabled during the read block the write buffer will be filled by incremental values 0-255 and during the read will be verified. 
+ // Need to add a hardware loop between MISO and MOSI. The test pass if the read buffer is equal to the sent buffer
+-//#define TEST_BUFFER_LOOP
+-#define READ_BLOCK
+ #define READ_TIMEOUT 100
+ 
+ #define MAX_BUF_SIZE 128
+@@ -97,6 +103,9 @@ void *read_function(void *arg)
+  
+     if(num_bytes > 0) {
+       ctx->nr += num_bytes;
++    }else
++    {
++    	DEBUG_MSG("ctx->nr=%d, errno=%d\n", ctx->nr, errno);
+     }
+     num_bytes = 0;  
+   }while(ctx->nr < ctx->ntor);
+@@ -104,25 +113,6 @@ void *read_function(void *arg)
+   return NULL;
+ }
+ 
+-#ifdef READ_BLOCK	
+-ssize_t read_spi(int fd, void *buf, size_t count)
+-{
+-	return read(fd, buf, count);
+-}
+-#else
+-ssize_t read_spi(int fd, void *buf, size_t count)
+-{
+-		size_t nr = 0;
+-		int timeout = 0;
+-		do {
+-		int n = read(fd, (void*)(buf + nr), 1);
+-		if (n > 0) nr += n;
+-		if (n <= 0) { DEBUG_TIMEOUT_MSG("."); ++timeout; }
+-		} while ((nr < count)&&(timeout<READ_TIMEOUT));
+-		return nr;
+-}
+-#endif
+-
+ int setSerialSpeed(int _dev, speed_t _speed)
+ {
+ 	struct termios options;
+@@ -143,22 +133,22 @@ int setSerialSpeed(int _dev, speed_t _speed)
+ 
+ int enable_CS(int dev)
+ {
+-	return setSerialSpeed(dev, B1200);
++	return setSerialSpeed(dev, BAUDRATE_FOR_CS_ENABLED);
+ }
+ 
+ int disable_CS(int dev)
+ {
+-	return setSerialSpeed(dev, B2400);
++	return setSerialSpeed(dev, BAUDRATE_FOR_CS_DISABLED);
+ }
+ 
+ int reset_SX1301(int dev)
+ {
+-    return setSerialSpeed(dev, B600);
++    return setSerialSpeed(dev, BAUDRATE_TO_RESET_SX1301);
+ }
+ 
+ int set_default_speed(int dev)
+ {
+-    return setSerialSpeed(dev, B115200);
++    return setSerialSpeed(dev, BAUDRATE);
+ }
+ 
+ 
+@@ -167,14 +157,9 @@ int set_default_speed(int dev)
+ 
+ #define READ_ACCESS     0x00
+ #define WRITE_ACCESS    0x80
+-#define SPI_SPEED       8000000
+-#define SPI_DEV_PATH    "/dev/ttyLRA"
+ 
+ uint8_t dummy[LGW_BURST_CHUNK] = {0};
+ 
+-#define BAUDRATE B115200
+-
+-
+ /* -------------------------------------------------------------------------- */
+ /* --- PUBLIC FUNCTIONS DEFINITION ------------------------------------------ */
+ 
+@@ -215,13 +200,9 @@ int lgw_spi_open(void **spi_target_ptr) {
+     options.c_cflag &= ~CSIZE;              // Mask data size
+     options.c_cflag |=  CS8;                // Select 8 data bits
+     options.c_cflag &= ~CRTSCTS;            // Disable hardware flow control  
+-#ifdef READ_BLOCK
+     options.c_cc[VMIN]   =  0;              // read blocks
+-    options.c_cc[VTIME]  =  5;              // 0.5 seconds read timeout
+-#else
+-    options.c_cc[VMIN]   =  1;              // read doesn't block
+-    options.c_cc[VTIME]  =  5;              // 0.5 seconds read timeout
+-#endif
++    options.c_cc[VTIME]  =  0;              // 0.5 seconds read timeout
++
+     // Enable data to be processed as raw input
+     options.c_lflag &= ~(ICANON | ECHO | ISIG);
+ 
+@@ -241,7 +222,8 @@ int lgw_spi_open(void **spi_target_ptr) {
+         DEBUG_MSG("Note: radio reset ok\n");
+     }
+     set_default_speed(dev);
+-    sleep(3);
++
++    fcntl(dev, F_SETFL, fcntl(dev, F_GETFL) & ~O_NONBLOCK);
+ 
+     return LGW_SPI_SUCCESS;
+ }
+-- 
+2.11.0
+

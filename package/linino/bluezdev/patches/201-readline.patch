@@ -1,0 +1,51 @@
+diff --git a/Makefile.tools b/Makefile.tools
+index 73b2eef8f..f5ce38d5a 100644
+--- a/Makefile.tools
++++ b/Makefile.tools
+@@ -10,7 +10,7 @@ client_bluetoothctl_SOURCES = client/main.c \
+ 					client/gatt.h client/gatt.c \
+ 					monitor/uuid.h monitor/uuid.c
+ client_bluetoothctl_LDADD = gdbus/libgdbus-internal.la @GLIB_LIBS@ @DBUS_LIBS@ \
+-				-lreadline
++				-lreadline -lncurses
+ endif
+ 
+ if MONITOR
+@@ -356,7 +356,7 @@ noinst_PROGRAMS += tools/obex-client-tool tools/obex-server-tool \
+ tools_obex_client_tool_SOURCES = $(gobex_sources) $(btio_sources) \
+ 						tools/obex-client-tool.c
+ tools_obex_client_tool_LDADD = lib/libbluetooth-internal.la \
+-						@GLIB_LIBS@ -lreadline
++						@GLIB_LIBS@ -lreadline -lncurses
+ 
+ tools_obex_server_tool_SOURCES = $(gobex_sources) $(btio_sources) \
+ 						tools/obex-server-tool.c
+@@ -365,16 +365,16 @@ tools_obex_server_tool_LDADD = lib/libbluetooth-internal.la @GLIB_LIBS@
+ tools_bluetooth_player_SOURCES = tools/bluetooth-player.c \
+ 				client/display.h client/display.c
+ tools_bluetooth_player_LDADD = gdbus/libgdbus-internal.la \
+-				@GLIB_LIBS@ @DBUS_LIBS@ -lreadline
++				@GLIB_LIBS@ @DBUS_LIBS@ -lreadline -lncurses
+ 
+ tools_obexctl_SOURCES = tools/obexctl.c \
+ 				client/display.h client/display.c
+ tools_obexctl_LDADD = gdbus/libgdbus-internal.la \
+-				@GLIB_LIBS@ @DBUS_LIBS@ -lreadline
++				@GLIB_LIBS@ @DBUS_LIBS@ -lreadline -lncurses
+ 
+ tools_btmgmt_SOURCES = tools/btmgmt.c src/uuid-helper.c client/display.c
+ tools_btmgmt_LDADD = lib/libbluetooth-internal.la src/libshared-mainloop.la \
+-				-lreadline
++				-lreadline -lncurses
+ if DEPRECATED
+ noinst_PROGRAMS += attrib/gatttool
+ 
+@@ -384,7 +384,7 @@ attrib_gatttool_SOURCES = attrib/gatttool.c attrib/att.c attrib/gatt.c \
+ 				attrib/utils.c src/log.c client/display.c \
+ 				client/display.h
+ attrib_gatttool_LDADD = lib/libbluetooth-internal.la \
+-			src/libshared-glib.la @GLIB_LIBS@ -lreadline
++			src/libshared-glib.la @GLIB_LIBS@ -lreadline -lncurses
+ 
+ endif
+ endif

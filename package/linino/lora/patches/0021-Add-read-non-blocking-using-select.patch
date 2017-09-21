@@ -1,0 +1,215 @@
+From c25ceacbd29f3d054613dbd5cbd76b167e316499 Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Fri, 3 Mar 2017 17:25:20 +0100
+Subject: [PATCH 21/21] Add read non blocking using select
+
+---
+ libloragw/src/loragw_spi-stm32.c | 90 +++++++++++++++++++++++++++++++---------
+ 1 file changed, 70 insertions(+), 20 deletions(-)
+
+diff --git a/libloragw/src/loragw_spi-stm32.c b/libloragw/src/loragw_spi-stm32.c
+index 4f2de2d..a916fe9 100644
+--- a/libloragw/src/loragw_spi-stm32.c
++++ b/libloragw/src/loragw_spi-stm32.c
+@@ -76,10 +76,7 @@ extern int errno;
+ #define SPI_SPEED       8000000
+ #define SPI_DEV_PATH    "/dev/ttyLRA"
+ 
+-// If enabled during the read block the write buffer will be filled by incremental values 0-255 and during the read will be verified. 
+-// Need to add a hardware loop between MISO and MOSI. The test pass if the read buffer is equal to the sent buffer
+-#define READ_TIMEOUT 100
+-
++#define READ_TIMEOUT 1
+ #define MAX_BUF_SIZE 128
+ 
+ typedef struct read_ctx_s {
+@@ -87,6 +84,7 @@ typedef struct read_ctx_s {
+   unsigned char buf[MAX_BUF_SIZE];
+   int nr;
+   int ntor;
++  struct timeval timeout;
+ } read_ctx_t;
+ 
+ void *read_function(void *arg)
+@@ -94,25 +92,55 @@ void *read_function(void *arg)
+   read_ctx_t *ctx = (read_ctx_t *)arg;
+   int num_bytes;
+   int offset = 0;
++  fd_set set;
++  int rv;
++  struct timeval timeout;
++  int exit = 0;
+ 
+   do
+   {
+-    offset = ctx->nr;
++    FD_ZERO(&set); /* clear the set */
++    FD_SET(ctx->fd, &set); /* add our file descriptor to the set */
++
++    timeout.tv_sec = ctx->timeout.tv_sec;
++    timeout.tv_usec = ctx->timeout.tv_usec;
+ 
+-    num_bytes = read( ctx->fd, &ctx->buf[offset], (MAX_BUF_SIZE - offset) ); /* there was data to read */
+- 
+-    if(num_bytes > 0) {
+-      ctx->nr += num_bytes;
+-    }else
++    rv = select(ctx->fd + 1, &set, NULL, NULL, &timeout);
++    if(rv == -1)
++    {
++      exit = 1;
++      ERROR_MSG("ERROR: Inside select\n"); /* an error accured */
++    }
++    else if(rv == 0)
+     {
+-    	DEBUG_PRINTF("ctx->nr=%d, errno=%d\n", ctx->nr, errno);
++      exit = 1;
++      DEBUG_MSG("select timeout\n"); /* a timeout occured */
+     }
+-    num_bytes = 0;  
+-  }while(ctx->nr < ctx->ntor);
++    else
++    {
++      offset = ctx->nr;
++
++      num_bytes = read( ctx->fd, &ctx->buf[offset], (ctx->ntor - offset) ); /* there was data to read */
++
++      if(num_bytes > 0) {
++        ctx->nr += num_bytes;
++      }else
++      {
++        ERROR_PRINTF("ctx->nr=%d, errno=%d\n", ctx->nr, errno);
++      }
++      num_bytes = 0;
++
++      if(ctx->nr >= ctx->ntor)
++      {
++        exit = 1;
++      }
++    }
++  }while(exit == 0);
+ 
+   return NULL;
+ }
+ 
++
+ int setSerialSpeed(int _dev, speed_t _speed)
+ {
+ 	struct termios options;
+@@ -168,6 +196,7 @@ int lgw_spi_open(void **spi_target_ptr) {
+     int *spi_device = NULL;
+     int dev;
+     struct termios options;
++    read_ctx_t *r_ctx = NULL;
+ 
+     /* check input variables */
+     CHECK_NULL(spi_target_ptr); /* cannot be null, must point on a void pointer (*spi_target_ptr can be null) */
+@@ -217,14 +246,32 @@ int lgw_spi_open(void **spi_target_ptr) {
+     *spi_device = dev;
+     *spi_target_ptr = (void *)spi_device;
+     DEBUG_MSG("Note: SPI port opened and configured ok\n");
++
++    fcntl(dev, F_SETFL, fcntl(dev, F_GETFL) & ~O_NONBLOCK);
++
++	/* Read spurious data if any */
++	r_ctx = (read_ctx_t *)calloc(1, sizeof(read_ctx_t));
++
++    if(r_ctx == NULL) {
++        DEBUG_MSG("ERROR: failed to create r_ctx\n");
++        return LGW_SPI_ERROR;
++    }
++
++    r_ctx->fd = dev;
++    r_ctx->ntor = MAX_BUF_SIZE;
++    r_ctx->timeout.tv_sec = READ_TIMEOUT;
++    r_ctx->timeout.tv_usec = 0;
++
++	read_function((void *)r_ctx);
++
++    free(r_ctx);
++
+     if (reset_SX1301(dev) == 0)
+     {
+         DEBUG_MSG("Note: radio reset ok\n");
+     }
+     set_default_speed(dev);
+ 
+-    fcntl(dev, F_SETFL, fcntl(dev, F_GETFL) & ~O_NONBLOCK);
+-
+     return LGW_SPI_SUCCESS;
+ }
+ 
+@@ -295,6 +342,8 @@ int lgw_spi_w(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+ 
+     r_ctx->fd = spi_device;
+     r_ctx->ntor = command_size;
++    r_ctx->timeout.tv_sec = READ_TIMEOUT;
++    r_ctx->timeout.tv_usec = 0;
+ 
+     /* create read thread */
+     if(pthread_create(&read_thread, NULL, read_function, r_ctx) != 0) {
+@@ -322,7 +371,6 @@ int lgw_spi_w(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+         DEBUG_MSG("[FAIL]\n");
+         return LGW_SPI_ERROR;
+     } else {
+-        //DEBUG_MSG("[ OK ]\n");
+         return LGW_SPI_SUCCESS;
+     }
+ }
+@@ -370,6 +418,8 @@ int lgw_spi_r(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+ 
+     r_ctx->fd = spi_device;
+     r_ctx->ntor = command_size;
++    r_ctx->timeout.tv_sec = READ_TIMEOUT;
++    r_ctx->timeout.tv_usec = 0;
+ 
+     /* create read thread */
+     if(pthread_create(&read_thread, NULL, read_function, r_ctx) != 0) {
+@@ -396,10 +446,8 @@ int lgw_spi_r(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+ 		DUMP_BUFFER_R( in_buf, command_size);
+ 		DUMP_STATS(nw, nr);
+ 		ERROR_PRINTF("[FAIL] write:%d read:%d\n", nw, nr);
+-        //ERROR_MSG("[FAIL]\n");
+         return LGW_SPI_ERROR;
+     } else {
+-        //DEBUG_MSG("[ OK ]\n");
+         *data = in_buf[command_size - 1];
+         return LGW_SPI_SUCCESS;
+     }
+@@ -451,6 +499,8 @@ int lgw_spi_wb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+ 
+     r_ctx->fd = spi_device;
+     r_ctx->ntor = command_size;
++    r_ctx->timeout.tv_sec = READ_TIMEOUT;
++    r_ctx->timeout.tv_usec = 0;
+ 
+     /* create read thread */
+     if(pthread_create(&read_thread, NULL, read_function, r_ctx) != 0) {
+@@ -512,7 +562,6 @@ int lgw_spi_wb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+         ERROR_MSG("[FAIL]\n");
+         return LGW_SPI_ERROR;
+     } else {
+-        //DEBUG_MSG("[ OK ]\n");
+         return LGW_SPI_SUCCESS;
+     }
+ }
+@@ -564,6 +613,8 @@ int lgw_spi_rb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+ 
+     r_ctx->fd = spi_device;
+     r_ctx->ntor = command_size;
++    r_ctx->timeout.tv_sec = READ_TIMEOUT;
++    r_ctx->timeout.tv_usec = 0;
+ 
+     /* create read thread */
+     if(pthread_create(&read_thread, NULL, read_function, r_ctx) != 0) {
+@@ -628,7 +679,6 @@ int lgw_spi_rb(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, u
+         ERROR_MSG("[FAIL]\n");
+         return LGW_SPI_ERROR;
+     } else {
+-        //DEBUG_MSG("[OK]\n");
+         return LGW_SPI_SUCCESS;
+     }
+ }
+-- 
+2.11.0
+

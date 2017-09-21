@@ -1,0 +1,15 @@
+2013 (c) dog hunter llc and the Linino Community - Linino.org is a dog hunter-sponsored community project. 
+
+Current Linino Contributors:
+
+Domenico La Fauci - kernels, gpio and water jump
+Claudio Pino - inspiration and ATMEL support  
+Fabio M. Di Nitto - for integrating opkg/gpg support with Linino build system
+Federico Vaga - scriptings and SPI 
+Sam Lin - Number "ONE"
+Tony Jin - Master Chef
+Alessandro Rubini - the original bathos author, random help
+Federico Musto - Sous Chef and bottle washer 
+Davide Ciminaghi - the gui who broke bathos, linux mcuio drivers.
+Aurelio Colosimo - developing on bathos and linux mcuio drivers
+

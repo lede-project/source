@@ -1,0 +1,10 @@
+#!/bin/sh 
+# Copyright (C)  2013 dog hunter llc
+
+[ -e /mnt/sda1/test.sh ] && {
+	/mnt/sda1/test.sh
+}
+				
+[ -e /mnt/sdb1/test.sh ] && {
+	/mnt/sdb1/test.sh
+}

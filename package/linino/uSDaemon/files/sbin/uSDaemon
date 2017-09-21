@@ -1,0 +1,111 @@
+#!/bin/sh
+
+# Copyright (C) 2013 DogHunter
+#
+# This is the uSDaemon. It is a little daemon used to automatically discover
+# the uSD card presence in the on-board reader. The default configuration of
+# this daemon *only* look for the specific USB-uSD-reader that is welded at
+# the USB geographical address '1-1.4:1.0'. The user can change the
+# evironment variable 'USBDEVICE' to work with another address. The daemon
+# is limited in this way because external USB devices work with the
+# 'block-mount' package within OpenWRT
+
+. /lib/functions/post_mount.sh
+
+TIME=2
+
+# ERRUMOUNT contains the list of devices to be unmounted as soon as
+# possible
+ERRUMOUNT=""
+
+# $1 must be a valid parameter for sleep
+if [ "x$1" != "x" ];then
+	TIME=$1
+fi
+
+DEVICES=""
+
+umount_partitions()
+{
+	$sd_name = $1
+
+	for dev in $(ls /dev/$sd_name?); do
+		umount $dev
+		if [ $? -eq 1 ]; then
+			echo "cannot umount"
+			# Cannot umount device, if the $sd_name
+			# is not already listed, then add it
+			if [ "$ERRUMOUNT" == "${ERRUMOUNT/$sd_name/}" ]; then
+				ERRUMOUNT="$ERRUMOUNT $sd_name"
+			fi
+			echo "Catch Error $ERRUMOUNT"
+		fi
+	done
+	rmdir /mnt/$sd_name?
+	post_auto_umount
+}
+
+update_connected_devices()
+{
+	DEVICES=""
+	for sd in `ls -d /sys/bus/scsi/drivers/sd/*/block/sd?`
+	do
+		sd_name=`basename $sd`
+		blkid /dev/$sd_name
+		size=$(cat $sd/size)
+		if [ "$size" != "0" -a "$size" != "" ]
+		then
+			if [ "$DEVICES" == "" ]
+			then
+				DEVICES="$sd_name"
+			else
+				DEVICES="$DEVICES $sd_name"
+			fi
+		fi
+	done
+}
+
+update_connected_devices
+
+umount_disconnected_devices()
+{
+	devices=$1
+	echo "check umount $devices"
+	for sd_name in $devices
+	do
+		# Check the SD device
+		blkid /dev/$sd_name
+		# Check if uSD card is there
+		size=$(cat /sys/bus/scsi/drivers/sd/*/block/$sd_name/size)
+		if [ "$size" == "0" -o "$size" == "" ]; then
+			# If the previous run the uSD was plugged and now size is
+			# 0, it means that the user un-plugged the uSD card so
+			# we can unmount all uSD partitions and mark the device
+			# as disconnected
+			umount_partitions $sd_name
+		fi
+	done
+}
+
+umount_handle_errors()
+{
+	echo "handle umount errors $ERRUMOUNT"
+	if [ "x$ERRUMOUNT" != "x" ]; then
+		TEMP="$ERRUMOUNT"
+		ERRUMOUNT=""
+		echo "handle error $TEMP"
+		# try to umount again
+		umount_disconnected_devices "$TEMP"
+	fi
+}
+
+echo "uSDaemon ... UP" > /dev/kmsg
+
+while [ true ]; do
+	umount_disconnected_devices "$DEVICES"
+	update_connected_devices
+	sleep $TIME
+
+	umount_handle_errors
+done
+

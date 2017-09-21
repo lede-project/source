@@ -1,0 +1,2 @@
+KERNEL=="ttyACM[0-9]*", SUBSYSTEM=="tty", ATTRS{interface}=="NFC Port", ENV{ID_VENDOR_ID}=="2a03", ENV{ID_MODEL_ID}=="0059", SYMLINK+="ttyNFC"
+KERNEL=="ttyACM[0-9]*", SUBSYSTEM=="tty", ATTRS{interface}=="AUX Port", ENV{ID_VENDOR_ID}=="2a03", ENV{ID_MODEL_ID}=="0059", SYMLINK+="ttyAUX"

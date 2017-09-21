@@ -1,0 +1,11 @@
+#!/bin/sh
+
+PID=`/usr/bin/pgrep -f "python -u bridge.py"`
+if [ "x$PID" != "x" ]; then
+	/bin/kill -9 $PID
+fi
+PID=`/usr/bin/pgrep -f "/bin/ash --login"`
+if [ "x$PID" != "x" ]; then
+	/bin/kill -9 $PID
+fi
+

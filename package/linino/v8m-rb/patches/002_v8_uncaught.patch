@@ -1,0 +1,139 @@
+From fbff7054a47551387a99244e2cf0631f30406798 Mon Sep 17 00:00:00 2001
+From: Trevor Norris <trev.norris@gmail.com>
+Date: Tue, 18 Nov 2014 16:37:54 -0800
+Subject: [PATCH] v8: add api for aborting on uncaught exception
+
+Add v8::Isolate::SetAbortOnUncaughtException() so the user can be
+notified when an uncaught exception has bubbled.
+
+PR-URL: https://github.com/joyent/node/pull/8666
+Reviewed-by: Trevor Norris <trev.norris@gmail.com>
+---
+ deps/v8/include/v8.h   | 11 +++++++++++
+ deps/v8/src/api.cc     |  5 +++++
+ deps/v8/src/isolate.cc | 33 +++++++++++++++++++++++----------
+ deps/v8/src/isolate.h  |  5 +++++
+ 4 files changed, 44 insertions(+), 10 deletions(-)
+
+diff --git a/deps/v8/include/v8.h b/deps/v8/include/v8.h
+index 71a0d01..e229ed9 100644
+--- a/include/v8.h
++++ b/include/v8.h
+@@ -2846,6 +2846,17 @@ class V8EXPORT Isolate {
+   static Isolate* GetCurrent();
+ 
+   /**
++   * Custom callback used by embedders to help V8 determine if it should abort
++   * when it throws and no internal handler can catch the exception.
++   * If FLAG_abort_on_uncaught_exception is true, then V8 will abort if either:
++   * - no custom callback is set.
++   * - the custom callback set returns true.
++   * Otherwise it won't abort.
++   */
++  typedef bool (*abort_on_uncaught_exception_t)();
++  void SetAbortOnUncaughtException(abort_on_uncaught_exception_t callback);
++
++  /**
+    * Methods below this point require holding a lock (using Locker) in
+    * a multi-threaded environment.
+    */
+diff --git a/deps/v8/src/api.cc b/deps/v8/src/api.cc
+index 96d564f..4b1aa67 100644
+--- a/src/api.cc
++++ b/src/api.cc
+@@ -5565,6 +5565,11 @@ void Isolate::Enter() {
+   isolate->Enter();
+ }
+ 
++void Isolate::SetAbortOnUncaughtException(
++      abort_on_uncaught_exception_t callback) {
++  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
++  isolate->SetAbortOnUncaughtException(callback);
++}
+ 
+ void Isolate::Exit() {
+   i::Isolate* isolate = reinterpret_cast<i::Isolate*>(this);
+diff --git a/deps/v8/src/isolate.cc b/deps/v8/src/isolate.cc
+index 5a5293e..0b38616 100644
+--- a/src/isolate.cc
++++ b/src/isolate.cc
+@@ -1152,18 +1152,26 @@ void Isolate::DoThrow(Object* exception, MessageLocation* location) {
+         thread_local_top()->pending_message_end_pos_ = location->end_pos();
+       }
+ 
+-      // If the abort-on-uncaught-exception flag is specified, abort on any
+-      // exception not caught by JavaScript, even when an external handler is
+-      // present.  This flag is intended for use by JavaScript developers, so
+-      // print a user-friendly stack trace (not an internal one).
++      // If the abort-on-uncaught-exception flag is specified, and if the
++      // exception is not caught by JavaScript (even when an external handler is
++      // present).
+       if (fatal_exception_depth == 0 &&
+           FLAG_abort_on_uncaught_exception &&
+           (report_exception || can_be_caught_externally)) {
+-        fatal_exception_depth++;
+-        fprintf(stderr, "%s\n\nFROM\n",
+-          *MessageHandler::GetLocalizedMessage(message_obj));
+-        PrintCurrentStackTrace(stderr);
+-        OS::Abort();
++        // If the embedder didn't specify a custom uncaught exception callback,
++        // or if the custom callback determined that V8 should abort, then
++        // abort
++        bool should_abort = !abort_on_uncaught_exception_callback_ ||
++                             abort_on_uncaught_exception_callback_();
++        if (should_abort) {
++          fatal_exception_depth++;
++          // This flag is intended for use by JavaScript developers, so
++          // print a user-friendly stack trace (not an internal one).
++          fprintf(stderr, "%s\n\nFROM\n",
++            *MessageHandler::GetLocalizedMessage(message_obj));
++          PrintCurrentStackTrace(stderr);
++          OS::Abort();
++        }
+       }
+     } else if (location != NULL && !location->script().is_null()) {
+       // We are bootstrapping and caught an error where the location is set
+@@ -1339,6 +1347,10 @@ void Isolate::SetCaptureStackTraceForUncaughtExceptions(
+   stack_trace_for_uncaught_exceptions_options_ = options;
+ }
+ 
++void Isolate::SetAbortOnUncaughtException(
++      v8::Isolate::abort_on_uncaught_exception_t callback) {
++  abort_on_uncaught_exception_callback_ = callback;
++}
+ 
+ bool Isolate::is_out_of_memory() {
+   if (has_pending_exception()) {
+@@ -1534,7 +1546,8 @@ Isolate::Isolate()
+       date_cache_(NULL),
+       context_exit_happened_(false),
+       deferred_handles_head_(NULL),
+-      optimizing_compiler_thread_(this) {
++      optimizing_compiler_thread_(this),
++      abort_on_uncaught_exception_callback_(NULL) {
+   TRACE_ISOLATE(constructor);
+ 
+   memset(isolate_addresses_, 0,
+diff --git a/deps/v8/src/isolate.h b/deps/v8/src/isolate.h
+index 2769ca7..8719aa1 100644
+--- a/src/isolate.h
++++ b/src/isolate.h
+@@ -692,6 +692,9 @@ class Isolate {
+       int frame_limit,
+       StackTrace::StackTraceOptions options);
+ 
++  typedef bool (*abort_on_uncaught_exception_t)();
++  void SetAbortOnUncaughtException(abort_on_uncaught_exception_t callback);
++
+   // Tells whether the current context has experienced an out of memory
+   // exception.
+   bool is_out_of_memory();
+@@ -1292,6 +1295,8 @@ class Isolate {
+   DeferredHandles* deferred_handles_head_;
+   OptimizingCompilerThread optimizing_compiler_thread_;
+ 
++  abort_on_uncaught_exception_t abort_on_uncaught_exception_callback_;
++
+   friend class ExecutionAccess;
+   friend class HandleScopeImplementer;
+   friend class IsolateInitializer;

@@ -1,0 +1,11 @@
+--- a/gdb/Makefile.in	2016-04-19 23:42:03.092960769 +0200
++++ b/gdb/Makefile.in	2016-04-19 23:42:14.365146857 +0200
+@@ -1034,7 +1034,7 @@
+ 
+ TSOBS = inflow.o
+ 
+-SUBDIRS = doc @subdirs@ data-directory $(GNULIB_BUILDDIR)
++SUBDIRS = @subdirs@ data-directory $(GNULIB_BUILDDIR)
+ CLEANDIRS = $(SUBDIRS)
+ 
+ # List of subdirectories in the build tree that must exist.

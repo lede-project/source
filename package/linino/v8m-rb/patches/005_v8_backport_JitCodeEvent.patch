@@ -1,0 +1,37 @@
+From 5a60e0d904c38c2bdb04785203b1b784967c870d Mon Sep 17 00:00:00 2001
+From: Ben Noordhuis <info@bnoordhuis.nl>
+Date: Mon, 29 Jun 2015 14:36:36 +0200
+Subject: [PATCH] v8: back-port JitCodeEvent patch from upstream
+
+Original commit log follows:
+
+    Meaningful name for builtins in JitCodeEvent API.
+
+    Report builtins by name (e.g. "Builtin:ArgumentsAdaptorTrampoline")
+    instead of labeling everything "Builtin:A builtin from the snapshot"
+
+    Review URL: https://codereview.chromium.org/1216833002
+
+Reviewed-By: Colin Ihrig <cjihrig@gmail.com>
+PR-URL: https://github.com/joyent/node/pull/25588
+---
+ deps/v8/src/log.cc | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/deps/v8/src/log.cc b/deps/v8/src/log.cc
+index b049ffe..3ecc204 100644
+--- a/src/log.cc
++++ b/src/log.cc
+@@ -1485,7 +1485,11 @@ void Logger::LogCodeObject(Object* object) {
+         tag = Logger::STUB_TAG;
+         break;
+       case Code::BUILTIN:
+-        description = "A builtin from the snapshot";
++        description =
++            Isolate::Current()->builtins()->Lookup(code_object->entry());
++        if (description == NULL) {
++          description = "A builtin from the snapshot";
++        }
+         tag = Logger::BUILTIN_TAG;
+         break;
+       case Code::KEYED_LOAD_IC:

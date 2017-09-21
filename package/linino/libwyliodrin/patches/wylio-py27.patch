@@ -1,0 +1,10 @@
+--- a/CMakeLists.txt	2016-10-26 11:28:26.000000000 +0200
++++ b/CMakeLists.txt	2016-10-26 12:22:52.519557996 +0200
+@@ -20,6 +20,7 @@
+ find_package (Jansson REQUIRED)
+ include_directories (${JANSSON_INCLUDE_DIR})
+ pkg_check_modules (EVENT REQUIRED libevent)
++find_package( PythonLibs 2.7 REQUIRED )
+ 
+ # Version
+ set (VERSION_MAJOR 2)

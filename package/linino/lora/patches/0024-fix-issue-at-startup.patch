@@ -1,0 +1,51 @@
+From 937ee388721d0c280579d61af292d730cb92212d Mon Sep 17 00:00:00 2001
+From: mimmoLinino <mimmo@linino.org>
+Date: Wed, 8 Mar 2017 23:35:35 +0100
+Subject: [PATCH 3/3] fix issue at startup
+
+---
+ libloragw/src/loragw_spi-stm32.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/libloragw/src/loragw_spi-stm32.c b/libloragw/src/loragw_spi-stm32.c
+index 73339ce..8cc3839 100644
+--- a/libloragw/src/loragw_spi-stm32.c
++++ b/libloragw/src/loragw_spi-stm32.c
+@@ -76,7 +76,7 @@ extern int errno;
+ #define SPI_SPEED       8000000
+ #define SPI_DEV_PATH    "/dev/ttyLRA"
+ 
+-#define READ_TIMEOUT 1
++#define READ_TIMEOUT 3
+ #define MAX_BUF_SIZE 128
+ 
+ typedef struct read_ctx_s {
+@@ -248,7 +248,7 @@ int lgw_spi_open(void **spi_target_ptr) {
+     *spi_target_ptr = (void *)spi_device;
+     DEBUG_MSG("Note: SPI port opened and configured ok\n");
+ 
+-    fcntl(dev, F_SETFL, fcntl(dev, F_GETFL) & ~O_NONBLOCK);
++    fcntl(dev, F_SETFL, fcntl(dev, F_GETFL) & ~O_NONBLOCK & ~O_ASYNC);
+ 
+ 	/* Read spurious data if any */
+ 	r_ctx = (read_ctx_t *)calloc(1, sizeof(read_ctx_t));
+@@ -273,6 +273,8 @@ int lgw_spi_open(void **spi_target_ptr) {
+     }
+     set_default_speed(dev);
+ 
++    sleep(3);
++
+     return LGW_SPI_SUCCESS;
+ }
+ 
+@@ -388,7 +390,6 @@ int lgw_spi_r(void *spi_target, uint8_t spi_mux_mode, uint8_t spi_mux_target, ui
+     pthread_t read_thread;
+     read_ctx_t *r_ctx = NULL;
+ 
+-	//DEBUG_MSG("\n**SIMPLE READ ** - ");
+     /* check input variables */
+     CHECK_NULL(spi_target);
+     if ((address & 0x80) != 0) {
+-- 
+2.11.0
+

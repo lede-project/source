@@ -1,0 +1,13 @@
+Index: bitbang.c
+===================================================================
+--- a/bitbang.c	(revisione 1183)
++++ b/bitbang.c	(copia locale)
+@@ -339,7 +339,7 @@
+     res[i] = bitbang_txrx(pgm, cmd[i]);
+   }
+ 
+-    if(verbose >= 2)
++    if(verbose > 4)
+ 	{
+         fprintf(stderr, "bitbang_cmd(): [ ");
+         for(i = 0; i < 4; i++)

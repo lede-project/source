@@ -1,0 +1,10 @@
+--- a/src/utils/polygon.h	2015-08-05 14:30:57.000000000 +0200
++++ b/src/utils/polygon.h	2015-10-22 12:32:16.000000000 +0200
+@@ -4,6 +4,7 @@
+ #include <vector>
+ #include <assert.h>
+ #include <float.h>
++#include <stdio.h>
+ #include <clipper/clipper.hpp>
+ 
+ #include <algorithm>    // std::reverse
