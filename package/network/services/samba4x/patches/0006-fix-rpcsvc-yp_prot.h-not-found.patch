@@ -1,0 +1,21 @@
+From 4507ec617b1911275521b5f53fbb07a842642af5 Mon Sep 17 00:00:00 2001
+From: BangLang Huang <banglang.huang@foxmail.com>
+Date: Thu, 14 Sep 2017 10:50:54 +0800
+Subject: [PATCH 2/5] fix rpcsvc/yp_prot.h not found
+
+Signed-off-by: BangLang Huang <banglang.huang@foxmail.com>
+---
+ lib/replace/wscript | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/lib/replace/wscript
++++ b/lib/replace/wscript
+@@ -71,7 +71,7 @@ def configure(conf):
+     conf.CHECK_HEADERS('sys/fileio.h sys/filesys.h sys/dustat.h sys/sysmacros.h')
+     conf.CHECK_HEADERS('xfs/libxfs.h netgroup.h')
+ 
+-    conf.CHECK_CODE('', headers='rpc/rpc.h rpcsvc/yp_prot.h', define='HAVE_RPCSVC_YP_PROT_H')
++    conf.CHECK_HEADERS('rpc/rpc.h rpcsvc/yp_prot.h')
+ 
+     conf.CHECK_HEADERS('valgrind.h valgrind/valgrind.h valgrind/memcheck.h')
+     conf.CHECK_HEADERS('nss_common.h nsswitch.h ns_api.h')
