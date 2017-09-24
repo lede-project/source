@@ -5,7 +5,7 @@ move_config() {
 	. /lib/functions.sh
 
 	case "$(board_name)" in
-		erlite)
+		erlite | usg3p)
 			mount -t vfat /dev/sda1 /mnt
 			[ -f /mnt/sysupgrade.tgz ] && mv -f /mnt/sysupgrade.tgz /
 			umount /mnt
