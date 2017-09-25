@@ -277,6 +277,11 @@ platform_check_image() {
 	tew-732br|\
 	tew-823dru|\
 	tl-wr942n-v1|\
+	tl-wr1043n-v5|\
+<<<<<<< HEAD
+=======
+	unifi|\
+>>>>>>> 000fd8b83a... Removed extra junk characters.
 	unifi-outdoor|\
 	unifiac-lite|\
 	unifiac-pro|\
@@ -309,6 +314,7 @@ platform_check_image() {
 		;;
 	alfa-ap96|\
 	alfa-nx|\
+	tl-wr1043n-v5|\
 	ap121-mini|\
 	ap121|\
 	ap135-020|\

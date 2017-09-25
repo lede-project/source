@@ -1121,6 +1121,9 @@ ar71xx_board_detect() {
 	*"TL-WR1043ND v4")
 		name="tl-wr1043nd-v4"
 		;;
+	*"TL-WR1043N v5")
+		name="tl-wr1043n-v5"
+		;;
 	*"TL-WR2543N"*)
 		name="tl-wr2543n"
 		;;

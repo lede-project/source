@@ -15,6 +15,9 @@ case "$board" in
 	archer-c58-v1)
 		echo $(macaddr_add $(mtd_get_mac_binary mac 8)  $(($PHYNBR - 1)) ) > /sys${DEVPATH}/macaddress
 		;;
+	tl-wr1043n-v5)
+		echo $(macaddr_add $(mtd_get_mac_binary product-info 8)  $(($PHYNBR - 1)) ) > /sys${DEVPATH}/macaddress
+		;;
 	*)
 		;;
 esac
