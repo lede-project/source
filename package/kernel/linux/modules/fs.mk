@@ -125,6 +125,40 @@ endef
 
 $(eval $(call KernelPackage,fs-cifs))
 
+define KernelPackage/fs-cifs-smb2
+  SUBMENU:=$(FS_MENU)
+  TITLE:=SMB2 and SMB3 support
+  KCONFIG:= \
+	CONFIG_CIFS_SMB2=y \
+	CONFIG_CIFS_SMB311=n \
+	CONFIG_KEYS=y
+  DEPENDS+= \
+    +kmod-fs-cifs \
+    +kmod-fs-fscache \
+    +kmod-dnsresolver
+endef
+
+define KernelPackage/fs-cifs-smb2/description
+ Say Y here if you want to include support for
+ the SMB2 and SMB3 protocols in the CIFS module
+endef
+
+$(eval $(call KernelPackage,fs-cifs-smb2))
+
+define KernelPackage/fs-cifs-smb311
+  SUBMENU:=$(FS_MENU)
+  TITLE:=SMB3.1.1 support (experimental)
+  KCONFIG:=CONFIG_CIFS_SMB311=y
+  DEPENDS+=+kmod-fs-cifs-smb2
+endef
+
+define KernelPackage/fs-cifs-smb311/description
+ Say Y here if you want to include support for
+ the SMB3.1.1 protocol in the CIFS module
+endef
+
+$(eval $(call KernelPackage,fs-cifs-smb311))
+
 
 define KernelPackage/fs-configfs
   SUBMENU:=$(FS_MENU)
