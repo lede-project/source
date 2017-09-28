@@ -13,11 +13,7 @@
 
 	aliases {
 		led-boot = &power;
-		led-failsafe = &power;
-		led-running = &power;
-
-		led-internet = &info_green;
-		led-dsl = &power;
+		led-dsl = &info_green;
 		led-wifi = &wlan;
 	};
 
