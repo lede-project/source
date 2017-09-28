@@ -1,0 +1,28 @@
+
+#!/bin/sh /etc/rc.common
+
+START=99
+
+start() {
+	. /lib/functions.sh
+
+	local board=$(board_name)
+	
+	case "$board" in
+	sk-wb8)
+		fw_setenv bootcount 0
+		;;
+	mir3g)
+		local boot_part=`fw_printenv -n flag_last_success`
+		local boot_success=`fw_printenv -n flag_boot_success`
+		local sys1_failed=`fw_printenv -n flag_try_sys1_failed`
+		local sys2_failed=`fw_printenv -n flag_try_sys2_failed`
+		local boot_rootfs=`fw_printenv -n flag_boot_rootfs`
+		[ $boot_part = 0 ] || fw_setenv flag_last_success 0
+		[ $boot_success = 1 ] || fw_setenv flag_boot_success 1
+		[ $sys1_failed = 1 ] || fw_setenv flag_try_sys1_failed 1
+		[ $sys2_failed = 0 ] || fw_setenv flag_try_sys2_failed 0
+		[ $boot_rootfs = 1 ] || fw_setenv flag_boot_rootfs 1
+		;;
+	esac
+}
