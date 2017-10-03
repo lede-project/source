@@ -238,27 +238,24 @@ static ssize_t led_interval_store(struct device *dev,
 {
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct led_netdev_data *trigger_data = led_cdev->trigger_data;
-	int ret = -EINVAL;
-	char *after;
-	unsigned long value = simple_strtoul(buf, &after, 10);
-	size_t count = after - buf;
+	unsigned long value;
+	int ret;
 
-	if (isspace(*after))
-		count++;
+	ret = kstrtoul(buf, 0, &value);
+	if (ret)
+		return ret;
 
 	/* impose some basic bounds on the timer interval */
-	if (count == size && value >= 5 && value <= 10000) {
+	if (value >= 5 && value <= 10000) {
 		cancel_delayed_work_sync(&trigger_data->work);
 
 		spin_lock_bh(&trigger_data->lock);
 		trigger_data->interval = msecs_to_jiffies(value);
 		set_baseline_state(trigger_data); /* resets timer */
 		spin_unlock_bh(&trigger_data->lock);
-
-		ret = count;
 	}
 
-	return ret;
+	return size;
 }
 
 static DEVICE_ATTR(interval, 0644, led_interval_show, led_interval_store);
