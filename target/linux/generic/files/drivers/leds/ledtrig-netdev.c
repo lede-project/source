@@ -384,10 +384,13 @@ static void netdev_trig_activate(struct led_classdev *led_cdev)
 	rc = device_create_file(led_cdev->dev, &dev_attr_interval);
 	if (rc)
 		goto err_out_mode;
-
-	register_netdevice_notifier(&trigger_data->notifier);
+	rc = register_netdevice_notifier(&trigger_data->notifier);
+	if (rc)
+		goto err_out_interval;
 	return;
 
+err_out_interval:
+	device_remove_file(led_cdev->dev, &dev_attr_interval);
 err_out_mode:
 	device_remove_file(led_cdev->dev, &dev_attr_mode);
 err_out_device_name:
