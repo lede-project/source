@@ -3,6 +3,8 @@
  *
  * Toggles the LED to reflect the link and traffic state of a named net device
  *
+ * Copyright 2017 Ben Whitten <benwhitten@gmail.com>
+ *
  * Copyright 2007 Oliver Jowett <oliver@opencloud.com>
  *
  * Derived from ledtrig-timer.c which is:
@@ -63,9 +65,9 @@
  *
  */
 
-#define MODE_LINK 1
-#define MODE_TX   2
-#define MODE_RX   4
+#define LED_MODE_LINK 1
+#define LED_MODE_TX   2
+#define LED_MODE_RX   4
 
 struct led_netdev_data {
 	spinlock_t lock;
@@ -85,12 +87,12 @@ struct led_netdev_data {
 
 static void set_baseline_state(struct led_netdev_data *trigger_data)
 {
-	if ((trigger_data->mode & MODE_LINK) != 0 && trigger_data->link_up)
+	if ((trigger_data->mode & LED_MODE_LINK) != 0 && trigger_data->link_up)
 		led_set_brightness(trigger_data->led_cdev, LED_FULL);
 	else
 		led_set_brightness(trigger_data->led_cdev, LED_OFF);
 
-	if ((trigger_data->mode & (MODE_TX | MODE_RX)) != 0 && trigger_data->link_up)
+	if ((trigger_data->mode & (LED_MODE_TX | LED_MODE_RX)) != 0 && trigger_data->link_up)
 		schedule_delayed_work(&trigger_data->work, trigger_data->interval);
 }
 
@@ -152,11 +154,11 @@ static ssize_t led_mode_show(struct device *dev,
 	if (trigger_data->mode == 0) {
 		strcpy(buf, "none\n");
 	} else {
-		if (trigger_data->mode & MODE_LINK)
+		if (trigger_data->mode & LED_MODE_LINK)
 			strcat(buf, "link ");
-		if (trigger_data->mode & MODE_TX)
+		if (trigger_data->mode & LED_MODE_TX)
 			strcat(buf, "tx ");
-		if (trigger_data->mode & MODE_RX)
+		if (trigger_data->mode & LED_MODE_RX)
 			strcat(buf, "rx ");
 		strcat(buf, "\n");
 	}
@@ -190,11 +192,11 @@ static ssize_t led_mode_store(struct device *dev,
 		if (!strcmp(token, "none"))
 			new_mode = 0;
 		else if (!strcmp(token, "tx"))
-			new_mode |= MODE_TX;
+			new_mode |= LED_MODE_TX;
 		else if (!strcmp(token, "rx"))
-			new_mode |= MODE_RX;
+			new_mode |= LED_MODE_RX;
 		else if (!strcmp(token, "link"))
-			new_mode |= MODE_LINK;
+			new_mode |= LED_MODE_LINK;
 		else
 			return -EINVAL;
 	}
@@ -308,18 +310,18 @@ static void netdev_trig_work(struct work_struct *work)
 	unsigned new_activity;
 	struct rtnl_link_stats64 temp;
 
-	if (!trigger_data->link_up || !trigger_data->net_dev || (trigger_data->mode & (MODE_TX | MODE_RX)) == 0) {
+	if (!trigger_data->link_up || !trigger_data->net_dev || (trigger_data->mode & (LED_MODE_TX | LED_MODE_RX)) == 0) {
 		/* we don't need to do timer work, just reflect link state. */
-		led_set_brightness(trigger_data->led_cdev, ((trigger_data->mode & MODE_LINK) != 0 && trigger_data->link_up) ? LED_FULL : LED_OFF);
+		led_set_brightness(trigger_data->led_cdev, ((trigger_data->mode & LED_MODE_LINK) != 0 && trigger_data->link_up) ? LED_FULL : LED_OFF);
 		return;
 	}
 
 	dev_stats = dev_get_stats(trigger_data->net_dev, &temp);
 	new_activity =
-		((trigger_data->mode & MODE_TX) ? dev_stats->tx_packets : 0) +
-		((trigger_data->mode & MODE_RX) ? dev_stats->rx_packets : 0);
+		((trigger_data->mode & LED_MODE_TX) ? dev_stats->tx_packets : 0) +
+		((trigger_data->mode & LED_MODE_RX) ? dev_stats->rx_packets : 0);
 
-	if (trigger_data->mode & MODE_LINK) {
+	if (trigger_data->mode & LED_MODE_LINK) {
 		/* base state is ON (link present) */
 		/* if there's no link, we don't get this far and the LED is off */
 
