@@ -413,14 +413,8 @@ static void netdev_trig_deactivate(struct led_classdev *led_cdev)
 
 		cancel_delayed_work_sync(&trigger_data->work);
 
-		spin_lock_bh(&trigger_data->lock);
-
-		if (trigger_data->net_dev) {
+		if (trigger_data->net_dev)
 			dev_put(trigger_data->net_dev);
-			trigger_data->net_dev = NULL;
-		}
-
-		spin_unlock_bh(&trigger_data->lock);
 
 		kfree(trigger_data);
 	}
