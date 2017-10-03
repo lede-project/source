@@ -125,15 +125,19 @@ static ssize_t led_device_name_store(struct device *dev,
 	strcpy(trigger_data->device_name, buf);
 	if (size > 0 && trigger_data->device_name[size-1] == '\n')
 		trigger_data->device_name[size-1] = 0;
+
+	if (trigger_data->net_dev)
+		dev_put(trigger_data->net_dev);
+
 	trigger_data->link_up = 0;
 	trigger_data->last_activity = 0;
+	trigger_data->net_dev = NULL;
 
-	if (trigger_data->device_name[0] != 0) {
-		/* check for existing device to update from */
+	if (trigger_data->device_name[0] != 0)
 		trigger_data->net_dev = dev_get_by_name(&init_net, trigger_data->device_name);
-		if (trigger_data->net_dev != NULL)
-			trigger_data->link_up = (dev_get_flags(trigger_data->net_dev) & IFF_LOWER_UP) != 0;
-	}
+
+	if (trigger_data->net_dev != NULL)
+		trigger_data->link_up = (dev_get_flags(trigger_data->net_dev) & IFF_LOWER_UP) != 0;
 
 	set_baseline_state(trigger_data);
 	spin_unlock_bh(&trigger_data->lock);
