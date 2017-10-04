@@ -53,6 +53,7 @@ define Host/Compile
 	$(call cc,zyxbcm)
 	$(call cc,trx2edips)
 	$(call cc,xorimage)
+	$(call cc,buffalo-crc, -Wall)
 	$(call cc,buffalo-enc buffalo-lib, -Wall)
 	$(call cc,buffalo-tag buffalo-lib, -Wall)
 	$(call cc,buffalo-tftp buffalo-lib, -Wall)
