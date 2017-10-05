@@ -133,6 +133,9 @@ case "$FIRMWARE" in
 	rb-962uigs-5hact2hnt)
 		ath10kcal_from_file "/sys/firmware/routerboot/ext_wlan_data" 20480 2116
 		;;
+	wlr8100)
+                ath10kcal_extract "art" 24576 2116
+                ;;
 	esac
 	;;
 "ath10k/pre-cal-pci-0000:00:00.0.bin")
