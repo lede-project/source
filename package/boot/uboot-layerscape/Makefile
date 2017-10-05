@@ -9,20 +9,20 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=uboot-layerscape
-PKG_VERSION:=v1.0
+PKG_VERSION:=2017.09
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_MIRROR_HASH:=462fea9bdf03ec4bc23f2f1bb3917c2ec57017eca1e11b8a609bf60cd51a94e7
-PKG_SOURCE_URL:=https://github.com/fsl-jyt/u-boot.git
-PKG_SOURCE_VERSION:=69b5ea576a2b0448391a910114d6c05859bf78d0
+PKG_SOURCE_URL:=https://github.com/qoriq-open-source/u-boot.git
+PKG_SOURCE_VERSION:=503eff00a7119d2690a662ed64e83e4782b7d3d9
+PKG_MIRROR_HASH:=67dbf765b91a5f181e693bd87b6e9521ffeec163c7c037f71b19b3d8715dc32a
 
 include $(INCLUDE_DIR)/u-boot.mk
 include $(INCLUDE_DIR)/package.mk
 
 define U-Boot/Default
   BUILD_TARGET:=layerscape
-  BUILD_SUBTARGET:=64b
+  BUILD_SUBTARGET:=armv8_64b
   BUILD_DEVICES:=$(1)
   UBOOT_IMAGE:=u-boot-dtb.bin
   HIDDEN:=y
@@ -40,7 +40,6 @@ endef
 define U-Boot/ls1012ardb
   NAME:=NXP ls1012ardb 64b Dev Board
   UBOOT_CONFIG:=ls1012ardb_qspi
-  UBOOT_IMAGE:=u-boot-swap.bin
 endef
 
 UBOOT_TARGETS := \
@@ -50,7 +49,7 @@ UBOOT_TARGETS := \
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(STAGING_DIR_IMAGE)
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/$(UBOOT_IMAGE) $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-64b-uboot.bin
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/$(UBOOT_IMAGE) $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-$(BUILD_SUBTARGET)-uboot.bin
 endef
 
 define Package/u-boot/install/default
