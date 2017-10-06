@@ -42,7 +42,9 @@
 
 #define MR12_WAN_PHYMASK    BIT(4)
 
-#define MR12_CALDATA0_OFFSET            0x21000
+#define MR12_MAC			0xbf090000
+#define MR12_ART			0xbfff0000
+#define MR12_CALDATA0_OFFSET		0x1000
 
 static struct gpio_led MR12_leds_gpio[] __initdata = {
 	{
@@ -89,8 +91,10 @@ static struct gpio_keys_button MR12_gpio_keys[] __initdata = {
 
 static void __init MR12_setup(void)
 {
-	u8 *mac = (u8 *) KSEG1ADDR(0xbffd0000);
-	u8 wlan_mac[ETH_ALEN];
+	u8 *mac = (u8 *) KSEG1ADDR(MR12_MAC);
+	u8 *art = (u8 *) KSEG1ADDR(MR12_ART);
+
+	u8 wlan0_mac[ETH_ALEN];
 
 	ath79_register_mdio(0,0x0);
 
@@ -98,6 +102,8 @@ static void __init MR12_setup(void)
 	ath79_eth0_data.phy_if_mode = PHY_INTERFACE_MODE_RGMII;
 	ath79_eth0_data.phy_mask = MR12_WAN_PHYMASK;
 	ath79_register_eth(0);
+
+	ath79_init_mac(wlan0_mac, mac, 1);
 
 	ath79_register_m25p80(NULL);
 
@@ -107,8 +113,8 @@ static void __init MR12_setup(void)
 					ARRAY_SIZE(MR12_gpio_keys),
 					MR12_gpio_keys);
 
-	ath79_init_mac(wlan_mac, mac, 1);
-	ap91_pci_init(mac + MR12_CALDATA0_OFFSET, wlan_mac);
+	ap91_pci_init(art + MR12_CALDATA0_OFFSET, wlan0_mac);
+
 }
 
 MIPS_MACHINE(ATH79_MACH_MR12, "MR12", "Meraki MR12", MR12_setup);
