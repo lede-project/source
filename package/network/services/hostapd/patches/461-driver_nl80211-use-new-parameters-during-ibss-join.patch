@@ -57,3 +57,15 @@ Signed-hostap: Antonio Quartulli <ordex@autistici.org>
  	ret = nl80211_set_conn_keys(params, msg);
  	if (ret)
  		goto fail;
+--- a/wpa_supplicant/wpa_supplicant.c
++++ b/wpa_supplicant/wpa_supplicant.c
+@@ -1955,6 +1955,9 @@ void ibss_mesh_setup_freq(struct wpa_sup
+		}
+	}
+
++	if (ssid->fixed_freq)
++		obss_scan = 0;
++
+	/* For IBSS check HT_IBSS flag */
+	if (ssid->mode == WPAS_MODE_IBSS &&
+           !(wpa_s->drv_flags & WPA_DRIVER_FLAGS_HT_IBSS))
