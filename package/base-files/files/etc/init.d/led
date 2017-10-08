@@ -70,8 +70,11 @@ load_led() {
 		case "$trigger" in
 		"netdev")
 			[ -n "$dev" ] && {
+				local m
 				echo $dev > /sys/class/leds/${sysfs}/device_name
-				echo $mode > /sys/class/leds/${sysfs}/mode
+				for m in $mode; do
+					echo 1 > /sys/class/leds/${sysfs}/$m
+				done
 			}
 			;;
 
