@@ -18,7 +18,6 @@
 #include "qcom-ipq4019-bus.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
-#include <dt-bindings/soc/qcom,tcsr.h>
 
 / {
 	model = "AVM FRITZ!Box 4040";
@@ -60,42 +59,6 @@
 */
 
 	soc {
-		tcsr@194b000 {
-			/* select hostmode */
-			compatible = "qcom,tcsr";
-			reg = <0x194b000 0x100>;
-			qcom,usb-hsphy-mode-select = <TCSR_USB_HSPHY_HOST_MODE>;
-			status = "ok";
-		};
-
-		ess_tcsr@1953000 {
-			compatible = "qcom,tcsr";
-			reg = <0x1953000 0x1000>;
-			qcom,ess-interface-select = <TCSR_ESS_PSGMII>;
-		};
-
-
-		tcsr@1949000 {
-			compatible = "qcom,tcsr";
-			reg = <0x1949000 0x100>;
-			qcom,wifi_glb_cfg = <TCSR_WIFI_GLB_CFG>;
-		};
-
-		tcsr@1957000 {
-			compatible = "qcom,tcsr";
-			reg = <0x1957000 0x100>;
-			qcom,wifi_noc_memtype_m0_m2 = <TCSR_WIFI_NOC_MEMTYPE_M0_M2>;
-		};
-
-		counter@4a1000 {
-			compatible = "qcom,qca-gcnt";
-			reg = <0x4a1000 0x4>;
-		};
-
-		mdio@90000 {
-			status = "okay";
-		};
-
 		qca8075: ess-switch@c000000 {
 			status = "okay";
 
@@ -108,30 +71,6 @@
 				gpios = <0x7 GPIO_ACTIVE_HIGH>;
 				output-high;
 			};
-		};
-
-		ess-psgmii@98000 {
-			status = "okay";
-		};
-
-		edma@c080000 {
-			status = "okay";
-		};
-
-		wifi@a000000 {
-			status = "okay";
-		};
-
-		wifi@a800000 {
-			status = "okay";
-		};
-
-		cryptobam: dma@8e04000 {
-			status = "okay";
-		};
-
-		crypto@8e3a000 {
-			status = "okay";
 		};
 	};
 
@@ -195,12 +134,6 @@
 };
 
 &spi_0 { /* BLSP1 QUP1 */
-	status = "ok";
-
-	mx25l25635e@0 {
-		status = "disabled";
-	};
-
 	mx25l25635f@0 {
 		compatible = "mx25l25635f", "jedec,spi-nor";
 		#address-cells = <1>;
@@ -280,14 +213,5 @@
 				reg = <0x01F00000 0x00100000>;
 			};
 		};
-	};
-};
-
-&cpu0_opp_table {
-	/delete-node/ opp@666000000;
-
-	opp@710000000 {
-		opp-hz = /bits/ 64 <710000000>;
-		clock-latency-ns = <256000>;
 	};
 };

@@ -10,7 +10,9 @@ define Build/elecom-header
 		mkhash md5 $(KDIR)/v_0.0.0.bin && \
 		echo 458 \
 	) | mkhash md5 > $(KDIR)/v_0.0.0.md5
-	$(STAGING_DIR_HOST)/bin/tar -cf $@ -C $(KDIR) v_0.0.0.bin v_0.0.0.md5
+	$(STAGING_DIR_HOST)/bin/tar -c \
+		$(if $(SOURCE_DATE_EPOCH),--mtime=@$(SOURCE_DATE_EPOCH)) \
+		-f $@ -C $(KDIR) v_0.0.0.bin v_0.0.0.md5
 endef
 
 define Build/zyimage
@@ -192,6 +194,13 @@ define Device/gl-mt300a
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-mt76
 endef
 TARGET_DEVICES += gl-mt300a
+
+define Device/u25awf-h1
+  DTS := U25AWF-H1
+  IMAGE_SIZE := 16064k
+  DEVICE_TITLE := Kimax U25AWF-H1
+endef
+TARGET_DEVICES += u25awf-h1
 
 define Device/gl-mt300n
   DTS := GL-MT300N
@@ -478,6 +487,7 @@ define Device/wt3020-8M
   IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
 	poray-header -B WT3020 -F 8M
   DEVICE_TITLE := Nexx WT3020 (8MB)
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci
 endef
 TARGET_DEVICES += wt3020-8M
 
@@ -497,8 +507,9 @@ TARGET_DEVICES += y1s
 
 define Device/youku-yk1
   DTS := YOUKU-YK1
-  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  IMAGE_SIZE := $(ralink_default_fw_size_32M)
   DEVICE_TITLE := YOUKU YK1
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-sdhci-mt7620 kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += youku-yk1
 

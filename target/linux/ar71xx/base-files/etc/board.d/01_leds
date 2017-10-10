@@ -58,7 +58,8 @@ sc1750|\
 sc450)
 	ucidef_set_led_wlan "wlan" "WLAN" "$board:green:wlan" "phy0tpt"
 	;;
-archer-c25-v1)
+archer-c25-v1|\
+archer-c7-v4)
 	ucidef_set_led_netdev "wan" "WAN" "$board:green:wan" "eth0"
 	ucidef_set_led_wlan "wlan" "WLAN" "$board:green:wlan2g" "phy1tpt"
 	ucidef_set_led_wlan "wlan5g" "WLAN5G" "$board:green:wlan5g" "phy0tpt"
@@ -66,6 +67,12 @@ archer-c25-v1)
 	ucidef_set_led_switch "lan2" "LAN2" "$board:green:lan2" "switch0" "0x08"
 	ucidef_set_led_switch "lan3" "LAN3" "$board:green:lan3" "switch0" "0x04"
 	ucidef_set_led_switch "lan4" "LAN4" "$board:green:lan4" "switch0" "0x02"
+	case "$board" in
+		archer-c7-v4)
+			ucidef_set_led_usbdev "usb1" "USB1" "$board:green:usb1" "1-1"
+			ucidef_set_led_usbdev "usb2" "USB2" "$board:green:usb2" "2-1"
+		;;
+	esac
 	;;
 archer-c58-v1|\
 archer-c59-v1|\
@@ -130,11 +137,11 @@ bsb)
 	ucidef_set_led_default "sys" "SYS" "$board:red:sys" "1"
 	;;
 bullet-m|\
+loco-m-xw|\
 nanostation-m|\
-rocket-m|\
-rocket-m-xw|\
 nanostation-m-xw|\
-loco-m-xw)
+rocket-m|\
+rocket-m-xw)
 	ucidef_set_led_rssi "rssilow" "RSSILOW" "ubnt:red:link1" "wlan0" "1" "100" "0" "13"
 	ucidef_set_led_rssi "rssimediumlow" "RSSIMEDIUMLOW" "ubnt:orange:link2" "wlan0" "26" "100" "-25" "13"
 	ucidef_set_led_rssi "rssimediumhigh" "RSSIMEDIUMHIGH" "ubnt:green:link3" "wlan0" "51" "100" "-50" "13"
@@ -267,6 +274,7 @@ rb-750)
 	ucidef_set_led_switch "port5" "port5" "rb750:green:port5" "switch0" "0x02"
 	;;
 rb-750-r2|\
+rb-750p-pbr2|\
 rb-750up-r2)
 	ucidef_set_led_timer "user" "USER" "rb:green:user" "1000" "1000"
 	ucidef_set_led_netdev "port1" "port1" "rb:green:port1" "eth0"
@@ -294,8 +302,8 @@ rb-962uigs-5hact2hnt)
 rb-2011il|\
 rb-2011l|\
 rb-2011uas|\
-rb-2011uias|\
 rb-2011uas-2hnd|\
+rb-2011uias|\
 rb-2011uias-2hnd)
 	ucidef_set_led_switch "eth6" "ETH6" "rb:green:eth6" "switch1" "0x20"
 	ucidef_set_led_switch "eth7" "ETH7" "rb:green:eth7" "switch1" "0x10"
@@ -379,7 +387,11 @@ gl-mifi)
 	ucidef_set_led_netdev "lan" "LAN" "$board:green:lan" "eth1"
 	ucidef_set_led_netdev "3gnet" "3GNET" "$board:green:net" "3g-wan"
 	;;
-gl-ar150|\
+gl-ar150)
+	ucidef_set_led_wlan "wlan" "WLAN" "$board:orange:wlan" "phy0tpt"
+	ucidef_set_led_netdev "wan" "WAN" "$board:green:wan" "eth0"
+	ucidef_set_led_netdev "lan" "LAN" "$board:green:lan" "eth1"
+	;;
 gl-ar300)
 	ucidef_set_led_wlan "wlan" "WLAN" "$board:wlan" "phy0tpt"
 	;;
@@ -493,13 +505,13 @@ nbg6716)
 	ucidef_set_led_usbdev "usb2" "USB2" "$board:white:usb2" "2-1"
 	;;
 om2p|\
-om2pv2|\
-om2pv4|\
 om2p-hs|\
 om2p-hsv2|\
 om2p-hsv3|\
 om2p-hsv4|\
-om2p-lc)
+om2p-lc|\
+om2pv2|\
+om2pv4)
 	ucidef_set_led_netdev "port1" "port1" "om2p:blue:wan" "eth0"
 	ucidef_set_led_netdev "port2" "port2" "om2p:blue:lan" "eth1"
 	ucidef_set_led_default "wlan-red" "WLAN (red)" "om2p:red:wifi" "0"
@@ -632,8 +644,8 @@ tl-wr941nd-v5)
 	ucidef_set_led_wlan "wlan" "WLAN" "tp-link:green:wlan" "phy0tpt"
 
 	case "$board" in
-	tl-wr842n-v2|\
-	tl-mr3420-v2)
+	tl-mr3420-v2|\
+	tl-wr842n-v2)
 		ucidef_set_led_usbdev "usb" "USB" "tp-link:green:3g" "1-1"
 		;;
 	esac
@@ -678,9 +690,9 @@ tl-wa850re-v2)
 	ucidef_set_led_rssi "rssihigh" "RSSIHIGH" "tp-link:blue:signal5" "wlan0" "80" "100" "-79" "13"
 	;;
 tl-wa701nd-v2|\
-tl-wa860re|\
-tl-wa830re-v2|\
 tl-wa801nd-v2|\
+tl-wa830re-v2|\
+tl-wa860re|\
 tl-wa901nd-v3|\
 tl-wa901nd-v4)
 	ucidef_set_led_netdev "lan" "LAN" "tp-link:green:lan" "eth0"
@@ -822,6 +834,12 @@ r6100)
 	ucidef_set_led_netdev "wan" "WAN (green)" "netgear:green:wan" "eth0"
 	ucidef_set_led_usbdev "usb" "USB" "netgear:blue:usb" "1-1"
 	ucidef_set_led_wlan "wlan" "WLAN" "netgear:blue:wlan" "phy1tpt"
+	;;
+wi2a-ac200i)
+	ucidef_set_led_default "power" "Power (green)" "nokia:green:power" "1"
+	ucidef_set_led_default "wan" "Ethernet LED (green)" "nokia:green:wan" "1"
+	ucidef_set_led_wlan "wlan5g" "WLAN" "nokia:green:wlan-5g" "phy0tpt"
+	ucidef_set_led_wlan "wlan2g" "WLAN" "nokia:green:wlan-2g" "phy1tpt"
 	;;
 wndr3700v4|\
 wndr4300)
