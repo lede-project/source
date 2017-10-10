@@ -96,6 +96,12 @@ define U-Boot/Hummingbird_A31
   NAME:=Hummingbird A31 board
 endef
 
+define U-Boot/Marsboard
+  BUILD_SUBTARGET:=cortexa8
+  NAME:=Marsboard
+  BUILD_DEVICES:=sun4i-a10-marsboard
+endef
+
 define U-Boot/Mele_M9
   BUILD_SUBTARGET:=cortexa7
   NAME:=Mele M9 (A31)
@@ -144,6 +150,12 @@ define U-Boot/orangepi_plus
   BUILD_DEVICES:=sun8i-h3-orangepi-plus
 endef
 
+define U-Boot/orangepi_2
+  BUILD_SUBTARGET:=cortexa7
+  NAME:=Orange Pi 2 (H3)
+  BUILD_DEVICES:=sun8i-h3-orangepi-2
+endef
+
 define U-Boot/pangolin
   BUILD_SUBTARGET:=cortexa7
   NAME:=Theobroma A31-yQ7 devboard
@@ -179,6 +191,7 @@ UBOOT_TARGETS := \
 	nanopi_neo \
 	orangepi_r1 \
 	orangepi_plus \
+	orangepi_2 \
 	pangolin \
 	pine64_plus
 

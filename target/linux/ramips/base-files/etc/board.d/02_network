@@ -171,6 +171,7 @@ ramips_setup_interfaces()
 	rb750gr3|\
 	rt-n14u|\
 	tl-wr840n-v4|\
+	tl-wr840n-v5|\
 	tl-wr841n-v13|\
 	ubnt-erx|\
 	ubnt-erx-sfp|\
@@ -237,6 +238,7 @@ ramips_setup_interfaces()
 	mzk-ex750np|\
 	na930|\
 	pbr-d1|\
+	u25awf-h1|\
 	wli-tx4-ag300n|\
 	wmdr-143n|\
 	wmr-300|\

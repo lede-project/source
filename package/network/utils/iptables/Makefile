@@ -216,6 +216,20 @@ define Package/iptables-mod-nflog/description
 
 endef
 
+define Package/iptables-mod-trace
+$(call Package/iptables/Module, +kmod-ipt-debug +kmod-ipt-raw)
+  TITLE:=Netfilter TRACE target
+endef
+
+define Package/iptables-mod-trace/description
+ iptables extension for TRACE target
+
+ Includes:
+  - libxt_TRACE
+
+endef
+
+
 define Package/iptables-mod-nfqueue
 $(call Package/iptables/Module, +kmod-nfnetlink-queue +kmod-ipt-nfqueue)
   TITLE:=Netfilter NFQUEUE target
@@ -379,6 +393,15 @@ U32 iptables extensions.
  Matches:
   - u32
 
+endef
+
+define Package/iptables-mod-checksum
+$(call Package/iptables/Module, +kmod-ipt-checksum)
+  TITLE:=IP CHECKSUM target extension
+endef
+
+define Package/iptables-mod-checksum/description
+iptables extension for the CHECKSUM calculation target
 endef
 
 define Package/ip6tables
@@ -584,7 +607,9 @@ $(eval $(call BuildPlugin,iptables-mod-tproxy,$(IPT_TPROXY-m)))
 $(eval $(call BuildPlugin,iptables-mod-tee,$(IPT_TEE-m)))
 $(eval $(call BuildPlugin,iptables-mod-u32,$(IPT_U32-m)))
 $(eval $(call BuildPlugin,iptables-mod-nflog,$(IPT_NFLOG-m)))
+$(eval $(call BuildPlugin,iptables-mod-trace,$(IPT_DEBUG-m)))
 $(eval $(call BuildPlugin,iptables-mod-nfqueue,$(IPT_NFQUEUE-m)))
+$(eval $(call BuildPlugin,iptables-mod-checksum,$(IPT_CHECKSUM-m)))
 $(eval $(call BuildPackage,ip6tables))
 $(eval $(call BuildPlugin,ip6tables-extra,$(IPT_IPV6_EXTRA-m)))
 $(eval $(call BuildPlugin,ip6tables-mod-nat,$(IPT_NAT6-m)))
