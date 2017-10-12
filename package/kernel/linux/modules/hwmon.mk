@@ -239,6 +239,20 @@ endef
 
 $(eval $(call KernelPackage,hwmon-lm95241))
 
+define KernelPackage/hwmon-ltc2990
+  TITLE:=LTC2990 monitoring support
+  KCONFIG:=CONFIG_SENSORS_LTC2990
+  FILES:=$(LINUX_DIR)/drivers/hwmon/ltc2990.ko
+  AUTOLOAD:=$(call AutoProbe,ltc2990)
+  $(call AddDepends/hwmon,+kmod-i2c-core)
+endef
+
+define KernelPackage/hwmon-ltc2990/description
+ Kernel module for Linear Technology LTC2990 current and voltage monitor chip
+endef
+
+$(eval $(call KernelPackage,hwmon-ltc2990))
+
 define KernelPackage/hwmon-ltc4151
   TITLE:=LTC4151 monitoring support
   KCONFIG:=CONFIG_SENSORS_LTC4151
