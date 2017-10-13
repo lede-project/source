@@ -227,6 +227,9 @@ get_status_led() {
 	tew-638apb-v2|\
 	tew-691gr|\
 	tew-692gr|\
+	u25awf)
+		status_led="$board:red:wifi"
+		;;
 	ur-326n4g|\
 	ur-336un|\
 	wf-2881)
