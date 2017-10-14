@@ -129,7 +129,8 @@ ar71xx_setup_interfaces()
 	tube2h|\
 	unifiac-lite|\
 	wndap360|\
-	wp543)
+	wp543|\
+    zsun-sdreader)
 		ucidef_set_interface_lan "eth0"
 		;;
 	a40|\
