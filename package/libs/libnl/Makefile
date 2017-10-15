@@ -117,10 +117,6 @@ define Package/libnl-nf/install
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libnl-nf-3.so $(1)/usr/lib/libnl-nf.so
 endef
 
-define Package/libnl/install
-	:
-endef
-
 $(eval $(call BuildPackage,libnl-core))
 $(eval $(call BuildPackage,libnl-genl))
 $(eval $(call BuildPackage,libnl-route))
