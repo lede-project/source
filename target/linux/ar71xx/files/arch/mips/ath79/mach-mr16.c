@@ -42,8 +42,10 @@
 
 #define MR16_WAN_PHYMASK    BIT(0)
 
-#define MR16_CALDATA0_OFFSET		0x21000
-#define MR16_CALDATA1_OFFSET		0x25000
+#define MR16_MAC			0xbf080066
+#define MR16_ART			0xbfff0000
+#define MR16_CALDATA0_OFFSET		0x1000
+#define MR16_CALDATA1_OFFSET		0x5000
 
 static struct gpio_led MR16_leds_gpio[] __initdata = {
 	{
@@ -90,7 +92,9 @@ static struct gpio_keys_button MR16_gpio_keys[] __initdata = {
 
 static void __init MR16_setup(void)
 {
-	u8 *mac = (u8 *) KSEG1ADDR(0xbffd0000);
+	u8 *mac = (u8 *) KSEG1ADDR(MR16_MAC);
+	u8 *art = (u8 *) KSEG1ADDR(MR16_ART);
+
 	u8 wlan0_mac[ETH_ALEN];
 	u8 wlan1_mac[ETH_ALEN];
 
@@ -101,6 +105,9 @@ static void __init MR16_setup(void)
 	ath79_eth0_data.phy_mask = MR16_WAN_PHYMASK;
 	ath79_register_eth(0);
 
+	ath79_init_mac(wlan0_mac, mac, 1);
+	ath79_init_mac(wlan1_mac, mac, 2);
+
 	ath79_register_m25p80(NULL);
 
 	ath79_register_leds_gpio(-1, ARRAY_SIZE(MR16_leds_gpio),
@@ -109,10 +116,8 @@ static void __init MR16_setup(void)
 					ARRAY_SIZE(MR16_gpio_keys),
 					MR16_gpio_keys);
 
-	ath79_init_mac(wlan0_mac, mac, 1);
-	ath79_init_mac(wlan1_mac, mac, 2);
-	ap94_pci_init(mac + MR16_CALDATA0_OFFSET, wlan0_mac,
-		    mac + MR16_CALDATA1_OFFSET, wlan1_mac);
+	ap94_pci_init(art + MR16_CALDATA0_OFFSET, wlan0_mac,
+					art + MR16_CALDATA1_OFFSET, wlan1_mac);
 }
 
 MIPS_MACHINE(ATH79_MACH_MR16, "MR16", "Meraki MR16", MR16_setup);

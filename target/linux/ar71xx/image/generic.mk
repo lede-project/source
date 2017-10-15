@@ -333,9 +333,9 @@ define Device/mr12
   DEVICE_TITLE := Meraki MR12
   DEVICE_PACKAGES := kmod-spi-gpio
   BOARDNAME := MR12
-  ROOTFS_SIZE := 13440k
-  IMAGE_SIZE := 15680k
-  MTDPARTS := spi0.0:256k(u-boot)ro,256k(u-boot-env)ro,13440k(rootfs),2240k(kernel),64k(mac),128k(art)ro,15680k@0x80000(firmware)
+  ROOTFS_SIZE := 13312k
+  IMAGE_SIZE := 15616k
+  MTDPARTS := spi0.0:256k(u-boot)ro,256k(u-boot-env)ro,128k(config)ro,13312k(rootfs),2304k(kernel),128k(art)ro,15616k@0xa0000(firmware)
   IMAGE/kernel.bin := append-kernel
   IMAGE/rootfs.bin := append-rootfs | pad-rootfs
   IMAGE/sysupgrade.bin := append-rootfs | pad-rootfs | pad-to $$$$(ROOTFS_SIZE) | append-kernel | check-size $$$$(IMAGE_SIZE)
