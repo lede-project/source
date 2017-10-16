@@ -1,0 +1,20 @@
+--- a/squashfs-tools/mksquashfs.c	2017-09-24 17:15:26.041555804 -0400
++++ b/squashfs-tools/mksquashfs.c	2017-09-24 17:16:31.124010103 -0400
+@@ -49,6 +49,7 @@
+ #include <regex.h>
+ #include <fnmatch.h>
+ #include <sys/wait.h>
++#include <sys/sysmacros.h>
+ 
+ #ifndef linux
+ #define __BYTE_ORDER BYTE_ORDER
+--- a/squashfs-tools/unsquashfs.c	2017-09-24 17:19:37.137353855 -0400
++++ b/squashfs-tools/unsquashfs.c2	2017-09-24 17:20:33.848303653 -0400
+@@ -28,6 +28,7 @@
+ #include "read_fs.h"
+ #include "compressor.h"
+ #include "xattr.h"
++#include <sys/sysmacros.h>
+ 
+ #include <sys/sysinfo.h>
+ #include <sys/types.h>
