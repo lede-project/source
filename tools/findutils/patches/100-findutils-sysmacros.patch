@@ -1,0 +1,10 @@
+--- a/gl/lib/mountlist.c	2017-09-24 16:10:27.921940337 -0400
++++ b/gl/lib/mountlist.c	2017-09-24 16:09:53.160997226 -0400
+@@ -24,6 +24,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <stdint.h>
++#include <sys/sysmacros.h>
+ 
+ #include "xalloc.h"
+ 
