@@ -11,7 +11,7 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
 KERNEL_LOADADDR:=0x8000
-TARGET_DEVICES = linksys-audi linksys-viper dockstar goflexnet goflexhome iconnect pogo_e02 ib62x0 nsa310b nsa325 on100
+TARGET_DEVICES = linksys-audi linksys-viper dockstar goflexnet goflexhome iconnect pogo_e02 pogo_v4 ib62x0 nsa310b nsa325 on100
 
 UBI_OPTS := -m 2048 -p 128KiB -s 512
 UBIFS_OPTS := -m 2048 -e 126KiB -c 4096
@@ -109,6 +109,12 @@ define Device/pogo_e02
 $(Device/dockstar)
   DEVICE_TITLE := Cloud Engines Pogoplug E02
   DEVICE_DTS := kirkwood-pogo_e02
+endef
+
+define Device/pogo_v4
+$(Device/dockstar)
+  DEVICE_TITLE := Cloud Engines Pogoplug V4
+  DEVICE_DTS := kirkwood-pogoplug-series-4
 endef
 
 define Device/ib62x0

@@ -22,6 +22,9 @@ case "$board" in
 "sheevaplug-esata")
 	ucidef_set_interface_lan "eth0" "dhcp"
 	;;
+"pogo_v4"|)
+    ucidef_set_interface_lan "eth0"
+    ;;
 "guruplug-server-plus")
 	ucidef_set_interface_lan "eth0 eth1" "dhcp"
 	;;
