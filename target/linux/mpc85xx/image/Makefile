@@ -85,6 +85,7 @@ define Image/Build/Profile/TLWDR4900
 endef
 
 define Image/Build/Profile/Default
+	$(call Image/Build/Profile/hiveap-330,$(1))
 	$(call Image/Build/Profile/TLWDR4900,$(1))
 endef
 
