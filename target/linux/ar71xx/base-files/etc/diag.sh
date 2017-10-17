@@ -169,6 +169,9 @@ get_status_led() {
 	dlan-pro-1200-ac)
 		status_led="devolo:status:wlan"
 		;;
+	dlb-5)
+		status_led="ligodlb:green:power"
+		;;
 	dr531)
 		status_led="$board:green:sig4"
 		;;
