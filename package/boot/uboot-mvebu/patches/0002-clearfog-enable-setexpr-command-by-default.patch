@@ -1,0 +1,29 @@
+From 8bcd08781f557d6c9b96016d62e4a7b7c21e57bf Mon Sep 17 00:00:00 2001
+From: Josua Mayer <josua.mayer97@gmail.com>
+Date: Sun, 23 Apr 2017 17:45:11 +0200
+Subject: [PATCH 2/3] clearfog: enable setexpr command by default
+
+Turns out this command is pretty useful in advanced boot-scripts.
+-> enable
+
+Signed-off-by: Josua Mayer <josua.mayer97@gmail.com>
+---
+ configs/clearfog_defconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configs/clearfog_defconfig b/configs/clearfog_defconfig
+index 580eaf3e573..f355632247e 100644
+--- a/configs/clearfog_defconfig
++++ b/configs/clearfog_defconfig
+@@ -24,7 +24,7 @@ CONFIG_CMD_PCI=y
+ CONFIG_CMD_SF=y
+ CONFIG_CMD_SPI=y
+ CONFIG_CMD_USB=y
+-# CONFIG_CMD_SETEXPR is not set
++CONFIG_CMD_SETEXPR=y
+ CONFIG_CMD_TFTPPUT=y
+ CONFIG_CMD_CACHE=y
+ CONFIG_CMD_TIME=y
+-- 
+2.13.6
+
