@@ -1,97 +1,6 @@
-From 3a302437605308079db398b67000a77a4fe92da8 Mon Sep 17 00:00:00 2001
-From: Yangbo Lu <yangbo.lu@nxp.com>
-Date: Mon, 25 Sep 2017 12:07:58 +0800
-Subject: [PATCH] dpaa2: support layerscape
-
-This is a integrated patch for layerscape dpaa2 support.
-
-Signed-off-by: Bogdan Purcareata <bogdan.purcareata@nxp.com>
-Signed-off-by: Ioana Radulescu <ruxandra.radulescu@nxp.com>
-Signed-off-by: Razvan Stefanescu <razvan.stefanescu@nxp.com>
-Signed-off-by: costi <constantin.tudor@freescale.com>
-Signed-off-by: Catalin Horghidan <catalin.horghidan@nxp.com>
-Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
----
- drivers/soc/fsl/ls2-console/Kconfig                |    4 +
- drivers/soc/fsl/ls2-console/Makefile               |    1 +
- drivers/soc/fsl/ls2-console/ls2-console.c          |  284 ++
- drivers/staging/fsl-dpaa2/ethernet/Makefile        |   11 +
- drivers/staging/fsl-dpaa2/ethernet/README          |  186 ++
- .../staging/fsl-dpaa2/ethernet/dpaa2-eth-debugfs.c |  350 +++
- .../staging/fsl-dpaa2/ethernet/dpaa2-eth-debugfs.h |   60 +
- .../staging/fsl-dpaa2/ethernet/dpaa2-eth-trace.h   |  184 ++
- drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth.c     | 3155 ++++++++++++++++++++
- drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth.h     |  460 +++
- drivers/staging/fsl-dpaa2/ethernet/dpaa2-ethtool.c |  856 ++++++
- drivers/staging/fsl-dpaa2/ethernet/dpkg.h          |  176 ++
- drivers/staging/fsl-dpaa2/ethernet/dpni-cmd.h      |  600 ++++
- drivers/staging/fsl-dpaa2/ethernet/dpni.c          | 1770 +++++++++++
- drivers/staging/fsl-dpaa2/ethernet/dpni.h          |  989 ++++++
- drivers/staging/fsl-dpaa2/ethernet/net.h           |  480 +++
- drivers/staging/fsl-dpaa2/ethsw/Kconfig            |    6 +
- drivers/staging/fsl-dpaa2/ethsw/Makefile           |   10 +
- drivers/staging/fsl-dpaa2/ethsw/dpsw-cmd.h         |  851 ++++++
- drivers/staging/fsl-dpaa2/ethsw/dpsw.c             | 2762 +++++++++++++++++
- drivers/staging/fsl-dpaa2/ethsw/dpsw.h             | 1269 ++++++++
- drivers/staging/fsl-dpaa2/ethsw/switch.c           | 1857 ++++++++++++
- drivers/staging/fsl-dpaa2/evb/Kconfig              |    7 +
- drivers/staging/fsl-dpaa2/evb/Makefile             |   10 +
- drivers/staging/fsl-dpaa2/evb/dpdmux-cmd.h         |  279 ++
- drivers/staging/fsl-dpaa2/evb/dpdmux.c             | 1112 +++++++
- drivers/staging/fsl-dpaa2/evb/dpdmux.h             |  453 +++
- drivers/staging/fsl-dpaa2/evb/evb.c                | 1350 +++++++++
- drivers/staging/fsl-dpaa2/mac/Kconfig              |   23 +
- drivers/staging/fsl-dpaa2/mac/Makefile             |   10 +
- drivers/staging/fsl-dpaa2/mac/dpmac-cmd.h          |  172 ++
- drivers/staging/fsl-dpaa2/mac/dpmac.c              |  620 ++++
- drivers/staging/fsl-dpaa2/mac/dpmac.h              |  342 +++
- drivers/staging/fsl-dpaa2/mac/mac.c                |  666 +++++
- drivers/staging/fsl-dpaa2/rtc/Makefile             |   10 +
- drivers/staging/fsl-dpaa2/rtc/dprtc-cmd.h          |  160 +
- drivers/staging/fsl-dpaa2/rtc/dprtc.c              |  746 +++++
- drivers/staging/fsl-dpaa2/rtc/dprtc.h              |  172 ++
- drivers/staging/fsl-dpaa2/rtc/rtc.c                |  243 ++
- 39 files changed, 22696 insertions(+)
- create mode 100644 drivers/soc/fsl/ls2-console/Kconfig
- create mode 100644 drivers/soc/fsl/ls2-console/Makefile
- create mode 100644 drivers/soc/fsl/ls2-console/ls2-console.c
- create mode 100644 drivers/staging/fsl-dpaa2/ethernet/Makefile
- create mode 100644 drivers/staging/fsl-dpaa2/ethernet/README
- create mode 100644 drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth-debugfs.c
- create mode 100644 drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth-debugfs.h
- create mode 100644 drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth-trace.h
- create mode 100644 drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth.c
- create mode 100644 drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth.h
- create mode 100644 drivers/staging/fsl-dpaa2/ethernet/dpaa2-ethtool.c
- create mode 100644 drivers/staging/fsl-dpaa2/ethernet/dpkg.h
- create mode 100644 drivers/staging/fsl-dpaa2/ethernet/dpni-cmd.h
- create mode 100644 drivers/staging/fsl-dpaa2/ethernet/dpni.c
- create mode 100644 drivers/staging/fsl-dpaa2/ethernet/dpni.h
- create mode 100644 drivers/staging/fsl-dpaa2/ethernet/net.h
- create mode 100644 drivers/staging/fsl-dpaa2/ethsw/Kconfig
- create mode 100644 drivers/staging/fsl-dpaa2/ethsw/Makefile
- create mode 100644 drivers/staging/fsl-dpaa2/ethsw/dpsw-cmd.h
- create mode 100644 drivers/staging/fsl-dpaa2/ethsw/dpsw.c
- create mode 100644 drivers/staging/fsl-dpaa2/ethsw/dpsw.h
- create mode 100644 drivers/staging/fsl-dpaa2/ethsw/switch.c
- create mode 100644 drivers/staging/fsl-dpaa2/evb/Kconfig
- create mode 100644 drivers/staging/fsl-dpaa2/evb/Makefile
- create mode 100644 drivers/staging/fsl-dpaa2/evb/dpdmux-cmd.h
- create mode 100644 drivers/staging/fsl-dpaa2/evb/dpdmux.c
- create mode 100644 drivers/staging/fsl-dpaa2/evb/dpdmux.h
- create mode 100644 drivers/staging/fsl-dpaa2/evb/evb.c
- create mode 100644 drivers/staging/fsl-dpaa2/mac/Kconfig
- create mode 100644 drivers/staging/fsl-dpaa2/mac/Makefile
- create mode 100644 drivers/staging/fsl-dpaa2/mac/dpmac-cmd.h
- create mode 100644 drivers/staging/fsl-dpaa2/mac/dpmac.c
- create mode 100644 drivers/staging/fsl-dpaa2/mac/dpmac.h
- create mode 100644 drivers/staging/fsl-dpaa2/mac/mac.c
- create mode 100644 drivers/staging/fsl-dpaa2/rtc/Makefile
- create mode 100644 drivers/staging/fsl-dpaa2/rtc/dprtc-cmd.h
- create mode 100644 drivers/staging/fsl-dpaa2/rtc/dprtc.c
- create mode 100644 drivers/staging/fsl-dpaa2/rtc/dprtc.h
- create mode 100644 drivers/staging/fsl-dpaa2/rtc/rtc.c
-
+diff --git a/drivers/soc/fsl/ls2-console/Kconfig b/drivers/soc/fsl/ls2-console/Kconfig
+new file mode 100644
+index 0000000..47d0dc1
 --- /dev/null
 +++ b/drivers/soc/fsl/ls2-console/Kconfig
 @@ -0,0 +1,4 @@
@@ -99,10 +8,16 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +        tristate "Layerscape MC and AIOP console support"
 +	depends on ARCH_LAYERSCAPE
 +        default y
+diff --git a/drivers/soc/fsl/ls2-console/Makefile b/drivers/soc/fsl/ls2-console/Makefile
+new file mode 100644
+index 0000000..62b9634
 --- /dev/null
 +++ b/drivers/soc/fsl/ls2-console/Makefile
 @@ -0,0 +1 @@
 +obj-$(CONFIG_FSL_LS2_CONSOLE) += ls2-console.o
+diff --git a/drivers/soc/fsl/ls2-console/ls2-console.c b/drivers/soc/fsl/ls2-console/ls2-console.c
+new file mode 100644
+index 0000000..68415ad
 --- /dev/null
 +++ b/drivers/soc/fsl/ls2-console/ls2-console.c
 @@ -0,0 +1,284 @@
@@ -390,6 +305,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +MODULE_AUTHOR("Roy Pledge <roy.pledge@freescale.com>");
 +MODULE_LICENSE("Dual BSD/GPL");
 +MODULE_DESCRIPTION("Freescale LS2 console driver");
+diff --git a/drivers/staging/fsl-dpaa2/ethernet/Makefile b/drivers/staging/fsl-dpaa2/ethernet/Makefile
+new file mode 100644
+index 0000000..e26911d
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethernet/Makefile
 @@ -0,0 +1,11 @@
@@ -404,6 +322,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +# Needed by the tracing framework
 +CFLAGS_dpaa2-eth.o := -I$(src)
+diff --git a/drivers/staging/fsl-dpaa2/ethernet/README b/drivers/staging/fsl-dpaa2/ethernet/README
+new file mode 100644
+index 0000000..410952e
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethernet/README
 @@ -0,0 +1,186 @@
@@ -593,6 +514,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +Hardware specific statistics for the network interface as well as some
 +non-standard driver stats can be consulted through ethtool -S option.
+diff --git a/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth-debugfs.c b/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth-debugfs.c
+new file mode 100644
+index 0000000..445c5d1
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth-debugfs.c
 @@ -0,0 +1,350 @@
@@ -946,6 +870,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +{
 +	debugfs_remove(dpaa2_dbg_root);
 +}
+diff --git a/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth-debugfs.h b/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth-debugfs.h
+new file mode 100644
+index 0000000..551e6c4
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth-debugfs.h
 @@ -0,0 +1,60 @@
@@ -1009,6 +936,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +#endif /* CONFIG_FSL_DPAA2_ETH_DEBUGFS */
 +
 +#endif /* DPAA2_ETH_DEBUGFS_H */
+diff --git a/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth-trace.h b/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth-trace.h
+new file mode 100644
+index 0000000..e8e6522
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth-trace.h
 @@ -0,0 +1,184 @@
@@ -1196,9 +1126,12 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +#undef TRACE_INCLUDE_FILE
 +#define TRACE_INCLUDE_FILE	dpaa2-eth-trace
 +#include <trace/define_trace.h>
+diff --git a/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth.c b/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth.c
+new file mode 100644
+index 0000000..0e68a99
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth.c
-@@ -0,0 +1,3155 @@
+@@ -0,0 +1,3157 @@
 +/* Copyright 2014-2015 Freescale Semiconductor Inc.
 + *
 + * Redistribution and use in source and binary forms, with or without
@@ -2497,8 +2430,8 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +/** Fill in counters maintained by the GPP driver. These may be different from
 + * the hardware counters obtained by ethtool.
 + */
-+static void dpaa2_eth_get_stats(struct net_device *net_dev,
-+				struct rtnl_link_stats64 *stats)
++static struct rtnl_link_stats64 *dpaa2_eth_get_stats(struct net_device *net_dev,
++						     struct rtnl_link_stats64 *stats)
 +{
 +	struct dpaa2_eth_priv *priv = netdev_priv(net_dev);
 +	struct rtnl_link_stats64 *percpu_stats;
@@ -2513,6 +2446,8 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +		for (j = 0; j < num; j++)
 +			netstats[j] += cpustats[j];
 +	}
++
++	return stats;
 +}
 +
 +static int dpaa2_eth_change_mtu(struct net_device *net_dev, int mtu)
@@ -4354,6 +4289,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +module_init(dpaa2_eth_driver_init);
 +module_exit(dpaa2_eth_driver_exit);
+diff --git a/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth.h b/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth.h
+new file mode 100644
+index 0000000..86cb12e
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethernet/dpaa2-eth.h
 @@ -0,0 +1,460 @@
@@ -4817,6 +4755,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +int setup_fqs_taildrop(struct dpaa2_eth_priv *priv, bool enable);
 +#endif	/* __DPAA2_H */
+diff --git a/drivers/staging/fsl-dpaa2/ethernet/dpaa2-ethtool.c b/drivers/staging/fsl-dpaa2/ethernet/dpaa2-ethtool.c
+new file mode 100644
+index 0000000..9859814
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethernet/dpaa2-ethtool.c
 @@ -0,0 +1,856 @@
@@ -5676,6 +5617,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +	.get_rxnfc = dpaa2_eth_get_rxnfc,
 +	.set_rxnfc = dpaa2_eth_set_rxnfc,
 +};
+diff --git a/drivers/staging/fsl-dpaa2/ethernet/dpkg.h b/drivers/staging/fsl-dpaa2/ethernet/dpkg.h
+new file mode 100644
+index 0000000..02290a0
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethernet/dpkg.h
 @@ -0,0 +1,176 @@
@@ -5855,6 +5799,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +};
 +
 +#endif /* __FSL_DPKG_H_ */
+diff --git a/drivers/staging/fsl-dpaa2/ethernet/dpni-cmd.h b/drivers/staging/fsl-dpaa2/ethernet/dpni-cmd.h
+new file mode 100644
+index 0000000..fa353d7
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethernet/dpni-cmd.h
 @@ -0,0 +1,600 @@
@@ -6458,6 +6405,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +};
 +
 +#endif /* _FSL_DPNI_CMD_H */
+diff --git a/drivers/staging/fsl-dpaa2/ethernet/dpni.c b/drivers/staging/fsl-dpaa2/ethernet/dpni.c
+new file mode 100644
+index 0000000..3c23e4d
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethernet/dpni.c
 @@ -0,0 +1,1770 @@
@@ -8231,6 +8181,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +	return 0;
 +}
+diff --git a/drivers/staging/fsl-dpaa2/ethernet/dpni.h b/drivers/staging/fsl-dpaa2/ethernet/dpni.h
+new file mode 100644
+index 0000000..600c357
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethernet/dpni.h
 @@ -0,0 +1,989 @@
@@ -9223,6 +9176,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +			 const struct dpni_rule_cfg *cfg);
 +
 +#endif /* __FSL_DPNI_H */
+diff --git a/drivers/staging/fsl-dpaa2/ethernet/net.h b/drivers/staging/fsl-dpaa2/ethernet/net.h
+new file mode 100644
+index 0000000..5020dee
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethernet/net.h
 @@ -0,0 +1,480 @@
@@ -9706,6 +9662,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +	    (((u32)((vlan_id) & 0xFFF))))
 +
 +#endif /* __FSL_NET_H */
+diff --git a/drivers/staging/fsl-dpaa2/ethsw/Kconfig b/drivers/staging/fsl-dpaa2/ethsw/Kconfig
+new file mode 100644
+index 0000000..06c7040
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethsw/Kconfig
 @@ -0,0 +1,6 @@
@@ -9715,6 +9674,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +	default y
 +	---help---
 +	Prototype driver for DPAA2 Ethernet Switch.
+diff --git a/drivers/staging/fsl-dpaa2/ethsw/Makefile b/drivers/staging/fsl-dpaa2/ethsw/Makefile
+new file mode 100644
+index 0000000..20eb3ac
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethsw/Makefile
 @@ -0,0 +1,10 @@
@@ -9728,6 +9690,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +clean:
 +	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+diff --git a/drivers/staging/fsl-dpaa2/ethsw/dpsw-cmd.h b/drivers/staging/fsl-dpaa2/ethsw/dpsw-cmd.h
+new file mode 100644
+index 0000000..f7374d1
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethsw/dpsw-cmd.h
 @@ -0,0 +1,851 @@
@@ -10582,6 +10547,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +};
 +
 +#endif /* __FSL_DPSW_CMD_H */
+diff --git a/drivers/staging/fsl-dpaa2/ethsw/dpsw.c b/drivers/staging/fsl-dpaa2/ethsw/dpsw.c
+new file mode 100644
+index 0000000..179e98c
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethsw/dpsw.c
 @@ -0,0 +1,2762 @@
@@ -13347,6 +13315,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +	return 0;
 +}
+diff --git a/drivers/staging/fsl-dpaa2/ethsw/dpsw.h b/drivers/staging/fsl-dpaa2/ethsw/dpsw.h
+new file mode 100644
+index 0000000..c91abeb
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethsw/dpsw.h
 @@ -0,0 +1,1269 @@
@@ -14619,9 +14590,12 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +			 u16 *minor_ver);
 +
 +#endif /* __FSL_DPSW_H */
+diff --git a/drivers/staging/fsl-dpaa2/ethsw/switch.c b/drivers/staging/fsl-dpaa2/ethsw/switch.c
+new file mode 100644
+index 0000000..3bb30d3
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/ethsw/switch.c
-@@ -0,0 +1,1857 @@
+@@ -0,0 +1,1859 @@
 +/* Copyright 2014-2015 Freescale Semiconductor Inc.
 + *
 + * Redistribution and use in source and binary forms, with or without
@@ -15718,8 +15692,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +	return 0;
 +}
 +
-+void ethsw_port_get_stats(struct net_device *netdev,
-+			  struct rtnl_link_stats64 *storage)
++static struct rtnl_link_stats64 *
++ethsw_port_get_stats(struct net_device *netdev,
++		     struct rtnl_link_stats64 *storage)
 +{
 +	struct ethsw_port_priv	*port_priv = netdev_priv(netdev);
 +	u64			tmp;
@@ -15778,10 +15753,11 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +	if (err)
 +		goto error;
 +
-+	return;
++	return storage;
 +
 +error:
 +	netdev_err(netdev, "dpsw_if_get_counter err %d\n", err);
++	return NULL;
 +}
 +
 +static int ethsw_port_change_mtu(struct net_device *netdev, int mtu)
@@ -16479,6 +16455,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("DPAA2 Ethernet Switch Driver (prototype)");
+diff --git a/drivers/staging/fsl-dpaa2/evb/Kconfig b/drivers/staging/fsl-dpaa2/evb/Kconfig
+new file mode 100644
+index 0000000..3534f69
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/evb/Kconfig
 @@ -0,0 +1,7 @@
@@ -16489,6 +16468,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +	default y
 +	---help---
 +	Prototype driver for DPAA2 Edge Virtual Bridge.
+diff --git a/drivers/staging/fsl-dpaa2/evb/Makefile b/drivers/staging/fsl-dpaa2/evb/Makefile
+new file mode 100644
+index 0000000..ecc529d
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/evb/Makefile
 @@ -0,0 +1,10 @@
@@ -16502,6 +16484,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +clean:
 +	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+diff --git a/drivers/staging/fsl-dpaa2/evb/dpdmux-cmd.h b/drivers/staging/fsl-dpaa2/evb/dpdmux-cmd.h
+new file mode 100644
+index 0000000..6630680
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/evb/dpdmux-cmd.h
 @@ -0,0 +1,279 @@
@@ -16784,6 +16769,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +};
 +
 +#endif /* _FSL_DPDMUX_CMD_H */
+diff --git a/drivers/staging/fsl-dpaa2/evb/dpdmux.c b/drivers/staging/fsl-dpaa2/evb/dpdmux.c
+new file mode 100644
+index 0000000..f7a8763
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/evb/dpdmux.c
 @@ -0,0 +1,1112 @@
@@ -17899,6 +17887,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +	return 0;
 +}
+diff --git a/drivers/staging/fsl-dpaa2/evb/dpdmux.h b/drivers/staging/fsl-dpaa2/evb/dpdmux.h
+new file mode 100644
+index 0000000..a6ccc7e
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/evb/dpdmux.h
 @@ -0,0 +1,453 @@
@@ -18355,9 +18346,12 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +			   u16 *minor_ver);
 +
 +#endif /* __FSL_DPDMUX_H */
+diff --git a/drivers/staging/fsl-dpaa2/evb/evb.c b/drivers/staging/fsl-dpaa2/evb/evb.c
+new file mode 100644
+index 0000000..fefc57b
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/evb/evb.c
-@@ -0,0 +1,1350 @@
+@@ -0,0 +1,1352 @@
 +/* Copyright 2015 Freescale Semiconductor Inc.
 + *
 + * Redistribution and use in source and binary forms, with or without
@@ -19125,8 +19119,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +	return 0;
 +}
 +
-+void evb_port_get_stats(struct net_device *netdev,
-+			struct rtnl_link_stats64 *storage)
++static struct rtnl_link_stats64 *
++evb_port_get_stats(struct net_device *netdev,
++		   struct rtnl_link_stats64 *storage)
 +{
 +	struct evb_port_priv	*port_priv = netdev_priv(netdev);
 +	u64			tmp;
@@ -19202,10 +19197,11 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +	if (unlikely(err))
 +		goto error;
 +
-+	return;
++	return storage;
 +
 +error:
 +	netdev_err(netdev, "dpdmux_if_get_counter err %d\n", err);
++	return NULL;
 +}
 +
 +static const struct net_device_ops evb_port_ops = {
@@ -19708,6 +19704,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("Layerscape DPAA Edge Virtual Bridge driver (prototype)");
+diff --git a/drivers/staging/fsl-dpaa2/mac/Kconfig b/drivers/staging/fsl-dpaa2/mac/Kconfig
+new file mode 100644
+index 0000000..c94f7c1
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/mac/Kconfig
 @@ -0,0 +1,23 @@
@@ -19734,6 +19733,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +	PHYs.
 +	.
 +	Leave disabled if unsure.
+diff --git a/drivers/staging/fsl-dpaa2/mac/Makefile b/drivers/staging/fsl-dpaa2/mac/Makefile
+new file mode 100644
+index 0000000..bda9410
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/mac/Makefile
 @@ -0,0 +1,10 @@
@@ -19747,6 +19749,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +clean:
 +	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+diff --git a/drivers/staging/fsl-dpaa2/mac/dpmac-cmd.h b/drivers/staging/fsl-dpaa2/mac/dpmac-cmd.h
+new file mode 100644
+index 0000000..abdc3c0
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/mac/dpmac-cmd.h
 @@ -0,0 +1,172 @@
@@ -19922,6 +19927,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +};
 +
 +#endif /* _FSL_DPMAC_CMD_H */
+diff --git a/drivers/staging/fsl-dpaa2/mac/dpmac.c b/drivers/staging/fsl-dpaa2/mac/dpmac.c
+new file mode 100644
+index 0000000..f782742
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/mac/dpmac.c
 @@ -0,0 +1,620 @@
@@ -20545,6 +20553,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +	return 0;
 +}
+diff --git a/drivers/staging/fsl-dpaa2/mac/dpmac.h b/drivers/staging/fsl-dpaa2/mac/dpmac.h
+new file mode 100644
+index 0000000..32d4ada
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/mac/dpmac.h
 @@ -0,0 +1,342 @@
@@ -20890,9 +20901,12 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +			  u16 *minor_ver);
 +
 +#endif /* __FSL_DPMAC_H */
+diff --git a/drivers/staging/fsl-dpaa2/mac/mac.c b/drivers/staging/fsl-dpaa2/mac/mac.c
+new file mode 100644
+index 0000000..caa2d31
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/mac/mac.c
-@@ -0,0 +1,666 @@
+@@ -0,0 +1,669 @@
 +/* Copyright 2015 Freescale Semiconductor Inc.
 + *
 + * Redistribution and use in source and binary forms, with or without
@@ -21059,8 +21073,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +	return phy_ethtool_sset(netdev->phydev, cmd);
 +}
 +
-+static void dpaa2_mac_get_stats(struct net_device *netdev,
-+				struct rtnl_link_stats64 *storage)
++static struct rtnl_link_stats64 *
++dpaa2_mac_get_stats(struct net_device *netdev,
++		    struct rtnl_link_stats64 *storage)
 +{
 +	struct dpaa2_mac_priv	*priv = netdev_priv(netdev);
 +	u64			tmp;
@@ -21122,9 +21137,11 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +	if (err)
 +		goto error;
 +
-+	return;
++	return storage;
++
 +error:
 +	netdev_err(netdev, "dpmac_get_counter err %d\n", err);
++	return NULL;
 +}
 +
 +static struct {
@@ -21559,6 +21576,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("DPAA2 PHY proxy interface driver");
+diff --git a/drivers/staging/fsl-dpaa2/rtc/Makefile b/drivers/staging/fsl-dpaa2/rtc/Makefile
+new file mode 100644
+index 0000000..541a7ac
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/rtc/Makefile
 @@ -0,0 +1,10 @@
@@ -21572,6 +21592,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +clean:
 +	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+diff --git a/drivers/staging/fsl-dpaa2/rtc/dprtc-cmd.h b/drivers/staging/fsl-dpaa2/rtc/dprtc-cmd.h
+new file mode 100644
+index 0000000..618c7e5
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/rtc/dprtc-cmd.h
 @@ -0,0 +1,160 @@
@@ -21735,6 +21758,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +};
 +#pragma pack(pop)
 +#endif /* _FSL_DPRTC_CMD_H */
+diff --git a/drivers/staging/fsl-dpaa2/rtc/dprtc.c b/drivers/staging/fsl-dpaa2/rtc/dprtc.c
+new file mode 100644
+index 0000000..399177e
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/rtc/dprtc.c
 @@ -0,0 +1,746 @@
@@ -22484,6 +22510,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +
 +	return 0;
 +}
+diff --git a/drivers/staging/fsl-dpaa2/rtc/dprtc.h b/drivers/staging/fsl-dpaa2/rtc/dprtc.h
+new file mode 100644
+index 0000000..fc96cac
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/rtc/dprtc.h
 @@ -0,0 +1,172 @@
@@ -22659,6 +22688,9 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
 +			  uint16_t *minor_ver);
 +
 +#endif /* __FSL_DPRTC_H */
+diff --git a/drivers/staging/fsl-dpaa2/rtc/rtc.c b/drivers/staging/fsl-dpaa2/rtc/rtc.c
+new file mode 100644
+index 0000000..0afc653
 --- /dev/null
 +++ b/drivers/staging/fsl-dpaa2/rtc/rtc.c
 @@ -0,0 +1,243 @@
