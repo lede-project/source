@@ -1,0 +1,26 @@
+diff --git a/drivers/net/ethernet/freescale/sdk_dpaa/dpaa_eth.c b/drivers/net/ethernet/freescale/sdk_dpaa/dpaa_eth.c
+index 7026f91..a7161db 100644
+--- a/drivers/net/ethernet/freescale/sdk_dpaa/dpaa_eth.c
++++ b/drivers/net/ethernet/freescale/sdk_dpaa/dpaa_eth.c
+@@ -670,12 +670,20 @@ static void dpaa_eth_poll_controller(struct net_device *net_dev)
+ }
+ #endif
+ 
++static struct rtnl_link_stats64 *
++dpa_eth_get_stats64(struct net_device *net_dev,
++		    struct rtnl_link_stats64 *stats)
++{
++	dpa_get_stats64(net_dev, stats);
++	return stats;
++}
++
+ static const struct net_device_ops dpa_private_ops = {
+ 	.ndo_open = dpa_eth_priv_start,
+ 	.ndo_start_xmit = dpa_tx,
+ 	.ndo_stop = dpa_eth_priv_stop,
+ 	.ndo_tx_timeout = dpa_timeout,
+-	.ndo_get_stats64 = dpa_get_stats64,
++	.ndo_get_stats64 = dpa_eth_get_stats64,
+ 	.ndo_set_mac_address = dpa_set_mac_address,
+ 	.ndo_validate_addr = eth_validate_addr,
+ #ifdef CONFIG_FSL_DPAA_ETH_USE_NDO_SELECT_QUEUE
