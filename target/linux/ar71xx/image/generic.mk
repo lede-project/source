@@ -770,6 +770,19 @@ define Device/c-55
 endef
 TARGET_DEVICES += c-55
 
+define Device/zsun-sdreader
+  DEVICE_TITLE := ZSUN WiFi SD Card Reader
+  BOARDNAME := ZSUN-SDREADER
+  ROOTFS_SIZE := 14912k
+  KERNEL_SIZE := 1216k
+  IMAGE_SIZE := 16128k
+  CONSOLE := ttyATH0,115200
+  MTDPARTS := spi0.0:64k(u-boot)ro,64k(u-boot-env)ro,14912k(rootfs),1216k(kernel),64k(nvram),64k(art),16128k@0x20000(firmware) 
+  IMAGES := sysupgrade.bin
+  IMAGE/sysupgrade.bin = append-rootfs | pad-rootfs | pad-to $$$$(ROOTFS_SIZE) | append-kernel | check-size $$$$(IMAGE_SIZE)
+endef
+TARGET_DEVICES += zsun-sdreader
+
 define Device/hiwifi-hc6361
   DEVICE_TITLE := HiWiFi HC6361
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage \
