@@ -23,9 +23,6 @@ endef
 include $(INCLUDE_DIR)/target.mk
 
 KERNEL_IMAGES := zImage
-ifeq ($(SUBTARGET),generic)
-KERNEL_IMAGES += cuImage.tl-wdr4900-v1
-endif
 
 DEFAULT_PACKAGES += \
 	kmod-input-core kmod-input-gpio-keys kmod-button-hotplug \
