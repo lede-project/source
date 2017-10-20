@@ -118,6 +118,16 @@ endef
 TARGET_DEVICES += sun8i-h2-plus-orangepi-r1
 
 
+define Device/sun8i-h3-orangepi-pc
+  DEVICE_TITLE:=Xunlong Orange Pi PC
+  DEVICE_PACKAGES:=kmod-rtc-sunxi kmod-sunxi-ir kmod-gpio-button-hotplug
+  SUPPORTED_DEVICES:=xunlong,orangepi-pc
+  SUNXI_DTS:=sun8i-h3-orangepi-pc
+endef
+
+TARGET_DEVICES += sun8i-h3-orangepi-pc
+
+
 define Device/sun8i-h3-nanopi-neo
   DEVICE_TITLE:=FriendlyARM NanoPi NEO
   SUPPORTED_DEVICES:=friendlyarm,nanopi-neo
