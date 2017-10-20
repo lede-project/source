@@ -142,6 +142,7 @@ EOF
 hostapd_common_add_bss_config() {
 	config_add_string 'bssid:macaddr' 'ssid:string'
 	config_add_boolean wds wmm uapsd hidden
+	config_add_int ssid_type
 
 	config_add_int maxassoc max_inactivity
 	config_add_boolean disassoc_low_ack isolate short_preamble
@@ -219,7 +220,7 @@ hostapd_set_bss_options() {
 		maxassoc max_inactivity disassoc_low_ack isolate auth_cache \
 		wps_pushbutton wps_label ext_registrar wps_pbc_in_m1 wps_ap_setup_locked \
 		wps_independent wps_device_type wps_device_name wps_manufacturer wps_pin \
-		macfilter ssid wmm uapsd hidden short_preamble rsn_preauth \
+		macfilter ssid ssid_type wmm uapsd hidden short_preamble rsn_preauth \
 		iapp_interface eapol_version dynamic_vlan ieee80211w nasid \
 		acct_server acct_secret acct_port acct_interval
 
@@ -377,7 +378,22 @@ hostapd_set_bss_options() {
 		[ "$wps_pbc_in_m1" -gt 0 ] && append bss_conf "pbc_in_m1=$wps_pbc_in_m1" "$N"
 	}
 
-	append bss_conf "ssid=$ssid" "$N"
+	set_default ssid_type 0
+	case "$ssid_type" in
+		0)
+			append bss_conf "ssid=$ssid" "$N"
+		;;
+		1)
+			append bss_conf "ssid2=\"$ssid\"" "$N"
+		;;
+		2)
+			append bss_conf "ssid2=$ssid" "$N"
+		;;
+		3)
+			append bss_conf "ssid2=P\"$ssid\"" "$N"
+		;;
+	esac
+
 	[ -n "$network_bridge" ] && append bss_conf "bridge=$network_bridge" "$N"
 	[ -n "$iapp_interface" ] && {
 		local ifname
