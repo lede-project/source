@@ -141,7 +141,7 @@ EOF
 
 hostapd_common_add_bss_config() {
 	config_add_string 'bssid:macaddr' 'ssid:string'
-	config_add_boolean wds wmm uapsd hidden
+	config_add_boolean wds wmm uapsd hidden ssid_utf8
 	config_add_int ssid_type
 
 	config_add_int maxassoc max_inactivity
@@ -382,6 +382,10 @@ hostapd_set_bss_options() {
 	case "$ssid_type" in
 		0)
 			append bss_conf "ssid=$ssid" "$N"
+
+			json_get_vars ssid_utf8
+			set_default ssid_utf8 0
+			append bss_conf "utf8_ssid=$ssid_utf8" "$N"
 		;;
 		1)
 			append bss_conf "ssid2=\"$ssid\"" "$N"
