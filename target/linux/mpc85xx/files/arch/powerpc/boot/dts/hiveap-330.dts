@@ -42,7 +42,7 @@
 
 			partition@40000 {
 				reg = <0x40000 0x40000>;
-				label = "initramfs";
+				label = "initrd";
 			};
 
 			partition@80000 {
