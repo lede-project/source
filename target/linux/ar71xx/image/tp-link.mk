@@ -1119,3 +1119,14 @@ define Device/tl-wr942n-v1
   SUPPORTED_DEVICES := tl-wr942n-v1
 endef
 TARGET_DEVICES += tl-wr940n-v4 tl-wr941nd-v2 tl-wr941nd-v3 tl-wr941nd-v4 tl-wr941nd-v5 tl-wr941nd-v6 tl-wr941nd-v6-cn tl-wr942n-v1
+
+define Device/tlt-rut900
+  $(Device/tplink-16mlzma)
+  DEVICE_TITLE := Teltonika RUT900
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+  BOARDNAME := TLT-RUT900
+  DEVICE_PROFILE := TLTRUT900
+  TPLINK_HWID := 0x35000001
+  CONSOLE := ttyS0,115200
+endef
+TARGET_DEVICES += tlt-rut900
