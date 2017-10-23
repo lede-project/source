@@ -198,7 +198,7 @@ sub update_feed_via($$$$$$) {
 	}
 
 	if($filter) {
-		system("cd '$safepath'; find ./[a-zA-Z0-9]* -name Makefile -not -regex '" . $filter . "' -exec dirname \\{\\} \\; | xargs rm -rf");
+		system("cd '$safepath'; find ./[a-zA-Z0-9]* -name Makefile -not -regex '" . $filter . "' -execdir rm -rf . \\;");
 		system("cd '$safepath'; find ./[a-zA-Z0-9]* -empty -exec rmdir \\{\\} \\; 2> /dev/null");
 	}
 
