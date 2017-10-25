@@ -25,7 +25,7 @@
 
 #define GL_AR150_GPIO_LED_WLAN		   0
 #define GL_AR150_GPIO_LED_LAN		   13
-#define GL_AR150_GPIO_LED_WAN		   15 
+#define GL_AR150_GPIO_LED_WAN		   15
 
 #define GL_AR150_GPIO_BIN_USB         6
 #define GL_AR150_GPIO_BTN_MANUAL      7
