@@ -62,8 +62,8 @@ platform_check_image() {
 	gb-pc1|\
 	gl-mt300a|\
 	gl-mt300n|\
-	gl-mt750|\
 	gl-mt300n-v2|\
+	gl-mt750|\
 	hc5*61|\
 	hc5661a|\
 	hg255d|\
@@ -125,8 +125,6 @@ platform_check_image() {
 	rb750gr3|\
 	re6500|\
 	rp-n53|\
-	rt5350f-olinuxino|\
-	rt5350f-olinuxino-evb|\
 	rt-ac51u|\
 	rt-g32-b1|\
 	rt-n10-plus|\
@@ -134,6 +132,8 @@ platform_check_image() {
 	rt-n14u|\
 	rt-n15|\
 	rt-n56u|\
+	rt5350f-olinuxino|\
+	rt5350f-olinuxino-evb|\
 	rut5xx|\
 	sap-g3200u3|\
 	sk-wb8|\
@@ -157,6 +157,7 @@ platform_check_image() {
 	w2914nsv2|\
 	w306r-v20|\
 	w502u|\
+	we1026-5g-16m|\
 	wf-2881|\
 	whr-1166d|\
 	whr-300hp2|\
@@ -194,7 +195,7 @@ platform_check_image() {
 	x8|\
 	y1|\
 	y1s|\
-	we1026-5g-16m|\
+	youku-yk1|\
 	zbt-ape522ii|\
 	zbt-cpe102|\
 	zbt-wa05|\
@@ -206,8 +207,7 @@ platform_check_image() {
 	zbt-wg3526-16M|\
 	zbt-wg3526-32M|\
 	zbt-wr8305rt|\
-	zte-q7|\
-	youku-yk1)
+	zte-q7)
 		[ "$magic" != "27051956" ] && {
 			echo "Invalid image type."
 			return 1

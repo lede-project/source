@@ -39,12 +39,16 @@ get_status_led() {
 	tl-wr840n-v4|\
 	tl-wr841n-v13|\
 	vr500|\
+	wcr-1166ds|\
+	whr-300hp2|\
+	wn3000rpv3|\
 	wnce2001|\
 	wndr3700v5|\
+	wsr-1166|\
+	wsr-600|\
 	x5|\
 	x8|\
-	xdxrn502j|\
-	wn3000rpv3)
+	xdxrn502j)
 		status_led="$board:green:power"
 		;;
 	3g-6200nl)
@@ -58,7 +62,10 @@ get_status_led() {
 	jhr-n825r|\
 	mpr-a1|\
 	mpr-a2|\
-	mzk-ex750np)
+	mzk-ex750np|\
+	whr-g300n|\
+	wlr-6000|\
+	zbt-we2026)
 		status_led="$board:red:power"
 		;;
 	ai-br100|\
@@ -85,6 +92,7 @@ get_status_led() {
 	mofi3500-3gn|\
 	rut5xx|\
 	v11st-fe|\
+	vocore2lite|\
 	wmr-300|\
 	zbt-wg2626)
 		status_led="$board:green:status"
@@ -100,7 +108,15 @@ get_status_led() {
 		;;
 	awapn2403|\
 	dir-645|\
+	mzk-ex300np|\
+	rt-n10-plus|\
 	sk-wb8|\
+	tew-638apb-v2|\
+	tew-691gr|\
+	tew-692gr|\
+	ur-326n4g|\
+	ur-336un|\
+	wf-2881|\
 	wrh-300cr)
 		status_led="$board:green:wps"
 		;;
@@ -111,6 +127,7 @@ get_status_led() {
 	psg1208)
 		status_led="$board:white:wps"
 		;;
+	mir3g|\
 	psg1218a|\
 	psg1218b)
 		status_led="$board:yellow:status"
@@ -166,10 +183,11 @@ get_status_led() {
 		;;
 	k2p|\
 	m3|\
-	miwifi-nano)
+	miwifi-nano|\
+	newifi-d1)
 		status_led="$board:blue:status"
 		;;
-	linkits7688| \
+	linkits7688|\
 	linkits7688d)
 		[ "$1" = "upgrade" ] && status_led="mediatek:orange:wifi"
 		;;
@@ -182,9 +200,6 @@ get_status_led() {
 	m4-4M|\
 	m4-8M)
 		status_led="m4:blue:status"
-		;;
-	mir3g)
-		status_led="$board:yellow:status"
 		;;
 	miwifi-mini|\
 	zte-q7)
@@ -199,10 +214,7 @@ get_status_led() {
 	nw718)
 		status_led="$board:amber:cpu"
 		;;
-	newifi-d1)
-		status_led="$board:blue:status"
-		;;
-	omega2| \
+	omega2|\
 	omega2p)
 		status_led="$board:amber:system"
 		;;
@@ -223,16 +235,6 @@ get_status_led() {
 	widora-neo)
 		status_led="$board:orange:wifi"
 		;;
-	mzk-ex300np|\
-	rt-n10-plus|\
-	tew-638apb-v2|\
-	tew-691gr|\
-	tew-692gr|\
-	ur-326n4g|\
-	ur-336un|\
-	wf-2881)
-		status_led="$board:green:wps"
-		;;
 	rb750gr3)
 		status_led="$board:blue:pwr"
 		;;
@@ -252,28 +254,14 @@ get_status_led() {
 	vocore2)
 		status_led="$board:fuchsia:status"
 		;;
-	vocore2lite)
-		status_led="$board:green:status"
-		;;
 	w306r-v20|\
 	witi|\
 	zbt-wr8305rt)
 		status_led="$board:green:sys"
 		;;
-	wcr-1166ds|\
-	whr-300hp2|\
-	wsr-1166|\
-	wsr-600)
-		status_led="$board:green:power"
-		;;
 	wcr-150gn|\
 	wl-351)
 		status_led="$board:amber:power"
-		;;
-	whr-g300n|\
-	wlr-6000|\
-	zbt-we2026)
-		status_led="$board:red:power"
 		;;
 	wzr-agl300nh)
 		status_led="$board:green:router"
@@ -285,9 +273,9 @@ get_status_led() {
 	wr512-3gn-8M)
 		status_led="wr512-3gn:green:wps"
 		;;
-	wrtnode2r | \
-	wrtnode2p | \
-	wrtnode)
+	wrtnode|\
+	wrtnode2r|\
+	wrtnode2p)
 		status_led="wrtnode:blue:indicator"
 		;;
 	wt3020-4M|\
