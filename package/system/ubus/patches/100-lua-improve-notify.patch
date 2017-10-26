@@ -1,0 +1,14 @@
+Index: ubus-2017-02-18-34c6e818/lua/ubus.c
+===================================================================
+--- ubus-2017-02-18-34c6e818.orig/lua/ubus.c
++++ ubus-2017-02-18-34c6e818/lua/ubus.c
+@@ -792,7 +792,8 @@ ubus_sub_notify_handler(struct ubus_cont
+ 	if (lua_isfunction(state, -1)) {
+ 		if( msg ){
+ 			ubus_lua_parse_blob_array(state, blob_data(msg), blob_len(msg), true);
+-			lua_call(state, 1, 0);
++            lua_pushstring(state, method);
++			lua_call(state, 2, 0);
+ 		} else {
+ 			lua_call(state, 0, 0);
+ 		}
