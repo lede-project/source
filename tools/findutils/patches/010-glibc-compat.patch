@@ -1,0 +1,22 @@
+findutils: backport fix for glibc version 2.26+
+
+Include sys/sysmacros.h for major/minor/makedev. These functions have
+always been defined in sys/sysmacros.h under Linux C libraries.  For
+some, including sys/types.h implicitly includes that as well, but glibc
+wants to deprecate that, and some others already have.  Include the
+header explicitly for the funcs.
+
+Fixes: FS#1016
+
+Signed-off-by: Bob Brooks <gitbugged@cool.fr.nf>
+--- a/gl/lib/mountlist.c	2017-09-24 16:10:27.921940337 -0400
++++ b/gl/lib/mountlist.c	2017-09-24 16:09:53.160997226 -0400
+@@ -24,6 +24,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <stdint.h>
++#include <sys/sysmacros.h>
+ 
+ #include "xalloc.h"
+ 
+
