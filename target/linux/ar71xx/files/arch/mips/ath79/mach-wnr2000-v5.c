@@ -201,4 +201,4 @@ static void __init WNR2000V5_setup(void)
 	ath79_register_eth(1);
 }
 
-MIPS_MACHINE(ATH79_MACH_WNR2000_V5, "WNR2000V5", "Netgear WNR2000V5 wifi router", WNR2000V5_setup);
+MIPS_MACHINE(ATH79_MACH_WNR2000_V5, "WNR2000V5", "Netgear WNR2000 V5", WNR2000V5_setup);
