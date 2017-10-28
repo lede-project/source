@@ -1,9 +1,9 @@
-From: Hill <lufanzhong@gmail.com>
+From: Zhong LuFan <lufanzhong@gmail.com>
 Subject: [PATCH] mtd: bcm47xxpart: add partition workaround for PHICOMM K3
 
 The founder of the patch is: Tian Hao <haotia@gmail.com>
 
-Signed-off-by: Hill <lufanzhong@gmail.com>
+Signed-off-by: Zhong LuFan <lufanzhong@gmail.com>
 
 --- a/drivers/mtd/bcm47xxpart.c
 +++ b/drivers/mtd/bcm47xxpart.c
