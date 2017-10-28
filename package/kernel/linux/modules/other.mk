@@ -135,6 +135,18 @@ endef
 $(eval $(call KernelPackage,btmrvl))
 
 
+define KernelPackage/cpuid
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=Intel CPUID support
+  KCONFIG:=CONFIG_X86_CPUID
+  DEPENDS:=@TARGET_x86
+  FILES:=$(LINUX_DIR)/arch/x86/kernel/cpuid.ko
+  AUTOLOAD:=$(call AutoLoad,20,cpuid)
+endef
+
+$(eval $(call KernelPackage,cpuid))
+
+
 define KernelPackage/dma-buf
   SUBMENU:=$(OTHER_MENU)
   TITLE:=DMA shared buffer support
