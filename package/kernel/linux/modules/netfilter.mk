@@ -651,7 +651,7 @@ define KernelPackage/arptables
   SUBMENU:=$(NF_MENU)
   TITLE:=ARP firewalling modules
   DEPENDS:=+kmod-ipt-core
-  FILES:=$(LINUX_DIR)/net/ipv4/netfilter/arp*.ko
+  FILES:=$(wildcard $(LINUX_DIR)/net/ipv4/netfilter/arp*.ko)
   KCONFIG:=CONFIG_IP_NF_ARPTABLES \
     CONFIG_IP_NF_ARPFILTER \
     CONFIG_IP_NF_ARP_MANGLE
