@@ -338,4 +338,11 @@ define Device/tplink-archer-c9-v1
 endef
 TARGET_DEVICES += tplink-archer-c9-v1
 
+define Device/phicomm-k3
+  DEVICE_TITLE := PHICOMM K3
+  DEVICE_PACKAGES := $(BRCMFMAC_4366C0) $(USB3_PACKAGES) phicommk3-firmware
+  IMAGES := trx
+endef
+TARGET_DEVICES += phicomm-k3
+
 $(eval $(call BuildImage))
