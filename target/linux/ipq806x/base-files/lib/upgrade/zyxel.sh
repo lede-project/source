@@ -74,11 +74,22 @@ zyxel_do_upgrade() {
 
 	[ -b "${rootfs}" ] || return 1
 	case "$board" in
-	nbg6817)
-		kernel=mmcblk0p4
+		nbg6817)
+			case "$rootfs" in
+				"/dev/mmcblk0p5")
+					kernel=mmcblk0p4
+				;;
+				"/dev/mmcblk0p8")
+					kernel=mmcblk0p7
+				;;
+				*)
+					return 1
+				;;
+			esac
 		;;
-	*)
-		return 1
+		*)
+			return 1
+		;;
 	esac
 
 	zyxel_do_flash $tar_file $board $kernel $rootfs
