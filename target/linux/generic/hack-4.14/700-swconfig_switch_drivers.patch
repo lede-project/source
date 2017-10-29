@@ -12,9 +12,9 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/drivers/net/phy/Kconfig
 +++ b/drivers/net/phy/Kconfig
-@@ -147,6 +147,89 @@ config MDIO_XGENE
- 	  This module provides a driver for the MDIO busses found in the
- 	  APM X-Gene SoC's.
+@@ -198,6 +198,89 @@ config LED_TRIGGER_PHY
+ 		<Speed in megabits>Mbps or <Speed in gigabits>Gbps
+ 
  
 +comment "Switch configuration API + drivers"
 +
@@ -101,11 +101,11 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +
  comment "MII PHY device drivers"
  
- config AMD_PHY
+ config SFP
 --- a/drivers/net/phy/Makefile
 +++ b/drivers/net/phy/Makefile
-@@ -5,6 +5,21 @@ libphy-$(CONFIG_SWPHY)		+= swphy.o
- 
+@@ -22,6 +22,21 @@ libphy-$(CONFIG_LED_TRIGGER_PHY)	+= phy_
+ obj-$(CONFIG_PHYLINK)		+= phylink.o
  obj-$(CONFIG_PHYLIB)		+= libphy.o
  
 +obj-$(CONFIG_SWCONFIG)		+= swconfig.o
@@ -126,13 +126,3 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  obj-$(CONFIG_MDIO_BCM_IPROC)	+= mdio-bcm-iproc.o
  obj-$(CONFIG_MDIO_BCM_UNIMAC)	+= mdio-bcm-unimac.o
  obj-$(CONFIG_MDIO_BITBANG)	+= mdio-bitbang.o
---- a/include/uapi/linux/Kbuild
-+++ b/include/uapi/linux/Kbuild
-@@ -399,6 +399,7 @@ header-y += stddef.h
- header-y += string.h
- header-y += suspend_ioctls.h
- header-y += swab.h
-+header-y += switch.h
- header-y += synclink.h
- header-y += sync_file.h
- header-y += sysctl.h

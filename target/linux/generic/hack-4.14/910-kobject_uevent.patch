@@ -11,9 +11,9 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/lib/kobject_uevent.c
 +++ b/lib/kobject_uevent.c
-@@ -52,6 +52,18 @@ static const char *kobject_actions[] = {
- 	[KOBJ_OFFLINE] =	"offline",
- };
+@@ -176,6 +176,18 @@ out:
+ 	return r;
+ }
  
 +u64 uevent_next_seqnum(void)
 +{
@@ -28,5 +28,5 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +EXPORT_SYMBOL_GPL(uevent_next_seqnum);
 +
  /**
-  * kobject_action_type - translate action string to numeric type
+  * kobject_synth_uevent - send synthetic uevent with arguments
   *

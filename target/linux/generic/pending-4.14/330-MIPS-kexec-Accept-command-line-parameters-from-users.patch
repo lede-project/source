@@ -29,7 +29,7 @@ Signed-off-by: Yousong Zhou <yszhou4tech@gmail.com>
  
  int (*_machine_kexec_prepare)(struct kimage *) = NULL;
  void (*_machine_kexec_shutdown)(void) = NULL;
-@@ -28,9 +25,115 @@ atomic_t kexec_ready_to_reboot = ATOMIC_
+@@ -28,6 +25,99 @@ atomic_t kexec_ready_to_reboot = ATOMIC_
  void (*_crash_smp_send_stop)(void) = NULL;
  #endif
  
@@ -126,9 +126,13 @@ Signed-off-by: Yousong Zhou <yszhou4tech@gmail.com>
 +		kexec_argv[i] += reloc_delta;
 +}
 +
- int
+ static void kexec_image_info(const struct kimage *kimage)
+ {
+ 	unsigned long i;
+@@ -52,6 +142,18 @@ int
  machine_kexec_prepare(struct kimage *kimage)
  {
+ 	kexec_image_info(kimage);
 +	/*
 +	 * Whenever arguments passed from kexec-tools, Init the arguments as
 +	 * the original ones to try avoiding booting failure.
@@ -141,11 +145,10 @@ Signed-off-by: Yousong Zhou <yszhou4tech@gmail.com>
 +
 +	machine_kexec_init_argv(kimage);
 +	machine_kexec_parse_argv(kimage);
-+
+ 
  	if (_machine_kexec_prepare)
  		return _machine_kexec_prepare(kimage);
- 	return 0;
-@@ -67,10 +170,12 @@ machine_kexec(struct kimage *image)
+@@ -89,10 +191,12 @@ machine_kexec(struct kimage *image)
  	unsigned long *ptr;
  
  	reboot_code_buffer =
@@ -159,7 +162,7 @@ Signed-off-by: Yousong Zhou <yszhou4tech@gmail.com>
  
  	if (image->type == KEXEC_TYPE_DEFAULT) {
  		kexec_indirection_page =
-@@ -78,9 +183,19 @@ machine_kexec(struct kimage *image)
+@@ -100,9 +204,19 @@ machine_kexec(struct kimage *image)
  	} else {
  		kexec_indirection_page = (unsigned long)&image->head;
  	}
@@ -181,7 +184,7 @@ Signed-off-by: Yousong Zhou <yszhou4tech@gmail.com>
  
  	/*
  	 * The generic kexec code builds a page list with physical
-@@ -99,15 +214,16 @@ machine_kexec(struct kimage *image)
+@@ -121,15 +235,16 @@ machine_kexec(struct kimage *image)
  	/*
  	 * we do not want to be bothered.
  	 */

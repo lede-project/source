@@ -11,7 +11,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
 
 --- a/drivers/mtd/mtdpart.c
 +++ b/drivers/mtd/mtdpart.c
-@@ -791,6 +791,17 @@ run_parsers_by_type(struct mtd_part *sla
+@@ -799,6 +799,17 @@ run_parsers_by_type(struct mtd_part *sla
  	return nr_parts;
  }
  
@@ -29,7 +29,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
  #ifdef CONFIG_MTD_SPLIT_FIRMWARE_NAME
  #define SPLIT_FIRMWARE_NAME	CONFIG_MTD_SPLIT_FIRMWARE_NAME
  #else
-@@ -1146,6 +1157,24 @@ int mtd_is_partition(const struct mtd_in
+@@ -1144,6 +1155,24 @@ int mtd_is_partition(const struct mtd_in
  }
  EXPORT_SYMBOL_GPL(mtd_is_partition);
  
@@ -56,7 +56,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
  {
 --- a/include/linux/mtd/mtd.h
 +++ b/include/linux/mtd/mtd.h
-@@ -485,6 +485,24 @@ static inline uint32_t mtd_mod_by_eb(uin
+@@ -493,6 +493,24 @@ static inline uint32_t mtd_mod_by_eb(uin
  	return do_div(sz, mtd->erasesize);
  }
  

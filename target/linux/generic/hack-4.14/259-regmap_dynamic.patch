@@ -14,18 +14,18 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/drivers/base/regmap/Kconfig
 +++ b/drivers/base/regmap/Kconfig
-@@ -3,9 +3,8 @@
+@@ -4,9 +4,8 @@
  # subsystems should select the appropriate symbols.
  
  config REGMAP
--	default y if (REGMAP_I2C || REGMAP_SPI || REGMAP_SPMI || REGMAP_AC97 || REGMAP_MMIO || REGMAP_IRQ)
+-	default y if (REGMAP_I2C || REGMAP_SPI || REGMAP_SPMI || REGMAP_W1 || REGMAP_AC97 || REGMAP_MMIO || REGMAP_IRQ)
  	select IRQ_DOMAIN if REGMAP_IRQ
 -	bool
 +	tristate "Regmap"
  
  config REGCACHE_COMPRESSED
  	select LZO_COMPRESS
-@@ -16,19 +15,25 @@ config REGMAP_AC97
+@@ -17,23 +16,30 @@ config REGMAP_AC97
  	tristate
  
  config REGMAP_I2C
@@ -46,6 +46,11 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	tristate
  	depends on SPMI
  
+ config REGMAP_W1
++	select REGMAP
+ 	tristate
+ 	depends on W1
+ 
  config REGMAP_MMIO
 -	tristate
 +	tristate "Regmap MMIO"
@@ -56,7 +61,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	bool
 --- a/drivers/base/regmap/Makefile
 +++ b/drivers/base/regmap/Makefile
-@@ -1,10 +1,14 @@
+@@ -2,10 +2,14 @@
  # For include/trace/define_trace.h to include trace.h
  CFLAGS_regmap.o := -I$(src)
  
@@ -85,7 +90,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #include <linux/mutex.h>
  #include <linux/err.h>
  #include <linux/of.h>
-@@ -2913,3 +2914,5 @@ static int __init regmap_initcall(void)
+@@ -2926,3 +2927,5 @@ static int __init regmap_initcall(void)
  	return 0;
  }
  postcore_initcall(regmap_initcall);
@@ -93,7 +98,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +MODULE_LICENSE("GPL");
 --- a/include/linux/regmap.h
 +++ b/include/linux/regmap.h
-@@ -135,7 +135,7 @@ struct reg_sequence {
+@@ -139,7 +139,7 @@ struct reg_sequence {
  	pollret ?: ((cond) ? 0 : -ETIMEDOUT); \
  })
  

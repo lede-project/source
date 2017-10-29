@@ -14,9 +14,9 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #define ATH8031_PHY_ID 0x004dd074
 +#define ATH8032_PHY_ID 0x004dd023
  #define ATH8035_PHY_ID 0x004dd072
+ #define AT803X_PHY_ID_MASK			0xffffffef
  
- MODULE_DESCRIPTION("Atheros 803x PHY driver");
-@@ -259,7 +260,8 @@ static int at803x_probe(struct phy_devic
+@@ -260,7 +261,8 @@ static int at803x_probe(struct phy_devic
  	if (!priv)
  		return -ENOMEM;
  
@@ -26,7 +26,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		goto does_not_require_reset_workaround;
  
  	gpiod_reset = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
-@@ -335,7 +337,7 @@ static void at803x_link_change_notify(st
+@@ -336,7 +338,7 @@ static void at803x_link_change_notify(st
  	struct at803x_priv *priv = phydev->priv;
  
  	/*
@@ -35,7 +35,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	 * signalled. This is necessary to circumvent a hardware bug that
  	 * occurs when the cable is unplugged while TX packets are pending
  	 * in the FIFO. In such cases, the FIFO enters an error mode it
-@@ -447,6 +449,24 @@ static struct phy_driver at803x_driver[]
+@@ -448,6 +450,24 @@ static struct phy_driver at803x_driver[]
  	.aneg_done		= at803x_aneg_done,
  	.ack_interrupt		= &at803x_ack_interrupt,
  	.config_intr		= &at803x_config_intr,
@@ -60,11 +60,11 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  } };
  
  module_phy_driver(at803x_driver);
-@@ -454,6 +474,7 @@ module_phy_driver(at803x_driver);
+@@ -455,6 +475,7 @@ module_phy_driver(at803x_driver);
  static struct mdio_device_id __maybe_unused atheros_tbl[] = {
- 	{ ATH8030_PHY_ID, 0xffffffef },
- 	{ ATH8031_PHY_ID, 0xffffffef },
-+	{ ATH8032_PHY_ID, 0xffffffef },
- 	{ ATH8035_PHY_ID, 0xffffffef },
+ 	{ ATH8030_PHY_ID, AT803X_PHY_ID_MASK },
+ 	{ ATH8031_PHY_ID, AT803X_PHY_ID_MASK },
++	{ ATH8032_PHY_ID, AT803X_PHY_ID_MASK },
+ 	{ ATH8035_PHY_ID, AT803X_PHY_ID_MASK },
  	{ }
  };

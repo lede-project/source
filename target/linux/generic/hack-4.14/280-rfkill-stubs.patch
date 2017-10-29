@@ -26,10 +26,10 @@ Signed-off-by: John Crispin <john@phrozen.org>
   * @name: name of the struct -- the string is not copied internally
 --- a/net/Makefile
 +++ b/net/Makefile
-@@ -51,7 +51,7 @@ obj-$(CONFIG_MAC80211)		+= mac80211/
- obj-$(CONFIG_TIPC)		+= tipc/
+@@ -53,7 +53,7 @@ obj-$(CONFIG_TIPC)		+= tipc/
  obj-$(CONFIG_NETLABEL)		+= netlabel/
  obj-$(CONFIG_IUCV)		+= iucv/
+ obj-$(CONFIG_SMC)		+= smc/
 -obj-$(CONFIG_RFKILL)		+= rfkill/
 +obj-$(CONFIG_RFKILL_FULL)	+= rfkill/
  obj-$(CONFIG_NET_9P)		+= 9p/
@@ -66,15 +66,6 @@ Signed-off-by: John Crispin <john@phrozen.org>
  	depends on INPUT = y || RFKILL = INPUT
  	default y if !EXPERT
  
- config RFKILL_REGULATOR
- 	tristate "Generic rfkill regulator driver"
--	depends on RFKILL || !RFKILL
-+	depends on RFKILL_FULL || !RFKILL_FULL
- 	depends on REGULATOR
- 	help
-           This options enable controlling radio transmitters connected to
-@@ -36,7 +40,7 @@ config RFKILL_REGULATOR
- 
  config RFKILL_GPIO
  	tristate "GPIO RFKILL driver"
 -	depends on RFKILL
@@ -84,11 +75,10 @@ Signed-off-by: John Crispin <john@phrozen.org>
  	help
 --- a/net/rfkill/Makefile
 +++ b/net/rfkill/Makefile
-@@ -4,6 +4,6 @@
+@@ -4,5 +4,5 @@
  
  rfkill-y			+= core.o
  rfkill-$(CONFIG_RFKILL_INPUT)	+= input.o
 -obj-$(CONFIG_RFKILL)		+= rfkill.o
 +obj-$(CONFIG_RFKILL_FULL)	+= rfkill.o
- obj-$(CONFIG_RFKILL_REGULATOR)	+= rfkill-regulator.o
  obj-$(CONFIG_RFKILL_GPIO)	+= rfkill-gpio.o

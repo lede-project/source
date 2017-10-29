@@ -14,7 +14,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/arch/mips/mm/cache.c
 +++ b/arch/mips/mm/cache.c
-@@ -115,6 +115,13 @@ void __flush_anon_page(struct page *page
+@@ -116,6 +116,13 @@ void __flush_anon_page(struct page *page
  {
  	unsigned long addr = (unsigned long) page_address(page);
  

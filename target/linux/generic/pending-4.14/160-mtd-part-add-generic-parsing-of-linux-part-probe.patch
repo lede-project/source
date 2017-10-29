@@ -38,40 +38,30 @@ Signed-off-by: Hauke Mehrtens <hauke@hauke-m.de>
  The ECC strength and ECC step size properties define the correction capability
  of a controller. Together, they say a controller can correct "{strength} bit
  errors per {size} bytes".
---- a/drivers/mtd/maps/physmap_of.c
-+++ b/drivers/mtd/maps/physmap_of.c
-@@ -113,47 +113,9 @@ static struct mtd_info *obsolete_probe(s
+--- a/drivers/mtd/maps/physmap_of_core.c
++++ b/drivers/mtd/maps/physmap_of_core.c
+@@ -114,37 +114,9 @@ static struct mtd_info *obsolete_probe(s
  static const char * const part_probe_types_def[] = {
  	"cmdlinepart", "RedBoot", "ofpart", "ofoldpart", NULL };
  
 -static const char * const *of_get_probes(struct device_node *dp)
 -{
--	const char *cp;
--	int cplen;
--	unsigned int l;
--	unsigned int count;
 -	const char **res;
+-	int count;
 -
--	cp = of_get_property(dp, "linux,part-probe", &cplen);
--	if (cp == NULL)
+-	count = of_property_count_strings(dp, "linux,part-probe");
+-	if (count < 0)
 -		return part_probe_types_def;
 -
--	count = 0;
--	for (l = 0; l != cplen; l++)
--		if (cp[l] == 0)
--			count++;
--
--	res = kzalloc((count + 1)*sizeof(*res), GFP_KERNEL);
+-	res = kzalloc((count + 1) * sizeof(*res), GFP_KERNEL);
 -	if (!res)
 -		return NULL;
--	count = 0;
--	while (cplen > 0) {
--		res[count] = cp;
--		l = strlen(cp) + 1;
--		cp += l;
--		cplen -= l;
--		count++;
--	}
+-
+-	count = of_property_read_string_array(dp, "linux,part-probe", res,
+-					      count);
+-	if (count < 0)
+-		return NULL;
+-
 -	return res;
 -}
 -
@@ -88,7 +78,7 @@ Signed-off-by: Hauke Mehrtens <hauke@hauke-m.de>
  	const struct of_device_id *match;
  	struct device_node *dp = dev->dev.of_node;
  	struct resource res;
-@@ -317,14 +279,8 @@ static int of_flash_probe(struct platfor
+@@ -310,14 +282,8 @@ static int of_flash_probe(struct platfor
  
  	info->cmtd->dev.parent = &dev->dev;
  	mtd_set_of_node(info->cmtd, dp);
@@ -114,7 +104,7 @@ Signed-off-by: Hauke Mehrtens <hauke@hauke-m.de>
  #include <linux/err.h>
  
  #include "mtdcore.h"
-@@ -855,6 +856,42 @@ void deregister_mtd_parser(struct mtd_pa
+@@ -863,6 +864,32 @@ void deregister_mtd_parser(struct mtd_pa
  EXPORT_SYMBOL_GPL(deregister_mtd_parser);
  
  /*
@@ -124,32 +114,22 @@ Signed-off-by: Hauke Mehrtens <hauke@hauke-m.de>
 + */
 +static const char * const *of_get_probes(struct device_node *dp)
 +{
-+	const char *cp;
-+	int cplen;
-+	unsigned int l;
-+	unsigned int count;
 +	const char **res;
++	int count;
 +
-+	cp = of_get_property(dp, "linux,part-probe", &cplen);
-+	if (cp == NULL)
++	count = of_property_count_strings(dp, "linux,part-probe");
++	if (count < 0)
 +		return NULL;
-+
-+	count = 0;
-+	for (l = 0; l != cplen; l++)
-+		if (cp[l] == 0)
-+			count++;
 +
 +	res = kzalloc((count + 1) * sizeof(*res), GFP_KERNEL);
 +	if (!res)
 +		return NULL;
-+	count = 0;
-+	while (cplen > 0) {
-+		res[count] = cp;
-+		l = strlen(cp) + 1;
-+		cp += l;
-+		cplen -= l;
-+		count++;
-+	}
++
++	count = of_property_read_string_array(dp, "linux,part-probe", res,
++					      count);
++	if (count < 0)
++		return NULL;
++
 +	return res;
 +}
 +
@@ -157,7 +137,7 @@ Signed-off-by: Hauke Mehrtens <hauke@hauke-m.de>
   * Do not forget to update 'parse_mtd_partitions()' kerneldoc comment if you
   * are changing this array!
   */
-@@ -912,6 +949,13 @@ int parse_mtd_partitions(struct mtd_info
+@@ -920,6 +947,13 @@ int parse_mtd_partitions(struct mtd_info
  {
  	struct mtd_part_parser *parser;
  	int ret, err = 0;
@@ -171,7 +151,7 @@ Signed-off-by: Hauke Mehrtens <hauke@hauke-m.de>
  
  	if (!types)
  		types = default_mtd_part_types;
-@@ -937,6 +981,7 @@ int parse_mtd_partitions(struct mtd_info
+@@ -945,6 +979,7 @@ int parse_mtd_partitions(struct mtd_info
  		if (ret < 0 && !err)
  			err = ret;
  	}

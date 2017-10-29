@@ -53,7 +53,7 @@ Signed-off-by: Alexey Brodkin <abrodkin@synopsys.com>
 
 --- a/drivers/leds/Makefile
 +++ b/drivers/leds/Makefile
-@@ -77,3 +77,4 @@ obj-$(CONFIG_LEDS_DAC124S085)		+= leds-d
+@@ -82,3 +82,4 @@ obj-$(CONFIG_LEDS_USER)			+= uleds.o
  
  # LED Triggers
  obj-$(CONFIG_LEDS_TRIGGERS)		+= trigger/

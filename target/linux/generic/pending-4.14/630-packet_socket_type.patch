@@ -11,7 +11,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/uapi/linux/if_packet.h
 +++ b/include/uapi/linux/if_packet.h
-@@ -31,6 +31,8 @@ struct sockaddr_ll {
+@@ -32,6 +32,8 @@ struct sockaddr_ll {
  #define PACKET_KERNEL		7		/* To kernel space	*/
  /* Unused, PACKET_FASTROUTE and PACKET_LOOPBACK are invisible to user space */
  #define PACKET_FASTROUTE	6		/* Fastrouted frame	*/
@@ -20,7 +20,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  /* Packet socket options */
  
-@@ -56,6 +58,7 @@ struct sockaddr_ll {
+@@ -57,6 +59,7 @@ struct sockaddr_ll {
  #define PACKET_QDISC_BYPASS		20
  #define PACKET_ROLLOVER_STATS		21
  #define PACKET_FANOUT_DATA		22
@@ -30,7 +30,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #define PACKET_FANOUT_LB		1
 --- a/net/packet/af_packet.c
 +++ b/net/packet/af_packet.c
-@@ -1780,6 +1780,7 @@ static int packet_rcv_spkt(struct sk_buf
+@@ -1829,6 +1829,7 @@ static int packet_rcv_spkt(struct sk_buf
  {
  	struct sock *sk;
  	struct sockaddr_pkt *spkt;
@@ -38,7 +38,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	/*
  	 *	When we registered the protocol we saved the socket in the data
-@@ -1787,6 +1788,7 @@ static int packet_rcv_spkt(struct sk_buf
+@@ -1836,6 +1837,7 @@ static int packet_rcv_spkt(struct sk_buf
  	 */
  
  	sk = pt->af_packet_priv;
@@ -46,7 +46,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	/*
  	 *	Yank back the headers [hope the device set this
-@@ -1799,7 +1801,7 @@ static int packet_rcv_spkt(struct sk_buf
+@@ -1848,7 +1850,7 @@ static int packet_rcv_spkt(struct sk_buf
  	 *	so that this procedure is noop.
  	 */
  
@@ -55,7 +55,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		goto out;
  
  	if (!net_eq(dev_net(dev), sock_net(sk)))
-@@ -2037,12 +2039,12 @@ static int packet_rcv(struct sk_buff *sk
+@@ -2075,12 +2077,12 @@ static int packet_rcv(struct sk_buff *sk
  	unsigned int snaplen, res;
  	bool is_drop_n_account = false;
  
@@ -71,7 +71,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	if (!net_eq(dev_net(dev), sock_net(sk)))
  		goto drop;
  
-@@ -2168,12 +2170,12 @@ static int tpacket_rcv(struct sk_buff *s
+@@ -2206,12 +2208,12 @@ static int tpacket_rcv(struct sk_buff *s
  	BUILD_BUG_ON(TPACKET_ALIGN(sizeof(*h.h2)) != 32);
  	BUILD_BUG_ON(TPACKET_ALIGN(sizeof(*h.h3)) != 48);
  
@@ -128,7 +128,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		break;
 --- a/net/packet/internal.h
 +++ b/net/packet/internal.h
-@@ -129,6 +129,7 @@ struct packet_sock {
+@@ -132,6 +132,7 @@ struct packet_sock {
  	struct net_device __rcu	*cached_dev;
  	int			(*xmit)(struct sk_buff *skb);
  	struct packet_type	prot_hook ____cacheline_aligned_in_smp;

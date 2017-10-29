@@ -14,7 +14,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/linux/module.h
 +++ b/include/linux/module.h
-@@ -159,6 +159,7 @@ extern void cleanup_module(void);
+@@ -158,6 +158,7 @@ extern void cleanup_module(void);
  
  /* Generic info of form tag = "info" */
  #define MODULE_INFO(tag, info) __MODULE_INFO(tag, tag, info)
@@ -22,7 +22,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  /* For userspace: you can also call me... */
  #define MODULE_ALIAS(_alias) MODULE_INFO(alias, _alias)
-@@ -202,12 +203,12 @@ extern void cleanup_module(void);
+@@ -201,12 +202,12 @@ extern void cleanup_module(void);
   * Author(s), use "Name <email>" or just "Name", for multiple
   * authors use multiple MODULE_AUTHOR() statements/lines.
   */
@@ -37,8 +37,8 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +#if defined(MODULE) && !defined(CONFIG_MODULE_STRIPPED)
  /* Creates an alias so file2alias.c can find device table. */
  #define MODULE_DEVICE_TABLE(type, name)					\
- extern const typeof(name) __mod_##type##__##name##_device_table		\
-@@ -234,7 +235,9 @@ extern const typeof(name) __mod_##type##
+ extern typeof(name) __mod_##type##__##name##_device_table		\
+@@ -233,7 +234,9 @@ extern typeof(name) __mod_##type##__##na
   */
  
  #if defined(MODULE) || !defined(CONFIG_SYSFS)
@@ -49,7 +49,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #else
  #define MODULE_VERSION(_version)					\
  	static struct module_version_attribute ___modver_attr = {	\
-@@ -256,7 +259,7 @@ extern const typeof(name) __mod_##type##
+@@ -255,7 +258,7 @@ extern typeof(name) __mod_##type##__##na
  /* Optional firmware file (or files) needed by the module
   * format is simply firmware file name.  Multiple firmware
   * files require multiple MODULE_FIRMWARE() specifiers */
@@ -60,7 +60,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
 --- a/include/linux/moduleparam.h
 +++ b/include/linux/moduleparam.h
-@@ -16,6 +16,16 @@
+@@ -17,6 +17,16 @@
  /* Chosen so that structs with an unsigned long line up. */
  #define MAX_PARAM_PREFIX_LEN (64 - sizeof(unsigned long))
  
@@ -77,7 +77,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #ifdef MODULE
  #define __MODULE_INFO(tag, name, info)					  \
  static const char __UNIQUE_ID(name)[]					  \
-@@ -23,8 +33,7 @@ static const char __UNIQUE_ID(name)[]
+@@ -24,8 +34,7 @@ static const char __UNIQUE_ID(name)[]
    = __stringify(tag) "=" info
  #else  /* !MODULE */
  /* This struct is here for syntactic coherency, it is not used */
@@ -87,7 +87,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #endif
  #define __MODULE_PARM_TYPE(name, _type)					  \
    __MODULE_INFO(parmtype, name##type, #name ":" _type)
-@@ -32,7 +41,7 @@ static const char __UNIQUE_ID(name)[]
+@@ -33,7 +42,7 @@ static const char __UNIQUE_ID(name)[]
  /* One for each parameter, describing how to use it.  Some files do
     multiple of these per line, so can't just use MODULE_INFO. */
  #define MODULE_PARM_DESC(_parm, desc) \
@@ -98,7 +98,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
 --- a/init/Kconfig
 +++ b/init/Kconfig
-@@ -2115,6 +2115,13 @@ config TRIM_UNUSED_KSYMS
+@@ -1896,6 +1896,13 @@ config TRIM_UNUSED_KSYMS
  
  	  If unsure, or if you need to build out-of-tree modules, say N.
  
@@ -114,7 +114,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  config MODULES_TREE_LOOKUP
 --- a/kernel/module.c
 +++ b/kernel/module.c
-@@ -2945,9 +2945,11 @@ static struct module *setup_load_info(st
+@@ -2997,9 +2997,11 @@ static struct module *setup_load_info(st
  
  static int check_modinfo(struct module *mod, struct load_info *info, int flags)
  {
@@ -127,7 +127,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	if (flags & MODULE_INIT_IGNORE_VERMAGIC)
  		modmagic = NULL;
  
-@@ -2968,6 +2970,7 @@ static int check_modinfo(struct module *
+@@ -3020,6 +3022,7 @@ static int check_modinfo(struct module *
  				mod->name);
  		add_taint_module(mod, TAINT_OOT_MODULE, LOCKDEP_STILL_OK);
  	}
@@ -137,7 +137,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		add_taint_module(mod, TAINT_CRAP, LOCKDEP_STILL_OK);
 --- a/scripts/mod/modpost.c
 +++ b/scripts/mod/modpost.c
-@@ -1964,7 +1964,9 @@ static void read_symbols(char *modname)
+@@ -1982,7 +1982,9 @@ static void read_symbols(char *modname)
  		symname = remove_dot(info.strtab + sym->st_name);
  
  		handle_modversions(mod, &info, sym, symname);
@@ -147,17 +147,18 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	}
  	if (!is_vmlinux(modname) ||
  	     (is_vmlinux(modname) && vmlinux_section_warnings))
-@@ -2108,7 +2110,9 @@ static void add_header(struct buffer *b,
+@@ -2143,8 +2145,10 @@ static void add_header(struct buffer *b,
  	buf_printf(b, "#include <linux/vermagic.h>\n");
  	buf_printf(b, "#include <linux/compiler.h>\n");
  	buf_printf(b, "\n");
 +#ifndef CONFIG_MODULE_STRIPPED
  	buf_printf(b, "MODULE_INFO(vermagic, VERMAGIC_STRING);\n");
+ 	buf_printf(b, "MODULE_INFO(name, KBUILD_MODNAME);\n");
 +#endif
  	buf_printf(b, "\n");
  	buf_printf(b, "__visible struct module __this_module\n");
  	buf_printf(b, "__attribute__((section(\".gnu.linkonce.this_module\"))) = {\n");
-@@ -2125,16 +2129,20 @@ static void add_header(struct buffer *b,
+@@ -2161,16 +2165,20 @@ static void add_header(struct buffer *b,
  
  static void add_intree_flag(struct buffer *b, int is_intree)
  {
@@ -177,8 +178,8 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +#endif
  }
  
- /* In kernel, this size is defined in linux/module.h;
-@@ -2238,11 +2246,13 @@ static void add_depends(struct buffer *b
+ /**
+@@ -2269,11 +2277,13 @@ static void add_depends(struct buffer *b
  
  static void add_srcversion(struct buffer *b, struct module *mod)
  {
@@ -192,7 +193,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  }
  
  static void write_if_changed(struct buffer *b, const char *fname)
-@@ -2476,7 +2486,9 @@ int main(int argc, char **argv)
+@@ -2509,7 +2519,9 @@ int main(int argc, char **argv)
  		add_staging_flag(&buf, mod->name);
  		err |= add_versions(&buf, mod);
  		add_depends(&buf, mod, modules);

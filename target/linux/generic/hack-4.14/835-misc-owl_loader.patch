@@ -42,7 +42,7 @@ Signed-off-by: Christian Lamparter <chunkeey@googlemail.com>
  	depends on PCI
 --- a/drivers/misc/Makefile
 +++ b/drivers/misc/Makefile
-@@ -12,6 +12,7 @@ obj-$(CONFIG_ATMEL_TCLIB)	+= atmel_tclib
+@@ -13,6 +13,7 @@ obj-$(CONFIG_ATMEL_TCLIB)	+= atmel_tclib
  obj-$(CONFIG_DUMMY_IRQ)		+= dummy-irq.o
  obj-$(CONFIG_ICS932S401)	+= ics932s401.o
  obj-$(CONFIG_LKDTM)		+= lkdtm.o

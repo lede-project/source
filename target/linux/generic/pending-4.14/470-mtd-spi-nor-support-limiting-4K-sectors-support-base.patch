@@ -19,9 +19,9 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/drivers/mtd/spi-nor/Kconfig
 +++ b/drivers/mtd/spi-nor/Kconfig
-@@ -29,6 +29,17 @@ config MTD_SPI_NOR_USE_4K_SECTORS
- 	  Please note that some tools/drivers/filesystems may not work with
- 	  4096 B erase size (e.g. UBIFS requires 15 KiB as a minimum).
+@@ -39,6 +39,17 @@ config SPI_ASPEED_SMC
+ 	  and support for the SPI flash memory controller (SPI) for
+ 	  the host firmware. The implementation only supports SPI NOR.
  
 +config MTD_SPI_NOR_USE_4K_SECTORS_LIMIT
 +	int "Maximum flash chip size to use 4K sectors on (in KiB)"
@@ -39,7 +39,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	depends on ARCH_AT91 || (ARM && COMPILE_TEST)
 --- a/drivers/mtd/spi-nor/spi-nor.c
 +++ b/drivers/mtd/spi-nor/spi-nor.c
-@@ -1640,10 +1640,12 @@ int spi_nor_scan(struct spi_nor *nor, co
+@@ -2562,10 +2562,12 @@ static int spi_nor_select_erase(struct s
  
  #ifdef CONFIG_MTD_SPI_NOR_USE_4K_SECTORS
  	/* prefer "small sector" erase if possible */

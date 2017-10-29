@@ -21,7 +21,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
  config MTD_TESTS
 --- a/drivers/mtd/Makefile
 +++ b/drivers/mtd/Makefile
-@@ -6,6 +6,8 @@
+@@ -7,6 +7,8 @@
  obj-$(CONFIG_MTD)		+= mtd.o
  mtd-y				:= mtdcore.o mtdsuper.o mtdconcat.o mtdpart.o mtdchar.o
  

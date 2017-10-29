@@ -8,7 +8,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -254,6 +254,33 @@ struct ipt_entry *ipt_next_entry(const s
+@@ -248,6 +248,33 @@ struct ipt_entry *ipt_next_entry(const s
  	return (void *)entry + entry->next_offset;
  }
  
@@ -42,7 +42,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  /* Returns one of the generic firewall policies, like NF_ACCEPT. */
  unsigned int
  ipt_do_table(struct sk_buff *skb,
-@@ -274,28 +301,8 @@ ipt_do_table(struct sk_buff *skb,
+@@ -268,24 +295,8 @@ ipt_do_table(struct sk_buff *skb,
  	unsigned int addend;
  
  	/* Initialization */
@@ -59,19 +59,15 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 -	acpar.fragoff = ntohs(ip->frag_off) & IP_OFFSET;
 -	acpar.thoff   = ip_hdrlen(skb);
 -	acpar.hotdrop = false;
--	acpar.net     = state->net;
--	acpar.in      = state->in;
--	acpar.out     = state->out;
--	acpar.family  = NFPROTO_IPV4;
--	acpar.hooknum = hook;
+-	acpar.state   = state;
 -
- 	IP_NF_ASSERT(table->valid_hooks & (1 << hook));
+ 	WARN_ON(!(table->valid_hooks & (1 << hook)));
  	local_bh_disable();
 -	addend = xt_write_recseq_begin();
  	private = table->private;
  	cpu        = smp_processor_id();
  	/*
-@@ -304,6 +311,23 @@ ipt_do_table(struct sk_buff *skb,
+@@ -294,6 +305,23 @@ ipt_do_table(struct sk_buff *skb,
  	 */
  	smp_read_barrier_depends();
  	table_base = private->entries;
@@ -95,7 +91,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	jumpstack  = (struct ipt_entry **)private->jumpstack[cpu];
  
  	/* Switch to alternate jumpstack if we're being invoked via TEE.
-@@ -316,7 +340,20 @@ ipt_do_table(struct sk_buff *skb,
+@@ -306,7 +334,16 @@ ipt_do_table(struct sk_buff *skb,
  	if (static_key_false(&xt_tee_enabled))
  		jumpstack += private->stacksize * __this_cpu_read(nf_skb_duplicated);
  
@@ -109,11 +105,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +	acpar.fragoff = ntohs(ip->frag_off) & IP_OFFSET;
 +	acpar.thoff   = ip_hdrlen(skb);
 +	acpar.hotdrop = false;
-+	acpar.net     = state->net;
-+	acpar.in      = state->in;
-+	acpar.out     = state->out;
-+	acpar.family  = NFPROTO_IPV4;
-+	acpar.hooknum = hook;
++	acpar.state   = state;
  
  	do {
  		const struct xt_entry_target *t;

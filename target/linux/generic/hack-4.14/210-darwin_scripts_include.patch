@@ -15,7 +15,7 @@ Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 
 --- a/scripts/kconfig/Makefile
 +++ b/scripts/kconfig/Makefile
-@@ -163,6 +163,9 @@ check-lxdialog  := $(srctree)/$(src)/lxd
+@@ -164,6 +164,9 @@ check-lxdialog  := $(srctree)/$(src)/lxd
  # we really need to do so. (Do not call gcc as part of make mrproper)
  HOST_EXTRACFLAGS += $(shell $(CONFIG_SHELL) $(check-lxdialog) -ccflags) \
                      -DLOCALE
@@ -3037,7 +3037,7 @@ Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 +#endif	/* elf.h */
 --- a/scripts/mod/mk_elfconfig.c
 +++ b/scripts/mod/mk_elfconfig.c
-@@ -1,7 +1,11 @@
+@@ -2,7 +2,11 @@
  #include <stdio.h>
  #include <stdlib.h>
  #include <string.h>
@@ -3051,7 +3051,7 @@ Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
  main(int argc, char **argv)
 --- a/scripts/mod/modpost.h
 +++ b/scripts/mod/modpost.h
-@@ -7,7 +7,11 @@
+@@ -8,7 +8,11 @@
  #include <sys/mman.h>
  #include <fcntl.h>
  #include <unistd.h>

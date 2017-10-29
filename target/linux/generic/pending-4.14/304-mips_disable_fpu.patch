@@ -24,7 +24,7 @@ v2: incorporated changes suggested by Jonas Gorski
 
 --- a/arch/mips/Kconfig
 +++ b/arch/mips/Kconfig
-@@ -2887,6 +2887,20 @@ config MIPS_O32_FP64_SUPPORT
+@@ -2890,6 +2890,20 @@ config MIPS_O32_FP64_SUPPORT
  
  	  If unsure, say N.
  
@@ -47,7 +47,7 @@ v2: incorporated changes suggested by Jonas Gorski
  	select OF
 --- a/arch/mips/Makefile
 +++ b/arch/mips/Makefile
-@@ -287,7 +287,7 @@ OBJCOPYFLAGS		+= --remove-section=.regin
+@@ -319,7 +319,7 @@ OBJCOPYFLAGS		+= --remove-section=.regin
  head-y := arch/mips/kernel/head.o
  
  libs-y			+= arch/mips/lib/
@@ -58,7 +58,7 @@ v2: incorporated changes suggested by Jonas Gorski
  core-y += arch/mips/
 --- a/arch/mips/include/asm/fpu.h
 +++ b/arch/mips/include/asm/fpu.h
-@@ -227,8 +227,10 @@ static inline int init_fpu(void)
+@@ -230,8 +230,10 @@ static inline int init_fpu(void)
  		/* Restore FRE */
  		write_c0_config5(config5);
  		enable_fpu_hazard();
@@ -80,14 +80,14 @@ v2: incorporated changes suggested by Jonas Gorski
  #ifdef CONFIG_DEBUG_FS
  
  struct mips_fpu_emulator_stats {
-@@ -63,6 +64,16 @@ do {									\
+@@ -179,6 +180,16 @@ do {									\
  extern int fpu_emulator_cop1Handler(struct pt_regs *xcp,
  				    struct mips_fpu_struct *ctx, int has_fpu,
- 				    void *__user *fault_addr);
+ 				    void __user **fault_addr);
 +#else	/* no CONFIG_MIPS_FPU_EMULATOR */
 +static inline int fpu_emulator_cop1Handler(struct pt_regs *xcp,
 +				struct mips_fpu_struct *ctx, int has_fpu,
-+				void *__user *fault_addr)
++				void __user **fault_addr)
 +{
 +	*fault_addr = NULL;
 +	return SIGILL;	/* we don't speak MIPS FPU */

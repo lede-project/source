@@ -12,15 +12,15 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
 
 --- a/drivers/mtd/mtdcore.c
 +++ b/drivers/mtd/mtdcore.c
-@@ -40,6 +40,7 @@
- #include <linux/slab.h>
+@@ -41,6 +41,7 @@
  #include <linux/reboot.h>
  #include <linux/leds.h>
+ #include <linux/debugfs.h>
 +#include <linux/root_dev.h>
  
  #include <linux/mtd/mtd.h>
  #include <linux/mtd/partitions.h>
-@@ -570,6 +571,15 @@ int add_mtd_device(struct mtd_info *mtd)
+@@ -578,6 +579,15 @@ int add_mtd_device(struct mtd_info *mtd)
  	   of this try_ nonsense, and no bitching about it
  	   either. :) */
  	__module_get(THIS_MODULE);

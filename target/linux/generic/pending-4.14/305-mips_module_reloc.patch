@@ -27,7 +27,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  LDFLAGS_vmlinux			+= --emit-relocs
 --- a/arch/mips/include/asm/module.h
 +++ b/arch/mips/include/asm/module.h
-@@ -11,6 +11,11 @@ struct mod_arch_specific {
+@@ -12,6 +12,11 @@ struct mod_arch_specific {
  	const struct exception_table_entry *dbe_start;
  	const struct exception_table_entry *dbe_end;
  	struct mips_hi16 *r_mips_hi16_list;
@@ -262,9 +262,9 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +	return 0;
 +}
  
- int apply_r_mips_none(struct module *me, u32 *location, Elf_Addr v)
- {
-@@ -65,8 +272,39 @@ static int apply_r_mips_32_rel(struct mo
+ static int apply_r_mips_none(struct module *me, u32 *location,
+ 			     u32 base, Elf_Addr v, bool rela)
+@@ -67,9 +274,40 @@ static int apply_r_mips_32(struct module
  	return 0;
  }
  
@@ -297,14 +297,15 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +
 +}
 +
- static int apply_r_mips_26_rel(struct module *me, u32 *location, Elf_Addr v)
+ static int apply_r_mips_26(struct module *me, u32 *location,
+ 			   u32 base, Elf_Addr v, bool rela)
  {
-+	u32 ofs = *location & 0x03ffffff;
++	u32 ofs = base & 0x03ffffff;
 +
  	if (v % 4) {
- 		pr_err("module %s: dangerous R_MIPS_26 REL relocation\n",
+ 		pr_err("module %s: dangerous R_MIPS_26 relocation\n",
  		       me->name);
-@@ -74,13 +312,17 @@ static int apply_r_mips_26_rel(struct mo
+@@ -77,13 +315,17 @@ static int apply_r_mips_26(struct module
  	}
  
  	if ((v & 0xf0000000) != (((unsigned long)location + 4) & 0xf0000000)) {
@@ -321,12 +322,12 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	}
  
  	*location = (*location & ~0x03ffffff) |
--		    ((*location + (v >> 2)) & 0x03ffffff);
+-		    ((base + (v >> 2)) & 0x03ffffff);
 +		    ((ofs + (v >> 2)) & 0x03ffffff);
  
  	return 0;
  }
-@@ -349,9 +591,36 @@ int module_finalize(const Elf_Ehdr *hdr,
+@@ -459,9 +701,36 @@ int module_finalize(const Elf_Ehdr *hdr,
  		list_add(&me->arch.dbe_list, &dbe_list);
  		spin_unlock_irq(&dbe_lock);
  	}

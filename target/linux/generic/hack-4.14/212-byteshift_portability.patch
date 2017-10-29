@@ -14,7 +14,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/tools/include/tools/be_byteshift.h
 +++ b/tools/include/tools/be_byteshift.h
-@@ -1,6 +1,10 @@
+@@ -2,6 +2,10 @@
  #ifndef _TOOLS_BE_BYTESHIFT_H
  #define _TOOLS_BE_BYTESHIFT_H
  
@@ -27,7 +27,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static inline uint16_t __get_unaligned_be16(const uint8_t *p)
 --- a/tools/include/tools/le_byteshift.h
 +++ b/tools/include/tools/le_byteshift.h
-@@ -1,6 +1,10 @@
+@@ -2,6 +2,10 @@
  #ifndef _TOOLS_LE_BYTESHIFT_H
  #define _TOOLS_LE_BYTESHIFT_H
  

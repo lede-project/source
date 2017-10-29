@@ -1,4 +1,4 @@
-From c4d66e57455f5384128753674cc0f9e02db5e1f6 Mon Sep 17 00:00:00 2001
+From 1bb0c3ec899827cfa4668bb63a08713a40744d21 Mon Sep 17 00:00:00 2001
 From: Florian Westphal <fw@strlen.de>
 Date: Sun, 9 Jul 2017 08:58:30 +0200
 Subject: [PATCH] netfilter: conntrack: cache route for forwarded connections
@@ -30,14 +30,14 @@ Signed-off-by: Florian Westphal <fw@strlen.de>
  include/net/netfilter/nf_conntrack_rtcache.h |  34 +++
  net/netfilter/Kconfig                        |  12 +
  net/netfilter/Makefile                       |   3 +
- net/netfilter/nf_conntrack_rtcache.c         | 413 +++++++++++++++++++++++++++
- 5 files changed, 466 insertions(+)
+ net/netfilter/nf_conntrack_rtcache.c         | 428 +++++++++++++++++++++++++++
+ 5 files changed, 481 insertions(+)
  create mode 100644 include/net/netfilter/nf_conntrack_rtcache.h
  create mode 100644 net/netfilter/nf_conntrack_rtcache.c
 
 --- a/include/net/netfilter/nf_conntrack_extend.h
 +++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -27,6 +27,9 @@ enum nf_ct_ext_id {
+@@ -28,6 +28,9 @@ enum nf_ct_ext_id {
  #if IS_ENABLED(CONFIG_NETFILTER_SYNPROXY)
  	NF_CT_EXT_SYNPROXY,
  #endif
@@ -47,7 +47,7 @@ Signed-off-by: Florian Westphal <fw@strlen.de>
  	NF_CT_EXT_NUM,
  };
  
-@@ -39,6 +42,7 @@ enum nf_ct_ext_id {
+@@ -40,6 +43,7 @@ enum nf_ct_ext_id {
  #define NF_CT_EXT_TIMEOUT_TYPE struct nf_conn_timeout
  #define NF_CT_EXT_LABELS_TYPE struct nf_conn_labels
  #define NF_CT_EXT_SYNPROXY_TYPE struct nf_conn_synproxy
@@ -94,7 +94,7 @@ Signed-off-by: Florian Westphal <fw@strlen.de>
 +}
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
-@@ -114,6 +114,18 @@ config NF_CONNTRACK_EVENTS
+@@ -118,6 +118,18 @@ config NF_CONNTRACK_EVENTS
  
  	  If unsure, say `N'.
  
@@ -115,19 +115,19 @@ Signed-off-by: Florian Westphal <fw@strlen.de>
  	depends on NETFILTER_ADVANCED
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
-@@ -16,6 +16,9 @@ obj-$(CONFIG_NETFILTER_NETLINK_LOG) += n
+@@ -19,6 +19,9 @@ obj-$(CONFIG_NETFILTER_NETLINK_LOG) += n
  # connection tracking
  obj-$(CONFIG_NF_CONNTRACK) += nf_conntrack.o
  
 +# optional conntrack route cache extension
 +obj-$(CONFIG_NF_CONNTRACK_RTCACHE) += nf_conntrack_rtcache.o
 +
- # SCTP protocol connection tracking
- obj-$(CONFIG_NF_CT_PROTO_DCCP) += nf_conntrack_proto_dccp.o
  obj-$(CONFIG_NF_CT_PROTO_GRE) += nf_conntrack_proto_gre.o
+ 
+ # netlink interface for nf_conntrack
 --- /dev/null
 +++ b/net/netfilter/nf_conntrack_rtcache.c
-@@ -0,0 +1,413 @@
+@@ -0,0 +1,428 @@
 +/* route cache for netfilter.
 + *
 + * (C) 2014 Red Hat GmbH
@@ -193,8 +193,6 @@ Signed-off-by: Florian Westphal <fw@strlen.de>
 +
 +static struct nf_conn_rtcache *nf_ct_rtcache_find_usable(struct nf_conn *ct)
 +{
-+	if (nf_ct_is_untracked(ct))
-+		return NULL;
 +	return nf_ct_rtcache_find(ct);
 +}
 +
@@ -401,7 +399,7 @@ Signed-off-by: Florian Westphal <fw@strlen.de>
 +	struct net *net = dev_net(dev);
 +
 +	if (event == NETDEV_DOWN)
-+		nf_ct_iterate_cleanup(net, nf_rtcache_dst_remove, dev, 0, 0);
++		nf_ct_iterate_cleanup_net(net, nf_rtcache_dst_remove, dev, 0, 0);
 +
 +	return NOTIFY_DONE;
 +}
@@ -446,6 +444,16 @@ Signed-off-by: Florian Westphal <fw@strlen.de>
 +	.destroy = nf_conn_rtcache_destroy,
 +};
 +
++static void __net_exit rtcache_net_exit(struct net *net)
++{
++	/* remove hooks so no new connections get rtcache extension */
++	nf_unregister_net_hooks(net, rtcache_ops, ARRAY_SIZE(rtcache_ops));
++}
++
++static struct pernet_operations rtcache_ops_net_ops = {
++	.exit	= rtcache_net_exit,
++};
++
 +static int __init nf_conntrack_rtcache_init(void)
 +{
 +	int ret = nf_ct_extend_register(&rtcache_extend);
@@ -455,16 +463,26 @@ Signed-off-by: Florian Westphal <fw@strlen.de>
 +		return ret;
 +	}
 +
-+	ret = nf_register_hooks(rtcache_ops, ARRAY_SIZE(rtcache_ops));
++	ret = register_pernet_subsys(&rtcache_ops_net_ops);
++	if (ret) {
++		nf_ct_extend_unregister(&rtcache_extend);
++		return ret;
++	}
++
++	ret = nf_register_net_hooks(&init_net, rtcache_ops,
++				    ARRAY_SIZE(rtcache_ops));
 +	if (ret < 0) {
 +		nf_ct_extend_unregister(&rtcache_extend);
++		unregister_pernet_subsys(&rtcache_ops_net_ops);
 +		return ret;
 +	}
 +
 +	ret = register_netdevice_notifier(&nf_rtcache_notifier);
 +	if (ret) {
-+		nf_unregister_hooks(rtcache_ops, ARRAY_SIZE(rtcache_ops));
++		nf_unregister_net_hooks(&init_net, rtcache_ops,
++					ARRAY_SIZE(rtcache_ops));
 +		nf_ct_extend_unregister(&rtcache_extend);
++		unregister_pernet_subsys(&rtcache_ops_net_ops);
 +	}
 +
 +	return ret;
@@ -510,9 +528,6 @@ Signed-off-by: Florian Westphal <fw@strlen.de>
 +	struct net *net;
 +	int count = 0;
 +
-+	/* remove hooks so no new connections get rtcache extension */
-+	nf_unregister_hooks(rtcache_ops, ARRAY_SIZE(rtcache_ops));
-+
 +	synchronize_net();
 +
 +	unregister_netdevice_notifier(&nf_rtcache_notifier);
@@ -521,7 +536,7 @@ Signed-off-by: Florian Westphal <fw@strlen.de>
 +
 +	/* zap all conntracks with rtcache extension */
 +	for_each_net(net)
-+		nf_ct_iterate_cleanup(net, nf_rtcache_ext_remove, NULL, 0, 0);
++		nf_ct_iterate_cleanup_net(net, nf_rtcache_ext_remove, NULL, 0, 0);
 +
 +	for_each_net(net) {
 +		/* .. and make sure they're gone from dying list, too */

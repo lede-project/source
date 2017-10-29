@@ -26,7 +26,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
  /**
   * create_default_filesystem - format empty UBI volume.
   * @c: UBIFS file-system description object
-@@ -183,7 +194,7 @@ static int create_default_filesystem(str
+@@ -186,7 +197,7 @@ static int create_default_filesystem(str
  	if (c->mount_opts.override_compr)
  		sup->default_compr = cpu_to_le16(c->mount_opts.compr_type);
  	else

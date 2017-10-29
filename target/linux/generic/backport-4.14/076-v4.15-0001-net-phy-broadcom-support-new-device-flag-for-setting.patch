@@ -44,7 +44,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  
 --- a/include/linux/brcmphy.h
 +++ b/include/linux/brcmphy.h
-@@ -59,6 +59,7 @@
+@@ -64,6 +64,7 @@
  #define PHY_BRCM_EXT_IBND_TX_ENABLE	0x00002000
  #define PHY_BRCM_CLEAR_RGMII_MODE	0x00004000
  #define PHY_BRCM_DIS_TXCRXC_NOENRGY	0x00008000

@@ -9,7 +9,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/arch/mips/vdso/Makefile
 +++ b/arch/mips/vdso/Makefile
-@@ -28,9 +28,9 @@ aflags-vdso := $(ccflags-vdso) \
+@@ -30,9 +30,9 @@ aflags-vdso := $(ccflags-vdso) \
  ifndef CONFIG_CPU_MIPSR6
    ifeq ($(call ld-ifversion, -lt, 225000000, y),y)
      $(warning MIPS VDSO requires binutils >= 2.25)

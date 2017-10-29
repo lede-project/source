@@ -11,19 +11,19 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
 
 --- a/drivers/net/phy/phy_device.c
 +++ b/drivers/net/phy/phy_device.c
-@@ -1001,6 +1001,9 @@ void phy_detach(struct phy_device *phyde
+@@ -1095,6 +1095,9 @@ void phy_detach(struct phy_device *phyde
+ 	struct module *ndev_owner = dev->dev.parent->driver->owner;
  	struct mii_bus *bus;
- 	int i;
  
 +	if (phydev->drv && phydev->drv->detach)
 +		phydev->drv->detach(phydev);
 +
- 	phydev->attached_dev->phydev = NULL;
- 	phydev->attached_dev = NULL;
- 	phy_suspend(phydev);
+ 	if (phydev->sysfs_links) {
+ 		sysfs_remove_link(&dev->dev.kobj, "phydev");
+ 		sysfs_remove_link(&phydev->mdio.dev.kobj, "attached_dev");
 --- a/include/linux/phy.h
 +++ b/include/linux/phy.h
-@@ -507,6 +507,12 @@ struct phy_driver {
+@@ -559,6 +559,12 @@ struct phy_driver {
  	 */
  	int (*did_interrupt)(struct phy_device *phydev);
  

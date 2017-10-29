@@ -14,15 +14,16 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/scripts/ld-version.sh
 +++ b/scripts/ld-version.sh
-@@ -1,5 +1,6 @@
+@@ -1,6 +1,7 @@
 -#!/usr/bin/awk -f
 +#!/bin/sh
+ # SPDX-License-Identifier: GPL-2.0
  # extract linker version number from stdin and turn into single number
 +exec awk '
  	{
  	gsub(".*\\)", "");
  	gsub(".*version ", "");
-@@ -8,3 +9,4 @@
+@@ -9,3 +10,4 @@
  	print a[1]*100000000 + a[2]*1000000 + a[3]*10000;
  	exit
  	}

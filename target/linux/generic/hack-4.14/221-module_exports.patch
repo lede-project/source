@@ -30,7 +30,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #include <linux/export.h>
  
  /* Align . to a 8 byte boundary equals to maximum function alignment. */
-@@ -342,14 +352,14 @@
+@@ -341,14 +351,14 @@
  	/* Kernel symbol table: Normal symbols */			\
  	__ksymtab         : AT(ADDR(__ksymtab) - LOAD_OFFSET) {		\
  		VMLINUX_SYMBOL(__start___ksymtab) = .;			\
@@ -47,7 +47,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		VMLINUX_SYMBOL(__stop___ksymtab_gpl) = .;		\
  	}								\
  									\
-@@ -411,7 +421,7 @@
+@@ -410,7 +420,7 @@
  									\
  	/* Kernel symbol table: strings */				\
          __ksymtab_strings : AT(ADDR(__ksymtab_strings) - LOAD_OFFSET) {	\
@@ -56,7 +56,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	}								\
  									\
  	/* __*init sections */						\
-@@ -763,6 +773,8 @@
+@@ -793,6 +803,8 @@
  	EXIT_TEXT							\
  	EXIT_DATA							\
  	EXIT_CALL							\
@@ -67,7 +67,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	}
 --- a/include/linux/export.h
 +++ b/include/linux/export.h
-@@ -53,12 +53,19 @@ extern struct module __this_module;
+@@ -60,12 +60,19 @@ extern struct module __this_module;
  #define __CRC_SYMBOL(sym, sec)
  #endif
  
@@ -90,12 +90,12 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	__used								\
 --- a/scripts/Makefile.build
 +++ b/scripts/Makefile.build
-@@ -398,7 +398,7 @@ targets += $(extra-y) $(MAKECMDGOALS) $(
+@@ -420,7 +420,7 @@ targets += $(extra-y) $(MAKECMDGOALS) $(
  # Linker scripts preprocessor (.lds.S -> .lds)
  # ---------------------------------------------------------------------------
  quiet_cmd_cpp_lds_S = LDS     $@
--      cmd_cpp_lds_S = $(CPP) $(cpp_flags) -P -C -U$(ARCH) \
-+      cmd_cpp_lds_S = $(CPP) $(EXTRA_LDSFLAGS) $(cpp_flags) -P -C -U$(ARCH) \
+-      cmd_cpp_lds_S = $(CPP) $(cpp_flags) -P -U$(ARCH) \
++      cmd_cpp_lds_S = $(CPP) $(EXTRA_LDSFLAGS) $(cpp_flags) -P -U$(ARCH) \
  	                     -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
  
  $(obj)/%.lds: $(src)/%.lds.S FORCE
