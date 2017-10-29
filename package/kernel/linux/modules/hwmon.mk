@@ -78,6 +78,21 @@ endef
 $(eval $(call KernelPackage,hwmon-adt7475))
 
 
+define KernelPackage/hwmon-coretemp
+  TITLE:=Pentium thermal monitoring support
+  KCONFIG:=CONFIG_SENSORS_CORETEMP
+  FILES:=$(LINUX_DIR)/drivers/hwmon/coretemp.ko
+  AUTOLOAD:=$(call AutoProbe,coretemp)
+  $(call AddDepends/hwmon)
+endef
+
+define KernelPackage/hwmon-coretemp/description
+ Kernel module for Intel Pentium and above CPU temperature
+endef
+
+$(eval $(call KernelPackage,hwmon-coretemp))
+
+
 define KernelPackage/hwmon-ina209
   TITLE:=INA209 monitoring support
   KCONFIG:=CONFIG_SENSORS_INA209
