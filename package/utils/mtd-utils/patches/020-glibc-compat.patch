@@ -1,0 +1,32 @@
+mtd-utils: backport fix for glibc version 2.26+
+
+Include sys/sysmacros.h for major/minor/makedev. These functions have
+always been defined in sys/sysmacros.h under Linux C libraries.  For
+some, including sys/types.h implicitly includes that as well, but glibc
+wants to deprecate that, and some others already have.  Include the
+header explicitly for the funcs. Credit Mike Frysinger <vapier@gentoo.org>
+for creating the original patch for this bug.
+
+Fixes: FS#1015
+
+Signed-off-by: Bob Brooks <gitbugged@cool.fr.nf>
+---
+ include/common.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/common.h b/include/common.h
+index fb0ca83..8cb3142 100644
+--- a/include/common.h
++++ b/include/common.h
+@@ -28,6 +28,7 @@
+ #include <errno.h>
+ #include <features.h>
+ #include <inttypes.h>
++#include <sys/sysmacros.h>
+ #include "version.h"
+ 
+ #ifndef PROGRAM_NAME
+-- 
+2.7.4
+
+
