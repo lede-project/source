@@ -1,0 +1,32 @@
+From a6eac48b24096503358b6d4ab0d40deb004e5dfd Mon Sep 17 00:00:00 2001
+From: Oliver Neukum <oneukum@suse.com>
+Date: Mon, 30 Nov 2015 16:50:34 +0100
+Subject: [PATCH] xhci: silence TD warning
+Patch-Mainline: Never (proper fix would break kABI)
+References: bnc#939955
+
+This warning triggers for things that were cleaned up by
+the ring expansion code. As we cannot have that in SP3, lowering
+the urgency by a notch to not spam logs.
+
+Signed-off-by: Oliver Neukum <oneukum@suse.com>
+---
+ drivers/usb/host/xhci-ring.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
+index 63735b5..2f7c86c 100644
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -2492,7 +2492,7 @@ static int handle_tx_event(struct xhci_hcd *xhci,
+ 			 */
+ 			if (!(trb_comp_code == COMP_STOP ||
+ 						trb_comp_code == COMP_STOP_INVAL)) {
+-				xhci_warn(xhci, "WARN Event TRB for slot %d ep %d with no TDs queued?\n",
++				xhci_dbg(xhci, "WARN Event TRB for slot %d ep %d with no TDs queued?\n",
+ 						TRB_TO_SLOT_ID(le32_to_cpu(event->flags)),
+ 						ep_index);
+ 				xhci_dbg(xhci, "Event TRB with TRB type ID %u\n",
+-- 
+2.1.4
+
