@@ -139,6 +139,7 @@ ramips_setup_interfaces()
 		;;
 	ar670w|\
 	ar725w|\
+	kn_rf|\
 	rt-ac51u)
 		ucidef_add_switch "switch0" \
 			"0:wan" "1:lan" "2:lan" "3:lan" "4:lan" "6t@eth0"
@@ -255,10 +256,6 @@ ramips_setup_interfaces()
 	y1s)
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "5:lan" "0:wan" "6@eth0"
-		;;
-	kn_rf)
-		ucidef_add_switch "switch0" \
-			"0:wan" "1:lan" "2:lan" "3:lan" "4:lan" "6@eth0"
 		;;
 	kng_rc)
 		ucidef_add_switch "switch1" \
