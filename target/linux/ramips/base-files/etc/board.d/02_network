@@ -137,13 +137,6 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:lan:1" "1:lan:2" "2:lan:3" "3:lan:4" "4:wan:5" "6@eth0"
 		;;
-	ar670w|\
-	ar725w|\
-	kn_rf|\
-	rt-ac51u)
-		ucidef_add_switch "switch0" \
-			"0:wan" "1:lan" "2:lan" "3:lan" "4:lan" "6t@eth0"
-		;;
 	rt-n15|\
 	wl-351)
 		ucidef_add_switch "switch0" \
@@ -155,6 +148,8 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "6t@eth0"
 		;;
+	ar670w|\
+	ar725w|\
 	atp-52b|\
 	awm002-evb-4M|\
 	awm002-evb-8M|\
@@ -168,8 +163,10 @@ ramips_setup_interfaces()
 	jhr-n805r|\
 	jhr-n825r|\
 	jhr-n926r|\
+	kn_rf|\
 	mzk-wdpr|\
 	rb750gr3|\
+	rt-ac51u|\
 	rt-n14u|\
 	tl-wr840n-v4|\
 	tl-wr841n-v13|\
