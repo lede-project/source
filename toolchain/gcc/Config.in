@@ -57,6 +57,7 @@ config SJLJ_EXCEPTIONS
 config INSTALL_LIBGCJ
 	bool
 	prompt "Build/install java compiler and GNU classpath ?" if TOOLCHAINOPTS
+	depends on !GCC_USE_VERSION_7
 	default n
 	help
 	    Build/install java compiler and GNU classpath ?
