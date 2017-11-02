@@ -127,25 +127,24 @@ static ssize_t device_name_store(struct device *dev,
 
 	spin_lock_bh(&trigger_data->lock);
 
-	strcpy(trigger_data->device_name, buf);
+	if (trigger_data->net_dev) {
+		dev_put(trigger_data->net_dev);
+		trigger_data->net_dev = NULL;
+	}
+
+	strncpy(trigger_data->device_name, buf, size);
 	if (size > 0 && trigger_data->device_name[size-1] == '\n')
 		trigger_data->device_name[size-1] = 0;
-
-	if (trigger_data->net_dev)
-		dev_put(trigger_data->net_dev);
-
-	clear_bit(LED_MODE_LINKUP, &trigger_data->mode);
-	trigger_data->last_activity = 0;
-	trigger_data->net_dev = NULL;
 
 	if (trigger_data->device_name[0] != 0)
 		trigger_data->net_dev = dev_get_by_name(&init_net, trigger_data->device_name);
 
+	clear_bit(LED_MODE_LINKUP, &trigger_data->mode);
 	if (trigger_data->net_dev != NULL)
-		if (dev_get_flags(trigger_data->net_dev) & IFF_LOWER_UP)
+		if (netif_carrier_ok(trigger_data->net_dev))
 			set_bit(LED_MODE_LINKUP, &trigger_data->mode);
-		else
-			clear_bit(LED_MODE_LINKUP, &trigger_data->mode);
+
+	trigger_data->last_activity = 0;
 
 	set_baseline_state(trigger_data);
 	spin_unlock_bh(&trigger_data->lock);
