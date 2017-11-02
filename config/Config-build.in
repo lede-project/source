@@ -1,5 +1,6 @@
 # Copyright (C) 2006-2013 OpenWrt.org
 # Copyright (C) 2016 LEDE Project
+# Copyright (C) 2017 Ian Leonard <antonlacon@gmail.com>
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -172,6 +173,29 @@ menu "Global build settings"
 		config USE_LIBSTDCXX
 			bool "libstdc++"
 	endchoice
+
+	comment "Linker options"
+
+	config PKG_LD_HASH_STYLE_GNU
+		bool
+		prompt "Use the gnu hash style for symbol tables"
+		depends on !mips
+		help
+		  By default, ld produces a sysv style hash table. The gnu style supports
+		  faster program launching.
+
+	config PKG_LD_O1
+		bool
+		prompt "Have linker optimize symbol tables"
+		help
+		  Have ld optimize the symbol look up table for faster startup.
+
+	config PKG_LD_SORT_COMMON
+		bool
+		prompt "Have linker sort the symbol table based on size for alignment"
+		help
+		  This option has ld try to avoid creating gaps within the symbol table due
+		  to alignment constraints, for a more efficient layout.
 
 	comment "Hardening build options"
 
