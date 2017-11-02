@@ -33,15 +33,9 @@ define Build/Configure
 endef
 
 define Build/Compile
-	$(MAKE) -C $(PKG_BUILD_DIR) \
-		CC="$(TARGET_CC)" \
-		CFLAGS="$(TARGET_CFLAGS) -Wall" \
-		LDFLAGS="$(TARGET_LDFLAGS)"
 endef
 
 define Package/6rd/install
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/6rdcalc $(1)/usr/sbin/
 	$(INSTALL_DIR) $(1)/lib/netifd/proto
 	$(INSTALL_BIN) ./files/6rd.sh $(1)/lib/netifd/proto/6rd.sh
 endef
