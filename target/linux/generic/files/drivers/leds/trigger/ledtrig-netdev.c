@@ -247,33 +247,32 @@ static int netdev_trig_notify(struct notifier_block *nb,
 
 	spin_lock_bh(&trigger_data->lock);
 
-	if (evt == NETDEV_REGISTER || evt == NETDEV_CHANGENAME) {
-		if (trigger_data->net_dev != NULL)
-			dev_put(trigger_data->net_dev);
-
-		dev_hold(dev);
-		trigger_data->net_dev = dev;
-		clear_bit(LED_MODE_LINKUP, &trigger_data->mode);
-		goto done;
+	clear_bit(LED_MODE_LINKUP, &trigger_data->mode);
+	switch (evt) {
+		case NETDEV_REGISTER:
+			if (trigger_data->net_dev)
+				dev_put(trigger_data->net_dev);
+			dev_hold(dev);
+			trigger_data->net_dev = dev;
+			break;
+		case NETDEV_CHANGENAME:
+		case NETDEV_UNREGISTER:
+			if (trigger_data->net_dev) {
+				dev_put(trigger_data->net_dev);
+				trigger_data->net_dev = NULL;
+			}
+			break;
+		case NETDEV_UP:
+		case NETDEV_CHANGE:
+			if (netif_carrier_ok(dev))
+				set_bit(LED_MODE_LINKUP, &trigger_data->mode);
+			break;
 	}
-
-	if (evt == NETDEV_UNREGISTER && trigger_data->net_dev != NULL) {
-		dev_put(trigger_data->net_dev);
-		trigger_data->net_dev = NULL;
-		goto done;
-	}
-
-	/* UP / DOWN / CHANGE */
-
-	if (evt != NETDEV_DOWN && netif_carrier_ok(dev))
-		set_bit(LED_MODE_LINKUP, &trigger_data->mode);
-	else
-		clear_bit(LED_MODE_LINKUP, &trigger_data->mode);
 
 	set_baseline_state(trigger_data);
 
-done:
 	spin_unlock_bh(&trigger_data->lock);
+
 	return NOTIFY_DONE;
 }
 
