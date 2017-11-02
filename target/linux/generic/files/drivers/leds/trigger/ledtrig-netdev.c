@@ -76,25 +76,28 @@ struct led_netdev_data {
 
 	char device_name[IFNAMSIZ];
 	atomic_t interval;
-	unsigned link_up;
 	unsigned last_activity;
 
 	unsigned long mode;
 #define LED_BLINK_link 	0
 #define LED_BLINK_tx	1
 #define LED_BLINK_rx	2
+#define LED_MODE_LINKUP	3
 };
 
 static void set_baseline_state(struct led_netdev_data *trigger_data)
 {
-	if (test_bit(LED_BLINK_link, &trigger_data->mode) && trigger_data->link_up)
-		led_set_brightness(trigger_data->led_cdev, LED_FULL);
-	else
+	if (!test_bit(LED_MODE_LINKUP, &trigger_data->mode))
 		led_set_brightness(trigger_data->led_cdev, LED_OFF);
+	else {
+		if (test_bit(LED_BLINK_link, &trigger_data->mode))
+			led_set_brightness(trigger_data->led_cdev, LED_FULL);
 
-	if ((test_bit(LED_BLINK_tx, &trigger_data->mode) ||
-	    test_bit(LED_BLINK_rx, &trigger_data->mode)) && trigger_data->link_up)
-		schedule_delayed_work(&trigger_data->work, atomic_read(&trigger_data->interval));
+		if (test_bit(LED_BLINK_tx, &trigger_data->mode) ||
+			test_bit(LED_BLINK_rx, &trigger_data->mode))
+			schedule_delayed_work(&trigger_data->work,
+					atomic_read(&trigger_data->interval));
+	}
 }
 
 static ssize_t device_name_show(struct device *dev,
@@ -131,7 +134,7 @@ static ssize_t device_name_store(struct device *dev,
 	if (trigger_data->net_dev)
 		dev_put(trigger_data->net_dev);
 
-	trigger_data->link_up = 0;
+	clear_bit(LED_MODE_LINKUP, &trigger_data->mode);
 	trigger_data->last_activity = 0;
 	trigger_data->net_dev = NULL;
 
@@ -139,7 +142,10 @@ static ssize_t device_name_store(struct device *dev,
 		trigger_data->net_dev = dev_get_by_name(&init_net, trigger_data->device_name);
 
 	if (trigger_data->net_dev != NULL)
-		trigger_data->link_up = (dev_get_flags(trigger_data->net_dev) & IFF_LOWER_UP) != 0;
+		if (dev_get_flags(trigger_data->net_dev) & IFF_LOWER_UP)
+			set_bit(LED_MODE_LINKUP, &trigger_data->mode);
+		else
+			clear_bit(LED_MODE_LINKUP, &trigger_data->mode);
 
 	set_baseline_state(trigger_data);
 	spin_unlock_bh(&trigger_data->lock);
@@ -174,14 +180,12 @@ static ssize_t field##_store(struct device *dev,						\
 												\
 	cancel_delayed_work_sync(&trigger_data->work);						\
 												\
-	spin_lock_bh(&trigger_data->lock);							\
 	if (state)										\
 		set_bit(LED_BLINK_##field, &trigger_data->mode);				\
 	else											\
 		clear_bit(LED_BLINK_##field, &trigger_data->mode);				\
 												\
 	set_baseline_state(trigger_data);							\
-	spin_unlock_bh(&trigger_data->lock);							\
 												\
 	return size;										\
 }												\
@@ -217,10 +221,8 @@ static ssize_t interval_store(struct device *dev,
 	if (value >= 5 && value <= 10000) {
 		cancel_delayed_work_sync(&trigger_data->work);
 
-		spin_lock_bh(&trigger_data->lock);
 		atomic_set(&trigger_data->interval, msecs_to_jiffies(value));
 		set_baseline_state(trigger_data); /* resets timer */
-		spin_unlock_bh(&trigger_data->lock);
 	}
 
 	return size;
@@ -251,7 +253,7 @@ static int netdev_trig_notify(struct notifier_block *nb,
 
 		dev_hold(dev);
 		trigger_data->net_dev = dev;
-		trigger_data->link_up = 0;
+		clear_bit(LED_MODE_LINKUP, &trigger_data->mode);
 		goto done;
 	}
 
@@ -263,7 +265,11 @@ static int netdev_trig_notify(struct notifier_block *nb,
 
 	/* UP / DOWN / CHANGE */
 
-	trigger_data->link_up = (evt != NETDEV_DOWN && netif_carrier_ok(dev));
+	if (evt != NETDEV_DOWN && netif_carrier_ok(dev))
+		set_bit(LED_MODE_LINKUP, &trigger_data->mode);
+	else
+		clear_bit(LED_MODE_LINKUP, &trigger_data->mode);
+
 	set_baseline_state(trigger_data);
 
 done:
@@ -279,13 +285,13 @@ static void netdev_trig_work(struct work_struct *work)
 	unsigned new_activity;
 	struct rtnl_link_stats64 temp;
 
-	if (!trigger_data->link_up || !trigger_data->net_dev ||
+	if (!test_bit(LED_MODE_LINKUP, &trigger_data->mode) || !trigger_data->net_dev ||
 			(!test_bit(LED_BLINK_tx, &trigger_data->mode) &&
 		       	 !test_bit(LED_BLINK_rx, &trigger_data->mode))) {
 		/* we don't need to do timer work, just reflect link state. */
 		led_set_brightness(trigger_data->led_cdev,
 				(test_bit(LED_BLINK_link, &trigger_data->mode) &&
-				trigger_data->link_up) ? LED_FULL : LED_OFF);
+				test_bit(LED_MODE_LINKUP, &trigger_data->mode) ? LED_FULL : LED_OFF));
 		return;
 	}
 
@@ -342,7 +348,6 @@ static void netdev_trig_activate(struct led_classdev *led_cdev)
 
 	trigger_data->mode = 0;
 	atomic_set(&trigger_data->interval, msecs_to_jiffies(50));
-	trigger_data->link_up = 0;
 	trigger_data->last_activity = 0;
 
 	led_cdev->trigger_data = trigger_data;
