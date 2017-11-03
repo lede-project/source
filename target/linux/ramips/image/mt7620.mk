@@ -412,6 +412,11 @@ define Device/whr-1166d
   DTS := WHR-1166D
   IMAGE_SIZE := 15040k
   DEVICE_TITLE := Buffalo WHR-1166D
+  IMAGES += factory-eu.bin factory-us.bin
+  IMAGE/factory-eu.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+	buffalo-crc -m FIRMWARE -i 520 -o 290 -d WRTR-300ACN_EU
+  IMAGE/factory-us.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+	buffalo-crc -m FIRMWARE -i 520 -o 290 -d WRTR-300ACN_US
 endef
 TARGET_DEVICES += whr-1166d
 
@@ -419,6 +424,9 @@ define Device/whr-300hp2
   DTS := WHR-300HP2
   IMAGE_SIZE := 6848k
   DEVICE_TITLE := Buffalo WHR-300HP2
+  IMAGES += factory.bin
+  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+	buffalo-crc -m FIRMWARE -i 520 -o 250 -d WRTR-297GN_US
 endef
 TARGET_DEVICES += whr-300hp2
 
