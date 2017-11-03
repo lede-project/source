@@ -3,6 +3,8 @@
  *
  * Toggles the LED to reflect the link and traffic state of a named net device
  *
+ * Copyright 2017 Ben Whitten <benwhitten@gmail.com>
+ *
  * Copyright 2007 Oliver Jowett <oliver@opencloud.com>
  *
  * Derived from ledtrig-timer.c which is:
@@ -25,9 +27,8 @@
 #include <linux/netdevice.h>
 #include <linux/timer.h>
 #include <linux/ctype.h>
+#include <linux/atomic.h>
 #include <linux/leds.h>
-
-#include "leds.h"
 
 /*
  * Configurable sysfs attributes:
@@ -36,36 +37,33 @@
  *
  * interval - duration of LED blink, in milliseconds
  *
- * mode - either "none" (LED is off) or a space separated list of one or more of:
- *   link: LED's normal state reflects whether the link is up (has carrier) or not
- *   tx:   LED blinks on transmitted data
- *   rx:   LED blinks on receive data
+ * link -  LED's normal state reflects whether the link is up (has carrier) or not
+ * tx -  LED blinks on transmitted data
+ * rx -  LED blinks on receive data
  *
  * Some suggestions:
  *
  *  Simple link status LED:
  *  $ echo netdev >someled/trigger
  *  $ echo eth0 >someled/device_name
- *  $ echo link >someled/mode
+ *  $ echo 1 >someled/link
  *
  *  Ethernet-style link/activity LED:
  *  $ echo netdev >someled/trigger
  *  $ echo eth0 >someled/device_name
- *  $ echo "link tx rx" >someled/mode
+ *  $ echo 1 >someled/link
+ *  $ echo 1 >someled/tx
+ *  $ echo 1 >someled/rx
  *
  *  Modem-style tx/rx LEDs:
  *  $ echo netdev >led1/trigger
  *  $ echo ppp0 >led1/device_name
- *  $ echo tx >led1/mode
+ *  $ echo 1 >led1/tx
  *  $ echo netdev >led2/trigger
  *  $ echo ppp0 >led2/device_name
- *  $ echo rx >led2/mode
+ *  $ echo 1 >led2/rx
  *
  */
-
-#define MODE_LINK 1
-#define MODE_TX   2
-#define MODE_RX   4
 
 struct led_netdev_data {
 	spinlock_t lock;
@@ -77,37 +75,46 @@ struct led_netdev_data {
 	struct net_device *net_dev;
 
 	char device_name[IFNAMSIZ];
-	unsigned interval;
-	unsigned mode;
-	unsigned link_up;
+	atomic_t interval;
 	unsigned last_activity;
+
+	unsigned long mode;
+#define LED_BLINK_link 	0
+#define LED_BLINK_tx	1
+#define LED_BLINK_rx	2
+#define LED_MODE_LINKUP	3
 };
 
 static void set_baseline_state(struct led_netdev_data *trigger_data)
 {
-	if ((trigger_data->mode & MODE_LINK) != 0 && trigger_data->link_up)
-		led_set_brightness(trigger_data->led_cdev, LED_FULL);
-	else
+	if (!test_bit(LED_MODE_LINKUP, &trigger_data->mode))
 		led_set_brightness(trigger_data->led_cdev, LED_OFF);
+	else {
+		if (test_bit(LED_BLINK_link, &trigger_data->mode))
+			led_set_brightness(trigger_data->led_cdev, LED_FULL);
 
-	if ((trigger_data->mode & (MODE_TX | MODE_RX)) != 0 && trigger_data->link_up)
-		schedule_delayed_work(&trigger_data->work, trigger_data->interval);
+		if (test_bit(LED_BLINK_tx, &trigger_data->mode) ||
+			test_bit(LED_BLINK_rx, &trigger_data->mode))
+			schedule_delayed_work(&trigger_data->work,
+					atomic_read(&trigger_data->interval));
+	}
 }
 
-static ssize_t led_device_name_show(struct device *dev,
+static ssize_t device_name_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct led_netdev_data *trigger_data = led_cdev->trigger_data;
+	ssize_t len;
 
 	spin_lock_bh(&trigger_data->lock);
-	sprintf(buf, "%s\n", trigger_data->device_name);
+	len = sprintf(buf, "%s\n", trigger_data->device_name);
 	spin_unlock_bh(&trigger_data->lock);
 
-	return strlen(buf) + 1;
+	return len;
 }
 
-static ssize_t led_device_name_store(struct device *dev,
+static ssize_t device_name_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t size)
 {
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
@@ -120,142 +127,107 @@ static ssize_t led_device_name_store(struct device *dev,
 
 	spin_lock_bh(&trigger_data->lock);
 
-	strcpy(trigger_data->device_name, buf);
+	if (trigger_data->net_dev) {
+		dev_put(trigger_data->net_dev);
+		trigger_data->net_dev = NULL;
+	}
+
+	strncpy(trigger_data->device_name, buf, size);
 	if (size > 0 && trigger_data->device_name[size-1] == '\n')
 		trigger_data->device_name[size-1] = 0;
-	trigger_data->link_up = 0;
+
+	if (trigger_data->device_name[0] != 0)
+		trigger_data->net_dev = dev_get_by_name(&init_net, trigger_data->device_name);
+
+	clear_bit(LED_MODE_LINKUP, &trigger_data->mode);
+	if (trigger_data->net_dev != NULL)
+		if (netif_carrier_ok(trigger_data->net_dev))
+			set_bit(LED_MODE_LINKUP, &trigger_data->mode);
+
 	trigger_data->last_activity = 0;
 
-	if (trigger_data->device_name[0] != 0) {
-		/* check for existing device to update from */
-		trigger_data->net_dev = dev_get_by_name(&init_net, trigger_data->device_name);
-		if (trigger_data->net_dev != NULL)
-			trigger_data->link_up = (dev_get_flags(trigger_data->net_dev) & IFF_LOWER_UP) != 0;
-	}
-
 	set_baseline_state(trigger_data);
 	spin_unlock_bh(&trigger_data->lock);
 
 	return size;
 }
 
-static DEVICE_ATTR(device_name, 0644, led_device_name_show, led_device_name_store);
+static DEVICE_ATTR_RW(device_name);
 
-static ssize_t led_mode_show(struct device *dev,
+
+
+#define led_mode_flags_attr(field)								\
+static ssize_t field##_show(struct device *dev,							\
+        struct device_attribute *attr, char *buf)						\
+{												\
+	struct led_classdev *led_cdev = dev_get_drvdata(dev);					\
+	struct led_netdev_data *trigger_data = led_cdev->trigger_data;				\
+												\
+	return sprintf(buf, "%u\n", test_bit(LED_BLINK_##field, &trigger_data->mode));		\
+}												\
+static ssize_t field##_store(struct device *dev,						\
+        struct device_attribute *attr, const char *buf, size_t size)				\
+{												\
+	struct led_classdev *led_cdev = dev_get_drvdata(dev);					\
+	struct led_netdev_data *trigger_data = led_cdev->trigger_data;				\
+	unsigned long state;									\
+	int ret;										\
+												\
+	ret = kstrtoul(buf, 0, &state);								\
+	if (ret)										\
+		return ret;									\
+												\
+	cancel_delayed_work_sync(&trigger_data->work);						\
+												\
+	if (state)										\
+		set_bit(LED_BLINK_##field, &trigger_data->mode);				\
+	else											\
+		clear_bit(LED_BLINK_##field, &trigger_data->mode);				\
+												\
+	set_baseline_state(trigger_data);							\
+												\
+	return size;										\
+}												\
+static DEVICE_ATTR_RW(field);
+
+led_mode_flags_attr(link);
+led_mode_flags_attr(rx);
+led_mode_flags_attr(tx);
+
+
+static ssize_t interval_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct led_netdev_data *trigger_data = led_cdev->trigger_data;
 
-	spin_lock_bh(&trigger_data->lock);
-
-	if (trigger_data->mode == 0) {
-		strcpy(buf, "none\n");
-	} else {
-		if (trigger_data->mode & MODE_LINK)
-			strcat(buf, "link ");
-		if (trigger_data->mode & MODE_TX)
-			strcat(buf, "tx ");
-		if (trigger_data->mode & MODE_RX)
-			strcat(buf, "rx ");
-		strcat(buf, "\n");
-	}
-
-	spin_unlock_bh(&trigger_data->lock);
-
-	return strlen(buf)+1;
+	return sprintf(buf, "%u\n", jiffies_to_msecs(atomic_read(&trigger_data->interval)));
 }
 
-static ssize_t led_mode_store(struct device *dev,
+static ssize_t interval_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t size)
 {
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct led_netdev_data *trigger_data = led_cdev->trigger_data;
-	char copybuf[128];
-	int new_mode = -1;
-	char *p, *token;
+	unsigned long value;
+	int ret;
 
-	/* take a copy since we don't want to trash the inbound buffer when using strsep */
-	strncpy(copybuf, buf, sizeof(copybuf));
-	copybuf[sizeof(copybuf) - 1] = 0;
-	p = copybuf;
-
-	while ((token = strsep(&p, " \t\n")) != NULL) {
-		if (!*token)
-			continue;
-
-		if (new_mode == -1)
-			new_mode = 0;
-
-		if (!strcmp(token, "none"))
-			new_mode = 0;
-		else if (!strcmp(token, "tx"))
-			new_mode |= MODE_TX;
-		else if (!strcmp(token, "rx"))
-			new_mode |= MODE_RX;
-		else if (!strcmp(token, "link"))
-			new_mode |= MODE_LINK;
-		else
-			return -EINVAL;
-	}
-
-	if (new_mode == -1)
-		return -EINVAL;
-
-	cancel_delayed_work_sync(&trigger_data->work);
-
-	spin_lock_bh(&trigger_data->lock);
-	trigger_data->mode = new_mode;
-	set_baseline_state(trigger_data);
-	spin_unlock_bh(&trigger_data->lock);
-
-	return size;
-}
-
-static DEVICE_ATTR(mode, 0644, led_mode_show, led_mode_store);
-
-static ssize_t led_interval_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
-{
-	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-	struct led_netdev_data *trigger_data = led_cdev->trigger_data;
-
-	spin_lock_bh(&trigger_data->lock);
-	sprintf(buf, "%u\n", jiffies_to_msecs(trigger_data->interval));
-	spin_unlock_bh(&trigger_data->lock);
-
-	return strlen(buf) + 1;
-}
-
-static ssize_t led_interval_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t size)
-{
-	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-	struct led_netdev_data *trigger_data = led_cdev->trigger_data;
-	int ret = -EINVAL;
-	char *after;
-	unsigned long value = simple_strtoul(buf, &after, 10);
-	size_t count = after - buf;
-
-	if (isspace(*after))
-		count++;
+	ret = kstrtoul(buf, 0, &value);
+	if (ret)
+		return ret;
 
 	/* impose some basic bounds on the timer interval */
-	if (count == size && value >= 5 && value <= 10000) {
+	if (value >= 5 && value <= 10000) {
 		cancel_delayed_work_sync(&trigger_data->work);
 
-		spin_lock_bh(&trigger_data->lock);
-		trigger_data->interval = msecs_to_jiffies(value);
+		atomic_set(&trigger_data->interval, msecs_to_jiffies(value));
 		set_baseline_state(trigger_data); /* resets timer */
-		spin_unlock_bh(&trigger_data->lock);
-
-		ret = count;
 	}
 
-	return ret;
+	return size;
 }
 
-static DEVICE_ATTR(interval, 0644, led_interval_show, led_interval_store);
+static DEVICE_ATTR_RW(interval);
 
 static int netdev_trig_notify(struct notifier_block *nb,
 			      unsigned long evt,
@@ -274,29 +246,32 @@ static int netdev_trig_notify(struct notifier_block *nb,
 
 	spin_lock_bh(&trigger_data->lock);
 
-	if (evt == NETDEV_REGISTER || evt == NETDEV_CHANGENAME) {
-		if (trigger_data->net_dev != NULL)
-			dev_put(trigger_data->net_dev);
-
-		dev_hold(dev);
-		trigger_data->net_dev = dev;
-		trigger_data->link_up = 0;
-		goto done;
+	clear_bit(LED_MODE_LINKUP, &trigger_data->mode);
+	switch (evt) {
+		case NETDEV_REGISTER:
+			if (trigger_data->net_dev)
+				dev_put(trigger_data->net_dev);
+			dev_hold(dev);
+			trigger_data->net_dev = dev;
+			break;
+		case NETDEV_CHANGENAME:
+		case NETDEV_UNREGISTER:
+			if (trigger_data->net_dev) {
+				dev_put(trigger_data->net_dev);
+				trigger_data->net_dev = NULL;
+			}
+			break;
+		case NETDEV_UP:
+		case NETDEV_CHANGE:
+			if (netif_carrier_ok(dev))
+				set_bit(LED_MODE_LINKUP, &trigger_data->mode);
+			break;
 	}
 
-	if (evt == NETDEV_UNREGISTER && trigger_data->net_dev != NULL) {
-		dev_put(trigger_data->net_dev);
-		trigger_data->net_dev = NULL;
-		goto done;
-	}
-
-	/* UP / DOWN / CHANGE */
-
-	trigger_data->link_up = (evt != NETDEV_DOWN && netif_carrier_ok(dev));
 	set_baseline_state(trigger_data);
 
-done:
 	spin_unlock_bh(&trigger_data->lock);
+
 	return NOTIFY_DONE;
 }
 
@@ -308,18 +283,22 @@ static void netdev_trig_work(struct work_struct *work)
 	unsigned new_activity;
 	struct rtnl_link_stats64 temp;
 
-	if (!trigger_data->link_up || !trigger_data->net_dev || (trigger_data->mode & (MODE_TX | MODE_RX)) == 0) {
+	if (!test_bit(LED_MODE_LINKUP, &trigger_data->mode) || !trigger_data->net_dev ||
+			(!test_bit(LED_BLINK_tx, &trigger_data->mode) &&
+		       	 !test_bit(LED_BLINK_rx, &trigger_data->mode))) {
 		/* we don't need to do timer work, just reflect link state. */
-		led_set_brightness(trigger_data->led_cdev, ((trigger_data->mode & MODE_LINK) != 0 && trigger_data->link_up) ? LED_FULL : LED_OFF);
+		led_set_brightness(trigger_data->led_cdev,
+				(test_bit(LED_BLINK_link, &trigger_data->mode) &&
+				test_bit(LED_MODE_LINKUP, &trigger_data->mode) ? LED_FULL : LED_OFF));
 		return;
 	}
 
 	dev_stats = dev_get_stats(trigger_data->net_dev, &temp);
 	new_activity =
-		((trigger_data->mode & MODE_TX) ? dev_stats->tx_packets : 0) +
-		((trigger_data->mode & MODE_RX) ? dev_stats->rx_packets : 0);
+		(test_bit(LED_BLINK_tx, &trigger_data->mode) ? dev_stats->tx_packets : 0) +
+		(test_bit(LED_BLINK_rx, &trigger_data->mode) ? dev_stats->rx_packets : 0);
 
-	if (trigger_data->mode & MODE_LINK) {
+	if (test_bit(LED_BLINK_link, &trigger_data->mode)) {
 		/* base state is ON (link present) */
 		/* if there's no link, we don't get this far and the LED is off */
 
@@ -342,7 +321,7 @@ static void netdev_trig_work(struct work_struct *work)
 	}
 
 	trigger_data->last_activity = new_activity;
-	schedule_delayed_work(&trigger_data->work, trigger_data->interval);
+	schedule_delayed_work(&trigger_data->work, atomic_read(&trigger_data->interval));
 }
 
 static void netdev_trig_activate(struct led_classdev *led_cdev)
@@ -366,8 +345,7 @@ static void netdev_trig_activate(struct led_classdev *led_cdev)
 	trigger_data->device_name[0] = 0;
 
 	trigger_data->mode = 0;
-	trigger_data->interval = msecs_to_jiffies(50);
-	trigger_data->link_up = 0;
+	atomic_set(&trigger_data->interval, msecs_to_jiffies(50));
 	trigger_data->last_activity = 0;
 
 	led_cdev->trigger_data = trigger_data;
@@ -375,18 +353,31 @@ static void netdev_trig_activate(struct led_classdev *led_cdev)
 	rc = device_create_file(led_cdev->dev, &dev_attr_device_name);
 	if (rc)
 		goto err_out;
-	rc = device_create_file(led_cdev->dev, &dev_attr_mode);
+	rc = device_create_file(led_cdev->dev, &dev_attr_link);
 	if (rc)
 		goto err_out_device_name;
+	rc = device_create_file(led_cdev->dev, &dev_attr_rx);
+	if (rc)
+		goto err_out_link;
+	rc = device_create_file(led_cdev->dev, &dev_attr_tx);
+	if (rc)
+		goto err_out_rx;
 	rc = device_create_file(led_cdev->dev, &dev_attr_interval);
 	if (rc)
-		goto err_out_mode;
-
-	register_netdevice_notifier(&trigger_data->notifier);
+		goto err_out_tx;
+	rc = register_netdevice_notifier(&trigger_data->notifier);
+	if (rc)
+		goto err_out_interval;
 	return;
 
-err_out_mode:
-	device_remove_file(led_cdev->dev, &dev_attr_mode);
+err_out_interval:
+	device_remove_file(led_cdev->dev, &dev_attr_interval);
+err_out_tx:
+	device_remove_file(led_cdev->dev, &dev_attr_tx);
+err_out_rx:
+	device_remove_file(led_cdev->dev, &dev_attr_rx);
+err_out_link:
+	device_remove_file(led_cdev->dev, &dev_attr_link);
 err_out_device_name:
 	device_remove_file(led_cdev->dev, &dev_attr_device_name);
 err_out:
@@ -402,19 +393,15 @@ static void netdev_trig_deactivate(struct led_classdev *led_cdev)
 		unregister_netdevice_notifier(&trigger_data->notifier);
 
 		device_remove_file(led_cdev->dev, &dev_attr_device_name);
-		device_remove_file(led_cdev->dev, &dev_attr_mode);
+		device_remove_file(led_cdev->dev, &dev_attr_link);
+		device_remove_file(led_cdev->dev, &dev_attr_rx);
+		device_remove_file(led_cdev->dev, &dev_attr_tx);
 		device_remove_file(led_cdev->dev, &dev_attr_interval);
 
 		cancel_delayed_work_sync(&trigger_data->work);
 
-		spin_lock_bh(&trigger_data->lock);
-
-		if (trigger_data->net_dev) {
+		if (trigger_data->net_dev)
 			dev_put(trigger_data->net_dev);
-			trigger_data->net_dev = NULL;
-		}
-
-		spin_unlock_bh(&trigger_data->lock);
 
 		kfree(trigger_data);
 	}
