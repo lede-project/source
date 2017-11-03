@@ -101,7 +101,7 @@ generate_network() {
 				set network.$1.proto='static'
 				set network.$1.ipaddr='$ipad'
 				set network.$1.netmask='$netm'
-				set network.$1.ip6assign='60'
+				set network.$1.ip6assign='64'
 			EOF
 		;;
 
