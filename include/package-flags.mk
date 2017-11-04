@@ -14,6 +14,16 @@ PKG_LD_HASH_STYLE ?= 1
 PKG_LD_O1 ?= 1
 PKG_LD_SORT_COMMON ?= 1
 
+# Graphite Options
+
+GCC_USE_GRAPHITE ?= 1
+
+ifdef CONFIG_GCC_USE_GRAPHITE
+  ifeq ($(strip $(GCC_USE_GRAPHITE)),1)
+    TARGET_CFLAGS += -fgraphite-identity -floop-interchange -floop-strip-mine -floop-block
+  endif
+endif
+
 # Hardening Options
 
 ifdef CONFIG_PKG_CHECK_FORMAT_SECURITY

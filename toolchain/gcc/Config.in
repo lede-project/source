@@ -28,7 +28,19 @@ endchoice
 
 config GCC_USE_GRAPHITE
 	bool
-	prompt "Compile in support for the new Graphite framework in GCC 4.4+" if TOOLCHAINOPTS
+	prompt "Compile in support for GCC's Graphite framework" if TOOLCHAINOPTS
+
+config GCC_GRAPHITE_FLAGS
+	bool
+	depends on GCC_USE_GRAPHITE
+	prompt "Set CFLAGS to include Graphite options" if TOOLCHAINOPTS
+	default n
+	help
+	    Adds the standard Graphite flags to CFLAGS. Not all packages
+	    will compile with these flags set. Submit a patch or choose N
+	    here if you encounter any problems.
+
+	    GCC 6+ recommended.
 
 config EXTRA_GCC_CONFIG_OPTIONS
 	string
