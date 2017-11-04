@@ -90,8 +90,8 @@ static int mtdsplit_parse_tplink(struct mtd_info *master,
 				 struct mtd_part_parser_data *data)
 {
 	struct tplink_fw_header hdr;
-	size_t hdr_len, retlen, kernel_size;
-	size_t rootfs_offset;
+	size_t hdr_len, retlen, kernel_size, rootfs_size;
+	size_t kernel_offset, rootfs_offset;
 	struct mtd_partition *parts;
 	int err;
 
@@ -105,25 +105,24 @@ static int mtdsplit_parse_tplink(struct mtd_info *master,
 
 	switch (le32_to_cpu(hdr.version)) {
 	case 1:
-		if (be32_to_cpu(hdr.v1.kernel_ofs) != sizeof(hdr))
-			return -EINVAL;
-
-		kernel_size = sizeof(hdr) + be32_to_cpu(hdr.v1.kernel_len);
+		kernel_offset = be32_to_cpu(hdr.v1.kernel_ofs);
+		kernel_size = be32_to_cpu(hdr.v1.kernel_len);
 		rootfs_offset = be32_to_cpu(hdr.v1.rootfs_ofs);
+		rootfs_size = be32_to_cpu(hdr.v1.rootfs_len);
 		break;
 	case 2:
 	case 3:
-		if (be32_to_cpu(hdr.v2.kernel_ofs) != sizeof(hdr))
-			return -EINVAL;
-
-		kernel_size = sizeof(hdr) + be32_to_cpu(hdr.v2.kernel_len);
+		kernel_offset = be32_to_cpu(hdr.v2.kernel_ofs);
+		kernel_size = be32_to_cpu(hdr.v2.kernel_len);
 		rootfs_offset = be32_to_cpu(hdr.v2.rootfs_ofs);
+		rootfs_size = be32_to_cpu(hdr.v2.rootfs_len);
 		break;
 	default:
 		return -EINVAL;
 	}
 
-	if (kernel_size > master->size)
+	/* minimal sanity check */
+	if ((kernel_size + rootfs_size) > master->size)
 		return -EINVAL;
 
 	/* Find the rootfs */
@@ -144,7 +143,7 @@ static int mtdsplit_parse_tplink(struct mtd_info *master,
 		return -ENOMEM;
 
 	parts[0].name = KERNEL_PART_NAME;
-	parts[0].offset = 0;
+	parts[0].offset = kernel_offset;
 	parts[0].size = kernel_size;
 
 	parts[1].name = ROOTFS_PART_NAME;
