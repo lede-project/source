@@ -94,6 +94,7 @@ struct file_info kernel_info;
 static uint32_t kernel_la = 0;
 static uint32_t kernel_ep = 0;
 uint32_t kernel_len = 0;
+uint32_t kernel_ofs = 0;
 struct file_info rootfs_info;
 uint32_t rootfs_ofs = 0;
 uint32_t rootfs_align;
@@ -198,6 +199,7 @@ static void usage(int status)
 "  -C <country>    set region code to <country>\n"
 "  -F <id>         use flash layout specified with <id>\n"
 "  -k <file>       read kernel image from the file <file>\n"
+"  -K <offset>     overwrite kernel offset with <offset> (hexval prefixed with 0x)\n"
 "  -r <file>       read rootfs image from the file <file>\n"
 "  -a <align>      align the rootfs start on an <align> bytes boundary\n"
 "  -R <offset>     overwrite rootfs offset with <offset> (hexval prefixed with 0x)\n"
@@ -273,6 +275,10 @@ static int check_options(void)
 			kernel_la = layout->kernel_la;
 		if (!kernel_ep)
 			kernel_ep = layout->kernel_ep;
+		if (!kernel_ofs)
+			kernel_ofs = sizeof(struct fw_header);	/* kernel after image header */
+		else
+			ERR("warning custom kernel offset may not be supported by target");
 		if (!rootfs_ofs)
 			rootfs_ofs = layout->rootfs_ofs;
 
@@ -306,9 +312,8 @@ static int check_options(void)
 			return ret;
 
 		if (rootfs_align) {
-			kernel_len += sizeof(struct fw_header);
-			rootfs_ofs = ALIGN(kernel_len, rootfs_align);
-			kernel_len -= sizeof(struct fw_header);
+			/* align rootfs offset after kernel data */
+			rootfs_ofs = ALIGN(kernel_ofs + kernel_len, rootfs_align);
 
 			DBG("rootfs offset aligned to 0x%u", rootfs_ofs);
 
@@ -369,7 +374,7 @@ void fill_header(char *buf, int len)
 
 	hdr->kernel_la = htonl(kernel_la);
 	hdr->kernel_ep = htonl(kernel_ep);
-	hdr->kernel_ofs = htonl(sizeof(struct fw_header));
+	hdr->kernel_ofs = htonl(kernel_ofs);
 	hdr->kernel_len = htonl(kernel_len);
 
 	if (!combined) {
@@ -538,7 +543,7 @@ int main(int argc, char *argv[])
 	while ( 1 ) {
 		int c;
 
-		c = getopt(argc, argv, "a:H:E:F:L:m:V:N:W:C:ci:k:r:R:o:xX:ehsjv:");
+		c = getopt(argc, argv, "a:H:E:F:L:m:V:N:W:C:ci:k:K:r:R:o:xX:ehsjv:");
 		if (c == -1)
 			break;
 
@@ -581,6 +586,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'k':
 			kernel_info.file_name = optarg;
+			break;
+		case 'K':
+			sscanf(optarg, "0x%x", &kernel_ofs);
 			break;
 		case 'r':
 			rootfs_info.file_name = optarg;

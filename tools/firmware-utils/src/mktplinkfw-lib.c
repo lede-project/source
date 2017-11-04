@@ -33,6 +33,7 @@
 extern char *ofname;
 extern char *progname;
 extern uint32_t kernel_len;
+extern uint32_t kernel_ofs;
 extern struct file_info kernel_info;
 extern struct file_info rootfs_info;
 extern struct flash_layout *layout;
@@ -207,7 +208,6 @@ inline void inspect_fw_pmd5sum(const char *label, const uint8_t *val, const char
 	printf(" %s\n", text);
 }
 
-// header_size = sizeof(struct fw_header)
 int build_fw(size_t header_size)
 {
 	int buflen;
@@ -216,7 +216,7 @@ int build_fw(size_t header_size)
 	int ret = EXIT_FAILURE;
 	int writelen = 0;
 
-	writelen = header_size + kernel_len;
+	writelen = kernel_ofs + kernel_len;
 
 	if (combined)
 		buflen = writelen;
@@ -230,7 +230,7 @@ int build_fw(size_t header_size)
 	}
 
 	memset(buf, 0xff, buflen);
-	p = buf + header_size;
+	p = buf + kernel_ofs;
 	ret = read_to_buf(&kernel_info, p);
 	if (ret)
 		goto out_free_buf;
