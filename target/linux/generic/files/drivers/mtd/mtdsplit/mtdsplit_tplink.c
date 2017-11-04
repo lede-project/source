@@ -28,7 +28,7 @@ struct fw_v1 {
 	char		fw_version[36];
 	uint32_t	hw_id;		/* hardware id */
 	uint32_t	hw_rev;		/* hardware revision */
-	uint32_t	unk1;
+	uint32_t	region_code;	/* region code */
 	uint8_t		md5sum1[MD5SUM_LEN];
 	uint32_t	unk2;
 	uint8_t		md5sum2[MD5SUM_LEN];
@@ -42,14 +42,17 @@ struct fw_v1 {
 	uint32_t	rootfs_len;	/* rootfs data length */
 	uint32_t	boot_ofs;	/* bootloader data offset */
 	uint32_t	boot_len;	/* bootloader data length */
-	uint8_t		pad[360];
+	uint16_t	ver_hi;
+	uint16_t	ver_mid;
+	uint16_t	ver_lo;
+	uint8_t		pad[354];
 } __attribute__ ((packed));
 
 struct fw_v2 {
 	char		fw_version[48]; /* 0x04: fw version string */
 	uint32_t	hw_id;		/* 0x34: hardware id */
 	uint32_t	hw_rev;		/* 0x38: FIXME: hardware revision? */
-	uint32_t	unk1;	        /* 0x3c: 0x00000000 */
+	uint32_t	hw_rev_add;     /* 0x3c: additional hardware version */
 	uint8_t		md5sum1[MD5SUM_LEN]; /* 0x40 */
 	uint32_t	unk2;		/* 0x50: 0x00000000 */
 	uint8_t		md5sum2[MD5SUM_LEN]; /* 0x54 */
