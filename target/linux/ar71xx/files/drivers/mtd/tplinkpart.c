@@ -18,8 +18,8 @@
 #include <linux/version.h>
 
 #define TPLINK_NUM_PARTS	5
-#define TPLINK_HEADER_V1	0x01000000
-#define TPLINK_HEADER_V2	0x02000000
+#define TPLINK_HEADER_V1	1
+#define TPLINK_HEADER_V2	2
 #define MD5SUM_LEN		16
 
 #define TPLINK_ART_LEN		0x10000
@@ -72,7 +72,7 @@ tplink_read_header(struct mtd_info *mtd, size_t offset)
 		goto err_free_header;
 
 	/* sanity checks */
-	t = be32_to_cpu(header->version);
+	t = le32_to_cpu(header->version);
 	if ((t != TPLINK_HEADER_V1) && (t != TPLINK_HEADER_V2))
 		goto err_free_header;
 
