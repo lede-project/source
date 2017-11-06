@@ -40,7 +40,7 @@ TARGET_DEVICES += cy-swr1100
 
 define Device/dir-645
   DTS := DIR-645
-  BLOCKSIZE := 4k
+  BLOCKSIZE := 64k
   KERNEL := $(KERNEL_DTB)
   IMAGES += factory.bin
   IMAGE/sysupgrade.bin := \
