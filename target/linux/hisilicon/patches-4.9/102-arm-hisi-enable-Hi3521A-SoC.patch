@@ -1,0 +1,34 @@
+From 5c604ec615bf94b5c8ce4d42b6a7aa2b1bf784a6 Mon Sep 17 00:00:00 2001
+From: "Marty E. Plummer" <hanetzer@startmail.com>
+Date: Thu, 14 Sep 2017 20:35:37 -0500
+Subject: [PATCH 2/4] arm: hisi: enable Hi3521A SoC
+
+Enable Hisilicon Hi3521A/Hi3520DCV300 SoC. This SoC series includes
+hardware mutlimedia codec cores, commonly used in consumer cctv/dvr
+security systems and ipcameras. The arm core is a Cortex A7.
+
+Signed-off-by: Marty E. Plummer <hanetzer@startmail.com>
+---
+ arch/arm/mach-hisi/Kconfig | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/arch/arm/mach-hisi/Kconfig b/arch/arm/mach-hisi/Kconfig
+index 65a048fa08ec..26755414f862 100644
+--- a/arch/arm/mach-hisi/Kconfig
++++ b/arch/arm/mach-hisi/Kconfig
+@@ -12,6 +12,12 @@ if ARCH_HISI
+ 
+ menu "Hisilicon platform type"
+ 
++config ARCH_HI3521A
++	bool "Hisilicon Hi3521A/Hi3520DCV300 family"
++	depends on ARCH_MULTI_V7
++	help
++	  Support for Hisilicon Hi3521A/Hi3520DCV300 SoC family
++
+ config ARCH_HI3xxx
+ 	bool "Hisilicon Hi36xx family"
+ 	depends on ARCH_MULTI_V7
+-- 
+2.14.3
+
