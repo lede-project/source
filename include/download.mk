@@ -162,7 +162,7 @@ define DownloadMethod/git
 		cd $(TMP_DIR)/dl && \
 		rm -rf $(SUBDIR) && \
 		[ \! -d $(SUBDIR) ] && \
-		git clone $(OPTS) $(URL) $(SUBDIR) && \
+		git clone $(GIT_OPTS) $(URL) $(SUBDIR) && \
 		(cd $(SUBDIR) && git checkout $(VERSION) && \
 		git submodule update --init --recursive) && \
 		echo "Packing checkout..." && \
@@ -243,7 +243,7 @@ define Download/Defaults
   MIRROR_HASH=$$(MIRROR_MD5SUM)
   MIRROR_MD5SUM:=x
   VERSION:=
-  OPTS:=
+  GIT_OPTS:=
 endef
 
 define Download/default
@@ -257,6 +257,7 @@ define Download/default
   VERSION:=$(PKG_SOURCE_VERSION)
   $(if $(PKG_MD5SUM),MD5SUM:=$(PKG_MD5SUM))
   $(if $(PKG_HASH),HASH:=$(PKG_HASH))
+  $(if $(PKG_GIT_OPTS),GIT_OPTS:=$(PKG_GIT_OPTS))
 endef
 
 define Download
