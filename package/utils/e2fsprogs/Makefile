@@ -33,7 +33,7 @@ $(call Package/e2fsprogs/Default)
   SECTION:=utils
   CATEGORY:=Utilities
   TITLE:=Ext2/3/4 filesystem utilities
-  DEPENDS:=+libuuid +libext2fs
+  DEPENDS:=+libuuid +libblkid +libext2fs
 endef
 
 define Package/e2fsprogs/description
@@ -45,12 +45,24 @@ define Package/libext2fs
 $(call Package/e2fsprogs/Default)
   SECTION:=libs
   CATEGORY:=Libraries
-  DEPENDS:=+libuuid +libblkid
+  DEPENDS:=+libcom_err
   TITLE:=ext2/3/4 filesystem library
 endef
 
 define Package/libext2fs/description
  libext2fs is a library which can access ext2, ext3 and ext4 filesystems.
+endef
+
+define Package/libcom_err
+$(call Package/e2fsprogs/Default)
+  SECTION:=libs
+  CATEGORY:=Libraries
+  SUBMENU:=
+  TITLE:=Common error description library
+endef
+
+define Package/libcom_err/description
+ This is the common error description library, a part of e2fsprogs.
 endef
 
 define Package/tune2fs
@@ -138,7 +150,6 @@ define Build/Compile
 		LDFLAGS=-Wl,--gc-sections \
 		BUILDCC="$(HOSTCC)" \
 		DESTDIR="$(PKG_INSTALL_DIR)" \
-		ELF_OTHER_LIBS="$(TARGET_LDFLAGS) -luuid" \
 		SYSLIBS="$(TARGET_LDFLAGS) -ldl -L$(PKG_BUILD_DIR)/lib/ -l:libcom_err.so.0.0" \
 		V=$(if $(findstring c,$(OPENWRT_VERBOSE)),1,) \
 		all
@@ -182,13 +193,16 @@ define Package/e2fsprogs/install
 endef
 
 define Package/libcom_err/install
+	$(INSTALL_DIR) $(1)/usr/lib
+	$(CP) \
+		$(PKG_INSTALL_DIR)/usr/lib/libcom_err.so.* \
+		$(1)/usr/lib/
 endef
 
 define Package/libext2fs/install
 	$(INSTALL_DIR) $(1)/usr/lib
 	$(CP) \
 		$(PKG_INSTALL_DIR)/usr/lib/libext2fs.so.* \
-		$(PKG_INSTALL_DIR)/usr/lib/libcom_err.so.* \
 		$(1)/usr/lib/
 endef
 
@@ -247,6 +261,7 @@ endef
 
 $(eval $(call BuildPackage,e2fsprogs))
 $(eval $(call BuildPackage,libext2fs))
+$(eval $(call BuildPackage,libcom_err))
 $(eval $(call BuildPackage,tune2fs))
 $(eval $(call BuildPackage,resize2fs))
 $(eval $(call BuildPackage,badblocks))
