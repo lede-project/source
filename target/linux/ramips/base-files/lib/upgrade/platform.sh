@@ -27,6 +27,7 @@ platform_check_image() {
 	awapn2403|\
 	awm002-evb-4M|\
 	awm002-evb-8M|\
+	barionet-1000-v1-1-a9|\
 	bc2|\
 	broadway|\
 	c108|\

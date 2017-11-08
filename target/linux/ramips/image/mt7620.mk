@@ -468,6 +468,14 @@ define Device/wrtnode
 endef
 TARGET_DEVICES += wrtnode
 
+define Device/barionet-1000-v1-1-a9
+  DTS := BARIONET-1000-V1-1-A9
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := Barix Barionet 1000 V1.1.A9
+endef
+TARGET_DEVICES += barionet-1000-v1-1-a9
+
+
 define Device/wt3020-4M
   DTS := WT3020-4M
   BLOCKSIZE := 4k

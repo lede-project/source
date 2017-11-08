@@ -649,6 +649,9 @@ ramips_board_detect() {
 	*"WRTnode2P")
 		name="wrtnode2p"
 		;;
+	*"Barix Barionet 1000 v1.1.A9")
+		name="barionet-1000-v1-1-a9"
+		;;
 	*"WSR-1166DHP")
 		name="wsr-1166"
 		;;
