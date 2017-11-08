@@ -117,6 +117,7 @@ ifneq ($(USER_FILES),)
 	$(MAKE) copy_files
 endif
 	$(MAKE) -s package_postinst
+	$(MAKE) -s customize_image
 	$(MAKE) -s build_image
 	$(MAKE) -s checksum
 
@@ -171,6 +172,11 @@ package_postinst: FORCE
 	rm -f $(TARGET_DIR)/usr/lib/opkg/info/*.postinst
 	$(if $(CONFIG_CLEAN_IPKG),rm -rf $(TARGET_DIR)/usr/lib/opkg)
 
+customize_image: FORCE
+	$(if $(CUSTOMIZE_IMAGE_SCRIPT),if [ -f $(CUSTOMIZE_IMAGE_SCRIPT) ]; then \
+		TARGET_DIR=$(TARGET_DIR) $(CUSTOMIZE_IMAGE_SCRIPT); \
+	fi)
+	
 build_image: FORCE
 	@echo
 	@echo Building images...
