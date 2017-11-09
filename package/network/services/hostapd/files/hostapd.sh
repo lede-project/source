@@ -67,6 +67,7 @@ hostapd_common_add_device_config() {
 	config_add_boolean legacy_rates
 
 	config_add_string acs_chan_bias
+	config_add_array hostapd_options
 
 	hostapd_add_log_config
 }
@@ -127,6 +128,11 @@ hostapd_prepare_device_config() {
 	[ -n "$brlist" ] && append base_cfg "basic_rates=$brlist" "$N"
 	append base_cfg "beacon_int=$beacon_int" "$N"
 
+	json_get_values opts hostapd_options
+	for val in $opts; do
+		append base_cfg "$val" "$N"
+	done
+
 	cat > "$config" <<EOF
 driver=$driver
 $base_cfg
@@ -143,6 +149,7 @@ hostapd_common_add_bss_config() {
 	config_add_int \
 		wep_rekey eap_reauth_period \
 		wpa_group_rekey wpa_pair_rekey wpa_master_rekey
+	config_add_boolean wpa_disable_eapol_key_retries
 
 	config_add_boolean rsn_preauth auth_cache
 	config_add_int ieee80211w
@@ -208,6 +215,7 @@ hostapd_set_bss_options() {
 
 	json_get_vars \
 		wep_rekey wpa_group_rekey wpa_pair_rekey wpa_master_rekey \
+		wpa_disable_eapol_key_retries \
 		maxassoc max_inactivity disassoc_low_ack isolate auth_cache \
 		wps_pushbutton wps_label ext_registrar wps_pbc_in_m1 wps_ap_setup_locked \
 		wps_independent wps_device_type wps_device_name wps_manufacturer wps_pin \
@@ -223,6 +231,7 @@ hostapd_set_bss_options() {
 	set_default hidden 0
 	set_default wmm 1
 	set_default uapsd 1
+	set_default wpa_disable_eapol_key_retries 0
 	set_default eapol_version 0
 	set_default acct_port 1813
 
@@ -388,7 +397,6 @@ hostapd_set_bss_options() {
 
 			set_default mobility_domain "4f57"
 			set_default r0_key_lifetime 10000
-			set_default r1_key_holder "00004f577274"
 			set_default reassociation_deadline 1000
 			set_default pmk_r1_push 0
 			set_default ft_psk_generate_local 0
@@ -396,7 +404,7 @@ hostapd_set_bss_options() {
 
 			append bss_conf "mobility_domain=$mobility_domain" "$N"
 			append bss_conf "r0_key_lifetime=$r0_key_lifetime" "$N"
-			append bss_conf "r1_key_holder=$r1_key_holder" "$N"
+			[ -n "$r1_key_holder" ] && append bss_conf "r1_key_holder=$r1_key_holder" "$N"
 			append bss_conf "reassociation_deadline=$reassociation_deadline" "$N"
 			append bss_conf "pmk_r1_push=$pmk_r1_push" "$N"
 			append bss_conf "ft_psk_generate_local=$ft_psk_generate_local" "$N"
@@ -409,6 +417,8 @@ hostapd_set_bss_options() {
 				append bss_conf "r1kh=${kh//,/ }" "$N"
 			done
 		fi
+
+		append bss_conf "wpa_disable_eapol_key_retries=$wpa_disable_eapol_key_retries" "$N"
 
 		hostapd_append_wpa_key_mgmt
 		[ -n "$wpa_key_mgmt" ] && append bss_conf "wpa_key_mgmt=$wpa_key_mgmt" "$N"
@@ -762,7 +772,7 @@ wpa_supplicant_run() {
 
 	_wpa_supplicant_common "$ifname"
 
-	/usr/sbin/wpa_supplicant -B -s \
+	/usr/sbin/wpa_supplicant -B \
 		${network_bridge:+-b $network_bridge} \
 		-P "/var/run/wpa_supplicant-${ifname}.pid" \
 		-D ${_w_driver:-wext} \

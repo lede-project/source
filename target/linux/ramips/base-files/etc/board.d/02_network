@@ -124,7 +124,7 @@ ramips_setup_interfaces()
 		;;
 	mir3g)
 		ucidef_add_switch "switch0" \
-			"1:wan" "2:lan:2" "3:lan:1" "6@eth0"
+			"2:lan:2" "3:lan:1" "1:wan" "6t@eth0"
 		;;
 	psg1218b)
 		ucidef_add_switch "switch0" \
@@ -171,6 +171,7 @@ ramips_setup_interfaces()
 	rb750gr3|\
 	rt-n14u|\
 	tl-wr840n-v4|\
+	tl-wr840n-v5|\
 	tl-wr841n-v13|\
 	ubnt-erx|\
 	ubnt-erx-sfp|\
@@ -237,6 +238,7 @@ ramips_setup_interfaces()
 	mzk-ex750np|\
 	na930|\
 	pbr-d1|\
+	u25awf-h1|\
 	wli-tx4-ag300n|\
 	wmdr-143n|\
 	wmr-300|\
@@ -429,7 +431,7 @@ ramips_setup_macs()
 		wan_mac=$(macaddr_add "$lan_mac" 1)
 		;;
 	mir3g)
-		lan_mac=$(mtd_get_mac_binary Factory e006)
+		lan_mac=$(mtd_get_mac_binary Factory 0xe006)
 		;;
 	miwifi-mini)
 		wan_mac=$(cat /sys/class/net/eth0/address)

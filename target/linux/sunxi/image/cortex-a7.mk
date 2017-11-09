@@ -28,6 +28,16 @@ endef
 TARGET_DEVICES += sun7i-a20-olinuxino-lime2
 
 
+define Device/sun7i-a20-olinuxino-lime2-emmc
+  DEVICE_TITLE:=Olimex A20-OLinuXino-LIME2-eMMC
+  DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-rtc-sunxi kmod-usb-hid
+  SUPPORTED_DEVICES:=olimex,a20-olinuxino-lime2-emmc
+  SUNXI_DTS:=sun7i-a20-olinuxino-lime2-emmc
+endef
+
+TARGET_DEVICES += sun7i-a20-olinuxino-lime2-emmc
+
+
 define Device/sun7i-a20-olinuxino-micro
   DEVICE_TITLE:=Olimex A20-Olinuxino Micro
   DEVICE_PACKAGES:=kmod-ata-core kmod-ata-sunxi kmod-sun4i-emac kmod-rtc-sunxi
@@ -98,6 +108,25 @@ endef
 TARGET_DEVICES += sun6i-a31-m9
 
 
+define Device/sun8i-h2-plus-orangepi-r1
+  DEVICE_TITLE:=Xunlong Orange Pi R1
+  DEVICE_PACKAGES:=kmod-rtc-sunxi kmod-usb-net kmod-usb-net-rtl8152
+  SUPPORTED_DEVICES:=xunlong,orangepi-r1
+  SUNXI_DTS:=sun8i-h2-plus-orangepi-r1
+endef
+
+TARGET_DEVICES += sun8i-h2-plus-orangepi-r1
+
+
+define Device/sun8i-h3-nanopi-neo
+  DEVICE_TITLE:=FriendlyARM NanoPi NEO
+  SUPPORTED_DEVICES:=friendlyarm,nanopi-neo
+  SUNXI_DTS:=sun8i-h3-nanopi-neo
+endef
+
+TARGET_DEVICES += sun8i-h3-nanopi-neo
+
+
 define Device/sun8i-h3-orangepi-plus
   DEVICE_TITLE:=Xunlong Orange Pi Plus
   DEVICE_PACKAGES:=kmod-rtc-sunxi
@@ -106,6 +135,15 @@ define Device/sun8i-h3-orangepi-plus
 endef
 
 TARGET_DEVICES += sun8i-h3-orangepi-plus
+
+define Device/sun8i-h3-orangepi-2
+  DEVICE_TITLE:=Xunlong Orange Pi 2
+  DEVICE_PACKAGES:=kmod-rtc-sunxi
+  SUPPORTED_DEVICES:=xunlong,orangepi-2
+  SUNXI_DTS:=sun8i-h3-orangepi-2
+endef
+
+TARGET_DEVICES += sun8i-h3-orangepi-2
 
 
 define Device/sun7i-a20-pcduino3

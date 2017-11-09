@@ -20,15 +20,12 @@ led_usb2="$(lantiq_get_dt_led usb2)"
 
 led_dsl="$(lantiq_get_dt_led dsl)"
 [ -n "$led_dsl" ] && {
-	interface="nas0"
-	lantiq_is_vdsl_system && interface="ptm0"
-
 	led_internet="$(lantiq_get_dt_led internet)"
 	if [ -n "$led_internet" ]; then
 		ucidef_set_led_default "dsl" "dsl" "$led_dsl" "0"
 		ucidef_set_led_netdev "internet" "internet" "$led_internet" "pppoe-wan"
 	else
-		ucidef_set_led_netdev "dsl" "dsl" "$led_dsl" "$interface"
+		ucidef_set_led_netdev "dsl" "dsl" "$led_dsl" "dsl0"
 	fi
 }
 
@@ -46,6 +43,9 @@ ARV7506PW11)
 	;;
 ARV7519RW22)
 	ucidef_set_led_netdev "lan" "lan" "arv7519rw22:green:lan" "eth0.1"
+	;;
+ARV752DPW22)
+	ucidef_set_led_wlan "wifi" "wifi" "arv752dpw22:red:wifi" "phy0radio"
 	;;
 BTHOMEHUBV5A)
 	ucidef_set_led_default "dimmed" "dimmed" "dimmed" "0"
