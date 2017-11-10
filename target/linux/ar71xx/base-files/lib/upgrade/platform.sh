@@ -278,6 +278,7 @@ platform_check_image() {
 	tew-732br|\
 	tew-823dru|\
 	tl-wr942n-v1|\
+	tl-wr1043n-v5|\
 	unifi|\
 	unifi-outdoor|\
 	unifiac-lite|\
@@ -310,6 +311,8 @@ platform_check_image() {
 		;;
 	alfa-ap96|\
 	alfa-nx|\
+	tl-wr1043n-v5|\
+	ap121-mini|\
 	ap121|\
 	ap121-mini|\
 	ap135-020|\
