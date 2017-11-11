@@ -1,0 +1,32 @@
+From edf891ef9ab773363f8e58022a26d7d31604aed6 Mon Sep 17 00:00:00 2001
+From: Brian Norris <computersforpeace@gmail.com>
+Date: Fri, 29 Jan 2016 11:25:30 -0800
+Subject: [PATCH] mtd: spi-nor: wait for SR_WIP to clear on initial unlock
+
+Fixup a piece leftover by commit 32321e950d8a ("mtd: spi-nor: wait until
+lock/unlock operations are ready"). That commit made us wait for the WIP
+bit to settle after lock/unlock operations, but it missed the open-coded
+"unlock" that happens at probe() time.
+
+We should probably have this code utilize the unlock() routines in the
+future, to avoid duplication, but unfortunately, flash which need to be
+unlocked don't all have a proper ->flash_unlock() callback.
+
+Signed-off-by: Brian Norris <computersforpeace@gmail.com>
+Cc: Stas Sergeev <stsp@users.sourceforge.net>
+Reviewed-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Tested-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+---
+ drivers/mtd/spi-nor/spi-nor.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/drivers/mtd/spi-nor/spi-nor.c
++++ b/drivers/mtd/spi-nor/spi-nor.c
+@@ -1176,6 +1176,7 @@ int spi_nor_scan(struct spi_nor *nor, co
+ 	    info->flags & SPI_NOR_HAS_LOCK) {
+ 		write_enable(nor);
+ 		write_sr(nor, 0);
++		spi_nor_wait_till_ready(nor);
+ 	}
+ 
+ 	if (!mtd->name)
