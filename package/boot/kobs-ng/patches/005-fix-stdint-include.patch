@@ -1,0 +1,22 @@
+From 42e712f8a59864f2be39b52e3a2d75d4155f3d90 Mon Sep 17 00:00:00 2001
+From: Simon Wunderlich <sw@simonwunderlich.de>
+Date: Thu, 9 Nov 2017 18:00:28 +0100
+Subject: [PATCH] fix stdint include
+
+Signed-off-by: Simon Wunderlich <sw@simonwunderlich.de>
+
+diff --git a/src/mtd.h b/src/mtd.h
+index 57852da..cddcbf8 100644
+--- a/src/mtd.h
++++ b/src/mtd.h
+@@ -28,6 +28,7 @@
+ #define _GNU_SOURCE
+ #include <mtd/mtd-user.h>
+ #include <endian.h>
++#include <stdint.h>
+ #include <fcntl.h>
+ 
+ #include "BootControlBlocks.h"
+-- 
+2.11.0
+
