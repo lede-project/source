@@ -1,0 +1,9 @@
+--- a/configs/orangepi_pc_defconfig
++++ b/configs/orangepi_pc_defconfig
+@@ -16,4 +16,5 @@
+ # CONFIG_SPL_EFI_PARTITION is not set
+ CONFIG_SUN8I_EMAC=y
+ CONFIG_SY8106A_POWER=y
+-CONFIG_USB_EHCI_HCD=y
++#CONFIG_USB_EHCI_HCD is not set
++CONFIG_SYS_CLK_FREQ=1008000000

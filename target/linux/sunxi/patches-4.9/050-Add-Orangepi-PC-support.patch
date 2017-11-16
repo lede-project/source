@@ -1,0 +1,1222 @@
+--- a/arch/arm/boot/dts/sun8i-h3.dtsi
++++ b/arch/arm/boot/dts/sun8i-h3.dtsi
+@@ -54,28 +54,35 @@
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 
+-		cpu@0 {
++		cpu0: cpu@0 {
+ 			compatible = "arm,cortex-a7";
+ 			device_type = "cpu";
+ 			reg = <0>;
++			clocks = <&ccu CLK_CPUX>;
++			clock-names = "cpu";
++			clock-latency = <244144>; /* 8 32k periods */
++			clock-frequency = <1200000000>;
+ 		};
+ 
+ 		cpu@1 {
+ 			compatible = "arm,cortex-a7";
+ 			device_type = "cpu";
+ 			reg = <1>;
++			clock-frequency = <1200000000>;
+ 		};
+ 
+ 		cpu@2 {
+ 			compatible = "arm,cortex-a7";
+ 			device_type = "cpu";
+ 			reg = <2>;
++			clock-frequency = <1200000000>;
+ 		};
+ 
+ 		cpu@3 {
+ 			compatible = "arm,cortex-a7";
+ 			device_type = "cpu";
+ 			reg = <3>;
++			clock-frequency = <1200000000>;
+ 		};
+ 	};
+ 
+@@ -121,8 +128,8 @@
+ 			reg = <0x01f01428 0x4>;
+ 			#clock-cells = <1>;
+ 			clocks = <&apb0>;
+-			clock-indices = <0>, <1>;
+-			clock-output-names = "apb0_pio", "apb0_ir";
++			clock-indices = <0>, <1>, <6>;
++			clock-output-names = "apb0_pio", "apb0_ir", "apb0_i2c";
+ 		};
+ 
+ 		ir_clk: ir_clk@01f01454 {
+@@ -132,6 +139,11 @@
+ 			clocks = <&osc32k>, <&osc24M>;
+ 			clock-output-names = "ir";
+ 		};
++	};
++
++	iio-hwmon {
++		compatible = "iio-hwmon";
++		io-channels = <&ths>;
+ 	};
+ 
+ 	soc {
+@@ -211,6 +223,17 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 		};
++
++		sid: eeprom@1c14000 {
++			compatible = "allwinner,sun8i-h3-sid";
++			reg = <0x01c14000 0x400>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			ths_cal: ths-calibration@234 {
++				reg = <0x234 0x4>;
++			};
++ 		};
+ 
+ 		usbphy: phy@01c19400 {
+ 			compatible = "allwinner,sun8i-h3-usb-phy";
+@@ -244,6 +267,42 @@
+ 			#phy-cells = <1>;
+ 		};
+ 
++		usb_otg: usb@1c19000 {
++			compatible = "allwinner,sun8i-a33-musb";
++			reg = <0x01c19000 0x0400>;
++			clocks = <&ccu CLK_BUS_OTG>;
++			resets = <&ccu RST_BUS_OTG>;
++			interrupts = <GIC_SPI 71 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "mc";
++			phys = <&usbphy 0>;
++			phy-names = "usb";
++			extcon = <&usbphy 0>;
++			status = "disabled";
++		};
++
++		ehci0: usb@1c1a000 {
++			compatible = "allwinner,sun8i-h3-ehci", "generic-ehci";
++			reg = <0x01c1a000 0x100>;
++			interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&ccu CLK_BUS_EHCI0>, <&ccu CLK_BUS_OHCI0>;
++			resets = <&ccu RST_BUS_EHCI0>, <&ccu RST_BUS_OHCI0>;
++			phys = <&usbphy 0>;
++			phy-names = "usb";
++			status = "disabled";
++		};
++
++		ohci0: usb@1c1a400 {
++			compatible = "allwinner,sun8i-h3-ohci", "generic-ohci";
++			reg = <0x01c1a400 0x100>;
++			interrupts = <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&ccu CLK_BUS_EHCI0>, <&ccu CLK_BUS_OHCI0>,
++				 <&ccu CLK_USB_OHCI0>;
++			resets = <&ccu RST_BUS_OHCI0>, <&ccu RST_BUS_EHCI0>;
++			phys = <&usbphy 0>;
++			phy-names = "usb";
++			status = "disabled";
++		};
++
+ 		ehci1: usb@01c1b000 {
+ 			compatible = "allwinner,sun8i-h3-ehci", "generic-ehci";
+ 			reg = <0x01c1b000 0x100>;
+@@ -362,6 +421,23 @@
+ 				allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
+ 			};
+ 
++			spi0_pins_a: spi0 {
++				pins = "PC0", "PC1", "PC2", "PC3";
++				function = "spi0";
++			};
++
++			spi1_pins_a: spi1 {
++				pins = "PA15", "PA16", "PA14", "PA13";
++				function = "spi1";
++			};
++
++			w1_pin: w1_pin {
++				allwinner,pins = "PA9";
++				allwinner,function = "gpio_in";
++				allwinner,drive = <SUN4I_PINCTRL_10_MA>;
++				allwinner,pull = <SUN4I_PINCTRL_PULL_UP>;
++			};
++
+ 			mmc0_pins_a: mmc0@0 {
+ 				allwinner,pins = "PF0", "PF1", "PF2", "PF3",
+ 						 "PF4", "PF5";
+@@ -479,6 +555,19 @@
+ 			status = "disabled";
+ 		};
+ 
++		ths: ths@1c25000 {
++			compatible = "allwinner,sun8i-h3-ths";
++			reg = <0x01c25000 0x100>;
++			clocks = <&ccu CLK_BUS_THS>, <&ccu CLK_THS>;
++			clock-names = "ahb", "ths";
++			resets = <&ccu RST_BUS_THS>;
++			interrupts = <GIC_SPI 31 IRQ_TYPE_LEVEL_HIGH>;
++			#thermal-sensor-cells = <0>;
++			#io-channel-cells = <0>;
++			nvmem-cells = <&ths_cal>;
++			nvmem-cell-names = "calibration-data"; 
++		};
++
+ 		uart0: serial@01c28000 {
+ 			compatible = "snps,dw-apb-uart";
+ 			reg = <0x01c28000 0x400>;
+@@ -559,7 +648,7 @@
+ 
+ 		i2c2: i2c@01c2b400 {
+ 			compatible = "allwinner,sun6i-a31-i2c";
+-			reg = <0x01c2b000 0x400>;
++			reg = <0x01c2b400 0x400>;
+ 			interrupts = <GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&ccu CLK_BUS_I2C2>;
+ 			resets = <&ccu RST_BUS_I2C2>;
+@@ -570,10 +659,56 @@
+ 			#size-cells = <0>;
+ 		};
+ 
++		r_i2c: i2c@1f02400 {
++			compatible = "allwinner,sun6i-a31-i2c";
++			reg = <0x01f02400 0x400>;
++			interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&r_i2c_pins_a>;
++			clocks = <&apb0_gates 6>;
++			clock-frequency = <100000>;
++			resets = <&apb0_reset 6>;
++			status = "disabled";
++			#address-cells = <1>;
++			#size-cells = <0>;
++		};
++
++		spi0: spi@1c68000 {
++			compatible = "allwinner,sun8i-h3-spi";
++			reg = <0x01c68000 0x1000>;
++			interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&ccu CLK_BUS_SPI0>, <&ccu CLK_SPI0>;
++			clock-names = "ahb", "mod";
++			dmas = <&dma 23>, <&dma 23>;
++			dma-names = "rx", "tx";
++			pinctrl-names = "default";
++			pinctrl-0 = <&spi0_pins_a>;
++			resets = <&ccu RST_BUS_SPI0>;
++			status = "disabled";
++			#address-cells = <1>;
++			#size-cells = <0>;
++		};
++
++		spi1: spi@1c69000 {
++			compatible = "allwinner,sun8i-h3-spi";
++			reg = <0x01c69000 0x1000>;
++			interrupts = <GIC_SPI 66 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&ccu CLK_BUS_SPI1>, <&ccu CLK_SPI1>;
++			clock-names = "ahb", "mod";
++			dmas = <&dma 24>, <&dma 24>;
++			dma-names = "rx", "tx";
++			pinctrl-names = "default";
++			pinctrl-0 = <&spi1_pins_a>;
++			resets = <&ccu RST_BUS_SPI1>;
++			status = "disabled";
++			#address-cells = <1>;
++			#size-cells = <0>;
++		};
++
+ 		gic: interrupt-controller@01c81000 {
+ 			compatible = "arm,cortex-a7-gic", "arm,cortex-a15-gic";
+ 			reg = <0x01c81000 0x1000>,
+-			      <0x01c82000 0x1000>,
++			      <0x01c82000 0x2000>,
+ 			      <0x01c84000 0x2000>,
+ 			      <0x01c86000 0x2000>;
+ 			interrupt-controller;
+@@ -621,6 +756,21 @@
+ 				allwinner,drive = <SUN4I_PINCTRL_10_MA>;
+ 				allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
+ 			};
++
++			r_i2c_pins_a: r_i2c@0 {
++				allwinner,pins = "PL0", "PL1";
++				allwinner,function = "s_twi";
++				allwinner,drive = <SUN4I_PINCTRL_10_MA>;
++				allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
++			};
++		};
++	};
++
++	thermal-zones {
++		cpu_thermal: cpu_thermal {
++			polling-delay-passive = <250>;
++			polling-delay = <1000>;
++			thermal-sensors = <&ths>;
+ 		};
+ 	};
+ };
+--- a/arch/arm/boot/dts/sun8i-h3-orangepi-pc.dts
++++ b/arch/arm/boot/dts/sun8i-h3-orangepi-pc.dts
+@@ -42,11 +42,10 @@
+ 
+ /dts-v1/;
+ #include "sun8i-h3.dtsi"
+-#include "sunxi-common-regulators.dtsi"
+ 
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
+-#include <dt-bindings/pinctrl/sun4i-a10.h>
++#include <dt-bindings/thermal/thermal.h>
+ 
+ / {
+ 	model = "Xunlong Orange Pi PC";
+@@ -54,6 +53,8 @@
+ 
+ 	aliases {
+ 		serial0 = &uart0;
++		ethernet0 = &emac;
++		spi0 = &spi0;
+ 	};
+ 
+ 	chosen {
+@@ -84,10 +85,120 @@
+ 
+ 		sw4 {
+ 			label = "sw4";
+-			linux,code = <BTN_0>;
++			linux,code = <KEY_POWER>;
+ 			gpios = <&r_pio 0 3 GPIO_ACTIVE_LOW>;
+ 		};
+ 	};
++
++	onewire {
++		compatible = "w1-gpio";
++		gpios = <&pio 0 9 GPIO_ACTIVE_HIGH>; /* PA9 */
++		pinctrl-names = "default";
++		pinctrl-0 = <&w1_pin>;
++	};
++
++	reg_vcc3v3: vcc3v3 {
++		compatible = "regulator-fixed";
++		regulator-name = "vcc3v3";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++	};
++
++	reg_usb0_vbus: usb0-vbus {
++		compatible = "regulator-fixed";
++		regulator-name = "usb0-vbus";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		gpio = <&r_pio 0 2 GPIO_ACTIVE_HIGH>; /* PL2 */
++		status = "okay";
++	};
++};
++
++&cpu0 {
++	operating-points = <
++		/* kHz	  uV */
++		1512000	1400000
++		1440000	1400000
++		1368000	1340000
++		1344000	1340000
++		1296000	1300000
++		1248000	1300000
++		1224000	1300000
++		1200000	1300000
++		1152000	1300000
++		1104000	1200000
++		1056000	1200000
++		1008000	1140000
++		960000	1100000
++		816000	1100000
++		648000	1100000
++		480000	1100000
++		240000	1100000
++		120000	1100000
++		>;
++	#cooling-cells = <2>;
++	cooling-min-level = <0>;
++	cooling-max-level = <15>;
++	cpu0-supply = <&vdd_cpu>;
++};
++
++&cpu_thermal {
++	trips {
++		cpu_warm: cpu_warm {
++			temperature = <65000>;
++			hysteresis = <2000>;
++			type = "passive";
++		};
++		cpu_hot: cpu_hot {
++			temperature = <75000>;
++			hysteresis = <2000>;
++			type = "passive";
++		};
++		cpu_very_hot: cpu_very_hot {
++			temperature = <90000>;
++			hysteresis = <2000>;
++			type = "passive";
++		};
++		cpu_crit: cpu_crit {
++			temperature = <105000>;
++			hysteresis = <2000>;
++			type = "critical";
++		};
++	};
++
++	cooling-maps {
++		cpu_warm_limit_cpu {
++			trip = <&cpu_warm>;
++			cooling-device = <&cpu0 THERMAL_NO_LIMIT 10>;
++		};
++		cpu_hot_limit_cpu {
++			trip = <&cpu_hot>;
++			cooling-device = <&cpu0 12 12>;
++		};
++		cpu_very_hot_limit_cpu {
++			trip = <&cpu_very_hot>;
++			cooling-device = <&cpu0 14 THERMAL_NO_LIMIT>;
++		};
++	};
++};
++
++&r_i2c {
++	status = "okay";
++
++	vdd_cpu: regulator@65 {
++		compatible = "silergy,sy8106a";
++		reg = <0x65>;
++		regulator-min-microvolt = <980000>;
++		regulator-max-microvolt = <1400000>;
++		regulator-ramp-delay = <200>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++};
++
++&ehci0 {
++	status = "okay";
+ };
+ 
+ &ehci1 {
+@@ -118,6 +229,10 @@
+ 	status = "okay";
+ };
+ 
++&ohci0 {
++	status = "okay";
++};
++
+ &ohci1 {
+ 	status = "okay";
+ };
+@@ -134,8 +249,6 @@
+ 	leds_opc: led_pins@0 {
+ 		allwinner,pins = "PA15";
+ 		allwinner,function = "gpio_out";
+-		allwinner,drive = <SUN4I_PINCTRL_10_MA>;
+-		allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
+ 	};
+ };
+ 
+@@ -143,15 +256,11 @@
+ 	leds_r_opc: led_pins@0 {
+ 		allwinner,pins = "PL10";
+ 		allwinner,function = "gpio_out";
+-		allwinner,drive = <SUN4I_PINCTRL_10_MA>;
+-		allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
+ 	};
+ 
+ 	sw_r_opc: key_pins@0 {
+ 		allwinner,pins = "PL3";
+ 		allwinner,function = "gpio_in";
+-		allwinner,drive = <SUN4I_PINCTRL_10_MA>;
+-		allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
+ 	};
+ };
+ 
+@@ -179,7 +288,51 @@
+ 	status = "disabled";
+ };
+ 
++&i2c0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c0_pins>;
++	status = "okay";
++};
++
++&i2c1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++	status = "okay";
++};
++
++&i2c2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c2_pins>;
++	status = "okay";
++};
++
++&spi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi0_pins_a>;
++	status = "okay";
++
++	spidev@0 {
++		compatible = "allwinner,sun8i-h3-spi";
++		reg = <0>;
++		spi-max-frequency = <50000000>;
++	};
++};
++
++&usb_otg {
++	dr_mode = "otg";	/* or "peripheral" mode */
++	status = "okay";
++};
++
+ &usbphy {
+ 	/* USB VBUS is always on */
+-	status = "okay";
+-};
++	usb0_id_det-gpios = <&pio 6 12 GPIO_ACTIVE_HIGH>; /* PG12 */
++	usb0_vbus-supply = <&reg_usb0_vbus>;
++	status = "okay";
++};
++
++&emac {
++	phy-handle = <&int_mii_phy>;
++	phy-mode = "mii";
++	allwinner,leds-active-low;
++	status = "okay";
++};
+--- a/drivers/spi/spi-sun6i.c
++++ b/drivers/spi/spi-sun6i.c
+@@ -17,6 +17,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+ #include <linux/module.h>
++#include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/reset.h>
+@@ -24,6 +25,7 @@
+ #include <linux/spi/spi.h>
+ 
+ #define SUN6I_FIFO_DEPTH		128
++#define SUN8I_FIFO_DEPTH		64
+ 
+ #define SUN6I_GBL_CTL_REG		0x04
+ #define SUN6I_GBL_CTL_BUS_ENABLE		BIT(0)
+@@ -90,6 +92,7 @@
+ 	const u8		*tx_buf;
+ 	u8			*rx_buf;
+ 	int			len;
++	unsigned long fifo_depth;
+ };
+ 
+ static inline u32 sun6i_spi_read(struct sun6i_spi *sspi, u32 reg)
+@@ -155,7 +158,9 @@
+ 
+ static size_t sun6i_spi_max_transfer_size(struct spi_device *spi)
+ {
+-	return SUN6I_FIFO_DEPTH - 1;
++	struct sun6i_spi *sspi = spi_master_get_devdata(spi->master);
++
++	return sspi->fifo_depth - 1;
+ }
+ 
+ static int sun6i_spi_transfer_one(struct spi_master *master,
+@@ -170,7 +175,7 @@
+ 	u32 reg;
+ 
+ 	/* We don't support transfer larger than the FIFO */
+-	if (tfr->len > SUN6I_FIFO_DEPTH)
++	if (tfr->len > sspi->fifo_depth)
+ 		return -EINVAL;
+ 
+ 	reinit_completion(&sspi->done);
+@@ -265,7 +270,7 @@
+ 			SUN6I_BURST_CTL_CNT_STC(tx_len));
+ 
+ 	/* Fill the TX FIFO */
+-	sun6i_spi_fill_fifo(sspi, SUN6I_FIFO_DEPTH);
++	sun6i_spi_fill_fifo(sspi, sspi->fifo_depth);
+ 
+ 	/* Enable the interrupts */
+ 	sun6i_spi_write(sspi, SUN6I_INT_CTL_REG, SUN6I_INT_CTL_TC);
+@@ -288,7 +293,7 @@
+ 		goto out;
+ 	}
+ 
+-	sun6i_spi_drain_fifo(sspi, SUN6I_FIFO_DEPTH);
++	sun6i_spi_drain_fifo(sspi, sspi->fifo_depth);
+ 
+ out:
+ 	sun6i_spi_write(sspi, SUN6I_INT_CTL_REG, 0);
+@@ -398,6 +403,8 @@
+ 	}
+ 
+ 	sspi->master = master;
++	sspi->fifo_depth = (unsigned long)of_device_get_match_data(&pdev->dev);
++
+ 	master->max_speed_hz = 100 * 1000 * 1000;
+ 	master->min_speed_hz = 3 * 1000;
+ 	master->set_cs = sun6i_spi_set_cs;
+@@ -470,7 +477,8 @@
+ }
+ 
+ static const struct of_device_id sun6i_spi_match[] = {
+-	{ .compatible = "allwinner,sun6i-a31-spi", },
++	{ .compatible = "allwinner,sun6i-a31-spi", .data = (void *)SUN6I_FIFO_DEPTH },
++	{ .compatible = "allwinner,sun8i-h3-spi",  .data = (void *)SUN8I_FIFO_DEPTH },
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(of, sun6i_spi_match);
+--- a/drivers/nvmem/sunxi_sid.c
++++ b/drivers/nvmem/sunxi_sid.c
+@@ -17,12 +17,23 @@
+ 
+ #include <linux/device.h>
+ #include <linux/io.h>
++#include <linux/iopoll.h>
+ #include <linux/module.h>
+ #include <linux/nvmem-provider.h>
+ #include <linux/of.h>
++#include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/random.h>
++
++/* Registers and special values for doing register-based SID readout on H3 */
++#define SUN8I_SID_PRCTL		0x40
++#define SUN8I_SID_RDKEY		0x60
++
++#define SUN8I_SID_OFFSET_MASK	0x1FF
++#define SUN8I_SID_OFFSET_SHIFT	16
++#define SUN8I_SID_OP_LOCK	(0xAC << 8)
++#define SUN8I_SID_READ		BIT(1)
+ 
+ static struct nvmem_config econfig = {
+ 	.name = "sunxi-sid",
+@@ -32,8 +43,15 @@
+ 	.owner = THIS_MODULE,
+ };
+ 
++struct sunxi_sid_cfg {
++	u32	value_offset;
++	u32	size;
++	bool	need_register_readout;
++};
++
+ struct sunxi_sid {
+ 	void __iomem		*base;
++	u32 value_offset;
+ };
+ 
+ /* We read the entire key, due to a 32 bit read alignment requirement. Since we
+@@ -58,9 +76,33 @@
+ 	struct sunxi_sid *sid = context;
+ 	u8 *buf = val;
+ 
++	/* Offset the read operation to the real position of SID */
++	offset += sid->value_offset;
++
+ 	while (bytes--)
+ 		*buf++ = sunxi_sid_read_byte(sid, offset++);
+ 
++	return 0;
++}
++
++static int sun8i_sid_register_readout(const struct sunxi_sid *sid,
++				      const unsigned int word)
++{
++	u32 reg_val;
++	int ret;
++
++	/* Set word, lock access, and set read command */
++	reg_val = (word & SUN8I_SID_OFFSET_MASK)
++		  << SUN8I_SID_OFFSET_SHIFT;
++	reg_val |= SUN8I_SID_OP_LOCK | SUN8I_SID_READ;
++	writel(reg_val, sid->base + SUN8I_SID_PRCTL);
++
++	ret = readl_poll_timeout(sid->base + SUN8I_SID_PRCTL, reg_val,
++				 !(reg_val & SUN8I_SID_READ), 100, 250000);
++	if (ret)
++		return ret;
++
++	writel(0, sid->base + SUN8I_SID_PRCTL);
+ 	return 0;
+ }
+ 
+@@ -72,18 +114,42 @@
+ 	struct sunxi_sid *sid;
+ 	int ret, i, size;
+ 	char *randomness;
++	const struct sunxi_sid_cfg *cfg;
+ 
+ 	sid = devm_kzalloc(dev, sizeof(*sid), GFP_KERNEL);
+ 	if (!sid)
+ 		return -ENOMEM;
++
++	cfg = of_device_get_match_data(dev);
++	if (!cfg)
++		return -EINVAL;
++	sid->value_offset = cfg->value_offset;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	sid->base = devm_ioremap_resource(dev, res);
+ 	if (IS_ERR(sid->base))
+ 		return PTR_ERR(sid->base);
+ 
+-	size = resource_size(res) - 1;
+-	econfig.size = resource_size(res);
++	size = cfg->size;
++
++	if (cfg->need_register_readout) {
++		/*
++		 * H3's SID controller have a bug that the value at 0x200
++		 * offset is not the correct value when the hardware is reseted.
++		 * However, after doing a register-based read operation, the
++		 * value become right.
++		 * Do a full read operation here, but ignore its value
++		 * (as it's more fast to read by direct MMIO value than
++		 * with registers)
++		 */
++		for (i = 0; i < (size >> 2); i++) {
++			ret = sun8i_sid_register_readout(sid, i);
++			if (ret)
++				return ret;
++		}
++	}
++
++	econfig.size = size;
+ 	econfig.dev = dev;
+ 	econfig.reg_read = sunxi_sid_read;
+ 	econfig.priv = sid;
+@@ -119,9 +185,24 @@
+ 	return nvmem_unregister(nvmem);
+ }
+ 
++static const struct sunxi_sid_cfg sun4i_a10_cfg = {
++	.size = 0x10,
++};
++
++static const struct sunxi_sid_cfg sun7i_a20_cfg = {
++	.size = 0x200,
++};
++
++static const struct sunxi_sid_cfg sun8i_h3_cfg = {
++	.value_offset = 0x200,
++	.size = 0x100,
++	.need_register_readout = true,
++};
++
+ static const struct of_device_id sunxi_sid_of_match[] = {
+-	{ .compatible = "allwinner,sun4i-a10-sid" },
+-	{ .compatible = "allwinner,sun7i-a20-sid" },
++	{ .compatible = "allwinner,sun4i-a10-sid", .data = &sun4i_a10_cfg },
++	{ .compatible = "allwinner,sun7i-a20-sid", .data = &sun7i_a20_cfg },
++	{ .compatible = "allwinner,sun8i-h3-sid", .data = &sun8i_h3_cfg },
+ 	{/* sentinel */},
+ };
+ MODULE_DEVICE_TABLE(of, sunxi_sid_of_match);
+--- a/arch/arm/configs/sunxi_defconfig
++++ b/arch/arm/configs/sunxi_defconfig
+@@ -40,6 +40,7 @@
+ CONFIG_AHCI_SUNXI=y
+ CONFIG_NETDEVICES=y
+ CONFIG_SUN4I_EMAC=y
++CONFIG_SUN8I_THS=y
+ # CONFIG_NET_VENDOR_ARC is not set
+ # CONFIG_NET_CADENCE is not set
+ # CONFIG_NET_VENDOR_BROADCOM is not set
+@@ -93,6 +94,7 @@
+ CONFIG_REGULATOR_FIXED_VOLTAGE=y
+ CONFIG_REGULATOR_AXP20X=y
+ CONFIG_REGULATOR_GPIO=y
++CONFIG_REGULATOR_SY8106A=y
+ CONFIG_MEDIA_SUPPORT=y
+ CONFIG_MEDIA_RC_SUPPORT=y
+ CONFIG_RC_DEVICES=y
+--- a/drivers/regulator/Kconfig
++++ b/drivers/regulator/Kconfig
+@@ -720,6 +720,13 @@
+ 	  This driver supports the internal VMMC regulator in the STw481x
+ 	  PMIC chips.
+ 
++config REGULATOR_SY8106A
++	tristate "Silergy SY8106A"
++	depends on I2C && (OF || COMPILE_TEST)
++	select REGMAP_I2C
++	help
++	  This driver provides support for SY8106A voltage regulator.
++
+ config REGULATOR_TPS51632
+ 	tristate "TI TPS51632 Power Regulator"
+ 	depends on I2C
+--- a/drivers/regulator/Makefile
++++ b/drivers/regulator/Makefile
+@@ -90,6 +90,7 @@
+ obj-$(CONFIG_REGULATOR_S5M8767) += s5m8767.o
+ obj-$(CONFIG_REGULATOR_SKY81452) += sky81452-regulator.o
+ obj-$(CONFIG_REGULATOR_STW481X_VMMC) += stw481x-vmmc.o
++obj-$(CONFIG_REGULATOR_SY8106A) += sy8106a-regulator.o
+ obj-$(CONFIG_REGULATOR_TI_ABB) += ti-abb-regulator.o
+ obj-$(CONFIG_REGULATOR_TPS6105X) += tps6105x-regulator.o
+ obj-$(CONFIG_REGULATOR_TPS62360) += tps62360-regulator.o
+--- a/drivers/thermal/Kconfig
++++ b/drivers/thermal/Kconfig
+@@ -386,6 +386,13 @@
+ source "drivers/thermal/broadcom/Kconfig"
+ endmenu
+ 
++config SUN8I_THS
++	tristate "Thermal sensor driver for Allwinner H3"
++	depends on MACH_SUN8I || (ARM64 && ARCH_SUNXI)
++	depends on OF
++	help
++	  Enable this to support thermal reporting on some newer Allwinner SoCs.
++
+ menu "Texas Instruments thermal drivers"
+ depends on ARCH_HAS_BANDGAP || COMPILE_TEST
+ depends on HAS_IOMEM
+--- a/drivers/thermal/Makefile
++++ b/drivers/thermal/Makefile
+@@ -57,3 +57,4 @@
+ obj-$(CONFIG_MTK_THERMAL)	+= mtk_thermal.o
+ obj-$(CONFIG_GENERIC_ADC_THERMAL)	+= thermal-generic-adc.o
+ obj-$(CONFIG_BCM2835_THERMAL) += bcm2835_thermal.o
++obj-$(CONFIG_SUN8I_THS)	+= sun8i_ths.o
+--- /dev/null
++++ b/drivers/thermal/sun8i_ths.c
+@@ -0,0 +1,259 @@
++/*
++ * Thermal sensor driver for Allwinner H3 SoC
++ *
++ * Copyright (C) 2016 Ondřej Jirman
++ * Based on the work of Josef Gajdusek <atx@atx.name>
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#include <linux/clk.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/of_device.h>
++#include <linux/platform_device.h>
++#include <linux/reset.h>
++#include <linux/slab.h>
++#include <linux/thermal.h>
++#include <linux/printk.h>
++
++#define THS_H3_CTRL0		0x00
++#define THS_H3_CTRL2		0x40
++#define THS_H3_INT_CTRL		0x44
++#define THS_H3_STAT		0x48
++#define THS_H3_FILTER		0x70
++#define THS_H3_CDATA		0x74
++#define THS_H3_DATA		0x80
++
++#define THS_H3_CTRL0_SENSOR_ACQ0(x)     (x)
++#define THS_H3_CTRL2_SENSE_EN           BIT(0)
++#define THS_H3_CTRL2_SENSOR_ACQ1(x)     ((x) << 16)
++#define THS_H3_INT_CTRL_DATA_IRQ_EN     BIT(8)
++#define THS_H3_INT_CTRL_THERMAL_PER(x)  ((x) << 12)
++#define THS_H3_STAT_DATA_IRQ_STS        BIT(8)
++#define THS_H3_FILTER_TYPE(x)           ((x) << 0)
++#define THS_H3_FILTER_EN                BIT(2)
++
++#define THS_H3_CLK_IN 40000000  /* Hz */
++#define THS_H3_DATA_PERIOD 330  /* ms */
++
++#define THS_H3_FILTER_TYPE_VALUE		2  /* average over 2^(n+1) samples */
++#define THS_H3_FILTER_DIV			(1 << (THS_H3_FILTER_TYPE_VALUE + 1))
++#define THS_H3_INT_CTRL_THERMAL_PER_VALUE \
++	(THS_H3_DATA_PERIOD * (THS_H3_CLK_IN / 1000) / THS_H3_FILTER_DIV / 4096 - 1)
++#define THS_H3_CTRL0_SENSOR_ACQ0_VALUE		0x3f /* 16us */
++#define THS_H3_CTRL2_SENSOR_ACQ1_VALUE		0x3f
++
++struct sun8i_ths_data {
++	struct reset_control *reset;
++	struct clk *clk;
++	struct clk *busclk;
++	void __iomem *regs;
++	void __iomem *calreg;
++	struct thermal_zone_device *tzd;
++	u32 temp;
++};
++
++static int sun8i_ths_get_temp(void *_data, int *out)
++{
++	struct sun8i_ths_data *data = _data;
++
++	if (data->temp == 0)
++		return -EBUSY;
++
++	/* Formula and parameters from the Allwinner 3.4 kernel */
++	*out = 217000 - (int)((data->temp * 1000000) / 8253);
++	return 0;
++}
++
++static irqreturn_t sun8i_ths_irq_thread(int irq, void *_data)
++{
++	struct sun8i_ths_data *data = _data;
++
++	writel(THS_H3_STAT_DATA_IRQ_STS, data->regs + THS_H3_STAT);
++
++	data->temp = readl(data->regs + THS_H3_DATA);
++	if (data->temp)
++		thermal_zone_device_update(data->tzd, THERMAL_EVENT_TEMP_SAMPLE);
++
++	return IRQ_HANDLED;
++}
++
++static void sun8i_ths_h3_init(struct sun8i_ths_data *data)
++{
++	u32 caldata;
++	
++	caldata = readl(data->calreg) & 0xfff;
++	if (caldata != 0)
++		writel(caldata, data->regs + THS_H3_CDATA);
++
++	writel(THS_H3_CTRL0_SENSOR_ACQ0(THS_H3_CTRL0_SENSOR_ACQ0_VALUE),
++		data->regs + THS_H3_CTRL0);
++	writel(THS_H3_FILTER_EN | THS_H3_FILTER_TYPE(THS_H3_FILTER_TYPE_VALUE),
++		data->regs + THS_H3_FILTER);
++	writel(THS_H3_CTRL2_SENSOR_ACQ1(THS_H3_CTRL2_SENSOR_ACQ1_VALUE) |
++		THS_H3_CTRL2_SENSE_EN,
++		data->regs + THS_H3_CTRL2);
++	writel(THS_H3_INT_CTRL_THERMAL_PER(THS_H3_INT_CTRL_THERMAL_PER_VALUE) |
++		THS_H3_INT_CTRL_DATA_IRQ_EN,
++		data->regs + THS_H3_INT_CTRL);
++}
++
++static const struct thermal_zone_of_device_ops sun8i_ths_thermal_ops = {
++	.get_temp = sun8i_ths_get_temp,
++};
++
++static int sun8i_ths_probe(struct platform_device *pdev)
++{
++	struct sun8i_ths_data *data;
++	struct resource *res;
++	int ret;
++	int irq;
++
++	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++        if (!res) {
++                dev_err(&pdev->dev, "no memory resources defined\n");
++                return -EINVAL;
++        }
++
++	data->regs = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(data->regs)) {
++		ret = PTR_ERR(data->regs);
++		dev_err(&pdev->dev, "failed to ioremap THS registers: %d\n", ret);
++		return ret;
++	}
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++        if (!res) {
++                dev_err(&pdev->dev, "no calibration data memory resource defined\n");
++                return -EINVAL;
++        }
++
++	data->calreg = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(data->calreg)) {
++		ret = PTR_ERR(data->calreg);
++		dev_err(&pdev->dev, "failed to ioremap THS registers: %d\n", ret);
++		return ret;
++	}
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0) {
++		dev_err(&pdev->dev, "failed to get IRQ: %d\n", irq);
++		return irq;
++	}
++
++	ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
++					sun8i_ths_irq_thread, IRQF_ONESHOT,
++					dev_name(&pdev->dev), data);
++	if (ret)
++		return ret;
++
++	data->busclk = devm_clk_get(&pdev->dev, "ahb");
++	if (IS_ERR(data->busclk)) {
++		ret = PTR_ERR(data->busclk);
++		dev_err(&pdev->dev, "failed to get ahb clk: %d\n", ret);
++		return ret;
++	}
++
++	data->clk = devm_clk_get(&pdev->dev, "ths");
++	if (IS_ERR(data->clk)) {
++		ret = PTR_ERR(data->clk);
++		dev_err(&pdev->dev, "failed to get ths clk: %d\n", ret);
++		return ret;
++	}
++
++	data->reset = devm_reset_control_get(&pdev->dev, "ahb");
++	if (IS_ERR(data->reset)) {
++		ret = PTR_ERR(data->reset);
++		dev_err(&pdev->dev, "failed to get reset: %d\n", ret);
++		return ret;
++	}
++
++	ret = reset_control_deassert(data->reset);
++	if (ret) {
++		dev_err(&pdev->dev, "reset deassert failed: %d\n", ret);
++		return ret;
++	}
++
++	ret = clk_prepare_enable(data->busclk);
++	if (ret) {
++		dev_err(&pdev->dev, "failed to enable bus clk: %d\n", ret);
++		goto err_assert_reset;
++	}
++
++	ret = clk_prepare_enable(data->clk);
++	if (ret) {
++		dev_err(&pdev->dev, "failed to enable ths clk: %d\n", ret);
++		goto err_disable_bus;
++	}
++
++	ret = clk_set_rate(data->clk, THS_H3_CLK_IN);
++	if (ret)
++		goto err_disable_ths;
++
++	data->tzd = devm_thermal_zone_of_sensor_register(&pdev->dev, 0, data,
++						    &sun8i_ths_thermal_ops);
++	if (IS_ERR(data->tzd)) {
++		ret = PTR_ERR(data->tzd);
++		dev_err(&pdev->dev, "failed to register thermal zone: %d\n",
++				ret);
++		goto err_disable_ths;
++	}
++
++	sun8i_ths_h3_init(data);
++
++	platform_set_drvdata(pdev, data);
++	return 0;
++
++err_disable_ths:
++	clk_disable_unprepare(data->clk);
++err_disable_bus:
++	clk_disable_unprepare(data->busclk);
++err_assert_reset:
++	reset_control_assert(data->reset);
++	return ret;
++}
++
++static int sun8i_ths_remove(struct platform_device *pdev)
++{
++	struct sun8i_ths_data *data = platform_get_drvdata(pdev);
++
++	reset_control_assert(data->reset);
++	clk_disable_unprepare(data->clk);
++	clk_disable_unprepare(data->busclk);
++	return 0;
++}
++
++static const struct of_device_id sun8i_ths_id_table[] = {
++	{ .compatible = "allwinner,sun8i-h3-ths", },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, sun8i_ths_id_table);
++
++static struct platform_driver sun8i_ths_driver = {
++	.probe = sun8i_ths_probe,
++	.remove = sun8i_ths_remove,
++	.driver = {
++		.name = "sun8i_ths",
++		.of_match_table = sun8i_ths_id_table,
++	},
++};
++
++module_platform_driver(sun8i_ths_driver);
++
++MODULE_AUTHOR("Ondřej Jirman <megous@megous.com>");
++MODULE_DESCRIPTION("Thermal sensor driver for Allwinner H3 SoC");
++MODULE_LICENSE("GPL v2");
+--- /dev/null
++++ b/drivers/regulator/sy8106a-regulator.c
+@@ -0,0 +1,167 @@
++/*
++ * sy8106a-regulator.c - Regulator device driver for SY8106A
++ *
++ * Copyright (C) 2016  Ondřej Jirman <megous@megous.com>
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with this library; if not, write to the
++ * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
++ * Boston, MA  02110-1301, USA.
++ */
++
++#include <linux/err.h>
++#include <linux/i2c.h>
++#include <linux/module.h>
++#include <linux/regmap.h>
++#include <linux/regulator/driver.h>
++#include <linux/regulator/of_regulator.h>
++
++#define SY8106A_REG_VOUT1_SEL		0x01
++#define SY8106A_REG_VOUT_COM		0x02
++#define SY8106A_REG_VOUT1_SEL_MASK	0x7f
++#define SY8106A_DISABLE_REG		BIT(0)
++#define SY8106A_GO_BIT			BIT(7)
++
++struct sy8106a {
++	struct regulator_dev *rdev;
++	struct regmap *regmap;
++};
++
++static const struct regmap_config sy8106a_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 8,
++};
++
++static int sy8106a_set_voltage_sel(struct regulator_dev *rdev, unsigned sel)
++{
++	/* We use our set_voltage_sel in order to avoid unnecessary I2C chatter,
++	 * because the regulator_get_voltage_sel_regmap using apply_bit
++	 * would perform 4 unnecessary transfers instead of one, increasing the
++	 * chance of error.
++	 */
++	return regmap_write(rdev->regmap, rdev->desc->vsel_reg,
++			    sel | SY8106A_GO_BIT);
++}
++
++static const struct regulator_ops sy8106a_ops = {
++	.is_enabled = regulator_is_enabled_regmap,
++	.set_voltage_sel = sy8106a_set_voltage_sel,
++	.set_voltage_time_sel = regulator_set_voltage_time_sel,
++	.get_voltage_sel = regulator_get_voltage_sel_regmap,
++	.list_voltage = regulator_list_voltage_linear,
++};
++
++/* Default limits measured in millivolts and milliamps */
++#define SY8106A_MIN_MV		680
++#define SY8106A_MAX_MV		1950
++#define SY8106A_STEP_MV		10
++
++static const struct regulator_desc sy8106a_reg = {
++	.name = "SY8106A",
++	.id = 0,
++	.ops = &sy8106a_ops,
++	.type = REGULATOR_VOLTAGE,
++	.n_voltages = ((SY8106A_MAX_MV - SY8106A_MIN_MV) / SY8106A_STEP_MV) + 1,
++	.min_uV = (SY8106A_MIN_MV * 1000),
++	.uV_step = (SY8106A_STEP_MV * 1000),
++	.vsel_reg = SY8106A_REG_VOUT1_SEL,
++	.vsel_mask = SY8106A_REG_VOUT1_SEL_MASK,
++	.enable_reg = SY8106A_REG_VOUT_COM,
++	.enable_mask = SY8106A_DISABLE_REG,
++	.disable_val = SY8106A_DISABLE_REG,
++	.enable_is_inverted = 1,
++	.owner = THIS_MODULE,
++};
++
++/*
++ * I2C driver interface functions
++ */
++static int sy8106a_i2c_probe(struct i2c_client *i2c,
++			    const struct i2c_device_id *id)
++{
++	struct sy8106a *chip;
++	struct device *dev = &i2c->dev;
++	struct regulator_dev *rdev = NULL;
++	struct regulator_config config = { };
++	unsigned int selector;
++	int error;
++
++	chip = devm_kzalloc(&i2c->dev, sizeof(struct sy8106a), GFP_KERNEL);
++	if (!chip)
++		return -ENOMEM;
++
++	chip->regmap = devm_regmap_init_i2c(i2c, &sy8106a_regmap_config);
++	if (IS_ERR(chip->regmap)) {
++		error = PTR_ERR(chip->regmap);
++		dev_err(&i2c->dev, "Failed to allocate register map: %d\n",
++			error);
++		return error;
++	}
++
++	config.dev = &i2c->dev;
++	config.regmap = chip->regmap;
++	config.driver_data = chip;
++
++	config.of_node = dev->of_node;
++	config.init_data = of_get_regulator_init_data(dev, dev->of_node, &sy8106a_reg);
++	if (!config.init_data) {
++		return -ENOMEM;
++	}
++
++	/* Probe regulator */
++	error = regmap_read(chip->regmap, SY8106A_REG_VOUT1_SEL, &selector);
++	if (error) {
++		dev_err(&i2c->dev, "Failed to read voltage at probe time: %d\n", error);
++		return error;
++	}
++
++	rdev = devm_regulator_register(&i2c->dev, &sy8106a_reg, &config);
++	if (IS_ERR(rdev)) {
++		error = PTR_ERR(rdev);
++		dev_err(&i2c->dev, "Failed to register SY8106A regulator: %d\n", error);
++		return error;
++	}
++
++	chip->rdev = rdev;
++
++	i2c_set_clientdata(i2c, chip);
++
++	return 0;
++}
++
++static const struct of_device_id sy8106a_i2c_of_match[] = {
++	{ .compatible = "silergy,sy8106a" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, sy8106a_i2c_of_match);
++
++static const struct i2c_device_id sy8106a_i2c_id[] = {
++	{ "sy8106a", 0 },
++	{ },
++};
++MODULE_DEVICE_TABLE(i2c, sy8106a_i2c_id);
++
++static struct i2c_driver sy8106a_regulator_driver = {
++	.driver = {
++		.name = "sy8106a",
++		.of_match_table	= of_match_ptr(sy8106a_i2c_of_match),
++	},
++	.probe = sy8106a_i2c_probe,
++	.id_table = sy8106a_i2c_id,
++};
++
++module_i2c_driver(sy8106a_regulator_driver);
++
++MODULE_AUTHOR("Ondřej Jirman <megous@megous.com>");
++MODULE_DESCRIPTION("Regulator device driver for Silergy SY8106A");
++MODULE_LICENSE("GPL v2");
