@@ -259,6 +259,7 @@ platform_check_image() {
 		return 0
 		;;
 	hc5962|\
+	miwifi-r3|\
 	mir3g|\
 	r6220)
 		# these boards use metadata images
@@ -306,6 +307,7 @@ platform_do_upgrade() {
 
 	case "$board" in
 	hc5962|\
+	miwifi-r3|\
 	mir3g|\
 	r6220|\
 	ubnt-erx|\
