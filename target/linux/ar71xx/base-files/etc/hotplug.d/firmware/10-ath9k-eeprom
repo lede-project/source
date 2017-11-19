@@ -91,6 +91,10 @@ case "$FIRMWARE" in
 		ath9k_eeprom_extract "caldata" 4096 2048
 		ath9k_patch_firmware_mac $(mtd_get_mac_binary caldata 0)
 		;;
+	wlr8100)
+                ath9k_eeprom_extract "art" 8192 2048
+                ath9k_patch_firmware_mac $(mtd_get_mac_ascii u-boot-env "ethaddr")
+                ;;
 	rambutan)
 		ath9k_eeprom_extract "art" 4096 2048
 		;;
