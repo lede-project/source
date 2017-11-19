@@ -136,7 +136,7 @@ case "$FIRMWARE" in
 		ath10kcal_from_file "/sys/firmware/routerboot/ext_wlan_data" 20480 2116
 		;;
 	wlr8100)
-		ath10kcal_extract "caldata" 2048 2116
+		ath10kcal_extract "caldata" 20480 2116
 		ath10kcal_patch_mac $(macaddr_add $(mtd_get_mac_ascii u-boot-env ethaddr) +1)
 		;;
 	esac
