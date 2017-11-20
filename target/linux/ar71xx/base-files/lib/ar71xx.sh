@@ -287,11 +287,17 @@ tplink_board_detect() {
 	"360000"*)
 		model="TP-Link TL-WDR3600"
 		;;
-	"3C0001"*)
+	"3c0001"*)
 		model="OOLITE"
+
+		[ "$hwid" = "3c00010c" -a "$mid" = "00000001" ] && {
+			model="MINIBOX_V3.2"
+			hwver=""
+		}
 		;;
-	"3C0002"*)
+	"3c0002"*)
 		model="MINIBOX_V1"
+		hwver=""
 		;;
 	"430000"*)
 		model="TP-Link TL-WDR4300"
@@ -722,6 +728,9 @@ ar71xx_board_detect() {
 		;;
 	*"MiniBox V1.0")
 		name="minibox-v1"
+		;;
+	*"Minibox V3.2")
+		name="minibox-v3.2"
 		;;
 	*"MR12")
 		name="mr12"
