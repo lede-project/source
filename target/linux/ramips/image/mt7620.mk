@@ -125,7 +125,7 @@ TARGET_DEVICES += db-wrt01
 
 define Device/dch-m225
   DTS := DCH-M225
-  BLOCKSIZE := 4k
+  BLOCKSIZE := 64k
   IMAGES += factory.bin
   IMAGE_SIZE := 6848k
   IMAGE/sysupgrade.bin := \
@@ -177,7 +177,7 @@ TARGET_DEVICES += ex2700
 define Device/ex3700-ex3800
   NETGEAR_BOARD_ID := U12H319T00_NETGEAR
   DTS := EX3700
-  BLOCKSIZE := 4k
+  BLOCKSIZE := 64k
   IMAGE_SIZE := 7744k
   IMAGES += factory.chk
   IMAGE/factory.chk := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | netgear-chk
@@ -441,7 +441,7 @@ define Device/wn3000rpv3
   NETGEAR_HW_ID := 29764836+8+0+32+2x2+0
   NETGEAR_BOARD_ID := WN3000RPv3
   DTS := WN3000RPV3
-  BLOCKSIZE := 4k
+  BLOCKSIZE := 64k
   IMAGES += factory.bin
   KERNEL := $(KERNEL_DTB) | uImage lzma | pad-offset 64k 64 | append-uImage-fakeroot-hdr
   IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
