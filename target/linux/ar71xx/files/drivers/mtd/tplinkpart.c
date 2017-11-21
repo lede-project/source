@@ -18,8 +18,8 @@
 #include <linux/version.h>
 
 #define TPLINK_NUM_PARTS	5
-#define TPLINK_HEADER_V1	0x01000000
-#define TPLINK_HEADER_V2	0x02000000
+#define TPLINK_HEADER_V1	1
+#define TPLINK_HEADER_V2	2
 #define MD5SUM_LEN		16
 
 #define TPLINK_ART_LEN		0x10000
@@ -72,12 +72,8 @@ tplink_read_header(struct mtd_info *mtd, size_t offset)
 		goto err_free_header;
 
 	/* sanity checks */
-	t = be32_to_cpu(header->version);
+	t = le32_to_cpu(header->version);
 	if ((t != TPLINK_HEADER_V1) && (t != TPLINK_HEADER_V2))
-		goto err_free_header;
-
-	t = be32_to_cpu(header->kernel_ofs);
-	if (t != header_len)
 		goto err_free_header;
 
 	return header;
@@ -122,8 +118,9 @@ static int tplink_parse_partitions_offset(struct mtd_info *master,
 	struct tplink_fw_header *header;
 	int nr_parts;
 	size_t art_offset;
-	size_t rootfs_offset;
+	size_t rootfs_offset, rootfs_size;
 	size_t squashfs_offset;
+	size_t kernel_offset, kernel_size;
 	int ret;
 
 	nr_parts = TPLINK_NUM_PARTS;
@@ -149,6 +146,15 @@ static int tplink_parse_partitions_offset(struct mtd_info *master,
 	else
 		rootfs_offset = offset + be32_to_cpu(header->rootfs_ofs);
 
+	rootfs_size = be32_to_cpu(header->rootfs_len);
+	kernel_offset = offset + be32_to_cpu(header->kernel_ofs);
+	kernel_size = be32_to_cpu(header->kernel_len);
+
+	if ((kernel_size + rootfs_size) > master->size) {
+		ret = -EINVAL;
+		goto err_free_parts;
+	}
+
 	art_offset = master->size - TPLINK_ART_LEN;
 
 	parts[0].name = "u-boot";
@@ -157,8 +163,8 @@ static int tplink_parse_partitions_offset(struct mtd_info *master,
 	parts[0].mask_flags = MTD_WRITEABLE;
 
 	parts[1].name = "kernel";
-	parts[1].offset = offset;
-	parts[1].size = rootfs_offset - offset;
+	parts[1].offset = kernel_offset;
+	parts[1].size = kernel_size;
 
 	parts[2].name = "rootfs";
 	parts[2].offset = rootfs_offset;
