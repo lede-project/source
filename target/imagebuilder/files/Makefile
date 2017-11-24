@@ -33,6 +33,7 @@ Available Commands:
 	info:	Show a list of available target profiles
 	clean:	Remove images and temporary build files
 	image:	Build an image (see below for more information).
+	list:	List image packages (see below more information).
 
 Building images:
 	By default 'make image' will create an image with the default
@@ -44,6 +45,13 @@ Building images:
 	make image FILES="<path>" # include extra files from <path>
 	make image BIN_DIR="<path>" # alternative output directory for the images
 	make image EXTRA_IMAGE_NAME="<string>" # Add this to the output image filename (sanitized)
+
+List packages:
+	List "all" packages which get installed into the image.
+	You can use the following parameters:
+
+	make list PROFILE="<profilename>" # override the default target profile
+	make list PACKAGES="<pkg1> [<pkg2> [<pkg3> ...]]" # include extra packages
 endef
 $(eval $(call shexport,Helptext))
 
@@ -119,6 +127,13 @@ endif
 	$(MAKE) -s package_postinst
 	$(MAKE) -s build_image
 	$(MAKE) -s checksum
+
+_call_list: FORCE
+	rm -rf $(TARGET_DIR)
+	mkdir -p $(TARGET_DIR) $(BIN_DIR) $(TMP_DIR) $(DL_DIR)
+	$(MAKE) package_reload >/dev/null 2>/dev/null
+	$(MAKE) package_install >/dev/null 2>/dev/null
+	$(OPKG) list-installed
 
 package_index: FORCE
 	@echo >&2
@@ -206,5 +221,18 @@ endif
 		$(if $(PACKAGES),USER_PACKAGES="$(PACKAGES)") \
 		$(if $(BIN_DIR),BIN_DIR="$(BIN_DIR)"))
 
-.SILENT: help info image
+list:
+ifneq ($(PROFILE),)
+  ifeq ($(PROFILE_FILTER),)
+	@echo 'Profile "$(PROFILE)" does not exist!'
+	@echo 'Use "make info" to get a list of available profile names.'
+	@exit 1
+  endif
+endif
+	(unset PROFILE FILES PACKAGES MAKEFLAGS; \
+	$(MAKE) -s _call_list \
+		$(if $(PROFILE),USER_PROFILE="$(PROFILE_FILTER)") \
+		$(if $(PACKAGES),USER_PACKAGES="$(PACKAGES)"))
+
+.SILENT: help info image list
 
