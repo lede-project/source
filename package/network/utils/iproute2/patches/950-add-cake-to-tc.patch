@@ -1,6 +1,6 @@
 --- a/include/linux/pkt_sched.h
 +++ b/include/linux/pkt_sched.h
-@@ -871,4 +871,60 @@ struct tc_pie_xstats {
+@@ -871,4 +871,63 @@ struct tc_pie_xstats {
  	__u32 maxq;             /* maximum queue size */
  	__u32 ecn_mark;         /* packets marked with ecn*/
  };
