@@ -586,11 +586,13 @@ wpa_supplicant_prepare_interface() {
 		country_str="country=$country"
 	}
 
-	wpa_supplicant_teardown_interface "$ifname"
-	cat > "$_config" <<EOF
+	[ ! -f "/var/run/wpa_supplicant-${ifname}.pid" ] && {
+		wpa_supplicant_teardown_interface "$ifname"
+		cat > "$_config" <<EOF
 $ap_scan
 $country_str
 EOF
+	}
 	return 0
 }
 
@@ -785,17 +787,22 @@ wpa_supplicant_run() {
 
 	_wpa_supplicant_common "$ifname"
 
-	/usr/sbin/wpa_supplicant -B \
-		${network_bridge:+-b $network_bridge} \
-		-P "/var/run/wpa_supplicant-${ifname}.pid" \
-		-D ${_w_driver:-wext} \
-		-i "$ifname" \
-		-c "$_config" \
-		-C "$_rpath" \
-		"$@"
+	if [ ! -f "/var/run/wpa_supplicant-${ifname}.pid" ]; then
+		/usr/sbin/wpa_supplicant -B \
+			${network_bridge:+-b $network_bridge} \
+			-P "/var/run/wpa_supplicant-${ifname}.pid" \
+			-D ${_w_driver:-wext} \
+			-i "$ifname" \
+			-c "$_config" \
+			-C "$_rpath" \
+			"$@"
 
-	ret="$?"
-	wireless_add_process "$(cat "/var/run/wpa_supplicant-${ifname}.pid")" /usr/sbin/wpa_supplicant 1
+		ret="$?"
+		wireless_add_process "$(cat "/var/run/wpa_supplicant-${ifname}.pid")" /usr/sbin/wpa_supplicant 1
+	else
+		kill -HUP "$(cat "/var/run/wpa_supplicant-${ifname}.pid")"
+		ret="$?"
+	fi
 
 	[ "$ret" != 0 ] && wireless_setup_vif_failed WPA_SUPPLICANT_FAILED
 
