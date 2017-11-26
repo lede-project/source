@@ -8,7 +8,7 @@ define Device/miwifi-r3
   DTS := MIWIFI-R3
   BLOCKSIZE := 128k
   PAGESIZE := 2048
-  KERNEL_SIZE := 1472k
+  KERNEL_SIZE := 1440k
   KERNEL := $(KERNEL_DTB) | uImage lzma
   IMAGE_SIZE := 32768k
   UBINIZE_OPTS := -E 5
