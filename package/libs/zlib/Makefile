@@ -17,6 +17,7 @@ PKG_HASH:=4ff941449631ace0d4d203e3483be9dbc9da454084111f97ea0a2114e19bf066
 
 PKG_LICENSE:=Zlib
 PKG_LICENSE_FILES:=README
+PKG_CPE_ID:=cpe:/a:gnu:zlib
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -45,17 +46,15 @@ define Package/zlib-dev/description
  This package includes the development support files.
 endef
 
-define Build/Configure
-	(cd $(PKG_BUILD_DIR); \
-		$(TARGET_CONFIGURE_OPTS) \
-		LDSHARED="$(TARGET_CC) -shared -Wl,-soname,libz.so.1" \
-		CFLAGS="$(TARGET_CFLAGS) $(FPIC)" \
-		./configure \
-			--prefix=/usr \
-			--shared \
-			--uname=Linux \
-	);
-endef
+CONFIGURE_VARS := \
+	$(TARGET_CONFIGURE_OPTS) \
+	LDSHARED="$(TARGET_CC) -shared -Wl,-soname,libz.so.1" \
+	CFLAGS="$(TARGET_CFLAGS) $(FPIC)" \
+
+CONFIGURE_ARGS := \
+	--prefix=/usr \
+	--shared \
+	--uname=Linux \
 
 define Build/Compile
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \

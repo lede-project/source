@@ -32,8 +32,8 @@ endif
 GRUB_SERIAL:=$(call qstrip,$(CONFIG_GRUB_SERIAL))
 
 ifneq ($(GRUB_SERIAL),)
-  GRUB_CONSOLE_CMDLINE += console=$(GRUB_SERIAL),$(CONFIG_GRUB_BAUDRATE)n8
-  GRUB_SERIAL_CONFIG := serial --unit=0 --speed=$(CONFIG_GRUB_BAUDRATE) --word=8 --parity=no --stop=1 --rtscts=off
+  GRUB_CONSOLE_CMDLINE += console=$(GRUB_SERIAL),$(CONFIG_GRUB_BAUDRATE)n8$(if $(CONFIG_GRUB_FLOWCONTROL),r,)
+  GRUB_SERIAL_CONFIG := serial --unit=0 --speed=$(CONFIG_GRUB_BAUDRATE) --word=8 --parity=no --stop=1 --rtscts=$(if $(CONFIG_GRUB_FLOWCONTROL),on,off)
   GRUB_TERMINALS += serial
 endif
 
@@ -83,7 +83,7 @@ ifneq ($(CONFIG_GRUB_IMAGES),)
 		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
 		-e 's#@ROOT@#$(GRUB_ROOT)#g' \
 		./grub.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
-	PADDING="$(CONFIG_TARGET_IMAGES_PAD)" SIGNATURE="$(SIGNATURE)" PATH="$(TARGET_PATH)" ./gen_image_generic.sh \
+	PADDING="$(CONFIG_TARGET_IMAGES_PAD)" SIGNATURE="$(SIGNATURE)" PATH="$(TARGET_PATH)" $(SCRIPT_DIR)/gen_image_generic.sh \
 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
 		$(CONFIG_TARGET_KERNEL_PARTSIZE) $(KDIR)/root.grub \
 		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(KDIR)/root.$(1) \
@@ -153,11 +153,9 @@ ifneq ($(CONFIG_TARGET_IMAGES_GZIP),)
   define Image/Build/gzip/ext4
 	$(call Image/Build/gzip,ext4)
   endef
-  ifneq ($(CONFIG_TARGET_IMAGES_PAD),)
-    define Image/Build/gzip/squashfs
+  define Image/Build/gzip/squashfs
 	$(call Image/Build/gzip,squashfs)
-    endef
-  endif
+  endef
 endif
 
 define Image/BuildKernel

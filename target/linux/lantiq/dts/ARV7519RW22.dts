@@ -16,7 +16,7 @@
 		led-failsafe = &power_green;
 		led-running = &power_green;
 
-		led-internet = &internet_green;
+		led-dsl = &internet_green;
 	};
 
 	memory@0 {
@@ -91,7 +91,8 @@
 		};
 
 		pcie@d900000 {
-			status = "disabled";
+			status = "okay";
+			gpio-reset = <&gpio 21 GPIO_ACTIVE_HIGH>;
 		};
 	};
 

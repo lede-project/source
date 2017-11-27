@@ -35,13 +35,18 @@ imx6_board_detect() {
 		;;
 
 	"Gateworks Ventana i.MX6 Dual/Quad GW551X" |\
-	"Gateworks Ventana i.MX6 Solo/DualLite GW551X")
+	"Gateworks Ventana i.MX6 DualLite/Solo GW551X")
 		name="gw551x"
 		;;
 
 	"Gateworks Ventana i.MX6 DualLite/Solo GW552X" |\
 	"Gateworks Ventana i.MX6 Dual/Quad GW552X")
 		name="gw552x"
+		;;
+
+	"Gateworks Ventana i.MX6 DualLite/Solo GW553X" |\
+	"Gateworks Ventana i.MX6 Dual/Quad GW553X")
+		name="gw553x"
 		;;
 
 	"Gateworks Ventana i.MX6 DualLite/Solo GW5904" |\
@@ -65,14 +70,4 @@ imx6_board_detect() {
 
 	echo "$IMX6_BOARD_NAME" > /tmp/sysinfo/board_name
 	echo "$IMX6_MODEL" > /tmp/sysinfo/model
-}
-
-imx6_board_name() {
-	local name
-
-	[ -f /tmp/sysinfo/board_name ] || imx6_board_detect
-	[ -f /tmp/sysinfo/board_name ] && name=$(cat /tmp/sysinfo/board_name)
-	[ -z "$name" ] && name="unknown"
-
-	echo "$name"
 }

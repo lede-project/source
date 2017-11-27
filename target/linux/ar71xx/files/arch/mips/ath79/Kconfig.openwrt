@@ -8,12 +8,33 @@ config ATH79_MACH_A60
 	select ATH79_DEV_WMAC
 	select ATH79_DEV_USB
 
+config ATH79_MACH_WI2A_AC200I
+	bool "Nokia WI2A-AC200i support"
+	select SOC_QCA955X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_NFC
+	select ATH79_DEV_WMAC
+	select ATH79_DEV_USB
+
 config ATH79_MACH_ALFA_AP120C
 	bool "ALFA Network AP120C board support"
 	select ATH79_DEV_AP9X_PCI if PCI
 	select ATH79_DEV_ETH
 	select ATH79_DEV_GPIO_BUTTONS
 	select ATH79_DEV_M25P80
+	select ATH79_DEV_WMAC
+
+config ATH79_MACH_AP121F
+	bool "ALFA Network AP121F support"
+	select SOC_AR933X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
 	select ATH79_DEV_WMAC
 
 config ATH79_MACH_ALFA_AP96
@@ -459,6 +480,17 @@ config ATH79_MACH_WPJ558
 	select ATH79_DEV_USB
 	select ATH79_DEV_WMAC
 
+config ATH79_MACH_WPJ563
+	bool "Compex WPJ563 board support"
+	select SOC_QCA956X
+	select ATH79_DEV_AP9X_PCI if PCI
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
 config ATH79_MACH_XD3200
 	bool "YunCore XD3200 support"
 	select SOC_QCA956X
@@ -606,9 +638,21 @@ config ATH79_MACH_DOMYWIFI_DW33D
 	select ATH79_DEV_WMAC
 	select ATH79_DEV_USB
 
+config ATH79_MACH_DR342
+	bool "Wallys DR342 board support"
+	select SOC_AR934X
+	select ATH79_DEV_AP9X_PCI if PCI
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
 config ATH79_MACH_DR344
 	bool "Wallys DR344 board support"
-	select SOC_AS934X
+	select SOC_AR934X
+	select ATH79_DEV_AP9X_PCI if PCI
 	select ATH79_DEV_ETH
 	select ATH79_DEV_GPIO_BUTTONS
 	select ATH79_DEV_LEDS_GPIO
@@ -747,8 +791,26 @@ config ATH79_MACH_GL_INET
 	select ATH79_DEV_USB
 	select ATH79_DEV_WMAC
 
+config ATH79_MACH_GL_USB150
+	bool "GL.iNet GL-USB150 support"
+	select SOC_AR933X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_WMAC
+
 config ATH79_MACH_EAP120
 	bool "TP-LINK EAP120 support"
+	select SOC_AR934X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_WMAC
+
+config ATH79_MACH_ENS202EXT
+	bool "EnGenius ENS202EXT support"
 	select SOC_AR934X
 	select ATH79_DEV_ETH
 	select ATH79_DEV_GPIO_BUTTONS
@@ -782,6 +844,18 @@ config ATH79_MACH_GS_OOLITE
 	select ARH79_DEV_GPIO_BUTTONS
 	select ATH79_DEV_LEDS_GPIO
 	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
+config ATH79_MACH_HIVEAP_121
+	bool "Aerohive HiveAP-121 support"
+	select SOC_AR934X
+	select ATH79_DEV_AP9X_PCI if PCI
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_NFC
 	select ATH79_DEV_USB
 	select ATH79_DEV_WMAC
 
@@ -849,6 +923,16 @@ config ATH79_MACH_WRTNODE2Q
 	select ATH79_DEV_GPIO_BUTTONS
 	select ATH79_DEV_LEDS_GPIO
 	select ATH79_DEV_M25P80
+	select ATH79_DEV_WMAC
+
+config ATH79_MACH_R602N
+	bool "P&W R602N support"
+	select SOC_QCA953X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
 	select ATH79_DEV_WMAC
 
 config ATH79_MACH_R6100
@@ -930,6 +1014,7 @@ config ATH79_MACH_RBSPI
 	bool "MikroTik RouterBOARD SPI-NOR support"
 	select SOC_AR934X
 	select SOC_QCA953X
+	select SOC_QCA955X
 	select ATH79_DEV_ETH
 	select ATH79_DEV_GPIO_BUTTONS
 	select ATH79_DEV_LEDS_GPIO
@@ -939,15 +1024,18 @@ config ATH79_MACH_RBSPI
 	select ATH79_ROUTERBOOT
 	help
 	  Say 'Y' here if you want your kernel to support the
+	  MikroTik RouterBOARD mAP
 	  MikroTik RouterBOARD mAP lite
 	  MikroTik RouterBOARD hAP lite
 	  MikroTik RouterBOARD hAP
+	  MikroTik RouterBOARD hAP ac
+	  MikroTik RouterBOARD hAP ac lite
 	  MikroTik RouterBOARD hEX PoE lite
 	  MikroTik RouterBOARD hEX lite
+	  MikroTik RouterBOARD Powerbox
 	  MikroTik RouterBOARD LHG 5
 	  MikroTik RouterBOARD cAP (EXPERIMENTAL)
-	  MikroTik RouterBOARD mAP (EXPERIMENTAL)
-	  MikroTik RouterBOARD wAP (EXPERIMENTAL)
+	  MikroTik RouterBOARD wAP
 
 config ATH79_MACH_RBSXTLITE
 	bool "MikroTik RouterBOARD SXT Lite"
@@ -1273,6 +1361,26 @@ config ATH79_MACH_BSB
 	select ATH79_DEV_USB
 	select ATH79_DEV_WMAC
 
+config ATH79_MACH_ARCHER_C25_V1
+	bool "TP-LINK Archer C25 v1 support"
+	select SOC_QCA956X
+	select ATH79_DEV_AP9X_PCI if PCI
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_WMAC
+
+config ATH79_MACH_ARCHER_C58_V1
+	bool "TP-LINK Archer C58 v1 support"
+	select SOC_QCA956X
+	select ATH79_DEV_AP9X_PCI if PCI
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_WMAC
+
 config ATH79_MACH_ARCHER_C59_V1
 	bool "TP-LINK Archer C59 v1 support"
 	select SOC_QCA956X
@@ -1297,12 +1405,22 @@ config ATH79_MACH_ARCHER_C60_V1
 config ATH79_MACH_ARCHER_C7
 	bool "TP-LINK Archer C5/C7/TL-WDR4900 v2 board support"
 	select SOC_QCA955X
+	select SOC_QCA956X
 	select ATH79_DEV_AP9X_PCI if PCI
 	select ATH79_DEV_ETH
 	select ATH79_DEV_GPIO_BUTTONS
 	select ATH79_DEV_LEDS_GPIO
 	select ATH79_DEV_M25P80
 	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
+config ATH79_MACH_CPE505N
+	bool "P&W CPE505N support"
+	select SOC_QCA953X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
 	select ATH79_DEV_WMAC
 
 config ATH79_MACH_CPE510
@@ -1372,6 +1490,16 @@ config ATH79_MACH_TL_MR3X20
 	select ATH79_DEV_M25P80
 	select ATH79_DEV_USB
 
+config ATH79_MACH_TL_MR6400
+	bool "TP-LINK TL-MR6400 support"
+	select SOC_QCA953X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
 config ATH79_MACH_TL_WAX50RE
 	bool "TP-LINK TL-WA750/850RE support"
 	select SOC_AR934X
@@ -1422,6 +1550,15 @@ config ATH79_MACH_TL_WA830RE_V2
 
 config ATH79_MACH_TL_WA850RE_V2
 	bool "TP-LINK TL-WA850RE v2 support"
+	select SOC_QCA953X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_WMAC
+
+config ATH79_MACH_TL_WA855RE_V1
+	bool "TP-LINK TL-WA855RE V1 support"
 	select SOC_QCA953X
 	select ATH79_DEV_ETH
 	select ATH79_DEV_GPIO_BUTTONS
@@ -1565,6 +1702,24 @@ config ATH79_MACH_TL_WR810N
 	select ATH79_DEV_USB
 	select ATH79_DEV_WMAC
 
+config ATH79_MACH_TL_WR810N_V2
+	bool "TP-LINK TL-WR810N v2 support"
+	select SOC_QCA953X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_WMAC
+
+config ATH79_MACH_TL_WR840N_V2
+	bool "TP-LINK TL-WR840N v2/v3 support"
+	select SOC_QCA953X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_WMAC
+
 config ATH79_MACH_TL_WR841N_V1
 	bool "TP-LINK TL-WR841N v1 support"
 	select SOC_AR71XX
@@ -1585,8 +1740,19 @@ config ATH79_MACH_TL_WR841N_V8
 	select ATH79_DEV_WMAC
 
 config ATH79_MACH_TL_WR841N_V9
-	bool "TP-LINK TL-WR841N/ND v9/TL-WR842N/ND v3 support"
+	bool "TP-LINK TL-WR841N/ND v9/TL-WR842N/ND v3/TL-WR740N/ND v6 support"
 	select SOC_QCA953X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
+config ATH79_MACH_TL_WR902AC_V1
+	bool "TP-LINK TL-WR902AC v1 support"
+	select SOC_QCA953X
+	select ATH79_DEV_AP9X_PCI if PCI
 	select ATH79_DEV_ETH
 	select ATH79_DEV_GPIO_BUTTONS
 	select ATH79_DEV_LEDS_GPIO
@@ -1622,6 +1788,17 @@ config ATH79_MACH_TL_WR940N_V4
 	select ATH79_DEV_M25P80
 	select ATH79_DEV_WMAC
 
+config ATH79_MACH_TL_WR942N_V1
+	bool "TP-LINK TL-WR942N v1 support"
+	select SOC_QCA956X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+	select ATH79_NVRAM
+
 config ATH79_MACH_TL_WR1041N_V2
 	bool "TP-LINK TL-WR1041N v2 support"
 	select SOC_AR934X
@@ -1631,6 +1808,15 @@ config ATH79_MACH_TL_WR1041N_V2
 	select ATH79_DEV_LEDS_GPIO
 	select ATH79_DEV_M25P80
 	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
+config ATH79_MACH_TL_WR1043N_V5
+	bool "TP-LINK TL-WR1043N v5 support"
+	select SOC_QCA956X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
 	select ATH79_DEV_WMAC
 
 config ATH79_MACH_TL_WR1043ND
@@ -1732,7 +1918,7 @@ config ATH79_MACH_UBNT
 	select ATH79_DEV_USB
 
 config ATH79_MACH_UBNT_UNIFIAC
-	bool "Ubiquiti UniFi AC (LITE/LR/PRO) support"
+	bool "Ubiquiti UniFi AC (LITE/LR/MESH/PRO) support"
 	select SOC_QCA956X
 	select ATH79_DEV_AP9X_PCI if PCI
 	select ATH79_DEV_ETH
@@ -1855,6 +2041,16 @@ config ATH79_MACH_LIMA
 	select ATH79_DEV_WMAC
 	select ATH79_DEV_ETH
 
+config ATH79_MACH_RAMBUTAN
+	bool "8devices Rambutan board"
+	select SOC_QCA955X
+	select ATH79_DEV_AP9X_PCI if PCI
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_NFC
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
 config ATH79_MACH_CF_E316N_V2
 	bool "COMFAST CF-E316N v2 support"
 	select SOC_AR934X
@@ -1873,6 +2069,14 @@ config ATH79_MACH_CF_E320N_V2
 	select ATH79_DEV_LEDS_GPIO
 	select ATH79_DEV_M25P80
 	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
+config ATH79_MACH_CF_E355AC
+	bool "COMFAST CF-E355AC support"
+	select SOC_QCA953X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_AP9X_PCI if PCI
 	select ATH79_DEV_WMAC
 
 config ATH79_MACH_CF_E380AC_V1
@@ -1957,3 +2161,12 @@ config ATH79_MACH_TL_WPA8630
 	select ATH79_DEV_LEDS_GPIO
 	select ATH79_DEV_M25P80
 	select ATH79_DEV_WMAC
+
+config ATH79_MACH_FRITZ300E
+	bool "AVM FRITZ!WLAN Repeater 300E support"
+	select SOC_AR724X
+	select ATH79_DEV_AP9X_PCI if PCI
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80

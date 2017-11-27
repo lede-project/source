@@ -104,7 +104,9 @@ ifneq ($(TARGET_BUILD)$(if $(DUMP),,1),)
 endif
 
 GENERIC_PLATFORM_DIR := $(TOPDIR)/target/linux/generic
-GENERIC_PATCH_DIR := $(GENERIC_PLATFORM_DIR)/patches$(if $(wildcard $(GENERIC_PLATFORM_DIR)/patches-$(KERNEL_PATCHVER)),-$(KERNEL_PATCHVER))
+GENERIC_BACKPORT_DIR := $(GENERIC_PLATFORM_DIR)/backport$(if $(wildcard $(GENERIC_PLATFORM_DIR)/backport-$(KERNEL_PATCHVER)),-$(KERNEL_PATCHVER))
+GENERIC_PATCH_DIR := $(GENERIC_PLATFORM_DIR)/pending$(if $(wildcard $(GENERIC_PLATFORM_DIR)/pending-$(KERNEL_PATCHVER)),-$(KERNEL_PATCHVER))
+GENERIC_HACK_DIR := $(GENERIC_PLATFORM_DIR)/hack$(if $(wildcard $(GENERIC_PLATFORM_DIR)/hack-$(KERNEL_PATCHVER)),-$(KERNEL_PATCHVER))
 GENERIC_FILES_DIR := $(foreach dir,$(wildcard $(GENERIC_PLATFORM_DIR)/files $(GENERIC_PLATFORM_DIR)/files-$(KERNEL_PATCHVER)),"$(dir)")
 
 __config_name_list = $(1)/config-$(KERNEL_PATCHVER) $(1)/config-default
@@ -203,13 +205,17 @@ ifeq ($(DUMP),1)
     CPU_CFLAGS_440:=-mcpu=440
     CPU_CFLAGS_464fp:=-mcpu=464fp
   endif
+  ifeq ($(ARCH),powerpc64)
+    CPU_TYPE ?= powerpc64
+    CPU_CFLAGS_powerpc64:=-mcpu=powerpc64
+  endif
   ifeq ($(ARCH),sparc)
     CPU_TYPE = sparc
     CPU_CFLAGS_ultrasparc = -mcpu=ultrasparc
   endif
   ifeq ($(ARCH),aarch64)
-    CPU_TYPE ?= armv8-a
-    CPU_CFLAGS_armv8-a = -mcpu=armv8-a
+    CPU_TYPE ?= generic
+    CPU_CFLAGS_generic = -mcpu=generic
     CPU_CFLAGS_cortex-a53 = -mcpu=cortex-a53
   endif
   ifeq ($(ARCH),arc)
@@ -217,6 +223,11 @@ ifeq ($(DUMP),1)
     CPU_CFLAGS += -matomic
     CPU_CFLAGS_arc700 = -mcpu=arc700
     CPU_CFLAGS_archs = -mcpu=archs
+  endif
+  ifneq ($(CPU_TYPE),)
+    ifndef CPU_CFLAGS_$(CPU_TYPE)
+      $(warning CPU_TYPE "$(CPU_TYPE)" doesn't correspond to a known type)
+    endif
   endif
   DEFAULT_CFLAGS=$(strip $(CPU_CFLAGS) $(CPU_CFLAGS_$(CPU_TYPE)) $(CPU_CFLAGS_$(CPU_SUBTYPE)))
 
@@ -258,7 +269,9 @@ ifeq ($(DUMP),1)
       FEATURES += virtio
     endif
     ifneq ($(CONFIG_CPU_MIPS32_R2),)
-      FEATURES += mips16
+      ifneq ($(CPU_SUBTYPE),nomips16)
+        FEATURES += mips16
+      endif
     endif
     FEATURES += $(foreach v,6 7,$(if $(CONFIG_CPU_V$(v)),arm_v$(v)))
 

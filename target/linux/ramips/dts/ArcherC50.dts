@@ -1,11 +1,12 @@
 /dts-v1/;
-#include <dt-bindings/input/input.h>
-#include <dt-bindings/gpio/gpio.h>
 
 #include "mt7620a.dtsi"
 
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/gpio/gpio.h>
+
 / {
-	compatible = "ralink,mt7620a-soc";
+	compatible = "tplink,c50", "ralink,mt7620a-soc";
 	model = "TP-Link Archer C50";
 
 	chosen {
@@ -22,7 +23,8 @@
 
 		power {
 			label = "c50:green:power";
-			gpios = <&gpio0 7 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio0 7 GPIO_ACTIVE_LOW>;
+			default-state = "on";
 		};
 
 		usb {
@@ -32,7 +34,7 @@
 
 		wan {
 			label = "c50:green:wan";
-			gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
 		};
 
 		wan_orange {
@@ -140,11 +142,6 @@
 			ralink,group = "i2c", "uartf", "rgmii1", "rgmii2", "wled", "ephy", "spi refclk", "mdio", "wdt", "nd_sd";
 			ralink,function = "gpio";
 		};
-
-		pa {
-			ralink,group = "pa";
-			ralink,function = "pa";
-		};
 	};
 };
 
@@ -168,6 +165,10 @@
 
 &wmac {
 	ralink,mtd-eeprom = <&radio 0>;
+	mtd-mac-address = <&rom 0xf100>;
+	mtd-mac-address-increment = <(-2)>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pa_pins>;
 };
 
 &pcie {

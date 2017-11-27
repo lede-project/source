@@ -8,12 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=util-linux
-PKG_VERSION:=2.28
+PKG_VERSION:=2.30.2
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.28
-PKG_HASH:=395847e2a18a2c317170f238892751e73a57104565344f8644090c8b091014bb
+PKG_SOURCE_URL:=@KERNEL/linux/utils/$(PKG_NAME)/v2.30
+PKG_HASH:=7b5be5489e9b5b7177832836467aba1c87bf0e9bcbcb5a6f35d76cd4782589dc
+PKG_CPE_ID:=cpe:/a:kernel:util-linux
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=	COPYING					\
@@ -25,15 +26,12 @@ PKG_LICENSE_FILES:=	COPYING					\
 			libuuid/COPYING				\
 			Documentation/licenses/COPYING.BSD-3
 
-PKG_BUILD_PARALLEL:=0
-
-PKG_CONFIG_DEPENDS:= \
-	CONFIG_PACKAGE_cal \
-	CONFIG_PACKAGE_cfdisk \
-	CONFIG_PACKAGE_setterm
+PKG_BUILD_PARALLEL:=1
 
 PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
+
+DISABLE_NLS:=--disable-nls
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -168,6 +166,7 @@ endef
 define Package/dmesg
 $(call Package/util-linux/Default)
   TITLE:=print or control the kernel ring buffer
+  DEPENDS:= +libncursesw
 endef
 
 define Package/dmesg/description
@@ -177,7 +176,7 @@ endef
 define Package/fdisk
 $(call Package/util-linux/Default)
   TITLE:=manipulate disk partition table
-  DEPENDS:= +libblkid +libsmartcols +libfdisk
+  DEPENDS:= +libblkid +libsmartcols +libfdisk +libncursesw
   SUBMENU=Disc
 endef
 
@@ -354,7 +353,7 @@ define Package/sfdisk
 $(call Package/util-linux/Default)
   TITLE:=partition table manipulator for Linux
   SUBMENU=Disc
-  DEPENDS:= +libblkid +libfdisk +libsmartcols
+  DEPENDS:= +libblkid +libfdisk +libsmartcols +libncursesw
 endef
 
 define Package/sfdisk/description
@@ -440,7 +439,8 @@ CONFIGURE_ARGS += \
 	--without-python	\
 	--without-udev		\
 	--without-readline	\
-	$(if $(CONFIG_PACKAGE_cal)$(CONFIG_PACKAGE_cfdisk)$(CONFIG_PACKAGE_setterm),--with-ncurses,--without-ncurses)
+	--disable-more		\
+	--with-ncursesw
 
 TARGET_CFLAGS += $(FPIC) -std=gnu99
 

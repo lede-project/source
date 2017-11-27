@@ -360,8 +360,6 @@ define KernelPackage/nf-nathelper/description
  Default Netfilter (IPv4) Conntrack and NAT helpers
  Includes:
  - ftp
- - irc
- - tftp
 endef
 
 $(eval $(call KernelPackage,nf-nathelper))
@@ -381,11 +379,13 @@ define KernelPackage/nf-nathelper-extra/description
  Includes:
  - amanda
  - h323
+ - irc
  - mms
  - pptp
  - proto_gre
  - sip
  - snmp_basic
+ - tftp
  - broadcast
 endef
 
@@ -528,6 +528,23 @@ define KernelPackage/ipt-u32/description
 endef
 
 $(eval $(call KernelPackage,ipt-u32))
+
+define KernelPackage/ipt-checksum
+  TITLE:=CHECKSUM support
+  KCONFIG:= \
+  	CONFIG_NETFILTER_XT_TARGET_CHECKSUM
+  FILES:= \
+  	$(LINUX_DIR)/net/netfilter/xt_CHECKSUM.ko \
+  	$(foreach mod,$(IPT_CHECKSUM-m),$(LINUX_DIR)/net/$(mod).ko)
+  AUTOLOAD:=$(call AutoProbe,$(notdir $(IPT_CHECKSUM-m)))
+  $(call AddDepends/ipt)
+endef
+
+define KernelPackage/ipt-checksum/description
+  Kernel modules for CHECKSUM fillin target
+endef
+
+$(eval $(call KernelPackage,ipt-checksum))
 
 
 define KernelPackage/ipt-iprange
@@ -835,6 +852,24 @@ define KernelPackage/ipt-hashlimit/description
 endef
 
 $(eval $(call KernelPackage,ipt-hashlimit))
+
+define KernelPackage/ipt-rpfilter
+  SUBMENU:=$(NF_MENU)
+  TITLE:=Netfilter rpfilter match
+  DEPENDS:=+kmod-ipt-core
+  KCONFIG:=$(KCONFIG_IPT_RPFILTER)
+  FILES:=$(realpath \
+	$(LINUX_DIR)/net/ipv4/netfilter/ipt_rpfilter.ko \
+	$(LINUX_DIR)/net/ipv6/netfilter/ip6t_rpfilter.ko)
+  AUTOLOAD:=$(call AutoProbe,ipt_rpfilter ip6t_rpfilter)
+  $(call KernelPackage/ipt)
+endef
+
+define KernelPackage/ipt-rpfilter/description
+ Kernel modules support for the Netfilter rpfilter match
+endef
+
+$(eval $(call KernelPackage,ipt-rpfilter))
 
 
 define KernelPackage/nft-core

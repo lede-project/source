@@ -450,7 +450,7 @@ $(eval $(call KernelPackage,ne2k-pci))
 define KernelPackage/e100
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Intel(R) PRO/100+ cards kernel support
-  DEPENDS:=@PCI_SUPPORT +kmod-mii
+  DEPENDS:=@PCI_SUPPORT +kmod-mii +e100-firmware
   KCONFIG:=CONFIG_E100
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/intel/e100.ko
   AUTOLOAD:=$(call AutoProbe,e100)
@@ -458,13 +458,6 @@ endef
 
 define KernelPackage/e100/description
  Kernel modules for Intel(R) PRO/100+ Ethernet adapters
-endef
-
-define KernelPackage/e100/install
-	$(INSTALL_DIR) $(1)/lib/firmware/e100
-	$(INSTALL_DATA) $(LINUX_DIR)/firmware/e100/d101m_ucode.bin $(1)/lib/firmware/e100/
-	$(INSTALL_DATA) $(LINUX_DIR)/firmware/e100/d101s_ucode.bin $(1)/lib/firmware/e100/
-	$(INSTALL_DATA) $(LINUX_DIR)/firmware/e100/d102e_ucode.bin $(1)/lib/firmware/e100/
 endef
 
 $(eval $(call KernelPackage,e100))
@@ -520,6 +513,62 @@ define KernelPackage/igb/description
 endef
 
 $(eval $(call KernelPackage,igb))
+
+
+define KernelPackage/igbvf
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Intel(R) 82576 Virtual Function Ethernet support
+  DEPENDS:=@PCI_SUPPORT @TARGET_x86 +kmod-i2c-core +kmod-i2c-algo-bit +kmod-ptp
+  KCONFIG:=CONFIG_IGBVF \
+    CONFIG_IGB_HWMON=n \
+    CONFIG_IGB_DCA=n
+  FILES:=$(LINUX_DIR)/drivers/net/ethernet/intel/igbvf/igbvf.ko
+  AUTOLOAD:=$(call AutoLoad,35,igbvf)
+endef
+
+define KernelPackage/igbvf/description
+ Kernel modules for Intel(R) 82576 Virtual Function Ethernet adapters.
+endef
+
+$(eval $(call KernelPackage,igbvf))
+
+
+define KernelPackage/ixgbe
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Intel(R) 82598/82599 PCI-Express 10 Gigabit Ethernet support
+  DEPENDS:=@PCI_SUPPORT +kmod-mdio +kmod-ptp
+  KCONFIG:=CONFIG_IXGBE \
+    CONFIG_IXGBE_VXLAN=n \
+    CONFIG_IXGBE_HWMON=n \
+    CONFIG_IXGBE_DCA=n
+  FILES:=$(LINUX_DIR)/drivers/net/ethernet/intel/ixgbe/ixgbe.ko
+  AUTOLOAD:=$(call AutoLoad,35,ixgbe)
+endef
+
+define KernelPackage/ixgbe/description
+ Kernel modules for Intel(R) 82598/82599 PCI-Express 10 Gigabit Ethernet adapters.
+endef
+
+$(eval $(call KernelPackage,ixgbe))
+
+
+define KernelPackage/ixgbevf
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Intel(R) 82599 Virtual Function Ethernet support
+  DEPENDS:=@PCI_SUPPORT +kmod-ixgbe
+  KCONFIG:=CONFIG_IXGBEVF \
+    CONFIG_IXGBE_VXLAN=n \
+    CONFIG_IXGBE_HWMON=n \
+    CONFIG_IXGBE_DCA=n
+  FILES:=$(LINUX_DIR)/drivers/net/ethernet/intel/ixgbevf/ixgbevf.ko
+  AUTOLOAD:=$(call AutoLoad,35,ixgbevf)
+endef
+
+define KernelPackage/ixgbevf/description
+ Kernel modules for Intel(R) 82599 Virtual Function Ethernet adapters.
+endef
+
+$(eval $(call KernelPackage,ixgbevf))
 
 
 define KernelPackage/b44

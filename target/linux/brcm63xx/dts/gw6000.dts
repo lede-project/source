@@ -21,8 +21,35 @@
 
 		reset {
 			label = "reset";
-			gpios = <&gpio1 4 1>;
+			gpios = <&pinctrl 36 1>;
 			linux,code = <KEY_RESTART>;
 		};
 	};
+};
+
+&pflash {
+	status = "ok";
+
+	linux,part-probe = "bcm63xxpart";
+
+	cfe@0 {
+		label = "CFE";
+		reg = <0x000000 0x010000>;
+		read-only;
+	};
+
+	linux@10000 {
+		label = "linux";
+		reg = <0x010000 0x3e0000>;
+	};
+
+	nvram@3f0000 {
+		label = "nvram";
+		reg = <0x3f0000 0x010000>;
+	};
+};
+
+&pinctrl {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pci &pinctrl_ext_mii>;
 };

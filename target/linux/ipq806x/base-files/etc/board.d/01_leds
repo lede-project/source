@@ -4,11 +4,10 @@
 #
 
 . /lib/functions/uci-defaults.sh
-. /lib/ipq806x.sh
 
 board_config_update
 
-board=$(ipq806x_board_name)
+board=$(board_name)
 
 case "$board" in
 c2600)
@@ -25,6 +24,11 @@ r7800)
 	ucidef_set_led_usbport "usb2" "USB 2" "${board}:white:usb2" "usb3-port1" "usb4-port1"
 	ucidef_set_led_netdev "wan" "WAN" "${board}:white:wan" "eth0"
 	ucidef_set_led_ide "esata" "eSATA" "${board}:white:esata"
+	;;
+fritz4040)
+	ucidef_set_led_wlan "wlan" "WLAN" "$board:green:wlan" "phy0tpt" "phy1tpt"
+	ucidef_set_led_netdev "wan" "WAN" "$board:green:wan" "eth1"
+	ucidef_set_led_switch "lan" "LAN" "${board}:green:lan" "switch0" "0x1e"
 	;;
 nbg6817)
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "$board:amber:wifi2g" "phy1tpt"

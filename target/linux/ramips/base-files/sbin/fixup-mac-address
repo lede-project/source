@@ -7,7 +7,7 @@ offset=""
 NEW_MAC=
 YES=
 
-board=$(ramips_board_name)
+board=$(board_name)
 case $board in
 	witi)
 		partname=factory

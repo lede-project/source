@@ -48,8 +48,8 @@
 #define WPJ344_KEYS_POLL_INTERVAL	20	/* msecs */
 #define WPJ344_KEYS_DEBOUNCE_INTERVAL	(3 * WPJ344_KEYS_POLL_INTERVAL)
 
-#define WPJ344_MAC0_OFFSET		0
-#define WPJ344_MAC1_OFFSET		6
+#define WPJ344_MAC0_OFFSET		0x10
+#define WPJ344_MAC1_OFFSET		0x18
 #define WPJ344_WMAC_CALDATA_OFFSET	0x1000
 #define WPJ344_PCIE_CALDATA_OFFSET	0x5000
 
@@ -132,6 +132,7 @@ static struct mdio_board_info wpj344_mdio0_info[] = {
 static void __init wpj344_setup(void)
 {
 	u8 *art = (u8 *) KSEG1ADDR(0x1fff0000);
+	u8 *mac = (u8 *) KSEG1ADDR(0x1f02e000);
 
 	ath79_register_m25p80(NULL);
 	ath79_register_leds_gpio(-1, ARRAY_SIZE(wpj344_leds_gpio),
@@ -149,11 +150,9 @@ static void __init wpj344_setup(void)
 	mdiobus_register_board_info(wpj344_mdio0_info,
 					ARRAY_SIZE(wpj344_mdio0_info));
 
-	ath79_register_mdio(1, 0x0);
 	ath79_register_mdio(0, 0x0);
 
-	ath79_init_mac(ath79_eth0_data.mac_addr, art + WPJ344_MAC0_OFFSET, 0);
-	ath79_init_mac(ath79_eth1_data.mac_addr, art + WPJ344_MAC1_OFFSET, 0);
+	ath79_init_mac(ath79_eth0_data.mac_addr, mac + WPJ344_MAC0_OFFSET, 0);
 
 	ath79_setup_ar934x_eth_cfg(AR934X_ETH_CFG_RGMII_GMAC0 |
 				   AR934X_ETH_CFG_SW_ONLY_MODE);
@@ -164,13 +163,7 @@ static void __init wpj344_setup(void)
 	ath79_eth0_data.mii_bus_dev = &ath79_mdio0_device.dev;
 	ath79_eth0_pll_data.pll_1000 = 0x06000000;
 
-	/* GMAC1 is connected to the internal switch */
-	ath79_eth1_data.phy_if_mode = PHY_INTERFACE_MODE_GMII;
-	ath79_eth1_data.speed = SPEED_1000;
-	ath79_eth1_data.duplex = DUPLEX_FULL;
-
 	ath79_register_eth(0);
-	ath79_register_eth(1);
 }
 
 MIPS_MACHINE(ATH79_MACH_WPJ344, "WPJ344", "Compex WPJ344", wpj344_setup);

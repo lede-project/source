@@ -1,6 +1,7 @@
 #include "qcom-ipq8064-v1.0.dtsi"
 
 #include <dt-bindings/input/input.h>
+#include <dt-bindings/soc/qcom,tcsr.h>
 
 / {
 	model = "Netgear Nighthawk X4 R7500";
@@ -132,26 +133,32 @@
 		};
 
 		phy@100f8800 {		/* USB3 port 1 HS phy */
+			clocks = <&gcc USB30_0_UTMI_CLK>;
 			status = "ok";
 		};
 
 		phy@100f8830 {		/* USB3 port 1 SS phy */
+			clocks = <&gcc USB30_0_MASTER_CLK>;
 			status = "ok";
 		};
 
 		phy@110f8800 {		/* USB3 port 0 HS phy */
+			clocks = <&gcc USB30_1_UTMI_CLK>;
 			status = "ok";
 		};
 
 		phy@110f8830 {		/* USB3 port 0 SS phy */
+			clocks = <&gcc USB30_1_MASTER_CLK>;
 			status = "ok";
 		};
 
 		usb30@0 {
+			clocks = <&gcc USB30_1_MASTER_CLK>;
 			status = "ok";
 		};
 
 		usb30@1 {
+			clocks = <&gcc USB30_0_MASTER_CLK>;
 			status = "ok";
 		};
 
@@ -374,6 +381,11 @@
 			gpios = <&qcom_pinmux 64 GPIO_ACTIVE_HIGH>;
 		};
 	};
+};
+
+&tcsr {
+	qcom,usb-ctrl-select = <TCSR_USB_SELECT_USB3_DUAL>;
+	compatible = "qcom,tcsr";
 };
 
 &adm_dma {

@@ -18,11 +18,12 @@
 #include <dt-bindings/gpio/gpio.h>
 
 / {
-	model = "MediaTek MT7623 eMMC evaluation board";
-	compatible = "mediatek,mt7623-evb", "mediatek,mt7623";
+	model = "MediaTek MT7623 eMMC reference board";
+	compatible = "mediatek,mt7623-rfb-emmc", "mediatek,mt7623";
 
 	chosen {
 		stdout-path = &uart2;
+		bootargs = "earlyprintk block2mtd.block2mtd=/dev/mmcblk0,65536,eMMC,5 mtdparts=eMMC:256k(mbr)ro,512k(uboot)ro,256k(config)ro,256k(factory)ro,32M(kernel),32M(recovery),1024M(rootfs),2048M(usrdata),-(bmtpool) rootfstype=squashfs,jffs2";
 	};
 
 	memory {
@@ -36,6 +37,61 @@
 		regulator-max-microvolt = <5000000>;
 		gpio = <&pio 135 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
+	};
+
+	switch {
+		compatible = "mediatek,mt7530";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0>;
+
+		dsa,mii-bus = <&mdio0>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&eth_default>;
+
+		core-supply = <&mt6323_vpa_reg>;
+		io-supply = <&mt6323_vemc3v3_reg>;
+
+		mediatek,mcm;
+		resets = <&ethsys 2>;
+		reset-names = "mcm";
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0>;
+			port@0 {
+				reg = <0>;
+				label = "lan0";
+			};
+
+			port@1 {
+				reg = <1>;
+				label = "lan1";
+			};
+
+			port@2 {
+				reg = <2>;
+				label = "lan2";
+			};
+
+			port@3 {
+				reg = <3>;
+				label = "lan3";
+			};
+
+			port@6 {
+				reg = <6>;
+				label = "cpu";
+				ethernet = <&gmac1>;
+				phy-mode = "trgmii";
+				fixed-link {
+					speed = <1000>;
+					full-duplex;
+				};
+			};
+		};
 	};
 };
 
@@ -427,10 +483,9 @@
 				 <MT7623_PIN_270_G2_RXD1_FUNC_G2_RXD1>,
 				 <MT7623_PIN_271_G2_RXD2_FUNC_G2_RXD2>,
 				 <MT7623_PIN_272_G2_RXD3_FUNC_G2_RXD3>,
-				 <MT7623_PIN_273_ESW_INT_FUNC_ESW_INT>,
 				 <MT7623_PIN_274_G2_RXDV_FUNC_G2_RXDV>;
 		};
-		
+
 		pins_eth_rst {
 			pinmux = <MT7623_PIN_15_GPIO15_FUNC_GPIO15>;
 			output-low;
@@ -474,14 +529,15 @@
 &gmac2 {
 	mac-address = [00 11 22 33 44 55];
 	status = "okay";
+
 	phy-handle = <&phy5>;
 };
 
-&gsw {
-	pinctrl-names = "default";
-	pinctrl-0 = <&eth_default>;
-	mediatek,reset-pin = <&pio 15 0>;
-	status = "okay";
+&mdio0 {
+	phy5: ethernet-phy@5 {
+		reg = <5>;
+		phy-mode = "rgmii-rxid";
+	};
 };
 
 &pwm {

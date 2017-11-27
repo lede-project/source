@@ -44,6 +44,12 @@
 #define MT7530_MAX_VID		4095
 #define MT7530_MIN_VID		0
 
+#define MT7530_PORT_MIB_TXB_ID	2	/* TxGOC */
+#define MT7530_PORT_MIB_RXB_ID	6	/* RxGOC */
+
+#define MT7621_PORT_MIB_TXB_ID	18	/* TxByte */
+#define MT7621_PORT_MIB_RXB_ID	37	/* RxByte */
+
 /* registers */
 #define REG_ESW_VLAN_VTCR		0x90
 #define REG_ESW_VLAN_VAWD1		0x94
@@ -212,6 +218,12 @@ struct mt7530_mapping {
 		.name = "wllll",
 		.pvids = { 2, 1, 1, 1, 1, 1, 1 },
 		.members = { 0, 0x7e, 0x41 },
+		.etags = { 0, 0x40, 0x40 },
+		.vids = { 0, 1, 2 },
+	}, {
+		.name = "lwlll",
+		.pvids = { 1, 2, 1, 1, 1, 1, 1 },
+		.members = { 0, 0x7d, 0x42 },
 		.etags = { 0, 0x40, 0x40 },
 		.vids = { 0, 1, 2 },
 	},
@@ -744,6 +756,34 @@ static int mt7530_sw_get_port_mib(struct switch_dev *dev,
 	return 0;
 }
 
+static int mt7530_get_port_stats(struct switch_dev *dev, int port,
+					struct switch_port_stats *stats)
+{
+	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
+
+	if (port < 0 || port >= MT7530_NUM_PORTS)
+		return -EINVAL;
+
+	stats->tx_bytes = get_mib_counter_port_7620(priv, MT7530_PORT_MIB_TXB_ID, port);
+	stats->rx_bytes = get_mib_counter_port_7620(priv, MT7530_PORT_MIB_RXB_ID, port);
+
+	return 0;
+}
+
+static int mt7621_get_port_stats(struct switch_dev *dev, int port,
+					struct switch_port_stats *stats)
+{
+	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
+
+	if (port < 0 || port >= MT7530_NUM_PORTS)
+		return -EINVAL;
+
+	stats->tx_bytes = get_mib_counter(priv, MT7621_PORT_MIB_TXB_ID, port);
+	stats->rx_bytes = get_mib_counter(priv, MT7621_PORT_MIB_RXB_ID, port);
+
+	return 0;
+}
+
 static const struct switch_attr mt7530_global[] = {
 	{
 		.type = SWITCH_TYPE_INT,
@@ -811,6 +851,7 @@ static const struct switch_dev_ops mt7621_ops = {
 	.get_port_pvid = mt7530_get_port_pvid,
 	.set_port_pvid = mt7530_set_port_pvid,
 	.get_port_link = mt7530_get_port_link,
+	.get_port_stats = mt7621_get_port_stats,
 	.apply_config = mt7530_apply_config,
 	.reset_switch = mt7530_reset_switch,
 };
@@ -833,6 +874,7 @@ static const struct switch_dev_ops mt7530_ops = {
 	.get_port_pvid = mt7530_get_port_pvid,
 	.set_port_pvid = mt7530_set_port_pvid,
 	.get_port_link = mt7530_get_port_link,
+	.get_port_stats = mt7530_get_port_stats,
 	.apply_config = mt7530_apply_config,
 	.reset_switch = mt7530_reset_switch,
 };
@@ -886,7 +928,7 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 
 	/* magic vodoo */
 	if (!IS_ENABLED(CONFIG_SOC_MT7621) && bus && mt7530_r32(mt7530, REG_HWTRAP) !=  0x1117edf) {
-	        dev_info(dev, "fixing up MHWTRAP register - bootloader probably played with it\n");
+		dev_info(dev, "fixing up MHWTRAP register - bootloader probably played with it\n");
 		mt7530_w32(mt7530, REG_HWTRAP, 0x1117edf);
 	}
 	dev_info(dev, "loaded %s driver\n", swdev->name);

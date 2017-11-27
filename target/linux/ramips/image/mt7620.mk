@@ -2,10 +2,7 @@
 # MT7620A Profiles
 #
 
-define Build/tplink-header
-	$(STAGING_DIR_HOST)/bin/mktplinkfw2 -a 0x4 -V "ver. 2.0" -B $(1) \
-		-o $@.new -k $@ -r $(IMAGE_ROOTFS) && mv $@.new $@
-endef
+DEVICE_VARS += TPLINK_FLASHLAYOUT TPLINK_HWID TPLINK_HWREV TPLINK_HWREVADD TPLINK_HVERSION
 
 define Build/elecom-header
 	cp $@ $(KDIR)/v_0.0.0.bin
@@ -13,7 +10,9 @@ define Build/elecom-header
 		mkhash md5 $(KDIR)/v_0.0.0.bin && \
 		echo 458 \
 	) | mkhash md5 > $(KDIR)/v_0.0.0.md5
-	$(STAGING_DIR_HOST)/bin/tar -cf $@ -C $(KDIR) v_0.0.0.bin v_0.0.0.md5
+	$(STAGING_DIR_HOST)/bin/tar -c \
+		$(if $(SOURCE_DATE_EPOCH),--mtime=@$(SOURCE_DATE_EPOCH)) \
+		-f $@ -C $(KDIR) v_0.0.0.bin v_0.0.0.md5
 endef
 
 define Build/zyimage
@@ -28,36 +27,74 @@ define Device/ai-br100
 endef
 TARGET_DEVICES += ai-br100
 
+define Device/Archer
+  TPLINK_HWREVADD := 0
+  TPLINK_HVERSION := 3
+  KERNEL := $(KERNEL_DTB)
+  KERNEL_INITRAMFS := $(KERNEL_DTB) | tplink-v2-header -e
+  IMAGE/factory.bin := tplink-v2-image -e
+  IMAGE/sysupgrade.bin := tplink-v2-image -s -e | append-metadata
+endef
+
+define Device/ArcherC20
+  $(Device/Archer)
+  DTS := ArcherC20
+  SUPPORTED_DEVICES := c20
+  TPLINK_FLASHLAYOUT := 8Mmtk
+  TPLINK_HWID := 0xc2000001
+  TPLINK_HWREV := 0x44
+  TPLINK_HWREVADD := 0x1
+  IMAGES += factory.bin
+  DEVICE_TITLE := TP-Link ArcherC20
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += ArcherC20
+
 define Device/ArcherC20i
+  $(Device/Archer)
   DTS := ArcherC20i
   SUPPORTED_DEVICES := c20i
-  KERNEL := $(KERNEL_DTB)
-  KERNEL_INITRAMFS := $(KERNEL_DTB) | tplink-header ArcherC20i -c
-  IMAGE/sysupgrade.bin := append-kernel | tplink-header ArcherC20i -j | append-metadata
+  TPLINK_FLASHLAYOUT := 8Mmtk
+  TPLINK_HWID := 0xc2000001
+  TPLINK_HWREV := 58
+  IMAGES += factory.bin
   DEVICE_TITLE := TP-Link ArcherC20i
 endef
 TARGET_DEVICES += ArcherC20i
 
-define Device/ArcherC50
+define Device/ArcherC50v1
+  $(Device/Archer)
   DTS := ArcherC50
   SUPPORTED_DEVICES := c50
-  KERNEL := $(KERNEL_DTB)
-  KERNEL_INITRAMFS := $(KERNEL_DTB) | tplink-header ArcherC50 -c
-  IMAGE/sysupgrade.bin := append-kernel | tplink-header ArcherC50 -j | append-metadata
-  DEVICE_TITLE := TP-Link ArcherC50
+  TPLINK_FLASHLAYOUT := 8Mmtk
+  TPLINK_HWID := 0xc7500001
+  TPLINK_HWREV := 69
+  IMAGES += factory-us.bin factory-eu.bin
+  IMAGE/factory-us.bin := tplink-v2-image -e -w 0
+  IMAGE/factory-eu.bin := tplink-v2-image -e -w 2
+  DEVICE_TITLE := TP-Link ArcherC50v1
 endef
-TARGET_DEVICES += ArcherC50
+TARGET_DEVICES += ArcherC50v1
 
 define Device/ArcherMR200
+  $(Device/Archer)
   DTS := ArcherMR200
   SUPPORTED_DEVICES := mr200
-  KERNEL := $(KERNEL_DTB)
-  KERNEL_INITRAMFS := $(KERNEL_DTB) | tplink-header ArcherMR200 -c
-  IMAGE/sysupgrade.bin := append-kernel | tplink-header ArcherMR200 -j | append-metadata
-  DEVICE_PACKAGES := kmod-usb2 kmod-usb-net kmod-usb-net-rndis kmod-usb-serial kmod-usb-serial-option adb
+  TPLINK_FLASHLAYOUT := 8MLmtk
+  TPLINK_HWID := 0xd7500001
+  TPLINK_HWREV := 0x4a
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-net kmod-usb-net-rndis kmod-usb-serial kmod-usb-serial-option adb-enablemodem
   DEVICE_TITLE := TP-Link ArcherMR200
 endef
 TARGET_DEVICES += ArcherMR200
+
+define Device/c108
+  DTS := C108
+  IMAGE_SIZE := 16777216
+  DEVICE_TITLE := HNET C108
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-sdhci-mt7620
+endef
+TARGET_DEVICES += c108
 
 define Device/cf-wr800n
   DTS := CF-WR800N
@@ -68,7 +105,9 @@ TARGET_DEVICES += cf-wr800n
 define Device/cs-qr10
   DTS := CS-QR10
   DEVICE_TITLE := Planex CS-QR10
-  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-i2c-core kmod-i2c-ralink kmod-sound-core kmod-sound-mtk kmod-sdhci-mt7620
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci \
+	kmod-sound-core kmod-sound-mt7620 \
+	kmod-i2c-ralink kmod-sdhci-mt7620
 endef
 TARGET_DEVICES += cs-qr10
 
@@ -102,7 +141,7 @@ define Device/dch-m225
 	seama-seal -m "signature=wapn22_dlink.2013gui_dap1320b" | \
 	check-size $$$$(IMAGE_SIZE)
   DEVICE_TITLE := D-Link DCH-M225
-  DEVICE_PACKAGES := kmod-mt76
+  DEVICE_PACKAGES := kmod-mt76 kmod-sound-core kmod-sound-mt7620 kmod-i2c-ralink
 endef
 TARGET_DEVICES += dch-m225
 
@@ -137,17 +176,18 @@ define Device/ex2700
 endef
 TARGET_DEVICES += ex2700
 
-define Device/ex3700
+define Device/ex3700-ex3800
   NETGEAR_BOARD_ID := U12H319T00_NETGEAR
   DTS := EX3700
   BLOCKSIZE := 4k
   IMAGE_SIZE := 7744k
-  IMAGES += factory.bin
-  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | netgear-chk
+  IMAGES += factory.chk
+  IMAGE/factory.chk := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | netgear-chk
   DEVICE_PACKAGES := -kmod-mt76 kmod-mt76x2
-  DEVICE_TITLE := Netgear EX3700
+  DEVICE_TITLE := Netgear EX3700/EX3800
+  SUPPORTED_DEVICES := ex3700
 endef
-TARGET_DEVICES += ex3700
+TARGET_DEVICES += ex3700-ex3800
 
 define Device/gl-mt300a
   DTS := GL-MT300A
@@ -156,6 +196,13 @@ define Device/gl-mt300a
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-mt76
 endef
 TARGET_DEVICES += gl-mt300a
+
+define Device/u25awf-h1
+  DTS := U25AWF-H1
+  IMAGE_SIZE := 16064k
+  DEVICE_TITLE := Kimax U25AWF-H1
+endef
+TARGET_DEVICES += u25awf-h1
 
 define Device/gl-mt300n
   DTS := GL-MT300N
@@ -322,12 +369,21 @@ define Device/psg1208
 endef
 TARGET_DEVICES += psg1208
 
-define Device/psg1218
-  DTS := PSG1218
-  DEVICE_TITLE := Phicomm PSG1218
-  DEVICE_PACKAGES := kmod-mt76
+define Device/psg1218a
+  DTS := PSG1218A
+  DEVICE_TITLE := Phicomm PSG1218 rev.Ax
+  DEVICE_PACKAGES := kmod-mt76x2
+  SUPPORTED_DEVICES += psg1218
 endef
-TARGET_DEVICES += psg1218
+TARGET_DEVICES += psg1218a
+
+define Device/psg1218b
+  DTS := PSG1218B
+  DEVICE_TITLE := Phicomm PSG1218 rev.Bx
+  DEVICE_PACKAGES := kmod-mt76x2
+  SUPPORTED_DEVICES += psg1218
+endef
+TARGET_DEVICES += psg1218b
 
 define Device/rp-n53
   DTS := RP-N53
@@ -340,6 +396,14 @@ define Device/rt-n14u
   DEVICE_TITLE := Asus RT-N14u
 endef
 TARGET_DEVICES += rt-n14u
+
+define Device/rt-ac51u
+  DTS := RT-AC51U
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := Asus RT-AC51U
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ehci kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += rt-ac51u
 
 define Device/tiny-ac
   DTS := TINY-AC
@@ -411,6 +475,7 @@ define Device/wt3020-4M
   BLOCKSIZE := 4k
   IMAGE_SIZE := $(ralink_default_fw_size_4M)
   IMAGES += factory.bin
+  SUPPORTED_DEVICES += wt3020
   IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
 	poray-header -B WT3020 -F 4M
   DEVICE_TITLE := Nexx WT3020 (4MB)
@@ -420,9 +485,11 @@ TARGET_DEVICES += wt3020-4M
 define Device/wt3020-8M
   DTS := WT3020-8M
   IMAGES += factory.bin
+  SUPPORTED_DEVICES += wt3020
   IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
 	poray-header -B WT3020 -F 8M
   DEVICE_TITLE := Nexx WT3020 (8MB)
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci
 endef
 TARGET_DEVICES += wt3020-8M
 
@@ -442,10 +509,20 @@ TARGET_DEVICES += y1s
 
 define Device/youku-yk1
   DTS := YOUKU-YK1
-  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  IMAGE_SIZE := $(ralink_default_fw_size_32M)
   DEVICE_TITLE := YOUKU YK1
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-sdhci-mt7620 kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += youku-yk1
+
+define Device/we1026-5g-16m
+  DTS := WE1026-5G-16M
+  IMAGE_SIZE := 16777216
+  SUPPORTED_DEVICES += we1026-5g-16m
+  DEVICE_TITLE := Zbtlink ZBT-WE1026-5G (16M)
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-mt76 kmod-sdhci-mt7620
+endef
+TARGET_DEVICES += we1026-5g-16m
 
 define Device/zbt-ape522ii
   DTS := ZBT-APE522II
@@ -473,13 +550,22 @@ define Device/zbt-we2026
 endef
 TARGET_DEVICES += zbt-we2026
 
-define Device/zbt-we826
-  DTS := ZBT-WE826
+define Device/zbt-we826-16M
+  DTS := ZBT-WE826-16M
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
-  DEVICE_TITLE := Zbtlink ZBT-WE826
+  SUPPORTED_DEVICES += zbt-we826
+  DEVICE_TITLE := Zbtlink ZBT-WE826 (16M)
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-mt76 kmod-sdhci-mt7620 
 endef
-TARGET_DEVICES += zbt-we826
+TARGET_DEVICES += zbt-we826-16M
+
+define Device/zbt-we826-32M
+  DTS := ZBT-WE826-32M
+  IMAGE_SIZE := $(ralink_default_fw_size_32M)
+  DEVICE_TITLE := Zbtlink ZBT-WE826 (32M)
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-mt76 kmod-sdhci-mt7620
+endef
+TARGET_DEVICES += zbt-we826-32M
 
 define Device/zbt-wr8305rt
   DTS := ZBT-WR8305RT

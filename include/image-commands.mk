@@ -44,6 +44,11 @@ define Build/buffalo-dhp-image
 	mv $@.new $@
 endef
 
+define Build/eva-image
+	$(STAGING_DIR_HOST)/bin/lzma2eva $(KERNEL_LOADADDR) $(KERNEL_LOADADDR) $@ $@.new
+	mv $@.new $@
+endef
+
 define Build/netgear-chk
 	$(STAGING_DIR_HOST)/bin/mkchkimg \
 		-o $@.new \
@@ -62,6 +67,16 @@ define Build/netgear-dni
 	mv $@.new $@
 endef
 
+define Build/append-squashfs-fakeroot-be
+	rm -rf $@.fakefs $@.fakesquashfs
+	mkdir $@.fakefs
+	$(STAGING_DIR_HOST)/bin/mksquashfs-lzma \
+		$@.fakefs $@.fakesquashfs \
+		-noappend -root-owned -be -nopad -b 65536 \
+		$(if $(SOURCE_DATE_EPOCH),-fixed-time $(SOURCE_DATE_EPOCH))
+	cat $@.fakesquashfs >> $@
+endef
+
 # append a fake/empty rootfs uImage header, to fool the bootloaders
 # rootfs integrity check
 define Build/append-uImage-fakeroot-hdr
@@ -76,7 +91,7 @@ endef
 
 define Build/tplink-safeloader
        -$(STAGING_DIR_HOST)/bin/tplink-safeloader \
-		-B $(TPLINK_BOARD_NAME) \
+		-B $(TPLINK_BOARD_ID) \
 		-V $(REVISION) \
 		-k $(IMAGE_KERNEL) \
 		-r $@ \
@@ -87,8 +102,7 @@ define Build/tplink-safeloader
 endef
 
 define Build/append-dtb
-	$(call Image/BuildDTB,$(if $(DEVICE_DTS_DIR),$(DEVICE_DTS_DIR),$(DTS_DIR))/$(DEVICE_DTS).dts,$@.dtb)
-	cat $@.dtb >> $@
+	cat $(KDIR)/image-$(firstword $(DEVICE_DTS)).dtb >> $@
 endef
 
 define Build/install-dtb
@@ -97,6 +111,11 @@ define Build/install-dtb
 			$(DTS_DIR)/$(dts).dtb \
 			$(BIN_DIR)/$(IMG_PREFIX)-$(dts).dtb; \
 	)
+endef
+
+define Build/install-zImage
+    $(CP) $(KDIR)/zImage \
+      $(BIN_DIR)/$(IMG_PREFIX)-$(PROFILE_SANITIZED)-zImage
 endef
 
 define Build/fit
@@ -216,6 +235,35 @@ define Build/sysupgrade-tar
 		--kernel $(call param_get_default,kernel,$(1),$(IMAGE_KERNEL)) \
 		--rootfs $(call param_get_default,rootfs,$(1),$(IMAGE_ROOTFS)) \
 		$@
+endef
+
+define Build/tplink-v1-header
+	$(STAGING_DIR_HOST)/bin/mktplinkfw \
+		-c -H $(TPLINK_HWID) -W $(TPLINK_HWREV) -L $(KERNEL_LOADADDR) \
+		-E $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
+		-m $(TPLINK_HEADER_VERSION) -N "$(VERSION_DIST)" -V $(REVISION) \
+		-k $@ -o $@.new $(1)
+	@mv $@.new $@
+endef
+
+define Build/tplink-v2-header
+	$(STAGING_DIR_HOST)/bin/mktplinkfw2 \
+		-c -H $(TPLINK_HWID) -W $(TPLINK_HWREV) -L $(KERNEL_LOADADDR) \
+		-E $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR))  \
+		-w $(TPLINK_HWREVADD) -F "$(TPLINK_FLASHLAYOUT)" \
+		-T $(TPLINK_HVERSION) -V "ver. 2.0" \
+		-k $@ -o $@.new $(1)
+	@mv $@.new $@
+endef
+
+define Build/tplink-v2-image
+	$(STAGING_DIR_HOST)/bin/mktplinkfw2 \
+		-H $(TPLINK_HWID) -W $(TPLINK_HWREV) \
+		-w $(TPLINK_HWREVADD) -F "$(TPLINK_FLASHLAYOUT)" \
+		-T $(TPLINK_HVERSION) -V "ver. 2.0" -a 0x4 -j \
+		-k $(IMAGE_KERNEL) -r $(IMAGE_ROOTFS) -o $@.new $(1)
+	cat $@.new >> $@
+	rm -rf $@.new
 endef
 
 json_quote=$(subst ','\'',$(subst ",\",$(1)))

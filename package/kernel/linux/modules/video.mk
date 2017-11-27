@@ -47,7 +47,7 @@ define KernelPackage/backlight-pwm
 	AUTOLOAD:=$(call AutoProbe,video pwm_bl)
 endef
 
-define KernelPackage/backlight/backlight-pwm
+define KernelPackage/backlight-pwm/description
 	Kernel module for PWM based Backlight support.
 endef
 
@@ -72,7 +72,7 @@ endef
 
 define KernelPackage/fb/x86
   FILES+=$(LINUX_DIR)/arch/x86/video/fbdev.ko
-  AUTOLOAD:=$(call AutoLoad,06,fbdev fb)
+  AUTOLOAD+=$(call AutoLoad,06,fbdev fb)
 endef
 
 $(eval $(call KernelPackage,fb))
@@ -186,40 +186,8 @@ define KernelPackage/drm
   SUBMENU:=$(VIDEO_MENU)
   TITLE:=Direct Rendering Manager (DRM) support
   HIDDEN:=1
-  DEPENDS:=+kmod-dma-buf
-  KCONFIG:=CONFIG_DRM \
-	CONFIG_DRM_FBDEV_EMULATION=n \
-	CONFIG_DRM_LOAD_EDID_FIRMWARE=n \
-	CONFIG_DRM_IMX=n \
-	CONFIG_DRM_PTN3460=n \
-	CONFIG_DRM_PS8622=n \
-	CONFIG_DRM_TDFX=n \
-	CONFIG_DRM_R128=n \
-	CONFIG_DRM_RADEON=n \
-	CONFIG_DRM_AMDGPU=n \
-	CONFIG_DRM_NOUVEAU=n \
-	CONFIG_DRM_MGA=n \
-	CONFIG_DRM_VIA=n \
-	CONFIG_DRM_SAVAGE=n \
-	CONFIG_DRM_VGEM=n \
-	CONFIG_DRM_EXYNOS=n \
-	CONFIG_DRM_VMWGFX=n \
-	CONFIG_DRM_UDL=n \
-	CONFIG_DRM_AST=n \
-	CONFIG_DRM_MGAG200=n \
-	CONFIG_DRM_CIRRUS_QEMU=n \
-	CONFIG_DRM_ARMADA=n \
-	CONFIG_DRM_TILCDC=n \
-	CONFIG_DRM_QXL=n \
-	CONFIG_DRM_BOCHS=n \
-	CONFIG_DRM_FSL_DCU=n \
-	CONFIG_DRM_STI=n \
-	CONFIG_DRM_NXP_PTN3460=n \
-	CONFIG_DRM_PARADE_PS8622=n \
-	CONFIG_DRM_I2C_ADV7511=n \
-	CONFIG_DRM_I2C_CH7006=n \
-	CONFIG_DRM_I2C_SIL164=n \
-	CONFIG_DRM_I2C_NXP_TDA998X=n
+  DEPENDS:=+kmod-dma-buf +kmod-i2c-core
+  KCONFIG:=CONFIG_DRM
   FILES:=$(LINUX_DIR)/drivers/gpu/drm/drm.ko
   AUTOLOAD:=$(call AutoLoad,05,drm)
 endef

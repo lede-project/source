@@ -5,16 +5,14 @@
 #
 
 . /lib/functions/uci-defaults.sh
-. /lib/ipq806x.sh
 . /lib/functions/system.sh
 
 board_config_update
 
-board=$(ipq806x_board_name)
+board=$(board_name)
 
 case "$board" in
 ap148 |\
-c2600 |\
 d7800 |\
 r7500 |\
 r7500v2 |\
@@ -22,6 +20,10 @@ r7800 |\
 vr2600v)
 	ucidef_add_switch "switch0" \
 		"1:lan" "2:lan" "3:lan" "4:lan" "6@eth1" "5:wan" "0@eth0"
+	;;
+c2600)
+	ucidef_add_switch "switch0" \
+		"1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1" "6@eth1" "5:wan" "0@eth0"
 	;;
 db149)
 	ucidef_set_interface_lan "eth1 eth2 eth3"
@@ -32,16 +34,21 @@ ea8500)
 
 	hw_mac_addr=$(mtd_get_mac_ascii devinfo hw_mac_addr)
 	ucidef_add_switch "switch0" \
-		"1:lan" "2:lan" "3:lan" "4:lan" "0t@eth0" "5:wan" "0t@eth0"
+		"0@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "5:wan"
 	ucidef_set_interface_macaddr "lan" "$hw_mac_addr"
 	ucidef_set_interface_macaddr "wan" "$hw_mac_addr"
+	;;
+fritz4040)
+	ucidef_set_interfaces_lan_wan "eth0" "eth1"
+	ucidef_add_switch "switch0" \
+		"0@eth0" "1:lan" "2:lan" "3:lan" "4:lan"
 	;;
 nbg6817)
 	hw_mac_addr=$(mtd_get_mac_ascii 0:APPSBLENV ethaddr)
 	ucidef_add_switch "switch0" \
 		"1:lan" "2:lan" "3:lan" "4:lan" "6@eth1" "5:wan" "0@eth0"
-	ucidef_set_interface_macaddr "lan" "$hw_mac_addr"
-	ucidef_set_interface_macaddr "wan" "$(macaddr_add $hw_mac_addr 1)"
+	ucidef_set_interface_macaddr "lan" "$(macaddr_add $hw_mac_addr 2)"
+	ucidef_set_interface_macaddr "wan" "$(macaddr_add $hw_mac_addr 3)"
 	;;
 *)
 	echo "Unsupported hardware. Network interfaces not intialized"

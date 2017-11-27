@@ -1,3 +1,4 @@
+
 #
 # BCM33XX/BCM63XX Profiles
 #
@@ -174,6 +175,21 @@ define Device/96368MVWG-generic
 endef
 TARGET_DEVICES += 96368MVWG-generic
 
+### Actiontec ###
+define Device/R1000H
+  $(Device/bcm63xx)
+  FILESYSTEMS := squashfs
+  DEVICE_TITLE := Actiontec R1000H
+  DEVICE_DTS := r1000h
+  CFE_BOARD_ID := 96368MVWG
+  CFE_CHIP_ID := 6368
+  FLASH_MB := 32
+  IMAGE_OFFSET := 0x20000
+  DEVICE_PACKAGES := \
+    $(USB2_PACKAGES) $(BRCMWL_PACKAGES)
+endef
+TARGET_DEVICES += R1000H
+
 ### ADB ###
 define Device/A4001N
   $(Device/bcm63xx)
@@ -229,7 +245,7 @@ TARGET_DEVICES += RG100A
 define Device/AR1004G
   $(Device/bcm63xx)
   DEVICE_TITLE := Asmax AR 1004g
-  DEVICE_DTS := rg100a
+  DEVICE_DTS := ar1004g
   CFE_BOARD_ID := 96348GW-10
   CFE_CHIP_ID := 6348
   DEVICE_PACKAGES := \
@@ -341,6 +357,19 @@ endef
 TARGET_DEVICES += BTV2500V
 
 ### Comtrend ###
+define Device/AR5315u
+  $(Device/bcm63xx)
+  IMAGES += sysupgrade.bin
+  DEVICE_TITLE := Comtrend AR-5315u
+  DEVICE_DTS := ar-5315u
+  CFE_BOARD_ID := 96318A-1441N1
+  CFE_CHIP_ID := 6318
+  FLASH_MB := 16
+  DEVICE_PACKAGES := \
+    $(B43_PACKAGES) $(USB2_PACKAGES)
+endef
+TARGET_DEVICES += AR5315u
+
 define Device/AR5381u
   $(Device/bcm63xx)
   IMAGES += sysupgrade.bin

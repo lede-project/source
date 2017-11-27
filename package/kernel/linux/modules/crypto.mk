@@ -307,6 +307,17 @@ endef
 
 $(eval $(call KernelPackage,crypto-crc32c))
 
+define KernelPackage/crypto-crc32
+  TITLE:=CRC32 CRC module
+  DEPENDS:=+kmod-crypto-hash
+  KCONFIG:=CONFIG_CRYPTO_CRC32
+  HIDDEN:=1
+  FILES:=$(LINUX_DIR)/crypto/crc32_generic.ko@ge4.9
+  AUTOLOAD:=$(call AutoLoad,04,crc32_generic@ge4.9,1)
+  $(call AddDepends/crypto)
+endef
+
+$(eval $(call KernelPackage,crypto-crc32))
 
 define KernelPackage/crypto-des
   TITLE:=DES/3DES cipher CryptoAPI module
@@ -351,6 +362,17 @@ define KernelPackage/crypto-ecb
 endef
 
 $(eval $(call KernelPackage,crypto-ecb))
+
+define KernelPackage/crypto-cts
+  TITLE:=Cipher Text Stealing CryptoAPI module
+  DEPENDS:=+kmod-crypto-manager
+  KCONFIG:=CONFIG_CRYPTO_CTS
+  FILES:=$(LINUX_DIR)/crypto/cts.ko
+  AUTOLOAD:=$(call AutoLoad,09,cts)
+  $(call AddDepends/crypto)
+endef
+
+$(eval $(call KernelPackage,crypto-cts))
 
 
 define KernelPackage/crypto-hmac
@@ -437,7 +459,7 @@ endef
 
 define KernelPackage/crypto-md5/octeon
   FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-md5.ko
-  AUTOLOAD:=$(call AutoLoad,09,octeon-md5)
+  AUTOLOAD+=$(call AutoLoad,09,octeon-md5)
 endef
 
 $(eval $(call KernelPackage,crypto-md5))
@@ -469,12 +491,12 @@ endef
 
 define KernelPackage/crypto-sha1/octeon
   FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-sha1.ko
-  AUTOLOAD:=$(call AutoLoad,09,octeon-sha1)
+  AUTOLOAD+=$(call AutoLoad,09,octeon-sha1)
 endef
 
 define KernelPackage/crypto-sha1/x86/64
   FILES+=$(LINUX_DIR)/arch/x86/crypto/sha1-ssse3.ko
-  AUTOLOAD:=$(call AutoLoad,09,sha1-ssse3)
+  AUTOLOAD+=$(call AutoLoad,09,sha1-ssse3)
 endef
 
 $(eval $(call KernelPackage,crypto-sha1))
@@ -494,12 +516,12 @@ endef
 
 define KernelPackage/crypto-sha256/octeon
   FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-sha256.ko
-  AUTOLOAD:=$(call AutoLoad,09,octeon-sha256)
+  AUTOLOAD+=$(call AutoLoad,09,octeon-sha256)
 endef
 
 define KernelPackage/crypto-sha256/x86/64
   FILES+=$(LINUX_DIR)/arch/x86/crypto/sha256-ssse3.ko
-  AUTOLOAD:=$(call AutoLoad,09,sha256-ssse3)
+  AUTOLOAD+=$(call AutoLoad,09,sha256-ssse3)
 endef
 
 $(eval $(call KernelPackage,crypto-sha256))
@@ -519,12 +541,12 @@ endef
 
 define KernelPackage/crypto-sha512/octeon
   FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-sha512.ko
-  AUTOLOAD:=$(call AutoLoad,09,octeon-sha512)
+  AUTOLOAD+=$(call AutoLoad,09,octeon-sha512)
 endef
 
 define KernelPackage/crypto-sha512/x86/64
   FILES+=$(LINUX_DIR)/arch/x86/crypto/sha512-ssse3.ko
-  AUTOLOAD:=$(call AutoLoad,09,sha512-ssse3)
+  AUTOLOAD+=$(call AutoLoad,09,sha512-ssse3)
 endef
 
 $(eval $(call KernelPackage,crypto-sha512))

@@ -23,6 +23,7 @@
 #include <linux/spi/flash.h>
 #include <linux/routerboot.h>
 #include <linux/gpio.h>
+#include <linux/version.h>
 
 #include <asm/prom.h>
 #include <asm/mach-ath79/ath79.h>
@@ -124,7 +125,7 @@ static struct ar8327_led_cfg rb2011_ar8327_led_cfg = {
 	.open_drain = false,
 };
 
-static const struct ar8327_led_info rb2011_ar8327_leds[] __initconst = {
+static const struct ar8327_led_info rb2011_ar8327_leds[] = {
 	AR8327_LED_INFO(PHY0_0, HW, "rb:green:eth1"),
 	AR8327_LED_INFO(PHY1_0, HW, "rb:green:eth2"),
 	AR8327_LED_INFO(PHY2_0, HW, "rb:green:eth3"),
@@ -188,6 +189,7 @@ static void rb2011_nand_select_chip(int chip_no)
 	ndelay(500);
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0)
 static struct nand_ecclayout rb2011_nand_ecclayout = {
 	.eccbytes	= 6,
 	.eccpos		= { 8, 9, 10, 13, 14, 15 },
@@ -195,16 +197,72 @@ static struct nand_ecclayout rb2011_nand_ecclayout = {
 	.oobfree	= { { 0, 4 }, { 6, 2 }, { 11, 2 }, { 4, 1 } }
 };
 
+#else
+
+static int rb2011_ooblayout_ecc(struct mtd_info *mtd, int section,
+				struct mtd_oob_region *oobregion)
+{
+	switch (section) {
+	case 0:
+		oobregion->offset = 8;
+		oobregion->length = 3;
+		return 0;
+	case 1:
+		oobregion->offset = 13;
+		oobregion->length = 3;
+		return 0;
+	default:
+		return -ERANGE;
+	}
+}
+
+static int rb2011_ooblayout_free(struct mtd_info *mtd, int section,
+				 struct mtd_oob_region *oobregion)
+{
+	switch (section) {
+	case 0:
+		oobregion->offset = 0;
+		oobregion->length = 4;
+		return 0;
+	case 1:
+		oobregion->offset = 4;
+		oobregion->length = 1;
+		return 0;
+	case 2:
+		oobregion->offset = 6;
+		oobregion->length = 2;
+		return 0;
+	case 3:
+		oobregion->offset = 11;
+		oobregion->length = 2;
+		return 0;
+	default:
+		return -ERANGE;
+	}
+}
+
+static const struct mtd_ooblayout_ops rb2011_nand_ecclayout_ops = {
+	.ecc = rb2011_ooblayout_ecc,
+	.free = rb2011_ooblayout_free,
+};
+#endif /* < 4.6 */
+
 static int rb2011_nand_scan_fixup(struct mtd_info *mtd)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0)
 	struct nand_chip *chip = mtd->priv;
+#endif
 
 	if (mtd->writesize == 512) {
 		/*
 		 * Use the OLD Yaffs-1 OOB layout, otherwise RouterBoot
 		 * will not be able to find the kernel that we load.
 		 */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0)
 		chip->ecc.layout = &rb2011_nand_ecclayout;
+#else
+		mtd_set_ooblayout(mtd, &rb2011_nand_ecclayout_ops);
+#endif
 	}
 
 	return 0;
@@ -270,6 +328,7 @@ static int __init rb2011_setup(u32 flags)
 	rb2011_nand_init();
 
 	ath79_setup_ar934x_eth_cfg(AR934X_ETH_CFG_RGMII_GMAC0 |
+				   AR934X_ETH_CFG_RXD_DELAY |
 				   AR934X_ETH_CFG_SW_ONLY_MODE);
 
 	ath79_register_mdio(1, 0x0);
@@ -283,7 +342,7 @@ static int __init rb2011_setup(u32 flags)
 	ath79_eth0_data.phy_if_mode = PHY_INTERFACE_MODE_RGMII;
 	ath79_eth0_data.phy_mask = BIT(0);
 	ath79_eth0_data.mii_bus_dev = &ath79_mdio0_device.dev;
-	ath79_eth0_pll_data.pll_1000 = 0x06000000;
+	ath79_eth0_pll_data.pll_1000 = 0x6f000000;
 
 	ath79_register_eth(0);
 

@@ -6,6 +6,7 @@
 #include <dt-bindings/input/input.h>
 
 / {
+	compatible = "afoundry,ew1200", "mediatek,mt7621-soc";
 	model = "EW1200";
 
 	memory@0 {
@@ -31,7 +32,7 @@
 
 		reset {
 			label = "reset";
-			gpios = <&gpio0 18 1>;
+			gpios = <&gpio0 18 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 		};
 	};
@@ -120,7 +121,7 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "wdt", "rgmii2", "wdt rst", "jtag", "mdio";
+			ralink,group = "wdt", "rgmii2", "jtag", "mdio";
 			ralink,function = "gpio";
 		};
 	};

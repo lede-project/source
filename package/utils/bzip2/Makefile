@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=bzip2
 PKG_VERSION:=1.0.6
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.bzip.org/$(PKG_VERSION)
@@ -18,6 +18,7 @@ PKG_MAINTAINER:=Steven Barth <cyrus@openwrt.org>
 
 PKG_LICENSE:=BZIP2
 PKG_LICENSE_FILES:=LICENSE
+PKG_CPE_ID:=cpe:/a:bzip:bzip2
 
 include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/package.mk
@@ -82,6 +83,8 @@ endef
 define Package/bzip2/install
 	$(INSTALL_DIR) $(1)/usr/bin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/bzip2-shared $(1)/usr/bin/bzip2
+	$(INSTALL_DIR) $(1)/bin/
+	$(LN) ../usr/bin/bzip2 $(1)/bin/bzip2
 endef
 
 HOST_CFLAGS += \

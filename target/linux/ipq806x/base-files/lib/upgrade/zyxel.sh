@@ -68,17 +68,28 @@ zyxel_do_flash() {
 
 zyxel_do_upgrade() {
 	local tar_file="$1"
-	local board=$(cat /tmp/sysinfo/board_name)
+	local board=$(board_name)
 	local rootfs="$(zyxel_get_rootfs)"
 	local kernel=
 
 	[ -b "${rootfs}" ] || return 1
 	case "$board" in
 	nbg6817)
-		kernel=mmcblk0p4
+		case "$rootfs" in
+			"/dev/mmcblk0p5")
+				kernel=mmcblk0p4
+			;;
+			"/dev/mmcblk0p8")
+				kernel=mmcblk0p7
+			;;
+			*)
+				return 1
+			;;
+		esac
 		;;
 	*)
 		return 1
+		;;
 	esac
 
 	zyxel_do_flash $tar_file $board $kernel $rootfs

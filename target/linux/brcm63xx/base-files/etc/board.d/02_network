@@ -4,14 +4,14 @@
 #
 
 . /lib/functions/uci-defaults.sh
-. /lib/brcm63xx.sh
 
 board_config_update
 
-case "$(brcm63xx_board_name)" in
+case "$(board_name)" in
 
 cvg834g |\
 evg2000 |\
+r1000h |\
 rta770bw |\
 rta770w |\
 spw303v |\
@@ -98,6 +98,7 @@ vr-3026e)
 		"0:lan:1" "1:lan:2" "2:lan:3" "3:lan:4" "8t@eth0"
 	;;
 
+ar-5315u |\
 vh4032n)
 	ucidef_add_switch "switch0" \
 		"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "8t@eth0"

@@ -64,6 +64,10 @@ hostapd_common_add_device_config() {
 	config_add_string country
 	config_add_boolean country_ie doth
 	config_add_string require_mode
+	config_add_boolean legacy_rates
+
+	config_add_string acs_chan_bias
+	config_add_array hostapd_options
 
 	hostapd_add_log_config
 }
@@ -75,12 +79,15 @@ hostapd_prepare_device_config() {
 	local base="${config%%.conf}"
 	local base_cfg=
 
-	json_get_vars country country_ie beacon_int doth require_mode
+	json_get_vars country country_ie beacon_int:100 doth require_mode legacy_rates acs_chan_bias
 
 	hostapd_set_log_options base_cfg
 
 	set_default country_ie 1
 	set_default doth 1
+	set_default legacy_rates 1
+
+	[ "$hwmode" = "b" ] && legacy_rates=1
 
 	[ -n "$country" ] && {
 		append base_cfg "country_code=$country" "$N"
@@ -88,28 +95,43 @@ hostapd_prepare_device_config() {
 		[ "$country_ie" -gt 0 ] && append base_cfg "ieee80211d=1" "$N"
 		[ "$hwmode" = "a" -a "$doth" -gt 0 ] && append base_cfg "ieee80211h=1" "$N"
 	}
-	[ -n "$hwmode" ] && append base_cfg "hw_mode=$hwmode" "$N"
+
+	[ -n "$acs_chan_bias" ] && append base_cfg "acs_chan_bias=$acs_chan_bias" "$N"
 
 	local brlist= br
 	json_get_values basic_rate_list basic_rate
-	for br in $basic_rate_list; do
-		hostapd_add_rate brlist "$br"
-	done
+	local rlist= r
+	json_get_values rate_list supported_rates
+
+	[ -n "$hwmode" ] && append base_cfg "hw_mode=$hwmode" "$N"
+	[ "$legacy_rates" -eq 0 ] && set_default require_mode g
+
+	[ "$hwmode" = "g" ] && {
+		[ "$legacy_rates" -eq 0 ] && set_default rate_list "6000 9000 12000 18000 24000 36000 48000 54000"
+		[ -n "$require_mode" ] && set_default basic_rate_list "6000 12000 24000"
+	}
+
 	case "$require_mode" in
-		g) brlist="60 120 240" ;;
 		n) append base_cfg "require_ht=1" "$N";;
 		ac) append base_cfg "require_vht=1" "$N";;
 	esac
 
-	local rlist= r
-	json_get_values rate_list supported_rates
 	for r in $rate_list; do
 		hostapd_add_rate rlist "$r"
 	done
 
+	for br in $basic_rate_list; do
+		hostapd_add_rate brlist "$br"
+	done
+
 	[ -n "$rlist" ] && append base_cfg "supported_rates=$rlist" "$N"
 	[ -n "$brlist" ] && append base_cfg "basic_rates=$brlist" "$N"
-	[ -n "$beacon_int" ] && append base_cfg "beacon_int=$beacon_int" "$N"
+	append base_cfg "beacon_int=$beacon_int" "$N"
+
+	json_get_values opts hostapd_options
+	for val in $opts; do
+		append base_cfg "$val" "$N"
+	done
 
 	cat > "$config" <<EOF
 driver=$driver
@@ -127,6 +149,7 @@ hostapd_common_add_bss_config() {
 	config_add_int \
 		wep_rekey eap_reauth_period \
 		wpa_group_rekey wpa_pair_rekey wpa_master_rekey
+	config_add_boolean wpa_disable_eapol_key_retries
 
 	config_add_boolean rsn_preauth auth_cache
 	config_add_int ieee80211w
@@ -139,6 +162,7 @@ hostapd_common_add_bss_config() {
 	config_add_string acct_server
 	config_add_string acct_secret
 	config_add_int acct_port
+	config_add_int acct_interval
 
 	config_add_string dae_client
 	config_add_string dae_secret
@@ -161,7 +185,7 @@ hostapd_common_add_bss_config() {
 	config_add_int wps_ap_setup_locked wps_independent
 	config_add_string wps_device_type wps_device_name wps_manufacturer wps_pin
 
-	config_add_boolean ieee80211r pmk_r1_push
+	config_add_boolean ieee80211r pmk_r1_push ft_psk_generate_local ft_over_ds
 	config_add_int r0_key_lifetime reassociation_deadline
 	config_add_string mobility_domain r1_key_holder
 	config_add_array r0kh r1kh
@@ -191,12 +215,13 @@ hostapd_set_bss_options() {
 
 	json_get_vars \
 		wep_rekey wpa_group_rekey wpa_pair_rekey wpa_master_rekey \
+		wpa_disable_eapol_key_retries \
 		maxassoc max_inactivity disassoc_low_ack isolate auth_cache \
 		wps_pushbutton wps_label ext_registrar wps_pbc_in_m1 wps_ap_setup_locked \
 		wps_independent wps_device_type wps_device_name wps_manufacturer wps_pin \
 		macfilter ssid wmm uapsd hidden short_preamble rsn_preauth \
-		iapp_interface eapol_version acct_server acct_secret acct_port \
-		dynamic_vlan ieee80211w
+		iapp_interface eapol_version dynamic_vlan ieee80211w nasid \
+		acct_server acct_secret acct_port acct_interval
 
 	set_default isolate 0
 	set_default maxassoc 0
@@ -206,6 +231,7 @@ hostapd_set_bss_options() {
 	set_default hidden 0
 	set_default wmm 1
 	set_default uapsd 1
+	set_default wpa_disable_eapol_key_retries 0
 	set_default eapol_version 0
 	set_default acct_port 1813
 
@@ -232,11 +258,14 @@ hostapd_set_bss_options() {
 		[ -n "$wpa_master_rekey" ] && append bss_conf "wpa_gmk_rekey=$wpa_master_rekey"  "$N"
 	}
 
+	[ -n "$nasid" ] && append bss_conf "nas_identifier=$nasid" "$N"
 	[ -n "$acct_server" ] && {
 		append bss_conf "acct_server_addr=$acct_server" "$N"
 		append bss_conf "acct_server_port=$acct_port" "$N"
 		[ -n "$acct_secret" ] && \
 			append bss_conf "acct_server_shared_secret=$acct_secret" "$N"
+		[ -n "$acct_interval" ] && \
+			append bss_conf "radius_acct_interim_interval=$acct_interval" "$N"
 	}
 
 	local vlan_possible=""
@@ -352,32 +381,34 @@ hostapd_set_bss_options() {
 	[ -n "$network_bridge" ] && append bss_conf "bridge=$network_bridge" "$N"
 	[ -n "$iapp_interface" ] && {
 		local ifname
-		network_get_device ifname "$iapp_interface" || ifname = "$iapp_interface"
+		network_get_device ifname "$iapp_interface" || ifname="$iapp_interface"
 		append bss_conf "iapp_interface=$ifname" "$N"
 	}
 
 	if [ "$wpa" -ge "1" ]; then
-		json_get_vars nasid ieee80211r
+		json_get_vars ieee80211r
 		set_default ieee80211r 0
-		[ -n "$nasid" ] && append bss_conf "nas_identifier=$nasid" "$N"
 
 		if [ "$ieee80211r" -gt "0" ]; then
 			json_get_vars mobility_domain r0_key_lifetime r1_key_holder \
-			reassociation_deadline pmk_r1_push
+				reassociation_deadline pmk_r1_push ft_psk_generate_local ft_over_ds
 			json_get_values r0kh r0kh
 			json_get_values r1kh r1kh
 
 			set_default mobility_domain "4f57"
 			set_default r0_key_lifetime 10000
-			set_default r1_key_holder "00004f577274"
 			set_default reassociation_deadline 1000
 			set_default pmk_r1_push 0
+			set_default ft_psk_generate_local 0
+			set_default ft_over_ds 1
 
 			append bss_conf "mobility_domain=$mobility_domain" "$N"
 			append bss_conf "r0_key_lifetime=$r0_key_lifetime" "$N"
-			append bss_conf "r1_key_holder=$r1_key_holder" "$N"
+			[ -n "$r1_key_holder" ] && append bss_conf "r1_key_holder=$r1_key_holder" "$N"
 			append bss_conf "reassociation_deadline=$reassociation_deadline" "$N"
 			append bss_conf "pmk_r1_push=$pmk_r1_push" "$N"
+			append bss_conf "ft_psk_generate_local=$ft_psk_generate_local" "$N"
+			append bss_conf "ft_over_ds=$ft_over_ds" "$N"
 
 			for kh in $r0kh; do
 				append bss_conf "r0kh=${kh//,/ }" "$N"
@@ -386,6 +417,8 @@ hostapd_set_bss_options() {
 				append bss_conf "r1kh=${kh//,/ }" "$N"
 			done
 		fi
+
+		append bss_conf "wpa_disable_eapol_key_retries=$wpa_disable_eapol_key_retries" "$N"
 
 		hostapd_append_wpa_key_mgmt
 		[ -n "$wpa_key_mgmt" ] && append bss_conf "wpa_key_mgmt=$wpa_key_mgmt" "$N"
@@ -561,8 +594,31 @@ EOF
 	return 0
 }
 
+wpa_supplicant_set_fixed_freq() {
+	local freq="$1"
+	local htmode="$2"
+
+	append network_data "fixed_freq=1" "$N$T"
+	append network_data "frequency=$freq" "$N$T"
+	case "$htmode" in
+		NOHT) append network_data "disable_ht=1" "$N$T";;
+		HT20|VHT20) append network_data "disable_ht40=1" "$N$T";;
+		HT40*|VHT40*|VHT80*|VHT160*) append network_data "ht40=1" "$N$T";;
+	esac
+	case "$htmode" in
+		VHT*) append network_data "vht=1" "$N$T";;
+	esac
+	case "$htmode" in
+		VHT80) append network_data "max_oper_chwidth=1" "$N$T";;
+		VHT160) append network_data "max_oper_chwidth=2" "$N$T";;
+		*) append network_data "max_oper_chwidth=0" "$N$T";;
+	esac
+}
+
 wpa_supplicant_add_network() {
 	local ifname="$1"
+	local freq="$2"
+	local htmode="$3"
 
 	_wpa_supplicant_common "$1"
 	wireless_vif_parse_encryption
@@ -584,11 +640,7 @@ wpa_supplicant_add_network() {
 
 	[[ "$_w_mode" = "adhoc" ]] && {
 		append network_data "mode=1" "$N$T"
-		[ -n "$channel" ] && {
-			freq="$(get_freq "$phy" "$channel")"
-			append network_data "fixed_freq=1" "$N$T"
-			append network_data "frequency=$freq" "$N$T"
-		}
+		[ -n "$channel" ] && wpa_supplicant_set_fixed_freq "$freq" "$htmode"
 
 		scan_ssid="scan_ssid=0"
 
@@ -600,15 +652,12 @@ wpa_supplicant_add_network() {
 		ssid="${mesh_id}"
 
 		append network_data "mode=5" "$N$T"
-		[ -n "$channel" ] && {
-			freq="$(get_freq "$phy" "$channel")"
-			append network_data "frequency=$freq" "$N$T"
-		}
+		[ -n "$channel" ] && wpa_supplicant_set_fixed_freq "$freq" "$htmode"
 		append wpa_key_mgmt "SAE"
 		scan_ssid=""
 	}
 
-	[[ "$_w_mode" = "adhoc" -o "$_w_mode" = "mesh" ]] && append network_data "$_w_modestr" "$N$T"
+	[ "$_w_mode" = "adhoc" -o "$_w_mode" = "mesh" ] && append network_data "$_w_modestr" "$N$T"
 
 	case "$auth_type" in
 		none) ;;
@@ -696,7 +745,6 @@ wpa_supplicant_add_network() {
 			;;
 		esac
 	}
-	local beacon_int brates mrate
 	[ -n "$bssid" ] && append network_data "bssid=$bssid" "$N$T"
 	[ -n "$beacon_int" ] && append network_data "beacon_int=$beacon_int" "$N$T"
 
@@ -720,10 +768,6 @@ wpa_supplicant_add_network() {
 		wpa_supplicant_add_rate mc_rate "$mcast_rate"
 		append network_data "mcast_rate=$mc_rate" "$N$T"
 	}
-
-	local ht_str
-	[[ "$_w_mode" = adhoc ]] || ibss_htmode=
-	[ -n "$ibss_htmode" ] && append network_data "htmode=$ibss_htmode" "$N$T"
 
 	cat >> "$_config" <<EOF
 network={

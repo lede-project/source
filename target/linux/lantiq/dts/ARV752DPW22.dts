@@ -16,7 +16,7 @@
 		led-failsafe = &power_blue;
 		led-running = &power_red;
 
-		led-internet = &internet_red;
+		led-dsl = &internet_red;
 		led-usb = &umts;
 		led-wifi = &wifi;
 	};
@@ -253,5 +253,6 @@
 		reg = <0x7000 0 0 0 0>;
 		ralink,mtd-eeprom = <&boardconfig 0x410>;
 		ralink,mtd-eeprom-swap;
+		mtd-mac-address = <&boardconfig 0x16>;
 	};
 };

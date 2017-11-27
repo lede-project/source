@@ -1,16 +1,19 @@
 #!/bin/sh
 # Copyright (C) 2007-2013 OpenWrt.org
 
+. /lib/functions.sh
 . /lib/functions/leds.sh
-. /lib/brcm63xx.sh
 
 set_state() {
-	case "$(brcm63xx_board_name)" in
+	case "$(board_name)" in
 	a4001n1)
 		status_led="A4001N1:green:power"
 		;;
 	a4001n)
 		status_led="A4001N:green:power"
+		;;
+	ar-5315u)
+		status_led="AR-5315u:green:power"
 		;;
 	ar-5381u)
 		status_led="AR-5381u:green:power"
@@ -113,6 +116,9 @@ set_state() {
 		;;
 	p870hw-51a_v2)
 		status_led="P870HW-51a:green:power"
+		;;
+	r1000h)
+		status_led="R1000H:green:power"
 		;;
 	r5010un_v2)
 		status_led="R5010UNv2:green:power"

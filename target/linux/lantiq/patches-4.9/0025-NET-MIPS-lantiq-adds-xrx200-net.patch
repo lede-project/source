@@ -1110,14 +1110,15 @@ Subject: [PATCH 25/36] NET: MIPS: lantiq: adds xrx200-net
 +	for (i = 0; i < XRX200_MAX_DMA; i++) {
 +		if (!priv->hw->chan[i].dma.irq)
 +			continue;
-+		spin_lock_bh(&priv->hw->chan[i].lock);
++
 +		priv->hw->chan[i].refcount--;
 +		if (!priv->hw->chan[i].refcount) {
 +			if (XRX200_DMA_IS_RX(i))
 +				napi_disable(&priv->hw->chan[i].napi);
++			spin_lock_bh(&priv->hw->chan[i].lock);
 +			ltq_dma_close(&priv->hw->chan[XRX200_DMA_RX].dma);
++			spin_unlock_bh(&priv->hw->chan[i].lock);
 +		}
-+		spin_unlock_bh(&priv->hw->chan[i].lock);
 +	}
 +
 +	return 0;
@@ -1459,7 +1460,7 @@ Subject: [PATCH 25/36] NET: MIPS: lantiq: adds xrx200-net
 +static void xrx200_mdio_link(struct net_device *dev)
 +{
 +	struct xrx200_priv *priv = netdev_priv(dev);
-+	bool changed = false, link = false;
++	bool link = false;
 +	int i;
 +
 +	for (i = 0; i < priv->num_port; i++) {
@@ -1470,7 +1471,6 @@ Subject: [PATCH 25/36] NET: MIPS: lantiq: adds xrx200-net
 +			link = true;
 +
 +		if (priv->port[i].link != priv->port[i].phydev->link) {
-+			changed = true;
 +			xrx200_gmac_update(&priv->port[i]);
 +			priv->port[i].link = priv->port[i].phydev->link;
 +			netdev_info(dev, "port %d %s link\n",
@@ -1478,7 +1478,7 @@ Subject: [PATCH 25/36] NET: MIPS: lantiq: adds xrx200-net
 +				(priv->port[i].link)?("got"):("lost"));
 +		}
 +	}
-+	if (changed && !link)
++	if (netif_carrier_ok(dev) && !link)
 +		netif_carrier_off(dev);
 +}
 +

@@ -114,6 +114,27 @@ endef
 $(eval $(call KernelPackage,bluetooth_6lowpan))
 
 
+define KernelPackage/btmrvl
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=Marvell Bluetooth Kernel Module support
+  DEPENDS:=+kmod-mmc +kmod-bluetooth +mwifiex-sdio-firmware
+  KCONFIG:= \
+	CONFIG_BT_MRVL \
+	CONFIG_BT_MRVL_SDIO
+  $(call AddDepends/bluetooth)
+  FILES:= \
+	$(LINUX_DIR)/drivers/bluetooth/btmrvl.ko \
+	$(LINUX_DIR)/drivers/bluetooth/btmrvl_sdio.ko
+  AUTOLOAD:=$(call AutoProbe,btmrvl btmrvl_sdio)
+endef
+
+define KernelPackage/btmrvl/description
+ Kernel support for Marvell SDIO Bluetooth Module
+endef
+
+$(eval $(call KernelPackage,btmrvl))
+
+
 define KernelPackage/dma-buf
   SUBMENU:=$(OTHER_MENU)
   TITLE:=DMA shared buffer support
@@ -263,71 +284,6 @@ endef
 
 $(eval $(call KernelPackage,gpio-pcf857x))
 
-define KernelPackage/iio-core
-  SUBMENU:=$(OTHER_MENU)
-  TITLE:=Industrial IO core
-  KCONFIG:= \
-	CONFIG_IIO \
-	CONFIG_IIO_BUFFER=y \
-	CONFIG_IIO_KFIFO_BUF \
-	CONFIG_IIO_TRIGGER=y \
-	CONFIG_IIO_TRIGGERED_BUFFER
-  FILES:= \
-	$(LINUX_DIR)/drivers/iio/industrialio.ko \
-	$(if $(CONFIG_IIO_TRIGGERED_BUFFER),$(LINUX_DIR)/drivers/iio/industrialio-triggered-buffer.ko@lt4.4) \
-	$(if $(CONFIG_IIO_TRIGGERED_BUFFER),$(LINUX_DIR)/drivers/iio/buffer/industrialio-triggered-buffer.ko@ge4.4) \
-	$(LINUX_DIR)/drivers/iio/kfifo_buf.ko@lt4.4 \
-	$(LINUX_DIR)/drivers/iio/buffer/kfifo_buf.ko@ge4.4
-  AUTOLOAD:=$(call AutoLoad,55,industrialio kfifo_buf industrialio-triggered-buffer)
-endef
-
-define KernelPackage/iio-core/description
- The industrial I/O subsystem provides a unified framework for
- drivers for many different types of embedded sensors using a
- number of different physical interfaces (i2c, spi, etc)
-endef
-
-$(eval $(call KernelPackage,iio-core))
-
-
-define KernelPackage/iio-ad799x
-  SUBMENU:=$(OTHER_MENU)
-  DEPENDS:=kmod-i2c-core kmod-iio-core
-  TITLE:=Analog Devices AD799x ADC driver
-  KCONFIG:= \
-	CONFIG_AD799X_RING_BUFFER=y \
-	CONFIG_AD799X
-  FILES:=$(LINUX_DIR)/drivers/iio/adc/ad799x.ko
-  AUTOLOAD:=$(call AutoLoad,56,ad799x)
-endef
-
-define KernelPackage/iio-ad799x/description
- support for Analog Devices:
- ad7991, ad7995, ad7999, ad7992, ad7993, ad7994, ad7997, ad7998
- i2c analog to digital converters (ADC).
-endef
-
-$(eval $(call KernelPackage,iio-ad799x))
-
-
-define KernelPackage/iio-dht11
-  SUBMENU:=$(OTHER_MENU)
-  DEPENDS:=kmod-iio-core @GPIO_SUPPORT @USES_DEVICETREE
-  TITLE:=DHT11 (and compatible) humidity and temperature sensors
-  KCONFIG:= \
-	CONFIG_DHT11
-  FILES:=$(LINUX_DIR)/drivers/iio/humidity/dht11.ko
-  AUTOLOAD:=$(call AutoLoad,56,dht11)
-endef
-
-define KernelPackage/iio-dht11/description
- support for DHT11 and DHT22 digitial humidity and temperature sensors
- attached at GPIO lines. You will need a custom device tree file to
- specify the GPIO line to use.
-endef
-
-$(eval $(call KernelPackage,iio-dht11))
-
 
 define KernelPackage/lp
   SUBMENU:=$(OTHER_MENU)
@@ -349,6 +305,7 @@ $(eval $(call KernelPackage,lp))
 define KernelPackage/mmc
   SUBMENU:=$(OTHER_MENU)
   TITLE:=MMC/SD Card Support
+  DEPENDS:=@!TARGET_uml
   KCONFIG:= \
 	CONFIG_MMC \
 	CONFIG_MMC_BLOCK \
@@ -484,7 +441,8 @@ $(eval $(call KernelPackage,bcma))
 define KernelPackage/rtc-ds1307
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Dallas/Maxim DS1307 (and compatible) RTC support
-  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
+  DEPENDS:=+kmod-i2c-core
   KCONFIG:=CONFIG_RTC_DRV_DS1307 \
 	CONFIG_RTC_CLASS=y
   FILES:=$(LINUX_DIR)/drivers/rtc/rtc-ds1307.ko
@@ -502,7 +460,8 @@ $(eval $(call KernelPackage,rtc-ds1307))
 define KernelPackage/rtc-ds1374
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Dallas/Maxim DS1374 RTC support
-  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
+  DEPENDS:=+kmod-i2c-core
   KCONFIG:=CONFIG_RTC_DRV_DS1374 \
 	CONFIG_RTC_DRV_DS1374_WDT=n \
 	CONFIG_RTC_CLASS=y
@@ -520,7 +479,8 @@ $(eval $(call KernelPackage,rtc-ds1374))
 define KernelPackage/rtc-ds1672
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Dallas/Maxim DS1672 RTC support
-  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
+  DEPENDS:=+kmod-i2c-core
   KCONFIG:=CONFIG_RTC_DRV_DS1672 \
 	CONFIG_RTC_CLASS=y
   FILES:=$(LINUX_DIR)/drivers/rtc/rtc-ds1672.ko
@@ -537,7 +497,8 @@ $(eval $(call KernelPackage,rtc-ds1672))
 define KernelPackage/rtc-isl1208
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Intersil ISL1208 RTC support
-  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
+  DEPENDS:=+kmod-i2c-core
   KCONFIG:=CONFIG_RTC_DRV_ISL1208 \
 	CONFIG_RTC_CLASS=y
   FILES:=$(LINUX_DIR)/drivers/rtc/rtc-isl1208.ko
@@ -554,7 +515,8 @@ $(eval $(call KernelPackage,rtc-isl1208))
 define KernelPackage/rtc-pcf8563
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Philips PCF8563/Epson RTC8564 RTC support
-  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
+  DEPENDS:=+kmod-i2c-core
   KCONFIG:=CONFIG_RTC_DRV_PCF8563 \
 	CONFIG_RTC_CLASS=y
   FILES:=$(LINUX_DIR)/drivers/rtc/rtc-pcf8563.ko
@@ -572,7 +534,7 @@ $(eval $(call KernelPackage,rtc-pcf8563))
 define KernelPackage/rtc-pcf2123
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Philips PCF2123 RTC support
-  DEPENDS:=@RTC_SUPPORT
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
   KCONFIG:=CONFIG_RTC_DRV_PCF2123 \
 	CONFIG_RTC_CLASS=y
   FILES:=$(LINUX_DIR)/drivers/rtc/rtc-pcf2123.ko
@@ -588,7 +550,8 @@ $(eval $(call KernelPackage,rtc-pcf2123))
 define KernelPackage/rtc-pt7c4338
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Pericom PT7C4338 RTC support
-  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
+  DEPENDS:=+kmod-i2c-core
   KCONFIG:=CONFIG_RTC_DRV_PT7C4338 \
 	CONFIG_RTC_CLASS=y
   FILES:=$(LINUX_DIR)/drivers/rtc/rtc-pt7c4338.ko
@@ -604,7 +567,8 @@ $(eval $(call KernelPackage,rtc-pt7c4338))
 define KernelPackage/rtc-rs5c372a
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Ricoh R2025S/D, RS5C372A/B, RV5C386, RV5C387A
-  DEPENDS:=@RTC_SUPPORT +kmod-i2c-core
+  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
+  DEPENDS:=+kmod-i2c-core
   KCONFIG:=CONFIG_RTC_DRV_RS5C372 \
 	CONFIG_RTC_CLASS=y
   FILES:=$(LINUX_DIR)/drivers/rtc/rtc-rs5c372.ko
@@ -640,20 +604,37 @@ endef
 $(eval $(call KernelPackage,mtdtests))
 
 
+define KernelPackage/mtdoops
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=Log panic/oops to an MTD buffer
+  KCONFIG:=CONFIG_MTD_OOPS
+  FILES:=$(LINUX_DIR)/drivers/mtd/mtdoops.ko
+endef
+
+define KernelPackage/mtdoops/description
+ Kernel modules for Log panic/oops to an MTD buffer
+endef
+
+$(eval $(call KernelPackage,mtdoops))
+
+
 define KernelPackage/serial-8250
   SUBMENU:=$(OTHER_MENU)
   TITLE:=8250 UARTs
   KCONFIG:= CONFIG_SERIAL_8250 \
+	CONFIG_SERIAL_8250_PCI \
 	CONFIG_SERIAL_8250_NR_UARTS=16 \
-  	CONFIG_SERIAL_8250_RUNTIME_UARTS=16 \
-  	CONFIG_SERIAL_8250_EXTENDED=y \
-  	CONFIG_SERIAL_8250_MANY_PORTS=y \
+	CONFIG_SERIAL_8250_RUNTIME_UARTS=16 \
+	CONFIG_SERIAL_8250_EXTENDED=y \
+	CONFIG_SERIAL_8250_MANY_PORTS=y \
 	CONFIG_SERIAL_8250_SHARE_IRQ=y \
 	CONFIG_SERIAL_8250_DETECT_IRQ=n \
 	CONFIG_SERIAL_8250_RSA=n
   FILES:= \
 	$(LINUX_DIR)/drivers/tty/serial/8250/8250.ko \
-	$(LINUX_DIR)/drivers/tty/serial/8250/8250_base.ko@ge4.4
+	$(LINUX_DIR)/drivers/tty/serial/8250/8250_base.ko@ge4.4 \
+	$(if $(CONFIG_PCI),$(LINUX_DIR)/drivers/tty/serial/8250/8250_pci.ko@ge4.4)
+  AUTOLOAD:=$(call AutoProbe,8250 8250_base 8250_pci)
 endef
 
 define KernelPackage/serial-8250/description
@@ -1018,3 +999,53 @@ define KernelPackage/tpm-i2c-infineon/description
 endef
 
 $(eval $(call KernelPackage,tpm-i2c-infineon))
+
+
+define KernelPackage/w83627hf-wdt
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=Winbond 83627HF Watchdog Timer
+  KCONFIG:=CONFIG_W83627HF_WDT
+  FILES:=$(LINUX_DIR)/drivers/$(WATCHDOG_DIR)/w83627hf_wdt.ko
+  AUTOLOAD:=$(call AutoLoad,50,w83627hf-wdt,1)
+endef
+
+define KernelPackage/w83627hf-wdt/description
+  Kernel module for Winbond 83627HF Watchdog Timer
+endef
+
+$(eval $(call KernelPackage,w83627hf-wdt))
+
+
+define KernelPackage/itco-wdt
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=Intel iTCO Watchdog Timer
+  KCONFIG:=CONFIG_ITCO_WDT \
+           CONFIG_ITCO_VENDOR_SUPPORT=y
+  FILES:=$(LINUX_DIR)/drivers/$(WATCHDOG_DIR)/iTCO_wdt.ko \
+         $(LINUX_DIR)/drivers/$(WATCHDOG_DIR)/iTCO_vendor_support.ko
+  AUTOLOAD:=$(call AutoLoad,50,iTCO_vendor_support iTCO_wdt,1)
+endef
+
+define KernelPackage/itco-wdt/description
+  Kernel module for Intel iTCO Watchdog Timer
+endef
+
+$(eval $(call KernelPackage,itco-wdt))
+
+
+define KernelPackage/it87-wdt
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=ITE IT87 Watchdog Timer
+  KCONFIG:=CONFIG_IT87_WDT
+  FILES:=$(LINUX_DIR)/drivers/$(WATCHDOG_DIR)/it87_wdt.ko
+  AUTOLOAD:=$(call AutoLoad,50,it87-wdt,1)
+  MODPARAMS.it87-wdt:= \
+	nogameport=1 \
+	nocir=1
+endef
+
+define KernelPackage/it87-wdt/description
+  Kernel module for ITE IT87 Watchdog Timer
+endef
+
+$(eval $(call KernelPackage,it87-wdt))

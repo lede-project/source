@@ -76,20 +76,20 @@ ramips_board_detect() {
 	*"AWM002 EVB (8M)")
 		name="awm002-evb-8M"
 		;;
-	*"AWM003 EVB")
-		name="awm003-evb"
-		;;
 	*"BC2")
 		name="bc2"
-		;;
-	*"BR-6425")
-		name="br-6425"
 		;;
 	*"BR-6475nD")
 		name="br-6475nd"
 		;;
 	*"Broadway")
 		name="broadway"
+		;;
+	*"C108")
+		name="c108"
+		;;
+	*"C20")
+		name="c20"
 		;;
 	*"C20i")
 		name="c20i"
@@ -129,9 +129,6 @@ ramips_board_detect() {
 		;;
 	*"DCS-930L B1")
 		name="dcs-930l-b1"
-		;;
-	*"Digineo AC1200 Pro")
-		name="ac1200pro"
 		;;
 	*"DIR-300 B1")
 		name="dir-300-b1"
@@ -190,7 +187,7 @@ ramips_board_detect() {
 	*"EX2700")
 		name="ex2700";
 		;;
-	*"EX3700")
+	*"EX3700/EX3800")
 		name="ex3700"
 		;;
 	*"F5D8235 v1")
@@ -211,6 +208,9 @@ ramips_board_detect() {
 	*"FreeStation5")
 		name="freestation5"
 		;;
+	*"GB-PC1")
+		name="gb-pc1"
+		;;
 	*"GL-MT300A")
 		name="gl-mt300a"
 		;;
@@ -219,6 +219,9 @@ ramips_board_detect() {
 		;;
 	*"GL-MT750")
 		name="gl-mt750"
+		;;
+	*"GL-MT300N-V2")
+		name="gl-mt300n-v2"
 		;;
 	*"HC5661")
 		name="hc5661"
@@ -262,6 +265,9 @@ ramips_board_detect() {
 	*"JHR-N926R")
 		name="jhr-n926r"
 		;;
+	*"K2P")
+		name="k2p"
+		;;
 	*"M3")
 		name="m3"
 		;;
@@ -284,7 +290,10 @@ ramips_board_detect() {
 		name="m2m"
 		;;
 	*"Mercury MAC1200R v2")
-		name="mac1200r-v2"
+		name="mac1200rv2"
+		;;
+	*"Mi Router 3G")
+		name="mir3g"
 		;;
 	*"MicroWRT")
 		name="microwrt"
@@ -397,8 +406,11 @@ ramips_board_detect() {
 	*"PSG1208")
 		name="psg1208"
 		;;
-	*"PSG1218")
-		name="psg1218"
+	*"PSG1218 rev.A")
+		name="psg1218a"
+		;;
+	*"PSG1218 rev.B")
+		name="psg1218b"
 		;;
 	*"PSR-680W"*)
 		name="psr-680w"
@@ -421,6 +433,9 @@ ramips_board_detect() {
 	*"RB750Gr3")
 		name="rb750gr3"
 		;;
+	*"RE350 v1")
+		name="re350-v1"
+		;;
 	*"RE6500")
 		name="re6500"
 		;;
@@ -435,6 +450,9 @@ ramips_board_detect() {
 		;;
 	*"RT5350F-OLinuXino-EVB")
 		name="rt5350f-olinuxino-evb"
+		;;
+	*"RT-AC51U")
+		name="rt-ac51u"
 		;;
 	*"RT-G32 B1")
 		name="rt-g32-b1"
@@ -466,6 +484,9 @@ ramips_board_detect() {
 	*"SL-R7205"*)
 		name="sl-r7205"
 		;;
+	*"TEW-638APB v2")
+		name="tew-638apb-v2"
+		;;
 	*"TEW-691GR")
 		name="tew-691gr"
 		;;
@@ -478,8 +499,29 @@ ramips_board_detect() {
 	*"Timecloud")
 		name="timecloud"
 		;;
+	*"TL-WR840N v4")
+		name="tl-wr840n-v4"
+		;;
+	*"TL-WR840N v5")
+		name="tl-wr840n-v5"
+		;;
+	*"TL-WR841N v13")
+		name="tl-wr841n-v13"
+		;;
+	*"U25AWF-H1")
+		name="u25awf-h1"
+		;;
+	*"U7621-06 (256M RAM/16M flash)")
+		name="u7621-06-256M-16M"
+		;;
+	*"U7628-01 (128M RAM/16M flash)")
+		name="u7628-01-128M-16M"
+		;;
 	*"UBNT-ERX")
 		name="ubnt-erx"
+		;;
+	*"UBNT-ERX-SFP")
+		name="ubnt-erx-sfp"
 		;;
 	*"UR-326N4G")
 		name="ur-326n4g"
@@ -502,6 +544,9 @@ ramips_board_detect() {
 	*"VoCore2")
 		name="vocore2"
 		;;
+	*"VoCore2-Lite")
+		name="vocore2lite"
+		;;
 	*"VR500")
 		name="vr500"
 		;;
@@ -522,6 +567,9 @@ ramips_board_detect() {
 		;;
 	*"WCR-150GN")
 		name="wcr-150gn"
+		;;
+	*"WE1026-5G (16M)")
+		name="we1026-5g-16m"
 		;;
 	*"WF-2881")
 		name="wf-2881"
@@ -570,6 +618,9 @@ ramips_board_detect() {
 		;;
 	*"WLR-6000")
 		name="wlr-6000"
+		;;
+	*"WMDR-143N")
+		name="wmdr-143n"
 		;;
 	*"WMR-300")
 		name="wmr-300"
@@ -646,20 +697,32 @@ ramips_board_detect() {
 	*"ZBT-WA05")
 		name="zbt-wa05"
 		;;
+	*"ZBT-WE1326")
+		name="zbt-we1326"
+		;;
 	*"ZBT-WE2026")
 		name="zbt-we2026"
 		;;
-	*"ZBT-WE826")
-		name="zbt-we826"
+	*"ZBT-WE826 (16M)")
+		name="zbt-we826-16M"
+		;;
+	*"ZBT-WE826 (32M)")
+		name="zbt-we826-32M"
 		;;
 	*"ZBT-WG2626")
 		name="zbt-wg2626"
 		;;
-	*"ZBT-WG3526")
-		name="zbt-wg3526"
+	*"ZBT-WG3526 (16M)")
+		name="zbt-wg3526-16M"
+		;;
+	*"ZBT-WG3526 (32M)")
+		name="zbt-wg3526-32M"
 		;;
 	*"ZBT-WR8305RT")
 		name="zbt-wr8305rt"
+		;;
+	*"ZyXEL Keenetic")
+		name="kn"
 		;;
 	*"ZyXEL Keenetic Omni")
 		name="kn_rc"
@@ -674,7 +737,9 @@ ramips_board_detect() {
 		name="youku-yk1"
 		;;
 	*)
-		name="generic"
+		name="$(strings /proc/device-tree/compatible | head -1)"
+		name="${name##*,}"
+		name="${name:-generic}"
 		;;
 	esac
 
@@ -685,13 +750,4 @@ ramips_board_detect() {
 
 	echo "$RAMIPS_BOARD_NAME" > /tmp/sysinfo/board_name
 	echo "$RAMIPS_MODEL" > /tmp/sysinfo/model
-}
-
-ramips_board_name() {
-	local name
-
-	[ -f /tmp/sysinfo/board_name ] && name=$(cat /tmp/sysinfo/board_name)
-	[ -z "$name" ] && name="unknown"
-
-	echo "${name%-[0-9]*M}"
 }

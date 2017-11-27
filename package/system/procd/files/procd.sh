@@ -79,6 +79,9 @@ _procd_close_service() {
 	_procd_open_trigger
 	service_triggers
 	_procd_close_trigger
+	_procd_open_data
+	service_data
+	_procd_close_data
 	_procd_ubus_call ${1:-set}
 }
 
@@ -132,6 +135,18 @@ _procd_close_trigger() {
 	let '_procd_trigger_open = _procd_trigger_open - 1'
 	[ "$_procd_trigger_open" -lt 1 ] || return
 	json_close_array
+}
+
+_procd_open_data() {
+	let '_procd_data_open = _procd_data_open + 1'
+	[ "$_procd_data_open" -gt 1 ] && return
+	json_add_object "data"
+}
+
+_procd_close_data() {
+	let '_procd_data_open = _procd_data_open - 1'
+	[ "$_procd_data_open" -lt 1 ] || return
+	json_close_object
 }
 
 _procd_open_validate() {
@@ -213,7 +228,7 @@ _procd_set_param() {
 			json_add_string "" "$@"
 			json_close_array
 		;;
-		nice)
+		nice|term_timeout)
 			json_add_int "$type" "$1"
 		;;
 		reload_signal)
@@ -423,7 +438,7 @@ procd_add_mdns_service() {
 	json_add_int port "$port"
 	[ -n "$1" ] && {
 		json_add_array txt
-		for txt in $@; do json_add_string "" $txt; done
+		for txt in "$@"; do json_add_string "" "$txt"; done
 		json_select ..
 	}
 	json_select ..
@@ -432,7 +447,7 @@ procd_add_mdns_service() {
 procd_add_mdns() {
 	procd_open_data
 	json_add_object "mdns"
-	procd_add_mdns_service $@
+	procd_add_mdns_service "$@"
 	json_close_object
 	procd_close_data
 }

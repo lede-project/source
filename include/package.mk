@@ -40,6 +40,19 @@ include $(INCLUDE_DIR)/prereq.mk
 include $(INCLUDE_DIR)/unpack.mk
 include $(INCLUDE_DIR)/depends.mk
 
+ifneq ($(if $(CONFIG_SRC_TREE_OVERRIDE),$(wildcard ./git-src)),)
+  USE_GIT_TREE:=1
+  QUILT:=1
+endif
+ifdef USE_SOURCE_DIR
+  QUILT:=1
+endif
+ifneq ($(wildcard $(PKG_BUILD_DIR)/.source_dir),)
+  QUILT:=1
+endif
+
+include $(INCLUDE_DIR)/quilt.mk
+
 find_library_dependencies = $(wildcard $(patsubst %,$(STAGING_DIR)/pkginfo/%.version, \
 	$(filter-out $(BUILD_PACKAGES),$(foreach dep, \
 		$(filter-out @%, $(patsubst +%,%,$(1))), \
@@ -75,20 +88,9 @@ define CleanStaging
 	)
 endef
 
-ifneq ($(if $(CONFIG_SRC_TREE_OVERRIDE),$(wildcard ./git-src)),)
-  USE_GIT_TREE:=1
-  QUILT:=1
-endif
-ifdef USE_SOURCE_DIR
-  QUILT:=1
-endif
-ifneq ($(wildcard $(PKG_BUILD_DIR)/.source_dir),)
-  QUILT:=1
-endif
 
 PKG_INSTALL_STAMP:=$(PKG_INFO_DIR)/$(PKG_DIR_NAME).$(if $(BUILD_VARIANT),$(BUILD_VARIANT),default).install
 
-include $(INCLUDE_DIR)/quilt.mk
 include $(INCLUDE_DIR)/package-defaults.mk
 include $(INCLUDE_DIR)/package-dumpinfo.mk
 include $(INCLUDE_DIR)/package-ipkg.mk
@@ -232,14 +234,7 @@ define Build/DefaultTargets
   endef
 endef
 
-define Build/IncludeOverlay
-  $(eval -include $(wildcard $(TOPDIR)/overlay/*/$(PKG_DIR_NAME).mk))
-  define Build/IncludeOverlay
-  endef
-endef
-
 define BuildPackage
-  $(Build/IncludeOverlay)
   $(eval $(Package/Default))
   $(eval $(Package/$(1)))
 

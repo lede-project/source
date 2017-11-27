@@ -34,7 +34,8 @@ config USB_GADGET_SUPPORT
 	bool
 
 config RTC_SUPPORT
-	bool
+	tristate
+	depends on m
 
 config BIG_ENDIAN
 	bool
@@ -198,6 +199,7 @@ config ARCH
 	default "mips64"    if mips64
 	default "mips64el"  if mips64el
 	default "powerpc"   if powerpc
+	default "powerpc64" if powerpc64
 	default "sh3"       if sh3
 	default "sh3eb"     if sh3eb
 	default "sh4"       if sh4

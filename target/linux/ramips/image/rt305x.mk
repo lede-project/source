@@ -111,6 +111,7 @@ TARGET_DEVICES += all5003
 define Device/asl26555-8M
   DTS := ASL26555-8M
   IMAGE_SIZE := 7744k
+  SUPPORTED_DEVICES += asl26555
   DEVICE_TITLE := Alpha ASL26555 
   DEVICE_PACKAGES := kmod-usb-core kmod-usb-dwc2 kmod-usb-ledtrig-usbport
 endef
@@ -119,6 +120,7 @@ TARGET_DEVICES += asl26555-8M
 define Device/asl26555-16M
   DTS := ASL26555-16M
   IMAGE_SIZE := 15872k
+  SUPPORTED_DEVICES += asl26555
   DEVICE_TITLE := Alpha ASL26555 16M
   DEVICE_PACKAGES :=
 endef
@@ -135,24 +137,18 @@ define Device/awm002-evb-4M
   DTS := AWM002-EVB-4M
   IMAGE_SIZE := $(ralink_default_fw_size_4M)
   DEVICE_TITLE := AsiaRF AWM002-EVB (4M)
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport \
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 \
 		kmod-i2c-core kmod-i2c-gpio
 endef
 TARGET_DEVICES += awm002-evb-4M
 
 define Device/awm002-evb-8M
   DTS := AWM002-EVB-8M
-  DEVICE_TITLE := AsiaRF AWM002-EVB (8M)
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport \
+  DEVICE_TITLE := AsiaRF AWM002-EVB (8M)/AsiaRF AWM003 EVB
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 \
 		kmod-i2c-core kmod-i2c-gpio
 endef
 TARGET_DEVICES += awm002-evb-8M
-
-define Device/awm003-evb
-  DTS := AWM003-EVB
-  DEVICE_TITLE := AsiaRF AWM003 EVB
-endef
-TARGET_DEVICES += awm003-evb
 
 define Device/awapn2403
   DTS := AWAPN2403
@@ -298,8 +294,8 @@ define Device/dwr-512-b
   DTS := DWR-512-B
   IMAGE_SIZE := 7700k
   DEVICE_TITLE := D-Link DWR-512 B
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-i2c-core kmod-i2c-ralink kmod-spi-dev \
-			kmod-usb-serial kmod-usb-serial-option kmod-usb-serial-wwan comgt
+  DEVICE_PACKAGES := kmod-usb2 kmod-spi-dev kmod-usb-serial kmod-usb-serial-option \
+			kmod-usb-net kmod-usb-net-cdc-ether comgt-ncm
 endef
 TARGET_DEVICES += dwr-512-b
 
@@ -342,6 +338,13 @@ define Device/freestation5
   DEVICE_PACKAGES := kmod-usb-dwc2 kmod-rt2500-usb kmod-rt2800-usb kmod-rt2x00-usb
 endef
 TARGET_DEVICES += freestation5
+
+define Device/hg255d
+  DTS := HG255D
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := HuaWei HG255D
+endef
+TARGET_DEVICES += hg255d
 
 define Device/hlk-rm04
   DTS := HLKRM04
@@ -453,6 +456,7 @@ endef
 TARGET_DEVICES += miniembplug
 
 define Device/miniembwifi
+  DTS := MINIEMBWIFI
   DEVICE_TITLE := Omnima MiniEMBWiFi
 endef
 TARGET_DEVICES += miniembwifi
@@ -538,6 +542,7 @@ TARGET_DEVICES += ncs601w
 define Device/nixcore-x1-8M
   DTS := NIXCORE-8M
   IMAGE_SIZE := 7872k
+  SUPPORTED_DEVICES += nixcore-x1
   DEVICE_TITLE := NixcoreX1 (8M)
   DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-i2c-core kmod-i2c-ralink kmod-spi-dev
 endef
@@ -546,6 +551,7 @@ TARGET_DEVICES += nixcore-x1-8M
 define Device/nixcore-x1-16M
   DTS := NIXCORE-16M
   IMAGE_SIZE := 16064k
+  SUPPORTED_DEVICES += nixcore-x1
   DEVICE_TITLE := NixcoreX1 (16M)
   DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-i2c-core kmod-i2c-ralink kmod-spi-dev
 endef
@@ -635,6 +641,7 @@ TARGET_DEVICES += rt-n13u
 define Device/rut5xx
   DTS := RUT5XX
   DEVICE_TITLE := Teltonika RUT5XX
+  DEVICE_PACKAGES := om-watchdog
 endef
 TARGET_DEVICES += rut5xx
 
@@ -645,6 +652,16 @@ define Device/sl-r7205
   DEVICE_TITLE := Skyline SL-R7205 Wireless 3G Router
 endef
 TARGET_DEVICES += sl-r7205
+
+define Device/tew-638apb-v2
+  DTS := TEW-638APB-V2
+  BLOCKSIZE := 64k
+  IMAGE_SIZE := $(ralink_default_fw_size_4M)
+  IMAGE/sysupgrade.bin := $$(sysupgrade_bin) | umedia-header 0x026382 | \
+        append-metadata | check-size $$$$(IMAGE_SIZE)
+  DEVICE_TITLE := TRENDnet TEW-638APB v2
+endef
+TARGET_DEVICES += tew-638apb-v2
 
 define Device/tew-714tru
   DTS := TEW-714TRU
@@ -679,6 +696,7 @@ TARGET_DEVICES += v22rw-2x2
 define Device/vocore-8M
   DTS := VOCORE-8M
   IMAGE_SIZE := 7872k
+  SUPPORTED_DEVICES += vocore
   DEVICE_TITLE := VoCore (8M)
   DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 \
 		kmod-i2c-core kmod-i2c-ralink \
@@ -689,6 +707,7 @@ TARGET_DEVICES += vocore-8M
 define Device/vocore-16M
   DTS := VOCORE-16M
   IMAGE_SIZE := 16064k
+  SUPPORTED_DEVICES += vocore
   DEVICE_TITLE := VoCore (16M)
   DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 \
 		kmod-i2c-core kmod-i2c-ralink \
@@ -844,3 +863,12 @@ define Device/xdxrn502j
   DEVICE_TITLE := XDX RN502J
 endef
 TARGET_DEVICES += xdxrn502j
+
+define Device/kn
+  DTS := kn
+  BLOCKSIZE := 64k
+  IMAGE_SIZE := $(ralink_default_fw_size_4M)
+  DEVICE_TITLE := ZyXEL Keenetic
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ehci kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += kn

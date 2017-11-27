@@ -1,7 +1,7 @@
 /*
- *  TP-Link Archer C59 v1 board support
+ *  TP-Link Archer C58/C59 v1 board support
  *
- *  Copyright (C) 2016 Henryk Heisig <hyniu@o2.pl>
+ *  Copyright (C) 2017 Henryk Heisig <hyniu@o2.pl>
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License version 2 as published
@@ -43,15 +43,15 @@
 #define ARCHER_C59_GPIO_SHIFT_SRCLR		19
 #define ARCHER_C59_GPIO_SHIFT_RCLK		20
 
-#define ARCHER_C59_74HC_GPIO_BASE		QCA956X_GPIO_COUNT
-#define ARCHER_C59_74HC_GPIO_LED_POWER		23
-#define ARCHER_C59_74HC_GPIO_LED_WLAN2		24
-#define ARCHER_C59_74HC_GPIO_LED_WLAN5		25
-#define ARCHER_C59_74HC_GPIO_LED_LAN		26
-#define ARCHER_C59_74HC_GPIO_LED_WAN_GREEN	27
-#define ARCHER_C59_74HC_GPIO_LED_WAN_AMBER	28
-#define ARCHER_C59_74HC_GPIO_LED_WPS		29
-#define ARCHER_C59_74HC_GPIO_LED_USB		30
+#define ARCHER_C59_74HC_GPIO_BASE		32
+#define ARCHER_C59_74HC_GPIO_LED_POWER		(ARCHER_C59_74HC_GPIO_BASE + 0)
+#define ARCHER_C59_74HC_GPIO_LED_WLAN2		(ARCHER_C59_74HC_GPIO_BASE + 1)
+#define ARCHER_C59_74HC_GPIO_LED_WLAN5		(ARCHER_C59_74HC_GPIO_BASE + 2)
+#define ARCHER_C59_74HC_GPIO_LED_LAN		(ARCHER_C59_74HC_GPIO_BASE + 3)
+#define ARCHER_C59_74HC_GPIO_LED_WAN_GREEN	(ARCHER_C59_74HC_GPIO_BASE + 4)
+#define ARCHER_C59_74HC_GPIO_LED_WAN_AMBER	(ARCHER_C59_74HC_GPIO_BASE + 5)
+#define ARCHER_C59_74HC_GPIO_LED_WPS		(ARCHER_C59_74HC_GPIO_BASE + 6)
+#define ARCHER_C59_74HC_GPIO_LED_USB		(ARCHER_C59_74HC_GPIO_BASE + 7)
 
 #define ARCHER_C59_V1_SSR_BIT_0			0
 #define ARCHER_C59_V1_SSR_BIT_1			1
@@ -64,6 +64,44 @@
 
 #define ARCHER_C59_V1_WMAC_CALDATA_OFFSET	0x1000
 #define ARCHER_C59_V1_PCI_CALDATA_OFFSET	0x5000
+
+static struct gpio_led archer_c58_v1_leds_gpio[] __initdata = {
+	{
+		.name		= "archer-c58-v1:green:power",
+		.gpio		= ARCHER_C59_74HC_GPIO_LED_POWER,
+		.active_low	= 1,
+	},
+	{
+		.name		= "archer-c58-v1:green:wlan2g",
+		.gpio		= ARCHER_C59_74HC_GPIO_LED_WLAN2,
+		.active_low	= 1,
+	},
+	{
+		.name		= "archer-c58-v1:green:wlan5g",
+		.gpio		= ARCHER_C59_74HC_GPIO_LED_WLAN5,
+		.active_low	= 1,
+	},
+	{
+		.name		= "archer-c58-v1:green:lan",
+		.gpio		= ARCHER_C59_74HC_GPIO_LED_LAN,
+		.active_low	= 1,
+	},
+	{
+		.name		= "archer-c58-v1:green:wan",
+		.gpio		= ARCHER_C59_74HC_GPIO_LED_WAN_GREEN,
+		.active_low	= 1,
+	},
+	{
+		.name		= "archer-c58-v1:amber:wan",
+		.gpio		= ARCHER_C59_74HC_GPIO_LED_WAN_AMBER,
+		.active_low	= 1,
+	},
+	{
+		.name		= "archer-c58-v1:green:wps",
+		.gpio		= ARCHER_C59_74HC_GPIO_LED_WPS,
+		.active_low	= 1,
+	},
+};
 
 static struct gpio_led archer_c59_v1_leds_gpio[] __initdata = {
 	{
@@ -142,7 +180,7 @@ static struct spi_gpio_platform_data archer_c59_v1_spi_data = {
 	.num_chipselect = 1,
 };
 
-static u8 archer_c59_v1_ssr_initdata[] __initdata = {
+static u8 archer_c59_v1_ssr_initdata[] = {
 	BIT(ARCHER_C59_V1_SSR_BIT_7) |
 	BIT(ARCHER_C59_V1_SSR_BIT_6) |
 	BIT(ARCHER_C59_V1_SSR_BIT_5) |
@@ -177,7 +215,7 @@ static struct spi_board_info archer_c59_v1_spi_info[] = {
 	},
 };
 
-static void __init archer_c59_v1_setup(void)
+static void __init archer_c5x_v1_setup(void)
 {
 	u8 *mac = (u8 *) KSEG1ADDR(0x1f010008);
 	u8 *art = (u8 *) KSEG1ADDR(0x1fff0000);
@@ -186,9 +224,6 @@ static void __init archer_c59_v1_setup(void)
 	spi_register_board_info(archer_c59_v1_spi_info,
 			   ARRAY_SIZE(archer_c59_v1_spi_info));
 	platform_device_register(&archer_c59_v1_spi_device);
-
-	ath79_register_leds_gpio(-1, ARRAY_SIZE(archer_c59_v1_leds_gpio),
-				archer_c59_v1_leds_gpio);
 
 	ath79_register_gpio_keys_polled(-1, ARCHER_C59_V1_KEYS_POLL_INTERVAL,
 					ARRAY_SIZE(archer_c59_v1_gpio_keys),
@@ -231,6 +266,23 @@ static void __init archer_c59_v1_setup(void)
 	gpio_request_one(ARCHER_C59_GPIO_SHIFT_SRCLR,
 			 GPIOF_OUT_INIT_HIGH | GPIOF_EXPORT_DIR_FIXED,
 			 "LED reset");
+}
+
+static void __init archer_c58_v1_setup(void)
+{
+	archer_c5x_v1_setup();
+	ath79_register_leds_gpio(-1, ARRAY_SIZE(archer_c58_v1_leds_gpio),
+				archer_c58_v1_leds_gpio);
+}
+
+MIPS_MACHINE(ATH79_MACH_ARCHER_C58_V1, "ARCHER-C58-V1",
+	"TP-LINK Archer C58 v1", archer_c58_v1_setup);
+
+static void __init archer_c59_v1_setup(void)
+{
+	archer_c5x_v1_setup();
+	ath79_register_leds_gpio(-1, ARRAY_SIZE(archer_c59_v1_leds_gpio),
+				archer_c59_v1_leds_gpio);
 }
 
 MIPS_MACHINE(ATH79_MACH_ARCHER_C59_V1, "ARCHER-C59-V1",

@@ -503,6 +503,38 @@ endef
 $(eval $(call KernelPackage,usb-serial-ch341))
 
 
+define KernelPackage/usb-serial-edgeport
+  TITLE:=Support for Digi Edgeport devices
+  KCONFIG:=CONFIG_USB_SERIAL_EDGEPORT
+  FILES:=$(LINUX_DIR)/drivers/usb/serial/io_edgeport.ko
+  AUTOLOAD:=$(call AutoProbe,io_edgeport)
+  $(call AddDepends/usb-serial)
+  DEPENDS+=+edgeport-firmware
+endef
+
+define KernelPackage/usb-serial-edgeport/description
+ Kernel support for Inside Out Networks (Digi)
+	Edgeport/4
+	Rapidport/4
+	Edgeport/4t
+	Edgeport/2
+	Edgeport/4i
+	Edgeport/2i
+	Edgeport/421
+	Edgeport/21
+	Edgeport/8
+	Edgeport/8 Dual
+	Edgeport/2D8
+	Edgeport/4D8
+	Edgeport/8i
+	Edgeport/2 DIN
+	Edgeport/4 DIN
+	Edgeport/16 Dual
+endef
+
+$(eval $(call KernelPackage,usb-serial-edgeport))
+
+
 define KernelPackage/usb-serial-ftdi
   TITLE:=Support for FTDI devices
   KCONFIG:=CONFIG_USB_SERIAL_FTDI_SIO
@@ -854,6 +886,25 @@ define KernelPackage/usb-storage-extras/description
 endef
 
 $(eval $(call KernelPackage,usb-storage-extras))
+
+
+define KernelPackage/usb-storage-uas
+  SUBMENU:=$(USB_MENU)
+  TITLE:=USB Attached SCSI (UASP) support
+  DEPENDS:=+kmod-usb-storage
+  KCONFIG:=CONFIG_USB_UAS
+  FILES:=$(LINUX_DIR)/drivers/usb/storage/uas.ko
+  AUTOLOAD:=$(call AutoProbe,uas)
+endef
+
+define KernelPackage/usb-storage-uas/description
+ Say Y here if you want to include support for
+ USB Attached SCSI (UAS/UASP), a higher
+ performance protocol available on many
+ newer USB 3.0 storage devices
+endef
+
+$(eval $(call KernelPackage,usb-storage-uas))
 
 
 define KernelPackage/usb-atm
@@ -1283,6 +1334,19 @@ endef
 
 $(eval $(call KernelPackage,usb-net-kalmia))
 
+define KernelPackage/usb-net-pl
+  TITLE:=Prolific PL-2301/2302/25A1 based cables
+  KCONFIG:=CONFIG_USB_NET_PLUSB
+  FILES:=$(LINUX_DIR)/drivers/net/usb/plusb.ko
+  AUTOLOAD:=$(call AutoProbe,plusb)
+  $(call AddDepends/usb-net)
+endef
+
+define KernelPackage/usb-net-pl/description
+ Kernel support for Prolific PL-2301/2302/25A1 based cables
+endef
+
+$(eval $(call KernelPackage,usb-net-pl))
 
 define KernelPackage/usb-hid
   TITLE:=Support for USB Human Input Devices

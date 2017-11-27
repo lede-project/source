@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2008-2013 OpenWrt.org
+# Copyright (C) 2017 Yousong Zhou <yszhou4tech@gmail.com>
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,20 +9,22 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libunwind
-PKG_VERSION:=1.1
-PKG_RELEASE:=1
+PKG_VERSION:=1.2.1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@SAVANNAH/$(PKG_NAME)
-PKG_HASH:=9dfe0fcae2a866de9d3942c66995e4b460230446887dbdab302d41a8aee8d09a
+PKG_HASH:=3f3ecb90e28cbe53fba7a4a27ccce7aad188d3210bb1964a923a731a27a75acb
 PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
 
 PKG_LICENSE:=X11
 PKG_LICENSE_FILES:=LICENSE
+PKG_CPE_ID:=cpe:/a:libunwind_project:libunwind
 
 PKG_MAINTAINER:=Yousong Zhou <yszhou4tech@gmail.com>
 
+PKG_SSP:=0
 include $(INCLUDE_DIR)/package.mk
 
 define Package/libunwind
@@ -36,7 +39,10 @@ define Package/libunwind/description
   Libunwind defines a portable and efficient C programming interface (API) to determine the call-chain of a program.
 endef
 
-CONFIGURE_ARGS += --enable-minidebuginfo=no
+CONFIGURE_ARGS += \
+	--disable-documentation \
+	--enable-minidebuginfo=no \
+
 
 define Package/libunwind/install
 	$(INSTALL_DIR) $(1)/usr/lib
