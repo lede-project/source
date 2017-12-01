@@ -125,6 +125,10 @@ define Build/Configure/Default
 	)
 endef
 
+define Build/Menuconfig/Default
+	+$(MAKE) ARCH=$(ARCH) -C $(PKG_BUILD_DIR) menuconfig
+endef
+
 MAKE_VARS = \
 	CFLAGS="$(TARGET_CFLAGS) $(EXTRA_CFLAGS) $(TARGET_CPPFLAGS) $(EXTRA_CPPFLAGS)" \
 	CXXFLAGS="$(TARGET_CXXFLAGS) $(EXTRA_CXXFLAGS) $(TARGET_CPPFLAGS) $(EXTRA_CPPFLAGS)" \

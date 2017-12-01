@@ -153,6 +153,9 @@ define Build/CoreTargets
 		$(call $(hook))$(sep)
 	)
 
+  menuconfig: $(STAMP_CONFIGURED)
+	$(Build/Menuconfig)
+
   $(STAMP_PREPARED) : export PATH=$$(TARGET_PATH_PKG)
   $(STAMP_PREPARED): $(STAMP_PREPARED_DEPENDS)
 	@-rm -rf $(PKG_BUILD_DIR)
@@ -278,6 +281,7 @@ endef
 
 Build/Prepare=$(call Build/Prepare/Default,)
 Build/Configure=$(call Build/Configure/Default,)
+Build/Menuconfig=$(call Build/Menuconfig/Default,)
 Build/Compile=$(call Build/Compile/Default,)
 Build/Install=$(if $(PKG_INSTALL),$(call Build/Install/Default,))
 Build/Dist=$(call Build/Dist/Default,)
