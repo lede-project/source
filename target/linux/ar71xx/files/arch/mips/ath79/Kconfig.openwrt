@@ -847,6 +847,16 @@ config ATH79_MACH_GS_OOLITE
 	select ATH79_DEV_USB
 	select ATH79_DEV_WMAC
 
+config ATH79_MACH_DPT_MODULE_V1
+	bool "DPTechnics DPT-Module V1 support"
+	select SOC_AR933X
+	select ARH79_DEV_ETH
+	select ARH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
 config ATH79_MACH_HIVEAP_121
 	bool "Aerohive HiveAP-121 support"
 	select SOC_AR934X

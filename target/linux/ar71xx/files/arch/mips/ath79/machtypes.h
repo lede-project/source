@@ -119,6 +119,7 @@ enum ath79_mach_type {
 	ATH79_MACH_GL_USB150,			/* GL.iNet GL-USB150 */
 	ATH79_MACH_GS_MINIBOX_V1,		/* Gainstrong MiniBox V1.0 */
 	ATH79_MACH_GS_OOLITE,			/* GS OOLITE V1.0 */
+	ATH79_MACH_DPT_MODULE_V1,		/* DPTechnics DPT-Module V1 */
 	ATH79_MACH_HIVEAP_121,			/* Aerohive HiveAP-121*/
 	ATH79_MACH_HIWIFI_HC6361,		/* HiWiFi HC6361 */
 	ATH79_MACH_HORNET_UB,			/* ALFA Networks Hornet-UB */

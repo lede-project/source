@@ -29,6 +29,7 @@ ar71xx_setup_interfaces()
 	minibox-v1|\
 	mynet-n600|\
 	oolite|\
+	dpt-module-v1|\
 	qihoo-c301|\
 	r602n|\
 	rb-750|\

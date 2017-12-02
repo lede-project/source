@@ -393,6 +393,7 @@ platform_check_image() {
 	omy-x1|\
 	onion-omega|\
 	oolite|\
+	dpt-module-v1|\
 	re450|\
 	smart-300|\
 	som9331|\
