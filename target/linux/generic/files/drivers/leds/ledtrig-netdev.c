@@ -83,10 +83,21 @@ struct led_netdev_data {
 	unsigned last_activity;
 };
 
+static inline void set_blink_brightness(struct led_netdev_data *trigger_data)
+{
+	int current_brightness;
+
+	current_brightness = led_get_brightness(trigger_data->led_cdev);
+	if (current_brightness != LED_OFF)
+		trigger_data->led_cdev->blink_brightness = current_brightness;
+}
+
 static void set_baseline_state(struct led_netdev_data *trigger_data)
 {
+	set_blink_brightness(trigger_data);
+
 	if ((trigger_data->mode & MODE_LINK) != 0 && trigger_data->link_up)
-		led_set_brightness(trigger_data->led_cdev, LED_FULL);
+		led_set_brightness(trigger_data->led_cdev, trigger_data->led_cdev->blink_brightness);
 	else
 		led_set_brightness(trigger_data->led_cdev, LED_OFF);
 
@@ -308,9 +319,12 @@ static void netdev_trig_work(struct work_struct *work)
 	unsigned new_activity;
 	struct rtnl_link_stats64 temp;
 
+	set_blink_brightness(trigger_data);
+
 	if (!trigger_data->link_up || !trigger_data->net_dev || (trigger_data->mode & (MODE_TX | MODE_RX)) == 0) {
 		/* we don't need to do timer work, just reflect link state. */
-		led_set_brightness(trigger_data->led_cdev, ((trigger_data->mode & MODE_LINK) != 0 && trigger_data->link_up) ? LED_FULL : LED_OFF);
+		led_set_brightness(trigger_data->led_cdev,
+			((trigger_data->mode & MODE_LINK) != 0 && trigger_data->link_up) ? trigger_data->led_cdev->blink_brightness : LED_OFF);
 		return;
 	}
 
@@ -326,7 +340,7 @@ static void netdev_trig_work(struct work_struct *work)
 		/* OFF -> ON always */
 		/* ON -> OFF on activity */
 		if (trigger_data->led_cdev->brightness == LED_OFF) {
-			led_set_brightness(trigger_data->led_cdev, LED_FULL);
+			led_set_brightness(trigger_data->led_cdev, trigger_data->led_cdev->blink_brightness);
 		} else if (trigger_data->last_activity != new_activity) {
 			led_set_brightness(trigger_data->led_cdev, LED_OFF);
 		}
@@ -334,10 +348,10 @@ static void netdev_trig_work(struct work_struct *work)
 		/* base state is OFF */
 		/* ON -> OFF always */
 		/* OFF -> ON on activity */
-		if (trigger_data->led_cdev->brightness == LED_FULL) {
+		if (trigger_data->led_cdev->brightness != LED_OFF) {
 			led_set_brightness(trigger_data->led_cdev, LED_OFF);
 		} else if (trigger_data->last_activity != new_activity) {
-			led_set_brightness(trigger_data->led_cdev, LED_FULL);
+			led_set_brightness(trigger_data->led_cdev, trigger_data->led_cdev->blink_brightness);
 		}
 	}
 
@@ -371,6 +385,10 @@ static void netdev_trig_activate(struct led_classdev *led_cdev)
 	trigger_data->last_activity = 0;
 
 	led_cdev->trigger_data = trigger_data;
+
+	set_blink_brightness(trigger_data);
+	if (led_cdev->blink_brightness == LED_OFF)
+		led_cdev->blink_brightness = led_cdev->max_brightness;
 
 	rc = device_create_file(led_cdev->dev, &dev_attr_device_name);
 	if (rc)
