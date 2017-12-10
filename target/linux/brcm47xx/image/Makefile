@@ -519,7 +519,16 @@ define Device/usrobotics-usr5461
 endef
 TARGET_DEVICES += usrobotics-usr5461
 
-TARGET_DEVICES += standard standard-noloader-gz
+define Device/legacy-standard
+  $(Device/standard)
+endef
+TARGET_DEVICES += legacy-standard
+
+define Device/legacy-standard-noloader-gz
+  $(Device/standard-noloader-gz)
+endef
+TARGET_DEVICES += legacy-standard-noloader-gz
+
 endif
 
 #################################################
@@ -964,7 +973,16 @@ define Device/netgear-wnr3500-v2-vc
 endef
 #  TARGET_DEVICES += netgear-wnr3500-v2-vc
 
-TARGET_DEVICES += standard standard-noloader-nodictionarylzma
+define Device/mips74k-standard
+  $(Device/standard)
+endef
+TARGET_DEVICES += mips74k-standard
+
+define Device/mips74k-standard-noloader-nodictionarylzma
+  $(Device/standard-noloader-nodictionarylzma)
+endef
+TARGET_DEVICES += mips74k-standard-noloader-nodictionarylzma
+
 endif
 
 #################################################
