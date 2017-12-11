@@ -53,6 +53,10 @@ BTHOMEHUBV5A)
 DM200)
 	ucidef_set_led_netdev "lan" "lan" "dm200:green:lan" "eth0"
 	;;
+FRITZ7312)
+	ucidef_set_led_default "power" "power" "fritz7312:green:power" "1"
+	ucidef_set_led_netdev "wifi" "wifi" "fritz7312:green:wlan" "wlan0"
+	;;
 FRITZ7320)
 	ucidef_set_led_netdev "wifi" "wifi" "fritz7320:green:wlan" "wlan0"
 	;;

@@ -138,7 +138,7 @@ case "$FIRMWARE" in
 				ath9k_eeprom_extract "calibration" 61440 0
 				ath9k_patch_fw_mac_crc $(macaddr_add $(mtd_get_mac_ascii uboot-env ethaddr) +2) 524
 				;;
-			FRITZ3370|FRITZ7320|FRITZ7360SL)
+			FRITZ3370|FRITZ7312|FRITZ7320|FRITZ7360SL)
 				ath9k_eeprom_extract "urlader" 2437 0
 				;;
 			TDW8970|TDW8980)
