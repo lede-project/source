@@ -115,3 +115,17 @@ Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
  	};
  
  	lcpll0: lcpll0@1800c100 {
+--- a/arch/arm/boot/dts/bcm4708-netgear-r6300-v2.dts
++++ b/arch/arm/boot/dts/bcm4708-netgear-r6300-v2.dts
+@@ -82,3 +82,11 @@
+ 		};
+ 	};
+ };
++
++&usb2 {
++	vcc-gpio = <&chipcommon 0 GPIO_ACTIVE_HIGH>;
++};
++
++&usb3 {
++	vcc-gpio = <&chipcommon 0 GPIO_ACTIVE_HIGH>;
++};
