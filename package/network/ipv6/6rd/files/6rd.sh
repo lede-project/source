@@ -12,7 +12,7 @@
 proto_6rd_setup() {
 	local cfg="$1"
 	local iface="$2"
-	local link="6rd-$cfg"
+	local link="6rd-${cfg%_6}"
 
 	local mtu df ttl tos ipaddr peeraddr ip6prefix ip6prefixlen ip4prefixlen tunlink zone
 	json_get_vars mtu df ttl tos ipaddr peeraddr ip6prefix ip6prefixlen ip4prefixlen tunlink zone
