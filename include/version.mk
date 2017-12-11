@@ -94,10 +94,10 @@ VERSION_SED:=$(SED) 's,%U,$(VERSION_REPO),g' \
 	-e 's,%S,$(BOARD)/$(if $(SUBTARGET),$(SUBTARGET),generic),g' \
 	-e 's,%A,$(ARCH_PACKAGES),g' \
 	-e 's,%t,$(VERSION_TAINTS),g' \
-	-e 's,%M,$(VERSION_MANUFACTURER),g' \
-	-e 's,%m,$(VERSION_MANUFACTURER_URL),g' \
-	-e 's,%b,$(VERSION_BUG_URL),g' \
-	-e 's,%s,$(VERSION_SUPPORT_URL),g' \
+	-e 's\#%M\#$(VERSION_MANUFACTURER)\#g' \
+	-e 's\#%m\#$(VERSION_MANUFACTURER_URL)\#g' \
+	-e 's\#%b\#$(VERSION_BUG_URL)\#g' \
+	-e 's\#%s\#$(VERSION_SUPPORT_URL)\#g' \
 	-e 's,%P,$(VERSION_PRODUCT),g' \
 	-e 's,%h,$(VERSION_HWREV),g'
 
