@@ -29,7 +29,7 @@
 #define AR8316_NUM_VLANS	4096
 
 /* size of the vlan table */
-#define AR8X16_MAX_VLANS	128
+#define AR8X16_MAX_VLANS	4096
 #define AR8X16_PROBE_RETRIES	10
 #define AR8X16_MAX_PORTS	8
 
