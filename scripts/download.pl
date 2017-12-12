@@ -251,6 +251,15 @@ foreach my $mirror (@ARGV) {
 		push @mirrors, "http://ftp.belnet.be/ftp.gnome.org/sources/$1";
 		push @mirrors, "ftp://ftp.cse.buffalo.edu/pub/Gnome/sources/$1";
 		push @mirrors, "ftp://ftp.nara.wide.ad.jp/pub/X11/GNOME/sources/$1";
+    } elsif ($mirror =~ /^\@DISTFILES\/(.+)$/) {
+		push @mirrors, "https://mirror.hs-esslingen.de/Mirrors/gentoo/distfiles/$1";
+		push @mirrors, "https://mirror.yandex.ru/gentoo-distfiles/distfiles/$1";
+		push @mirrors, "https://mirror.csclub.uwaterloo.ca/gentoo-distfiles/distfiles/$1";
+		push @mirrors, "http://ftp.iij.ad.jp/pub/linux/gentoo/distfiles/$1";
+		push @mirrors, "http://mirrors.lug.mtu.edu/gentoo/distfiles/$1";
+		push @mirrors, "http://mirror.netcologne.de/gentoo/distfiles/$1";
+		push @mirrors, "ftp://ftp.heanet.ie/pub/gentoo/distfiles/$1";
+		push @mirrors, "ftp://mirror.switch.ch/mirror/gentoo/distfiles/";
     }
     else {
 		push @mirrors, $mirror;
