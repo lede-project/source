@@ -135,6 +135,14 @@ define Device/carambola2
 endef
 TARGET_DEVICES += carambola2
 
+define Device/cf-e312a
+  DEVICE_TITLE := COMFAST CF-E312A
+  BOARDNAME := CF-E312A
+  IMAGE_SIZE := 16192k
+  MTDPARTS := spi0.0:64k(u-boot)ro,64k(art)ro,16192k(firmware),64k(art-backup)ro
+endef
+TARGET_DEVICES += cf-e312a
+
 define Device/cf-e316n-v2
   DEVICE_TITLE := COMFAST CF-E316N v2
   BOARDNAME := CF-E316N-V2

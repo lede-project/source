@@ -1,5 +1,6 @@
 /*
  *  Support for COMFAST boards:
+ *  - CF-E312A v2 (AR9344)
  *  - CF-E316N v2 (AR9341)
  *  - CF-E320N v2 (QCA9531)
  *  - CF-E355AC (QCA9531)
@@ -35,6 +36,81 @@
 
 #define CF_EXXXN_KEYS_POLL_INTERVAL	20
 #define CF_EXXXN_KEYS_DEBOUNCE_INTERVAL	(3 * CF_EXXXN_KEYS_POLL_INTERVAL)
+
+/* CF-E312A */
+#define CF_E312A_GPIO_LED_LAN           2
+#define CF_E312A_GPIO_LED_WAN           3
+#define CF_E312A_GPIO_LED_WLAN          0
+#define CF_E312A_GPIO_LED_SIGNAL1       14
+#define CF_E312A_GPIO_LED_SIGNAL2       15
+#define CF_E312A_GPIO_LED_SIGNAL3       16
+#define CF_E312A_GPIO_LED_SIGNAL4       17
+#define CF_E312A_GPIO_BTN_SUITE         11
+#define CF_E312A_GPIO_BTN_RESET         22
+#define CF_E312A_GPIO_SDA               1
+#define CF_E312A_GPIO_SCL               12
+
+#define CF_E312A_GPIO_XWDT_TRIGGER      19
+
+static struct gpio_led cf_e312a_leds_gpio[] __initdata = {
+	{
+		.name		= "cf-e312a:white:lan",
+		.gpio		= CF_E312A_GPIO_LED_LAN,
+		.active_low	= 0,
+	}, {
+		.name		= "cf-e312a:white:wan",
+		.gpio		= CF_E312A_GPIO_LED_WAN,
+		.active_low	= 0,
+	}, {
+		.name		= "cf-e312a:white:wlan",
+		.gpio		= CF_E312A_GPIO_LED_WLAN,
+		.active_low	= 1,
+	}, {
+		.name		= "cf-e312a:white:signal1",
+		.gpio		= CF_E312A_GPIO_LED_SIGNAL1,
+		.active_low	= 1,
+	}, {
+		.name		= "cf-e312a:white:signal2",
+		.gpio		= CF_E312A_GPIO_LED_SIGNAL2,
+		.active_low	= 1,
+	}, {
+		.name		= "cf-e312a:white:signal3",
+		.gpio		= CF_E312A_GPIO_LED_SIGNAL3,
+		.active_low	= 1,
+	}, {
+		.name		= "cf-e312a:white:signal4",
+		.gpio		= CF_E312A_GPIO_LED_SIGNAL4,
+		.active_low	= 1,
+
+	}, {
+		.name		= "cf-e312a:sda",
+		.gpio		= CF_E312A_GPIO_SDA,
+		.active_low	= 0,
+	}, {
+		.name		= "cf-e312a:scl", 
+		.gpio		= CF_E312A_GPIO_SCL,
+		.active_low	= 0,
+	},
+};
+
+static struct gpio_keys_button cf_e312a_gpio_keys[] __initdata = {
+	{
+		.desc		= "reset",
+		.type		= EV_KEY,
+		.code		= KEY_RESTART,
+		.debounce_interval = CF_EXXXN_KEYS_DEBOUNCE_INTERVAL,
+		.gpio		= CF_E312A_GPIO_BTN_RESET,
+		.active_low	= 0,
+	}, {
+		.desc		= "suite button",
+		.type		= EV_KEY,
+		.code		= KEY_POWER,
+		.debounce_interval = CF_EXXXN_KEYS_DEBOUNCE_INTERVAL,
+		.gpio		= CF_E312A_GPIO_BTN_SUITE,
+		.active_low	= 1,
+	},
+};
+
 
 /* CF-E316N v2 */
 #define CF_E316N_V2_GPIO_LED_DIAG_B	0
@@ -289,6 +365,57 @@ static void __init cf_exxxn_common_setup(unsigned long art_ofs, int gpio_wdt)
 
 	ath79_register_usb();
 }
+
+static void __init cf_e312a_setup(void)
+{
+	u8 *mac = (u8 *) KSEG1ADDR(0x1f010000);
+
+	cf_exxxn_common_setup(0x10000, CF_E312A_GPIO_XWDT_TRIGGER);
+
+	ath79_setup_ar934x_eth_cfg(AR934X_ETH_CFG_SW_PHY_SWAP);
+
+	ath79_register_mdio(1, 0x0);
+
+	/* GMAC0 is connected to the PHY0 of the internal switch */
+	ath79_switch_data.phy4_mii_en = 1;
+	ath79_switch_data.phy_poll_mask = BIT(0);
+	ath79_eth0_data.phy_if_mode = PHY_INTERFACE_MODE_MII;
+	ath79_eth0_data.phy_mask = BIT(0);
+	ath79_eth0_data.mii_bus_dev = &ath79_mdio1_device.dev;
+	ath79_init_mac(ath79_eth0_data.mac_addr, mac, 0);
+	ath79_register_eth(0);
+
+	/* GMAC1 is connected to the internal switch */
+	ath79_eth1_data.phy_if_mode = PHY_INTERFACE_MODE_GMII;
+	ath79_init_mac(ath79_eth1_data.mac_addr, mac, 2);
+	ath79_register_eth(1);
+
+	ath79_gpio_direction_select(CF_E312A_GPIO_LED_LAN, true);
+	ath79_gpio_direction_select(CF_E312A_GPIO_LED_WAN, true);
+	ath79_gpio_direction_select(CF_E312A_GPIO_LED_WLAN, true);
+	ath79_gpio_direction_select(CF_E312A_GPIO_LED_SIGNAL1, true);
+	ath79_gpio_direction_select(CF_E312A_GPIO_LED_SIGNAL2, true);
+	ath79_gpio_direction_select(CF_E312A_GPIO_LED_SIGNAL3, true);
+	ath79_gpio_direction_select(CF_E312A_GPIO_LED_SIGNAL4, true);
+
+	ath79_gpio_output_select(CF_E312A_GPIO_LED_LAN, 0);
+	ath79_gpio_output_select(CF_E312A_GPIO_LED_WAN, 0);
+	ath79_gpio_output_select(CF_E312A_GPIO_LED_WLAN, 0);
+	ath79_gpio_output_select(CF_E312A_GPIO_LED_SIGNAL1, 0);
+	ath79_gpio_output_select(CF_E312A_GPIO_LED_SIGNAL2, 0);
+	ath79_gpio_output_select(CF_E312A_GPIO_LED_SIGNAL3, 0);
+	ath79_gpio_output_select(CF_E312A_GPIO_LED_SIGNAL4, 0);
+
+	ath79_register_leds_gpio(-1, ARRAY_SIZE(cf_e312a_leds_gpio),
+				 cf_e312a_leds_gpio);
+
+	ath79_register_gpio_keys_polled(1, CF_EXXXN_KEYS_POLL_INTERVAL,
+					ARRAY_SIZE(cf_e312a_gpio_keys),
+					cf_e312a_gpio_keys);
+}
+
+MIPS_MACHINE(ATH79_MACH_CF_E312A, "CF-E312A", "COMFAST CF-E312A",
+	     cf_e312a_setup);
 
 static void __init cf_e316n_v2_setup(void)
 {
