@@ -143,6 +143,19 @@ package_list: FORCE
 	@$(MAKE) -s package_reload
 	@$(OPKG) list --size 2>/dev/null
 
+package_reload:
+	if [ ! -f "$(PACKAGE_DIR)/Packages" ] || [ ! -f "$(PACKAGE_DIR)/Packages.gz" ] || [ "`find $(PACKAGE_DIR) -cnewer $(PACKAGE_DIR)/Packages.gz`" ]; then \
+		echo "Package list missing or not up-to-date, generating it.";\
+		$(MAKE) package_index; \
+	else \
+		mkdir -p $(TARGET_DIR)/tmp; \
+		$(OPKG) update || true; \
+	fi
+
+package_list: FORCE
+	@$(MAKE) -s package_reload
+	@$(OPKG) list --size 2>/dev/null | awk -F" - " '{printf "%s %s %s\n", $$1, $$2, $$3}'
+
 package_install: FORCE
 	@echo
 	@echo Installing packages...
