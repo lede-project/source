@@ -159,7 +159,8 @@ get_status_led() {
 	jhr-n805r|\
 	jhr-n926r|\
 	mlw221|\
-	mlwg2)
+	mlwg2|\
+	var11n-300)
 		status_led="$board:blue:system"
 		;;
 	hc5962)

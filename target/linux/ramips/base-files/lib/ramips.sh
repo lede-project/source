@@ -538,6 +538,9 @@ ramips_board_detect() {
 	*"V22RW-2X2")
 		name="v22rw-2x2"
 		;;
+	*"VAR11N-300")
+		name="var11n-300"
+		;;
 	*"VoCore (8M)")
 		name="vocore-8M"
 		;;

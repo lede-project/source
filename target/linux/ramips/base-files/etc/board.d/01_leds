@@ -387,6 +387,9 @@ u7628-01-128M-16M)
 	set_usb_led "u7628-01:green:usb"
 	set_wifi_led "u7628-01:green:wlan"
 	;;
+var11n-300)
+	ucidef_set_led_default "power" "power" "$board:blue:system" "1"
+	;;
 vocore-8M|\
 vocore-16M)
 	ucidef_set_led_netdev "eth" "ETH" "vocore:orange:eth" "eth0"
