@@ -82,6 +82,18 @@ define Device/pbr-d1
 endef
 TARGET_DEVICES += pbr-d1
 
+define Device/tl-mr3420-v5
+  $(Device/tl-wr840n-v4)
+  DTS := TL-MR3420V5
+  SUPPORTED_DEVICES := tl-mr3420-v5
+  DEVICE_TITLE := TP-Link TL-MR3420 v5
+  TPLINK_HWID := 0x34200005
+  TPLINK_HWREV := 0x5
+  TPLINK_HWREVADD := 0x5
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += tl-mr3420-v5
+
 define Device/tl-wr840n-v4
   DTS := TL-WR840NV4
   IMAGE_SIZE := 7808k
