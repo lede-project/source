@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=json-c
-PKG_VERSION:=0.12.1
+PKG_VERSION:=0.13
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-nodoc.tar.gz
 PKG_SOURCE_URL:=https://s3.amazonaws.com/json-c_releases/releases/
-PKG_HASH:=5a617da9aade997938197ef0f8aabd7f97b670c216dc173977e1d56eef9e1291
+PKG_HASH:=8572760646e9d23ee68f967ca62fa134a97b931665fd9af562192b7788c95a06
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_SOURCE_SUBDIR)
 
@@ -28,13 +28,13 @@ PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
 include $(INCLUDE_DIR)/package.mk
 
-TARGET_CFLAGS += $(FPIC) -Wno-implicit-fallthrough
+TARGET_CFLAGS += $(FPIC)
 
 define Package/libjson-c
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=javascript object notation
-  URL:=http://oss.metaparadigm.com/json-c/
+  URL:=http://github.com/json-c/json-c
 endef
 
 define Package/libjson-c/description
