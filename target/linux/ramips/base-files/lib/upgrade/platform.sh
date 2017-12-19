@@ -108,6 +108,7 @@ platform_check_image() {
 	nbg-419n|\
 	nbg-419n2|\
 	newifi-d1|\
+	newifi-d2|\
 	nixcore-x1-8M|\
 	nixcore-x1-16M|\
 	nw718|\

@@ -304,6 +304,12 @@ pbr-m1)
 	ucidef_set_led_default "power" "power" "$board:blue:power" "1"
 	ucidef_set_led_default "sys" "sys" "$board:blue:sys" "1"
 	;;
+newifi-d2)
+	set_usb_led "$board:blue:usb"
+	ucidef_set_led_switch "internet" "internet" "$board:amber:internet" "switch0" "0x10"
+	ucidef_set_led_netdev "wlan2g" "WiFi 2.4GHz" "$board:blue:wlan2g" "wlan0"
+	ucidef_set_led_netdev "wlan5g" "WiFi 5GHz" "$board:blue:wlan5g" "wlan1"
+	;;
 psg1208)
 	set_wifi_led "$board:white:wlan2g"
 	;;
