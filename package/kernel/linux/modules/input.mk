@@ -207,3 +207,21 @@ define KernelPackage/input-uinput/description
 endef
 
 $(eval $(call KernelPackage,input-uinput))
+
+
+define KernelPackage/keyboard-tegra
+  SUBMENU:=$(INPUT_MODULES_MENU)
+  TITLE:=Tegra keypad support
+  DEPENDS:=@TARGET_tegra +kmod-input-matrixkmap
+  KCONFIG:= \
+	CONFIG_KEYBOARD_TEGRA \
+	CONFIG_INPUT_KEYBOARD=y
+  FILES:=$(LINUX_DIR)/drivers/input/keyboard/tegra-kbc.ko
+  AUTOLOAD:=$(call AutoProbe,tegra-kbc)
+endef
+
+define KernelPackage/keyboard-tegra/description
+ Enable support for NVIDIA Tegra keypad controller.
+endef
+
+$(eval $(call KernelPackage,keyboard-tegra))

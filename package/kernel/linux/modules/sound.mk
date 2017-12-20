@@ -257,6 +257,77 @@ endef
 $(eval $(call KernelPackage,sound-soc-gw_avila))
 
 
+define KernelPackage/sound-soc-tegra20
+  TITLE:=Tegra 2 built-in SoC Audio support
+  KCONFIG:= \
+	CONFIG_SND_SOC_TEGRA \
+	CONFIG_SND_SOC_TEGRA20_AC97 \
+	CONFIG_SND_SOC_TEGRA20_DAS \
+	CONFIG_SND_SOC_TEGRA20_I2S \
+	CONFIG_SND_HDA_TEGRA=n \
+	CONFIG_SND_SOC_TEGRA30_AHUB=n \
+	CONFIG_SND_SOC_TEGRA30_I2S=n
+  FILES:= \
+	$(LINUX_DIR)/sound/soc/tegra/snd-soc-tegra-utils.ko \
+	$(LINUX_DIR)/sound/soc/tegra/snd-soc-tegra-pcm.ko \
+	$(LINUX_DIR)/sound/soc/tegra/snd-soc-tegra20-das.ko \
+	$(LINUX_DIR)/sound/soc/tegra/snd-soc-tegra20-i2s.ko
+  AUTOLOAD:=$(call AutoProbe,snd-soc-tegra-utils snd-soc-tegra-pcm snd-soc-tegra20-das snd-soc-tegra20-i2s)
+  DEPENDS:= @TARGET_tegra +kmod-sound-soc-core +kmod-sound-soc-ac97
+  $(call AddDepends/sound)
+endef
+
+define KernelPackage/sound-soc-tegra20/description
+ Kernel support for Tegra 2 built-in SoC Audio
+endef
+
+$(eval $(call KernelPackage,sound-soc-tegra20))
+
+
+define KernelPackage/sound-soc-tegra20-spdif
+  TITLE:=Tegra 2 built-in SoC S/PDIF support
+  KCONFIG:= CONFIG_SND_SOC_TEGRA20_SPDIF
+  FILES:= $(LINUX_DIR)/sound/soc/tegra/snd-soc-tegra20-spdif.ko
+  AUTOLOAD:=$(call AutoProbe,snd-soc-tegra20-spdif)
+  DEPENDS:= @TARGET_tegra +kmod-sound-soc-tegra20
+  $(call AddDepends/sound)
+endef
+
+define KernelPackage/sound-soc-tegra20-spdif/description
+ Kernel support for Tegra 2 built-in SoC S/PDIF
+endef
+
+$(eval $(call KernelPackage,sound-soc-tegra20-spdif))
+
+
+define KernelPackage/sound-soc-tegra-trimslice
+  TITLE:=TrimSlice sound support
+  KCONFIG:= \
+	CONFIG_SND_SOC_TEGRA_TRIMSLICE=y \
+	CONFIG_SND_SOC_TEGRA_ALC5632=n \
+	CONFIG_SND_SOC_TEGRA_MAX98090=n \
+	CONFIG_SND_SOC_TEGRA_RT5640=n \
+	CONFIG_SND_SOC_TEGRA_RT5677=n \
+	CONFIG_SND_SOC_TEGRA_SGTL5000=n \
+	CONFIG_SND_SOC_TEGRA_WM8753=n \
+	CONFIG_SND_SOC_TEGRA_WM8903=n \
+	CONFIG_SND_SOC_TEGRA_WM9712=n
+  FILES:= \
+	$(LINUX_DIR)/sound/soc/tegra/snd-soc-tegra-trimslice.ko \
+	$(LINUX_DIR)/sound/soc/codecs/snd-soc-tlv320aic23.ko \
+	$(LINUX_DIR)/sound/soc/codecs/snd-soc-tlv320aic23-i2c.ko
+  AUTOLOAD:=$(call AutoProbe,snd-soc-tegra-trimslice snd-soc-tlv320aic23 snd-soc-tlv320aic23-i2c)
+  DEPENDS:= @TARGET_tegra +kmod-sound-soc-tegra20
+  $(call AddDepends/sound)
+endef
+
+define KernelPackage/sound-soc-tegra-trimslice/description
+ CompuLab TrimSlice built-in audio support
+endef
+
+$(eval $(call KernelPackage,sound-soc-tegra-trimslice))
+
+
 define KernelPackage/pcspkr
   DEPENDS:=@TARGET_x86 +kmod-input-core
   TITLE:=PC speaker support

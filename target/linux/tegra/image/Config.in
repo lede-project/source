@@ -1,0 +1,4 @@
+config TEGRA_SD_BOOT_PARTSIZE
+	int "Boot filesystem partition size (in MB)"
+	depends on TARGET_tegra
+	default 16

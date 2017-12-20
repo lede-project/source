@@ -1,0 +1,6 @@
+setenv bootargs "root=PARTUUID=@ROOT@-02 rw rootwait console=ttyS0,115200n8"
+
+load ${devtype} ${devnum}:${bootpart} ${loadaddr} /zImage
+load ${devtype} ${devnum}:${bootpart} ${fdt_addr_r} /tegra20-trimslice.dtb
+
+bootz ${loadaddr} - ${fdt_addr_r}
