@@ -1,0 +1,10 @@
+--- a/src/luaconf.h
++++ b/src/luaconf.h
+@@ -74,6 +74,7 @@
+ @* 32-bit scalar integer range optimized.
+ */
+ #define LNUM_DOUBLE
++#define LNUM_INT32
+ 
+ 
+ /*

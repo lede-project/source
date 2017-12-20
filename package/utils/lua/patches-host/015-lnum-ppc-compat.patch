@@ -1,11 +1,11 @@
 --- a/src/lua.h
 +++ b/src/lua.h
-@@ -79,7 +79,7 @@ typedef void * (*lua_Alloc) (void *ud, v
-  *     not acceptable for 5.1, maybe 5.2 onwards?
-  *  9: greater than existing (5.1) type values.
+@@ -85,7 +85,7 @@ typedef void * (*lua_Alloc) (void *ud, v
+  *     bitmask operation instead of conditional (may be good for pipelined processors)
  */
--#define LUA_TINT (-2)
-+#define LUA_TINT 9
+ #if defined(LNUM_INT32) || defined(LNUM_INT64)
+-# define LUA_TINT (-2)
++# define LUA_TINT (9)
+ #endif
  
  #define LUA_TNIL		0
- #define LUA_TBOOLEAN		1

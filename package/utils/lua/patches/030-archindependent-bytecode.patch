@@ -1,6 +1,6 @@
 --- a/src/ldump.c
 +++ b/src/ldump.c
-@@ -67,12 +67,12 @@ static void DumpString(const TString* s,
+@@ -69,12 +69,12 @@ static void DumpString(const TString* s,
  {
   if (s==NULL || getstr(s)==NULL)
   {
@@ -83,7 +83,7 @@
  static int LoadChar(LoadState* S)
  {
   char x;
-@@ -82,7 +125,7 @@ static lua_Integer LoadInteger(LoadState
+@@ -84,7 +127,7 @@ static lua_Integer LoadInteger(LoadState
  
  static TString* LoadString(LoadState* S)
  {
@@ -92,7 +92,7 @@
   LoadVar(S,size);
   if (size==0)
    return NULL;
-@@ -196,6 +239,7 @@ static void LoadHeader(LoadState* S)
+@@ -200,6 +243,7 @@ static void LoadHeader(LoadState* S)
   char s[LUAC_HEADERSIZE];
   luaU_header(h);
   LoadBlock(S,s,LUAC_HEADERSIZE);
@@ -100,7 +100,7 @@
   IF (memcmp(h,s,LUAC_HEADERSIZE)!=0, "bad header");
  }
  
-@@ -230,7 +274,7 @@ void luaU_header (char* h)
+@@ -234,7 +278,7 @@ void luaU_header (char* h)
   *h++=(char)LUAC_FORMAT;
   *h++=(char)*(char*)&x;				/* endianness */
   *h++=(char)sizeof(int);
