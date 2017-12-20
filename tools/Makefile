@@ -37,7 +37,7 @@ tools-$(BUILD_B43_TOOLS) += b43-tools
 tools-$(BUILD_ISL) += isl
 tools-$(CONFIG_USE_SPARSE) += sparse
 tools-$(CONFIG_TARGET_apm821xx) += genext2fs
-tools-$(CONFIG_TARGET_tegra) += cbootimage
+tools-$(CONFIG_TARGET_tegra) += cbootimage cbootimage-configs
 
 # builddir dependencies
 $(curdir)/bison/compile := $(curdir)/flex/compile
