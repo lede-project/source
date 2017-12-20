@@ -217,11 +217,11 @@ ramips_board_detect() {
 	*"GL-MT300N")
 		name="gl-mt300n"
 		;;
-	*"GL-MT750")
-		name="gl-mt750"
-		;;
 	*"GL-MT300N-V2")
 		name="gl-mt300n-v2"
+		;;
+	*"GL-MT750")
+		name="gl-mt750"
 		;;
 	*"HC5661")
 		name="hc5661"
@@ -373,11 +373,11 @@ ramips_board_detect() {
 	*"NBG-419N v2")
 		name="nbg-419n2"
 		;;
-	*"Newifi-D1")
-		name="newifi-d1"
-		;;
 	*"NCS601W")
 		name="ncs601w"
+		;;
+	*"Newifi-D1")
+		name="newifi-d1"
 		;;
 	*"NixcoreX1 (8M)")
 		name="nixcore-x1-8M"
@@ -445,12 +445,6 @@ ramips_board_detect() {
 	*"RP-N53")
 		name="rp-n53"
 		;;
-	*"RT5350F-OLinuXino")
-		name="rt5350f-olinuxino"
-		;;
-	*"RT5350F-OLinuXino-EVB")
-		name="rt5350f-olinuxino-evb"
-		;;
 	*"RT-AC51U")
 		name="rt-ac51u"
 		;;
@@ -474,6 +468,12 @@ ramips_board_detect() {
 		;;
 	*"RT-N56U")
 		name="rt-n56u"
+		;;
+	*"RT5350F-OLinuXino")
+		name="rt5350f-olinuxino"
+		;;
+	*"RT5350F-OLinuXino-EVB")
+		name="rt5350f-olinuxino-evb"
 		;;
 	*"RUT5XX")
 		name="rut5xx"

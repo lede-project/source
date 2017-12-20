@@ -48,14 +48,14 @@ ramips_setup_interfaces()
 	dcs-930|\
 	dcs-930l-b1|\
 	ht-tm02|\
-	linkits7688 | \
-	linkits7688d | \
+	linkits7688|\
+	linkits7688d|\
 	m2m|\
 	microwrt|\
 	mpr-a2|\
 	ncs601w|\
-	omega2 | \
-	omega2p | \
+	omega2|\
+	omega2p|\
 	timecloud|\
 	w150m|\
 	widora-neo|\
@@ -140,12 +140,6 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:lan:1" "1:lan:2" "2:lan:3" "3:lan:4" "4:wan:5" "6@eth0"
 		;;
-	ar670w|\
-	ar725w|\
-	rt-ac51u)
-		ucidef_add_switch "switch0" \
-			"0:wan" "1:lan" "2:lan" "3:lan" "4:lan" "6t@eth0"
-		;;
 	rt-n15|\
 	wl-351)
 		ucidef_add_switch "switch0" \
@@ -157,6 +151,8 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "6t@eth0"
 		;;
+	ar670w|\
+	ar725w|\
 	atp-52b|\
 	awm002-evb-4M|\
 	awm002-evb-8M|\
@@ -170,8 +166,10 @@ ramips_setup_interfaces()
 	jhr-n805r|\
 	jhr-n825r|\
 	jhr-n926r|\
+	kn_rf|\
 	mzk-wdpr|\
 	rb750gr3|\
+	rt-ac51u|\
 	rt-n14u|\
 	tl-wr840n-v4|\
 	tl-wr840n-v5|\
@@ -181,8 +179,8 @@ ramips_setup_interfaces()
 	ubnt-erx-sfp|\
 	ur-326n4g|\
 	wrtnode|\
-	wrtnode2p | \
-	wrtnode2r | \
+	wrtnode2p|\
+	wrtnode2r|\
 	wt3020-4M|\
 	wt3020-8M|\
 	zbt-wa05)
@@ -202,6 +200,7 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:lan" "4:lan" "6@eth0"
 		;;
+	duzun-dm06|\
 	gl-mt300n-v2)
 		ucidef_add_switch "switch0" \
 			"1:lan" "0:wan" "6@eth0"
@@ -250,10 +249,6 @@ ramips_setup_interfaces()
 	wrh-300cr)
 		ucidef_set_interface_lan "eth0"
 		;;
-	duzun-dm06)
-		ucidef_add_switch "switch0" \
-			"1:lan" "0:wan" "6@eth0"
-		;;
 	e1700|\
 	mt7620a_mt7530)
 		ucidef_add_switch "switch1" \
@@ -263,10 +258,6 @@ ramips_setup_interfaces()
 	y1s)
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "5:lan" "0:wan" "6@eth0"
-		;;
-	kn_rf)
-		ucidef_add_switch "switch0" \
-			"0:wan" "1:lan" "2:lan" "3:lan" "4:lan" "6@eth0"
 		;;
 	kng_rc)
 		ucidef_add_switch "switch1" \
@@ -422,11 +413,14 @@ ramips_setup_macs()
 		;;
 	kn_rc|\
 	kn_rf|\
-	kng_rc)
+	kng_rc|\
+	wcr-150gn)
 		wan_mac=$(mtd_get_mac_binary factory 40)
 		;;
-	linkits7688 | \
-	linkits7688d)
+	linkits7688|\
+	linkits7688d|\
+	omega2|\
+	omega2p)
 		wan_mac=$(mtd_get_mac_binary factory 4)
 		lan_mac=$(mtd_get_mac_binary factory 46)
 		;;
@@ -452,11 +446,6 @@ ramips_setup_macs()
 	newifi-d1)
 		lan_mac=$(cat /sys/class/net/eth0/address)
 		lan_mac=$(macaddr_add "$lan_mac" 2)
-		;;
-	omega2|\
-	omega2p)
-		wan_mac=$(mtd_get_mac_binary factory 4)
-		lan_mac=$(mtd_get_mac_binary factory 46)
 		;;
 	oy-0001)
 		lan_mac=$(mtd_get_mac_binary factory 40)
@@ -497,9 +486,6 @@ ramips_setup_macs()
 		local index="$(find_mtd_index "board_data")"
 		wan_mac="$(grep -m1 mac= "/dev/mtd${index}" | cut -d= -f2)"
 		lan_mac=$wan_mac
-		;;
-	wcr-150gn)
-		wan_mac=$(mtd_get_mac_binary factory 40)
 		;;
 	whr-1166d|\
 	whr-300hp2|\
