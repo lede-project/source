@@ -39,7 +39,7 @@ define Build/uImageArcher
 	mkimage -A $(LINUX_KARCH) \
 		-O linux -T kernel \
 		-C $(1) -a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
-		-n '$(call toupper,$(LINUX_KARCH)) LEDE Linux-$(LINUX_VERSION)' -d $@ $@.new
+		-n '$(call toupper,$(LINUX_KARCH)) OpenWrt Linux-$(LINUX_VERSION)' -d $@ $@.new
 	@mv $@.new $@
 endef
 
@@ -114,23 +114,25 @@ define Device/archer-c25-v1
   MTDPARTS := spi0.0:128k(factory-uboot)ro,64k(u-boot)ro,1536k(kernel),6272k(rootfs),128k(config)ro,64k(art)ro,7808k@0x30000(firmware)
   SUPPORTED_DEVICES := archer-c25-v1
 endef
+TARGET_DEVICES += archer-c25-v1
 
 define Device/archer-c58-v1
   $(Device/archer-cxx)
   DEVICE_TITLE := TP-LINK Archer C58 v1
-  DEVICE_PACKAGES := kmod-ath10k
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca9888
   BOARDNAME := ARCHER-C58-V1
   TPLINK_BOARD_ID := ARCHER-C58-V1
   DEVICE_PROFILE := ARCHERC58V1
   IMAGE_SIZE := 7936k
-  MTDPARTS := spi0.0:64k(u-boot)ro,64k(mac)ro,1344k(kernel),6592k(rootfs),64k(tplink)ro,64k(art)ro,7936k@0x20000(firmware)
+  MTDPARTS := spi0.0:64k(u-boot)ro,64k(mac)ro,7936k(firmware),64k(tplink)ro,64k(art)ro
   SUPPORTED_DEVICES := archer-c58-v1
 endef
+TARGET_DEVICES += archer-c58-v1
 
 define Device/archer-c59-v1
   $(Device/archer-cxx)
   DEVICE_TITLE := TP-LINK Archer C59 v1
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k ath10k-firmware-qca988x
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k ath10k-firmware-qca9888
   BOARDNAME := ARCHER-C59-V1
   TPLINK_BOARD_ID := ARCHER-C59-V1
   DEVICE_PROFILE := ARCHERC59V1
@@ -138,19 +140,20 @@ define Device/archer-c59-v1
   MTDPARTS := spi0.0:64k(u-boot)ro,64k(mac)ro,1536k(kernel),12992k(rootfs),1664k(tplink)ro,64k(art)ro,14528k@0x20000(firmware)
   SUPPORTED_DEVICES := archer-c59-v1
 endef
+TARGET_DEVICES += archer-c59-v1
 
 define Device/archer-c60-v1
   $(Device/archer-cxx)
   DEVICE_TITLE := TP-LINK Archer C60 v1
-  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca9888
   BOARDNAME := ARCHER-C60-V1
   TPLINK_BOARD_ID := ARCHER-C60-V1
   DEVICE_PROFILE := ARCHERC60V1
   IMAGE_SIZE := 7936k
-  MTDPARTS := spi0.0:64k(u-boot)ro,64k(mac)ro,1344k(kernel),6592k(rootfs),64k(tplink)ro,64k(art)ro,7936k@0x20000(firmware)
+  MTDPARTS := spi0.0:64k(u-boot)ro,64k(mac)ro,7936k(firmware),64k(tplink)ro,64k(art)ro
   SUPPORTED_DEVICES := archer-c60-v1
 endef
-TARGET_DEVICES += archer-c25-v1 archer-c58-v1 archer-c59-v1 archer-c60-v1
+TARGET_DEVICES += archer-c60-v1
 
 define Device/archer-c5-v1
   $(Device/tplink-16mlzma)
@@ -160,6 +163,7 @@ define Device/archer-c5-v1
   DEVICE_PROFILE := ARCHERC7
   TPLINK_HWID := 0xc5000001
 endef
+TARGET_DEVICES += archer-c5-v1
 
 define Device/archer-c7-v1
   $(Device/tplink-8mlzma)
@@ -169,6 +173,7 @@ define Device/archer-c7-v1
   DEVICE_PROFILE := ARCHERC7
   TPLINK_HWID := 0x75000001
 endef
+TARGET_DEVICES += archer-c7-v1
 
 define Device/archer-c7-v2
   $(Device/tplink-16mlzma)
@@ -181,6 +186,7 @@ define Device/archer-c7-v2
   IMAGE/factory-us.bin := append-rootfs | mktplinkfw factory -C US
   IMAGE/factory-eu.bin := append-rootfs | mktplinkfw factory -C EU
 endef
+TARGET_DEVICES += archer-c7-v2
 
 define Device/archer-c7-v2-il
   $(Device/tplink-16mlzma)
@@ -191,6 +197,7 @@ define Device/archer-c7-v2-il
   TPLINK_HWID := 0xc7000002
   TPLINK_HWREV := 0x494c0001
 endef
+TARGET_DEVICES += archer-c7-v2-il
 
 define Device/tl-wdr7500-v3
   $(Device/tplink-8mlzma)
@@ -200,12 +207,25 @@ define Device/tl-wdr7500-v3
   DEVICE_PROFILE := ARCHERC7
   TPLINK_HWID := 0x75000003
 endef
-TARGET_DEVICES += archer-c5-v1 archer-c7-v1 archer-c7-v2 archer-c7-v2-il tl-wdr7500-v3
+TARGET_DEVICES += tl-wdr7500-v3
+
+define Device/archer-c7-v4
+  $(Device/archer-cxx)
+  DEVICE_TITLE := TP-LINK Archer C7 v4
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x
+  BOARDNAME := ARCHER-C7-V4
+  TPLINK_BOARD_ID := ARCHER-C7-V4
+  IMAGE_SIZE := 15104k
+  LOADER_TYPE := elf
+  MTDPARTS := spi0.0:128k(factory-uboot)ro,128k(u-boot)ro,1536k(kernel),13568k(rootfs),960k(config)ro,64k(art)ro,15104k@0x40000(firmware)
+  SUPPORTED_DEVICES := archer-c7-v4
+endef
+TARGET_DEVICES += archer-c7-v4
 
 define Device/cpe510-520-v1
   DEVICE_TITLE := TP-LINK CPE510/520 v1
   DEVICE_PACKAGES := rssileds
-  MTDPARTS := spi0.0:128k(u-boot)ro,64k(pation-table)ro,64k(product-info)ro,1536k(kernel),6144k(rootfs),192k(config)ro,64k(ART)ro,7680k@0x40000(firmware)
+  MTDPARTS := spi0.0:128k(u-boot)ro,64k(partition-table)ro,64k(product-info)ro,1536k(kernel),6144k(rootfs),192k(config)ro,64k(ART)ro,7680k@0x40000(firmware)
   IMAGE_SIZE := 7680k
   BOARDNAME := CPE510
   TPLINK_BOARD_ID := CPE510
@@ -216,6 +236,7 @@ define Device/cpe510-520-v1
   IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade
   IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
 endef
+TARGET_DEVICES += cpe510-520-v1
 
 define Device/cpe210-220-v1
   $(Device/cpe510-520-v1)
@@ -223,6 +244,7 @@ define Device/cpe210-220-v1
   BOARDNAME := CPE210
   TPLINK_BOARD_ID := CPE210
 endef
+TARGET_DEVICES += cpe210-220-v1
 
 define Device/wbs210-v1
   $(Device/cpe510-520-v1)
@@ -230,6 +252,7 @@ define Device/wbs210-v1
   BOARDNAME := WBS210
   TPLINK_BOARD_ID := WBS210
 endef
+TARGET_DEVICES += wbs210-v1
 
 define Device/wbs510-v1
   $(Device/cpe510-520-v1)
@@ -237,11 +260,11 @@ define Device/wbs510-v1
   BOARDNAME := WBS510
   TPLINK_BOARD_ID := WBS510
 endef
-TARGET_DEVICES += cpe210-220-v1 cpe510-520-v1 wbs210-v1 wbs510-v1
+TARGET_DEVICES += wbs510-v1
 
 define Device/eap120-v1
   DEVICE_TITLE := TP-LINK EAP120 v1
-  MTDPARTS := spi0.0:128k(u-boot)ro,64k(pation-table)ro,64k(product-info)ro,1536k(kernel),14336k(rootfs),192k(config)ro,64k(ART)ro,15872k@0x40000(firmware)
+  MTDPARTS := spi0.0:128k(u-boot)ro,64k(partition-table)ro,64k(product-info)ro,1536k(kernel),14336k(rootfs),192k(config)ro,64k(ART)ro,15872k@0x40000(firmware)
   IMAGE_SIZE := 15872k
   BOARDNAME := EAP120
   TPLINK_BOARD_ID := EAP120
@@ -257,7 +280,7 @@ TARGET_DEVICES += eap120-v1
 define Device/re450-v1
   DEVICE_TITLE := TP-LINK RE450 v1
   DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x
-  MTDPARTS := spi0.0:128k(u-boot)ro,1344k(kernel),4672k(rootfs),64k(pation-table)ro,64k(product-info)ro,1856k(config)ro,64k(art)ro,6016k@0x20000(firmware)
+  MTDPARTS := spi0.0:128k(u-boot)ro,6016k(firmware),64k(partition-table)ro,64k(product-info)ro,1856k(config)ro,64k(art)ro
   IMAGE_SIZE := 7936k
   BOARDNAME := RE450
   TPLINK_BOARD_ID := RE450
@@ -282,6 +305,7 @@ define Device/tl-mr10u-v1
   TPLINK_HWID := 0x00100101
   CONSOLE := ttyATH0,115200
 endef
+TARGET_DEVICES += tl-mr10u-v1
 
 define Device/tl-mr11u-v1
   $(Device/tplink-4mlzma)
@@ -292,12 +316,14 @@ define Device/tl-mr11u-v1
   TPLINK_HWID := 0x00110101
   CONSOLE := ttyATH0,115200
 endef
+TARGET_DEVICES += tl-mr11u-v1
 
 define Device/tl-mr11u-v2
   $(Device/tl-mr11u-v1)
   DEVICE_TITLE := TP-LINK TL-MR11U v2
   TPLINK_HWID := 0x00110102
 endef
+TARGET_DEVICES += tl-mr11u-v2
 
 define Device/tl-mr12u-v1
   $(Device/tplink-4mlzma)
@@ -308,6 +334,7 @@ define Device/tl-mr12u-v1
   TPLINK_HWID := 0x00120101
   CONSOLE := ttyATH0,115200
 endef
+TARGET_DEVICES += tl-mr12u-v1
 
 define Device/tl-mr13u-v1
   $(Device/tl-mr12u-v1)
@@ -315,7 +342,7 @@ define Device/tl-mr13u-v1
   DEVICE_PROFILE := TLMR13U
   TPLINK_HWID := 0x00130101
 endef
-TARGET_DEVICES += tl-mr10u-v1 tl-mr11u-v1 tl-mr11u-v2 tl-mr12u-v1 tl-mr13u-v1
+TARGET_DEVICES += tl-mr13u-v1
 
 define Device/tl-mr3020-v1
   $(Device/tplink-4mlzma)
@@ -326,6 +353,7 @@ define Device/tl-mr3020-v1
   TPLINK_HWID := 0x30200001
   CONSOLE := ttyATH0,115200
 endef
+TARGET_DEVICES += tl-mr3020-v1
 
 define Device/tl-mr3040-v1
   $(Device/tl-mr3020-v1)
@@ -334,6 +362,7 @@ define Device/tl-mr3040-v1
   DEVICE_PROFILE := TLMR3040
   TPLINK_HWID := 0x30400001
 endef
+TARGET_DEVICES += tl-mr3040-v1
 
 define Device/tl-mr3040-v2
   $(Device/tl-mr3040-v1)
@@ -341,6 +370,7 @@ define Device/tl-mr3040-v2
   BOARDNAME := TL-MR3040-v2
   TPLINK_HWID := 0x30400002
 endef
+TARGET_DEVICES += tl-mr3040-v2
 
 define Device/tl-mr3220-v1
   $(Device/tplink-4m)
@@ -350,6 +380,7 @@ define Device/tl-mr3220-v1
   DEVICE_PROFILE := TLMR3220
   TPLINK_HWID := 0x32200001
 endef
+TARGET_DEVICES += tl-mr3220-v1
 
 define Device/tl-mr3220-v2
   $(Device/tplink-4mlzma)
@@ -360,6 +391,7 @@ define Device/tl-mr3220-v2
   TPLINK_HWID := 0x32200002
   CONSOLE := ttyATH0,115200
 endef
+TARGET_DEVICES += tl-mr3220-v2
 
 define Device/tl-mr3420-v1
   $(Device/tplink-4m)
@@ -369,6 +401,7 @@ define Device/tl-mr3420-v1
   DEVICE_PROFILE := TLMR3420
   TPLINK_HWID := 0x34200001
 endef
+TARGET_DEVICES += tl-mr3420-v1
 
 define Device/tl-mr3420-v2
   $(Device/tplink-4mlzma)
@@ -378,7 +411,7 @@ define Device/tl-mr3420-v2
   DEVICE_PROFILE := TLMR3420
   TPLINK_HWID := 0x34200002
 endef
-TARGET_DEVICES += tl-mr3020-v1 tl-mr3040-v1 tl-mr3040-v2 tl-mr3220-v1 tl-mr3220-v2 tl-mr3420-v1 tl-mr3420-v2
+TARGET_DEVICES += tl-mr3420-v2
 
 define Device/tl-mr6400-v1
   $(Device/tplink-8mlzma)
@@ -397,6 +430,7 @@ define Device/tl-wa701nd-v1
   DEVICE_PROFILE := TLWA701
   TPLINK_HWID := 0x07010001
 endef
+TARGET_DEVICES += tl-wa701nd-v1
 
 define Device/tl-wa701nd-v2
   $(Device/tplink-4mlzma)
@@ -406,6 +440,7 @@ define Device/tl-wa701nd-v2
   TPLINK_HWID := 0x07010002
   CONSOLE := ttyATH0,115200
 endef
+TARGET_DEVICES += tl-wa701nd-v2
 
 define Device/tl-wa7210n-v2
   $(Device/tplink-4mlzma)
@@ -416,6 +451,7 @@ define Device/tl-wa7210n-v2
   TPLINK_HWID := 0x72100002
   CONSOLE := ttyATH0,115200
 endef
+TARGET_DEVICES += tl-wa7210n-v2
 
 define Device/tl-wa730re-v1
   $(Device/tplink-4m)
@@ -424,6 +460,7 @@ define Device/tl-wa730re-v1
   DEVICE_PROFILE := TLWA730RE
   TPLINK_HWID := 0x07300001
 endef
+TARGET_DEVICES += tl-wa730re-v1
 
 define Device/tl-wa750re-v1
   $(Device/tplink-4mlzma)
@@ -433,6 +470,7 @@ define Device/tl-wa750re-v1
   DEVICE_PROFILE := TLWA750
   TPLINK_HWID := 0x07500001
 endef
+TARGET_DEVICES += tl-wa750re-v1
 
 define Device/tl-wa7510n-v1
   $(Device/tplink-4m)
@@ -441,7 +479,7 @@ define Device/tl-wa7510n-v1
   DEVICE_PROFILE := TLWA7510
   TPLINK_HWID := 0x75100001
 endef
-TARGET_DEVICES += tl-wa701nd-v1 tl-wa701nd-v2 tl-wa7210n-v2 tl-wa730re-v1 tl-wa750re-v1 tl-wa7510n-v1
+TARGET_DEVICES += tl-wa7510n-v1
 
 define Device/tl-wa801nd-v1
   $(Device/tplink-4m)
@@ -450,6 +488,7 @@ define Device/tl-wa801nd-v1
   DEVICE_PROFILE := TLWA801
   TPLINK_HWID := 0x08010001
 endef
+TARGET_DEVICES += tl-wa801nd-v1
 
 define Device/tl-wa801nd-v2
   $(Device/tplink-4mlzma)
@@ -458,6 +497,7 @@ define Device/tl-wa801nd-v2
   DEVICE_PROFILE := TLWA801
   TPLINK_HWID := 0x08010002
 endef
+TARGET_DEVICES += tl-wa801nd-v2
 
 define Device/tl-wa801nd-v3
   $(Device/tplink-4mlzma)
@@ -466,6 +506,7 @@ define Device/tl-wa801nd-v3
   DEVICE_PROFILE := TLWA801
   TPLINK_HWID := 0x08010003
 endef
+TARGET_DEVICES += tl-wa801nd-v3
 
 define Device/tl-wa830re-v1
   $(Device/tplink-4m)
@@ -474,6 +515,7 @@ define Device/tl-wa830re-v1
   DEVICE_PROFILE := TLWA830
   TPLINK_HWID := 0x08300010
 endef
+TARGET_DEVICES += tl-wa830re-v1
 
 define Device/tl-wa830re-v2
   $(Device/tplink-4mlzma)
@@ -482,6 +524,7 @@ define Device/tl-wa830re-v2
   DEVICE_PROFILE := TLWA830
   TPLINK_HWID := 0x08300002
 endef
+TARGET_DEVICES += tl-wa830re-v2
 
 define Device/tl-wa850re-v1
   $(Device/tplink-4mlzma)
@@ -491,6 +534,7 @@ define Device/tl-wa850re-v1
   DEVICE_PROFILE := TLWA850
   TPLINK_HWID := 0x08500001
 endef
+TARGET_DEVICES += tl-wa850re-v1
 
 define Device/tl-wa85xre
   $(Device/tplink)
@@ -510,6 +554,7 @@ define Device/tl-wa850re-v2
   TPLINK_BOARD_ID := TLWA850REV2
   TPLINK_HWID := 0x08500002
 endef
+TARGET_DEVICES += tl-wa850re-v2
 
 define Device/tl-wa855re-v1
   $(Device/tl-wa85xre)
@@ -519,6 +564,8 @@ define Device/tl-wa855re-v1
   TPLINK_HWID := 0x08550001
   TPLINK_BOARD_ID := TLWA855REV1
 endef
+TARGET_DEVICES += tl-wa855re-v1
+
 
 define Device/tl-wa860re-v1
   $(Device/tplink-4mlzma)
@@ -527,7 +574,7 @@ define Device/tl-wa860re-v1
   DEVICE_PROFILE := TLWA860
   TPLINK_HWID := 0x08600001
 endef
-TARGET_DEVICES += tl-wa801nd-v1 tl-wa801nd-v2 tl-wa801nd-v3 tl-wa830re-v1 tl-wa830re-v2 tl-wa850re-v1 tl-wa850re-v2 tl-wa855re-v1 tl-wa860re-v1
+TARGET_DEVICES += tl-wa860re-v1
 
 define Device/tl-wa901nd-v1
   $(Device/tplink-4m)
@@ -536,6 +583,7 @@ define Device/tl-wa901nd-v1
   DEVICE_PROFILE := TLWA901
   TPLINK_HWID := 0x09010001
 endef
+TARGET_DEVICES += tl-wa901nd-v1
 
 define Device/tl-wa901nd-v2
   $(Device/tplink-4m)
@@ -544,6 +592,7 @@ define Device/tl-wa901nd-v2
   DEVICE_PROFILE := TLWA901
   TPLINK_HWID := 0x09010002
 endef
+TARGET_DEVICES += tl-wa901nd-v2
 
 define Device/tl-wa901nd-v3
   $(Device/tplink-4mlzma)
@@ -552,6 +601,7 @@ define Device/tl-wa901nd-v3
   DEVICE_PROFILE := TLWA901
   TPLINK_HWID := 0x09010003
 endef
+TARGET_DEVICES += tl-wa901nd-v3
 
 define Device/tl-wa901nd-v4
   $(Device/tplink-4mlzma)
@@ -561,7 +611,15 @@ define Device/tl-wa901nd-v4
   TPLINK_HWID := 0x09010004
   IMAGE/factory.bin := append-rootfs | mktplinkfw factory -C EU
 endef
-TARGET_DEVICES += tl-wa901nd-v1 tl-wa901nd-v2 tl-wa901nd-v3 tl-wa901nd-v4
+TARGET_DEVICES += tl-wa901nd-v4
+
+define Device/tl-wa901nd-v5
+  $(Device/tl-wa901nd-v4)
+  DEVICE_TITLE := TP-LINK TL-WA901N/ND v5
+  BOARDNAME := TL-WA901ND-v5
+  TPLINK_HWID := 0x09010005
+endef
+TARGET_DEVICES += tl-wa901nd-v5
 
 define Device/tl-wdr3320-v2
   $(Device/tplink-4mlzma)
@@ -572,6 +630,7 @@ define Device/tl-wdr3320-v2
   TPLINK_HWID := 0x33200002
   TPLINK_HEADER_VERSION := 2
 endef
+TARGET_DEVICES += tl-wdr3320-v2
 
 define Device/tl-wdr3500-v1
   $(Device/tplink-8mlzma)
@@ -581,6 +640,7 @@ define Device/tl-wdr3500-v1
   DEVICE_PROFILE := TLWDR4300
   TPLINK_HWID := 0x35000001
 endef
+TARGET_DEVICES += tl-wdr3500-v1
 
 define Device/tl-wdr3600-v1
   $(Device/tl-wdr3500-v1)
@@ -589,12 +649,14 @@ define Device/tl-wdr3600-v1
   TPLINK_HWID := 0x36000001
   IMAGE/factory.bin := append-rootfs | mktplinkfw factory -C US
 endef
+TARGET_DEVICES += tl-wdr3600-v1
 
 define Device/tl-wdr4300-v1
   $(Device/tl-wdr3600-v1)
   DEVICE_TITLE := TP-LINK TL-WDR4300 v1
   TPLINK_HWID := 0x43000001
 endef
+TARGET_DEVICES += tl-wdr4300-v1
 
 define Device/tl-wdr4300-v1-il
   $(Device/tl-wdr3500-v1)
@@ -602,12 +664,14 @@ define Device/tl-wdr4300-v1-il
   BOARDNAME := TL-WDR4300
   TPLINK_HWID := 0x43008001
 endef
+TARGET_DEVICES += tl-wdr4300-v1-il
 
 define Device/tl-wdr4310-v1
   $(Device/tl-wdr4300-v1-il)
   DEVICE_TITLE := TP-LINK TL-WDR4310 v1
   TPLINK_HWID := 0x43100001
 endef
+TARGET_DEVICES += tl-wdr4310-v1
 
 define Device/tl-wdr4900-v2
   $(Device/tplink-8mlzma)
@@ -617,6 +681,7 @@ define Device/tl-wdr4900-v2
   DEVICE_PROFILE := TLWDR4900V2
   TPLINK_HWID := 0x49000002
 endef
+TARGET_DEVICES += tl-wdr4900-v2
 
 define Device/tl-wdr6500-v2
   $(Device/tplink-8mlzma)
@@ -629,13 +694,14 @@ define Device/tl-wdr6500-v2
   TPLINK_HWID := 0x65000002
   TPLINK_HEADER_VERSION := 2
 endef
+TARGET_DEVICES += tl-wdr6500-v2
 
 define Device/mw4530r-v1
   $(Device/tl-wdr4300-v1)
   DEVICE_TITLE := Mercury MW4530R v1
   TPLINK_HWID := 0x45300001
 endef
-TARGET_DEVICES += tl-wdr3320-v2 tl-wdr3500-v1 tl-wdr3600-v1 tl-wdr4300-v1 tl-wdr4300-v1-il tl-wdr4310-v1 tl-wdr4900-v2 tl-wdr6500-v2 mw4530r-v1
+TARGET_DEVICES += mw4530r-v1
 
 define Device/tl-wpa8630-v1
   $(Device/tplink-8mlzma)
@@ -656,6 +722,18 @@ define Device/tl-wr1041n-v2
 endef
 TARGET_DEVICES += tl-wr1041n-v2
 
+define Device/tl-wr1043n-v5
+  $(Device/archer-cxx)
+  DEVICE_TITLE := TP-LINK TL-WR1043N v5
+  BOARDNAME := TL-WR1043N-v5
+  SUPPORTED_DEVICES := tl-wr1043n-v5
+  DEVICE_PROFILE := TLWR1043
+  MTDPARTS := spi0.0:128k(factory-uboot)ro,128k(u-boot)ro,15104k(firmware),128k(product-info)ro,640k(config)ro,64k(partition-table)ro,128k(logs)ro,64k(art)ro
+  IMAGE_SIZE := 15104k
+  TPLINK_BOARD_ID := TLWR1043NV5
+endef
+TARGET_DEVICES += tl-wr1043n-v5
+
 define Device/tl-wr1043nd-v1
   $(Device/tplink-8m)
   DEVICE_TITLE := TP-LINK TL-WR1043N/ND v1
@@ -664,6 +742,7 @@ define Device/tl-wr1043nd-v1
   DEVICE_PROFILE := TLWR1043
   TPLINK_HWID := 0x10430001
 endef
+TARGET_DEVICES += tl-wr1043nd-v1
 
 define Device/tl-wr1043nd-v2
   $(Device/tplink-8mlzma)
@@ -673,12 +752,14 @@ define Device/tl-wr1043nd-v2
   DEVICE_PROFILE := TLWR1043
   TPLINK_HWID := 0x10430002
 endef
+TARGET_DEVICES += tl-wr1043nd-v2
 
 define Device/tl-wr1043nd-v3
   $(Device/tl-wr1043nd-v2)
   DEVICE_TITLE := TP-LINK TL-WR1043N/ND v3
   TPLINK_HWID := 0x10430003
 endef
+TARGET_DEVICES += tl-wr1043nd-v3
 
 define Device/tl-wr1043nd-v4
   $(Device/tplink)
@@ -695,6 +776,7 @@ define Device/tl-wr1043nd-v4
   IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade
   IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
 endef
+TARGET_DEVICES += tl-wr1043nd-v4
 
 define Device/tl-wr2543-v1
   $(Device/tplink-8mlzma)
@@ -706,7 +788,7 @@ define Device/tl-wr2543-v1
   IMAGE/sysupgrade.bin := append-rootfs | mktplinkfw sysupgrade -v 3.13.99
   IMAGE/factory.bin := append-rootfs | mktplinkfw factory -v 3.13.99
 endef
-TARGET_DEVICES += tl-wr1043nd-v1 tl-wr1043nd-v2 tl-wr1043nd-v3 tl-wr1043nd-v4 tl-wr2543-v1
+TARGET_DEVICES += tl-wr2543-v1
 
 define Device/tl-wr703n-v1
   $(Device/tplink-4mlzma)
@@ -717,6 +799,7 @@ define Device/tl-wr703n-v1
   TPLINK_HWID := 0x07030101
   CONSOLE := ttyATH0,115200
 endef
+TARGET_DEVICES += tl-wr703n-v1
 
 define Device/tl-wr710n-v1
   $(Device/tplink-8mlzma)
@@ -728,6 +811,7 @@ define Device/tl-wr710n-v1
   CONSOLE := ttyATH0,115200
   IMAGE/factory.bin := append-rootfs | mktplinkfw factory -C US
 endef
+TARGET_DEVICES += tl-wr710n-v1
 
 define Device/tl-wr710n-v2
   $(Device/tplink-4mlzma)
@@ -738,6 +822,7 @@ define Device/tl-wr710n-v2
   TPLINK_HWID := 0x07100002
   CONSOLE := ttyATH0,115200
 endef
+TARGET_DEVICES += tl-wr710n-v2
 
 define Device/tl-wr710n-v2.1
   $(Device/tl-wr710n-v1)
@@ -745,6 +830,7 @@ define Device/tl-wr710n-v2.1
   TPLINK_HWID := 0x07100002
   TPLINK_HWREV := 0x00000002
 endef
+TARGET_DEVICES += tl-wr710n-v2.1
 
 define Device/tl-wr720n-v3
   $(Device/tplink-4mlzma)
@@ -755,13 +841,14 @@ define Device/tl-wr720n-v3
   TPLINK_HWID := 0x07200103
   CONSOLE := ttyATH0,115200
 endef
+TARGET_DEVICES += tl-wr720n-v3
 
 define Device/tl-wr720n-v4
   $(Device/tl-wr720n-v3)
   DEVICE_TITLE := TP-LINK TL-WR720N v4
   TPLINK_HWID := 0x07200104
 endef
-TARGET_DEVICES += tl-wr703n-v1 tl-wr710n-v1 tl-wr710n-v2 tl-wr710n-v2.1 tl-wr720n-v3 tl-wr720n-v4
+TARGET_DEVICES += tl-wr720n-v4
 
 define Device/tl-wr740n-v1
   $(Device/tplink-4m)
@@ -770,12 +857,14 @@ define Device/tl-wr740n-v1
   DEVICE_PROFILE := TLWR740
   TPLINK_HWID := 0x07400001
 endef
+TARGET_DEVICES += tl-wr740n-v1
 
 define Device/tl-wr740n-v3
   $(Device/tl-wr740n-v1)
   DEVICE_TITLE := TP-LINK TL-WR740N/ND v3
   TPLINK_HWID := 0x07400003
 endef
+TARGET_DEVICES += tl-wr740n-v3
 
 define Device/tl-wr740n-v4
   $(Device/tplink-4mlzma)
@@ -785,12 +874,14 @@ define Device/tl-wr740n-v4
   TPLINK_HWID := 0x07400004
   CONSOLE := ttyATH0,115200
 endef
+TARGET_DEVICES += tl-wr740n-v4
 
 define Device/tl-wr740n-v5
   $(Device/tl-wr740n-v4)
   DEVICE_TITLE := TP-LINK TL-WR740N/ND v5
   TPLINK_HWID := 0x07400005
 endef
+TARGET_DEVICES += tl-wr740n-v5
 
 define Device/tl-wr740n-v6
   $(Device/tplink-4mlzma)
@@ -799,7 +890,7 @@ define Device/tl-wr740n-v6
   DEVICE_PROFILE := TLWR740
   TPLINK_HWID := 0x07400006
 endef
-TARGET_DEVICES += tl-wr740n-v1 tl-wr740n-v3 tl-wr740n-v4 tl-wr740n-v5 tl-wr740n-v6
+TARGET_DEVICES += tl-wr740n-v6
 
 define Device/tl-wr741nd-v1
   $(Device/tplink-4m)
@@ -808,11 +899,13 @@ define Device/tl-wr741nd-v1
   DEVICE_PROFILE := TLWR741
   TPLINK_HWID := 0x07410001
 endef
+TARGET_DEVICES += tl-wr741nd-v1
 
 define Device/tl-wr741nd-v2
   $(Device/tl-wr741nd-v1)
   DEVICE_TITLE := TP-LINK TL-WR741N/ND v2
 endef
+TARGET_DEVICES += tl-wr741nd-v2
 
 define Device/tl-wr741nd-v4
   $(Device/tplink-4mlzma)
@@ -822,12 +915,14 @@ define Device/tl-wr741nd-v4
   TPLINK_HWID := 0x07410004
   CONSOLE := ttyATH0,115200
 endef
+TARGET_DEVICES += tl-wr741nd-v4
 
 define Device/tl-wr741nd-v5
   $(Device/tl-wr741nd-v4)
   DEVICE_TITLE := TP-LINK TL-WR741N/ND v5
   TPLINK_HWID := 0x07400005
 endef
+TARGET_DEVICES += tl-wr741nd-v5
 
 define Device/tl-wr743nd-v1
   $(Device/tplink-4m)
@@ -836,6 +931,7 @@ define Device/tl-wr743nd-v1
   DEVICE_PROFILE := TLWR743
   TPLINK_HWID := 0x07430001
 endef
+TARGET_DEVICES += tl-wr743nd-v1
 
 define Device/tl-wr743nd-v2
   $(Device/tl-wr741nd-v4)
@@ -843,7 +939,7 @@ define Device/tl-wr743nd-v2
   DEVICE_PROFILE := TLWR743
   TPLINK_HWID := 0x07430002
 endef
-TARGET_DEVICES += tl-wr741nd-v1 tl-wr741nd-v2 tl-wr741nd-v4 tl-wr741nd-v5 tl-wr743nd-v1 tl-wr743nd-v2
+TARGET_DEVICES += tl-wr743nd-v2
 
 define Device/tl-wr802n-v1
   $(Device/tplink-4mlzma)
@@ -853,6 +949,7 @@ define Device/tl-wr802n-v1
   TPLINK_HWID := 0x08020001
   TPLINK_HWREV := 1
 endef
+TARGET_DEVICES += tl-wr802n-v1
 
 define Device/tl-wr802n-v2
   $(Device/tplink-4mlzma)
@@ -865,6 +962,7 @@ define Device/tl-wr802n-v2
   IMAGE/factory-us.bin := append-rootfs | mktplinkfw factory -C US
   IMAGE/factory-eu.bin := append-rootfs | mktplinkfw factory -C EU
 endef
+TARGET_DEVICES += tl-wr802n-v2
 
 define Device/tl-wr810n-v1
   $(Device/tplink-8mlzma)
@@ -874,6 +972,16 @@ define Device/tl-wr810n-v1
   DEVICE_PROFILE := TLWR810
   TPLINK_HWID := 0x08100001
 endef
+TARGET_DEVICES += tl-wr810n-v1
+
+define Device/tl-wr810n-v2
+  $(Device/tplink-8mlzma)
+  DEVICE_TITLE := TP-LINK TL-WR810N v2
+  BOARDNAME := TL-WR810N-v2
+  DEVICE_PROFILE := TLWR810
+  TPLINK_HWID := 0x08100002
+endef
+TARGET_DEVICES += tl-wr810n-v2
 
 define Device/tl-wr840n-v2
   $(Device/tplink-4mlzma)
@@ -884,6 +992,7 @@ define Device/tl-wr840n-v2
   IMAGES += factory-eu.bin
   IMAGE/factory-eu.bin := append-rootfs | mktplinkfw factory -C EU
 endef
+TARGET_DEVICES += tl-wr840n-v2
 
 define Device/tl-wr840n-v3
   $(Device/tl-wr840n-v2)
@@ -891,7 +1000,7 @@ define Device/tl-wr840n-v3
   BOARDNAME := TL-WR840N-v3
   TPLINK_HWID := 0x08400003
 endef
-TARGET_DEVICES += tl-wr802n-v1 tl-wr802n-v2 tl-wr810n-v1 tl-wr840n-v2 tl-wr840n-v3
+TARGET_DEVICES += tl-wr840n-v3
 
 define Device/tl-wr841-v1.5
   $(Device/tplink-4m)
@@ -901,6 +1010,7 @@ define Device/tl-wr841-v1.5
   TPLINK_HWID := 0x08410002
   TPLINK_HWREV := 2
 endef
+TARGET_DEVICES += tl-wr841-v1.5
 
 define Device/tl-wr841-v3
   $(Device/tplink-4m)
@@ -910,6 +1020,7 @@ define Device/tl-wr841-v3
   TPLINK_HWID := 0x08410003
   TPLINK_HWREV := 3
 endef
+TARGET_DEVICES += tl-wr841-v3
 
 define Device/tl-wr841-v5
   $(Device/tplink-4m)
@@ -918,6 +1029,7 @@ define Device/tl-wr841-v5
   DEVICE_PROFILE := TLWR841
   TPLINK_HWID := 0x08410005
 endef
+TARGET_DEVICES += tl-wr841-v5
 
 define Device/tl-wr841-v7
   $(Device/tplink-4m)
@@ -926,6 +1038,7 @@ define Device/tl-wr841-v7
   DEVICE_PROFILE := TLWR841
   TPLINK_HWID := 0x08410007
 endef
+TARGET_DEVICES += tl-wr841-v7
 
 define Device/tl-wr841-v8
   $(Device/tplink-4mlzma)
@@ -934,6 +1047,7 @@ define Device/tl-wr841-v8
   DEVICE_PROFILE := TLWR841
   TPLINK_HWID := 0x08410008
 endef
+TARGET_DEVICES += tl-wr841-v8
 
 define Device/tl-wr841-v9
   $(Device/tplink-4mlzma)
@@ -942,12 +1056,14 @@ define Device/tl-wr841-v9
   DEVICE_PROFILE := TLWR841
   TPLINK_HWID := 0x08410009
 endef
+TARGET_DEVICES += tl-wr841-v9
 
 define Device/tl-wr841-v10
   $(Device/tl-wr841-v9)
   DEVICE_TITLE := TP-LINK TL-WR841N/ND v10
   TPLINK_HWID := 0x08410010
 endef
+TARGET_DEVICES += tl-wr841-v10
 
 define Device/tl-wr841-v11
   $(Device/tplink-4mlzma)
@@ -959,13 +1075,14 @@ define Device/tl-wr841-v11
   IMAGE/factory-us.bin := append-rootfs | mktplinkfw factory -C US
   IMAGE/factory-eu.bin := append-rootfs | mktplinkfw factory -C EU
 endef
+TARGET_DEVICES += tl-wr841-v11
 
 define Device/tl-wr841-v12
   $(Device/tl-wr841-v11)
   DEVICE_TITLE := TP-LINK TL-WR841N/ND v12
   TPLINK_HWID := 0x08410012
 endef
-TARGET_DEVICES += tl-wr841-v1.5 tl-wr841-v3 tl-wr841-v5 tl-wr841-v7 tl-wr841-v8 tl-wr841-v9 tl-wr841-v10 tl-wr841-v11 tl-wr841-v12
+TARGET_DEVICES += tl-wr841-v12
 
 define Device/tl-wr842n-v1
   $(Device/tplink-8m)
@@ -975,6 +1092,7 @@ define Device/tl-wr842n-v1
   DEVICE_PROFILE := TLWR842
   TPLINK_HWID := 0x08420001
 endef
+TARGET_DEVICES += tl-wr842n-v1
 
 define Device/tl-wr842n-v2
   $(Device/tplink-8mlzma)
@@ -984,6 +1102,7 @@ define Device/tl-wr842n-v2
   DEVICE_PROFILE := TLWR842
   TPLINK_HWID := 0x8420002
 endef
+TARGET_DEVICES += tl-wr842n-v2
 
 define Device/tl-wr842n-v3
   $(Device/tplink-16mlzma)
@@ -993,6 +1112,7 @@ define Device/tl-wr842n-v3
   DEVICE_PROFILE := TLWR842
   TPLINK_HWID := 0x08420003
 endef
+TARGET_DEVICES += tl-wr842n-v3
 
 define Device/tl-wr843nd-v1
   $(Device/tplink-4mlzma)
@@ -1001,6 +1121,7 @@ define Device/tl-wr843nd-v1
   DEVICE_PROFILE := TLWR843
   TPLINK_HWID := 0x08430001
 endef
+TARGET_DEVICES += tl-wr843nd-v1
 
 define Device/tl-wr847n-v8
   $(Device/tplink-4mlzma)
@@ -1009,7 +1130,7 @@ define Device/tl-wr847n-v8
   DEVICE_PROFILE := TLWR841
   TPLINK_HWID := 0x08470008
 endef
-TARGET_DEVICES += tl-wr842n-v1 tl-wr842n-v2 tl-wr842n-v3 tl-wr843nd-v1 tl-wr847n-v8
+TARGET_DEVICES += tl-wr847n-v8
 
 define Device/tl-wr902ac-v1
   DEVICE_TITLE := TP-LINK TL-WR902AC v1
@@ -1038,10 +1159,12 @@ define Device/tl-wr940n-v4
   BOARDNAME := TL-WR940N-v4
   DEVICE_PROFILE := TLWR941
   TPLINK_HWID := 0x09400004
-  IMAGES += factory-us.bin factory-eu.bin
+  IMAGES += factory-us.bin factory-eu.bin factory-br.bin
   IMAGE/factory-us.bin := append-rootfs | mktplinkfw factory -C US
   IMAGE/factory-eu.bin := append-rootfs | mktplinkfw factory -C EU
+  IMAGE/factory-br.bin := append-rootfs | mktplinkfw factory -C BR
 endef
+TARGET_DEVICES += tl-wr940n-v4
 
 define Device/tl-wr941nd-v2
   $(Device/tplink-4m)
@@ -1051,11 +1174,13 @@ define Device/tl-wr941nd-v2
   TPLINK_HWID := 0x09410002
   TPLINK_HWREV := 2
 endef
+TARGET_DEVICES += tl-wr941nd-v2
 
 define Device/tl-wr941nd-v3
   $(Device/tl-wr941nd-v2)
   DEVICE_TITLE := TP-LINK TL-WR941N/ND v3
 endef
+TARGET_DEVICES += tl-wr941nd-v3
 
 define Device/tl-wr941nd-v4
   $(Device/tplink-4m)
@@ -1064,6 +1189,7 @@ define Device/tl-wr941nd-v4
   DEVICE_PROFILE := TLWR941
   TPLINK_HWID := 0x09410004
 endef
+TARGET_DEVICES += tl-wr941nd-v4
 
 define Device/tl-wr941nd-v5
   $(Device/tplink-4mlzma)
@@ -1072,6 +1198,7 @@ define Device/tl-wr941nd-v5
   DEVICE_PROFILE := TLWR941
   TPLINK_HWID := 0x09410005
 endef
+TARGET_DEVICES += tl-wr941nd-v5
 
 define Device/tl-wr941nd-v6
   $(Device/tplink-4mlzma)
@@ -1080,6 +1207,7 @@ define Device/tl-wr941nd-v6
   DEVICE_PROFILE := TLWR941
   TPLINK_HWID := 0x09410006
 endef
+TARGET_DEVICES += tl-wr941nd-v6
 
 # Chinese version (unlike European) is similar to the TL-WDR3500
 define Device/tl-wr941nd-v6-cn
@@ -1089,6 +1217,7 @@ define Device/tl-wr941nd-v6-cn
   DEVICE_PROFILE := TLWR941
   TPLINK_HWID := 0x09410006
 endef
+TARGET_DEVICES += tl-wr941nd-v6-cn
 
 define Device/tl-wr942n-v1
   DEVICE_TITLE := TP-LINK TL-WR942N v1
@@ -1102,7 +1231,7 @@ define Device/tl-wr942n-v1
   IMAGE/sysupgrade.bin := append-rootfs | tplink-safeloader sysupgrade | \
 	append-metadata | check-size $$$$(IMAGE_SIZE)
   IMAGE/factory.bin := append-rootfs | tplink-safeloader factory
-  MTDPARTS := spi0.0:128k(u-boot)ro,1344k(kernel),13120k(rootfs),64k(product-info)ro,64k(partition-table)ro,256k(oem-config)ro,1344k(oem-vars)ro,64k(ART)ro,14464k@0x20000(firmware)
+  MTDPARTS := spi0.0:128k(u-boot)ro,14464k(firmware),64k(product-info)ro,64k(partition-table)ro,256k(oem-config)ro,1344k(oem-vars)ro,64k(ART)ro
   SUPPORTED_DEVICES := tl-wr942n-v1
 endef
-TARGET_DEVICES += tl-wr940n-v4 tl-wr941nd-v2 tl-wr941nd-v3 tl-wr941nd-v4 tl-wr941nd-v5 tl-wr941nd-v6 tl-wr941nd-v6-cn tl-wr942n-v1
+TARGET_DEVICES += tl-wr942n-v1

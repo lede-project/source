@@ -121,7 +121,7 @@ static int pad_jffs2(char *buf, int currlen, int maxlen)
 	uint32_t pad_mask;
 
 	len = currlen;
-	pad_mask = (64 * 1024);
+	pad_mask = (4 * 1024) | (64 * 1024);	/* EOF at 4KB and at 64KB */
 	while ((len < maxlen) && (pad_mask != 0)) {
 		uint32_t mask;
 		int i;
@@ -236,19 +236,13 @@ int build_fw(size_t header_size)
 		goto out_free_buf;
 
 	if (!combined) {
-		if (rootfs_align)
-			p = buf + writelen;
-		else
-			p = buf + rootfs_ofs;
+		p = buf + rootfs_ofs;
 
 		ret = read_to_buf(&rootfs_info, p);
 		if (ret)
 			goto out_free_buf;
 
-		if (rootfs_align)
-			writelen += rootfs_info.file_size;
-		else
-			writelen = rootfs_ofs + rootfs_info.file_size;
+		writelen = rootfs_ofs + rootfs_info.file_size;
 
 		if (add_jffs2_eof)
 			writelen = pad_jffs2(buf, writelen, layout->fw_max_len);
