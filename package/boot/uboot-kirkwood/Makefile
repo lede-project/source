@@ -64,6 +64,14 @@ define U-Boot/pogo_e02_second_stage
   NAME:=Cloud Engines Pogoplug E02 (second stage)
 endef
 
+define U-Boot/pogo_v4
+  NAME:=Cloud Engines Pogoplug V4
+endef
+
+define U-Boot/pogo_v4_second_stage
+  NAME:=Cloud Engines Pogoplug V4 (second stage)
+endef
+
 define U-Boot/sheevaplug
   NAME:=SheevaPlug
 endef
@@ -76,7 +84,8 @@ UBOOT_TARGETS := \
 	nsa310 \
 	nsa325 \
 	pogo_e02 pogo_e02_second_stage \
-	sheevaplug
+	pogo_v4 pogo_v4_second_stage \
+	sheevaplug 
 
 define Build/Configure
 	$(if $(findstring _second_stage,$(BUILD_VARIANT)),

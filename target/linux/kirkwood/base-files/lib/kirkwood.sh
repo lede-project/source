@@ -41,6 +41,10 @@ kirkwood_board_detect() {
 		name="pogo_e02"
 		;;
 
+    "Cloud Engines Pogoplug V4")
+		name="pogo_v4"
+	    ;;
+
 	"Linksys Audi (EA3500)")
 		name="linksys-audi"
 		;;
