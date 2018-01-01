@@ -104,7 +104,7 @@ define Device/qcom_ipq8064-ap148
 	KERNEL_INSTALL := 1
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	SUPPORTED_DEVICES := ap148
+	SUPPORTED_DEVICES := qcom,ipq8064-ap148 ap148
 	DEVICE_TITLE := Qualcomm AP148
 	DEVICE_PACKAGES := ath10k-firmware-qca99x0
 endef
@@ -116,7 +116,7 @@ define Device/qcom_ipq8064-ap148-legacy
 	DEVICE_DTS := qcom-ipq8064-ap148
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	SUPPORTED_DEVICES := ap148
+	SUPPORTED_DEVICES := qcom,ipq8064-ap148 ap148
 	DEVICE_TITLE := Qualcomm AP148 (legacy)
 	DEVICE_PACKAGES := ath10k-firmware-qca99x0
 endef
@@ -127,7 +127,7 @@ define Device/tplink_c2600
 	DEVICE_DTS := qcom-ipq8064-c2600
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	SUPPORTED_DEVICES := c2600
+	SUPPORTED_DEVICES := tplink,c2600 c2600
 	TPLINK_BOARD_ID := C2600
 	DEVICE_TITLE := TP-Link Archer C2600
 	DEVICE_PACKAGES := ath10k-firmware-qca99x0
@@ -142,7 +142,7 @@ define Device/netgear_d7800
 	NETGEAR_HW_ID := 29764958+0+128+512+4x4+4x4
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	SUPPORTED_DEVICES := d7800
+	SUPPORTED_DEVICES := netgear,d7800 d7800
 	DEVICE_TITLE := Netgear Nighthawk X4 D7800
 	DEVICE_PACKAGES := ath10k-firmware-qca99x0
 endef
@@ -152,7 +152,7 @@ define Device/qcom_ipq8064-db149
 	$(call Device/FitImage)
 	DEVICE_DTS := qcom-ipq8064-db149
 	KERNEL_INSTALL := 1
-	SUPPORTED_DEVICES := db149
+	SUPPORTED_DEVICES := qcom,ipq8064-db149 db149
 	DEVICE_TITLE := Qualcomm DB149
 	DEVICE_PACKAGES := ath10k-firmware-qca99x0
 endef
@@ -167,7 +167,7 @@ define Device/linksys_ea8500
 	FILESYSTEMS := squashfs
 	KERNEL = kernel-bin | append-dtb | uImage none | append-uImage-fakeroot-hdr
 	PROFILES += $$(DEVICE_NAME)
-	SUPPORTED_DEVICES := ea8500
+	SUPPORTED_DEVICES := linksys,ea8500 ea8500
 	UBINIZE_OPTS := -E 5
 	IMAGES := factory.bin sysupgrade.tar
 	IMAGE/factory.bin := append-kernel | pad-to $$$${KERNEL_SIZE} | append-ubi
@@ -182,7 +182,7 @@ define Device/avm_fritzbox-4040
 	KERNEL_LOADADDR := 0x80208000
 	BLOCKSIZE := 4k
 	PAGESIZE := 256
-	SUPPORTED_DEVICES := fritz4040
+	SUPPORTED_DEVICES := avm,fritzbox-4040 fritz4040
 	DEVICE_TITLE := AVM Fritz!Box 4040
 	IMAGE_SIZE := 29753344
 	IMAGES = sysupgrade.bin
@@ -199,7 +199,7 @@ define Device/netgear_r7500
 	NETGEAR_HW_ID := 29764841+0+128+256+3x3+4x4
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	SUPPORTED_DEVICES := r7500
+	SUPPORTED_DEVICES := netgear,r7500 r7500
 	DEVICE_TITLE := Netgear Nighthawk X4 R7500
 	DEVICE_PACKAGES := ath10k-firmware-qca988x
 endef
@@ -213,7 +213,7 @@ define Device/netgear_r7500v2
 	NETGEAR_HW_ID := 29764958+0+128+512+3x3+4x4
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	SUPPORTED_DEVICES := r7500v2
+	SUPPORTED_DEVICES := netgear,r7500v2 r7500v2
 	DEVICE_TITLE := Netgear Nighthawk X4 R7500v2
 	DEVICE_PACKAGES := ath10k-firmware-qca99x0 ath10k-firmware-qca988x
 endef
@@ -227,7 +227,7 @@ define Device/netgear_r7800
 	NETGEAR_HW_ID := 29764958+0+128+512+4x4+4x4+cascade
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	SUPPORTED_DEVICES := r7800
+	SUPPORTED_DEVICES := netgear,r7800 r7800
 	DEVICE_TITLE := Netgear Nighthawk X4S R7800
 	DEVICE_PACKAGES := ath10k-firmware-qca9984
 endef
@@ -237,7 +237,7 @@ define Device/zyxel_nbg6817
 	DEVICE_DTS := qcom-ipq8065-nbg6817
 	KERNEL_SIZE := 4096k
 	BLOCKSIZE := 64k
-	SUPPORTED_DEVICES := nbg6817
+	SUPPORTED_DEVICES := zyxel,nbg6817 nbg6817
 	DEVICE_TITLE := ZyXEL NBG6817
 	DEVICE_PACKAGES := ath10k-firmware-qca9984 e2fsprogs kmod-fs-ext4 losetup
 	$(call Device/ZyXELImage)
@@ -254,7 +254,7 @@ define Device/tplink_vr2600v
 	DEVICE_DTS := qcom-ipq8064-vr2600v
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	SUPPORTED_DEVICES := vr2600v
+	SUPPORTED_DEVICES := tplink,vr2600v vr2600v
 	DEVICE_TITLE := TP-Link Archer VR2600v
 	DEVICE_PACKAGES := ath10k-firmware-qca99x0
 	IMAGES := sysupgrade.bin
@@ -265,7 +265,7 @@ TARGET_DEVICES += tplink_vr2600v
 define Device/qcom_ap-dk01.1-c1
 	PROFILES += $$(DEVICE_NAME)
 	DEVICE_TITLE := QCA AP-DK01.1-C1
-	SUPPORTED_DEVICES := ap-dk01.1-c1
+	SUPPORTED_DEVICES := qcom,ap-dk01.1-c1 ap-dk01.1-c1
 	DEVICE_DTS := qcom-ipq4019-ap.dk01.1-c1
 	KERNEL_LOADADDR := 0x80208000
 	KERNEL_INSTALL := 1
@@ -288,7 +288,7 @@ define Device/qcom_ap-dk04.1-c1
 	KERNEL_SIZE := 4048k
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	SUPPORTED_DEVICES := ap-dk04.1-c1
+	SUPPORTED_DEVICES := qcom,ap-dk04.1-c1 ap-dk04.1-c1
 	DEVICE_TITLE := QCA AP-DK04.1-C1
 endef
 TARGET_DEVICES += qcom_ap-dk04.1-c1
