@@ -1,0 +1,95 @@
+commit ab6e985b8b10e52e79c2a840a8cdec90a5f292b4
+Author: Frank Andrieu <fandrieu@gmail.com>
+Date:   Tue Jan 2 11:59:52 2018 +0100
+
+    odhcp6c: Add -x option to set any DHCP option
+
+diff --git a/src/dhcpv6.c b/src/dhcpv6.c
+index 9dce577..e82a4d8 100644
+--- a/src/dhcpv6.c
++++ b/src/dhcpv6.c
+@@ -225,6 +225,7 @@ enum {
+ 	IOV_VENDOR_CLASS,
+ 	IOV_USER_CLASS_HDR,
+ 	IOV_USER_CLASS,
++	IOV_CUSTOM_OPTS,
+ 	IOV_RECONF_ACCEPT,
+ 	IOV_FQDN,
+ 	IOV_HDR_IA_NA,
+@@ -427,9 +428,10 @@ static void dhcpv6_send(enum dhcpv6_msg type, uint8_t trid[3], uint32_t ecs)
+ 	uint16_t oro_refresh = htons(DHCPV6_OPT_INFO_REFRESH);
+ 
+ 	// Build vendor-class option
+-	size_t vendor_class_len, user_class_len;
++	size_t vendor_class_len, user_class_len, custom_opts_len;
+ 	struct dhcpv6_vendorclass *vendor_class = odhcp6c_get_state(STATE_VENDORCLASS, &vendor_class_len);
+ 	void *user_class = odhcp6c_get_state(STATE_USERCLASS, &user_class_len);
++	void *custom_opts = odhcp6c_get_state(STATE_CUSTOMOPTS, &custom_opts_len);
+ 
+ 	struct {
+ 		uint16_t type;
+@@ -469,6 +471,7 @@ static void dhcpv6_send(enum dhcpv6_msg type, uint8_t trid[3], uint32_t ecs)
+ 		[IOV_VENDOR_CLASS] = {vendor_class, vendor_class_len},
+ 		[IOV_USER_CLASS_HDR] = {&user_class_hdr, user_class_len ? sizeof(user_class_hdr) : 0},
+ 		[IOV_USER_CLASS] = {user_class, user_class_len},
++		[IOV_CUSTOM_OPTS] = {custom_opts, custom_opts_len},
+ 		[IOV_RECONF_ACCEPT] = {&reconf_accept, sizeof(reconf_accept)},
+ 		[IOV_FQDN] = {&fqdn, fqdn_len},
+ 		[IOV_HDR_IA_NA] = {&hdr_ia_na, sizeof(hdr_ia_na)},
+diff --git a/src/odhcp6c.c b/src/odhcp6c.c
+index 666af5c..eef7bc7 100644
+--- a/src/odhcp6c.c
++++ b/src/odhcp6c.c
+@@ -83,7 +83,7 @@ int main(_unused int argc, char* const argv[])
+ 	unsigned int ra_options = RA_RDNSS_DEFAULT_LIFETIME;
+ 	unsigned int ra_holdoff_interval = RA_MIN_ADV_INTERVAL;
+ 
+-	while ((c = getopt(argc, argv, "S::N:V:P:FB:c:i:r:Ru:s:kt:m:Lhedp:fav")) != -1) {
++	while ((c = getopt(argc, argv, "S::N:V:P:FB:c:i:r:Ru:x:s:kt:m:Lhedp:fav")) != -1) {
+ 		switch (c) {
+ 		case 'S':
+ 			allow_slaac_only = (optarg) ? atoi(optarg) : -1;
+@@ -182,6 +182,23 @@ int main(_unused int argc, char* const argv[])
+ 			odhcp6c_add_state(STATE_USERCLASS, optarg, strlen(optarg));
+ 			break;
+ 
++		case 'x':
++			help = true;
++			optpos = strchr(optarg, ':');
++			if (optpos) {
++				l = script_unhexlify(buf, sizeof(buf), optpos+1);
++				opttype = strtoul(optarg, &optpos, 0);
++				if (l && opttype > 0 && opttype < 255) {
++					help = false;
++					opttype = htons(opttype);
++					odhcp6c_add_state(STATE_CUSTOMOPTS, &opttype, 2);
++					optlen = htons(l);
++					odhcp6c_add_state(STATE_CUSTOMOPTS, &optlen, 2);
++					odhcp6c_add_state(STATE_CUSTOMOPTS, buf, l);
++				}
++			}
++			break;
++
+ 		case 's':
+ 			script = optarg;
+ 			break;
+@@ -447,6 +464,7 @@ static int usage(void)
+ 	"	-F		Force IPv6-Prefix\n"
+ 	"	-V <class>	Set vendor-class option (base-16 encoded)\n"
+ 	"	-u <user-class> Set user-class option string\n"
++	"	-x <opt>:<val>	Set option opt to val (integer + base-16 encoded)\n"
+ 	"	-c <clientid>	Override client-ID (base-16 encoded 16-bit type + value)\n"
+ 	"	-i <iface-id>	Use a custom interface identifier for RA handling\n"
+ 	"	-r <options>	Options to be requested (comma-separated)\n"
+diff --git a/src/odhcp6c.h b/src/odhcp6c.h
+index 1d9bd3e..52c1549 100644
+--- a/src/odhcp6c.h
++++ b/src/odhcp6c.h
+@@ -261,6 +261,7 @@ enum odhcp6c_state {
+ 	STATE_AFTR_NAME,
+ 	STATE_VENDORCLASS,
+ 	STATE_USERCLASS,
++	STATE_CUSTOMOPTS,
+ 	STATE_CER,
+ 	STATE_S46_MAPT,
+ 	STATE_S46_MAPE,
