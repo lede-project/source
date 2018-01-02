@@ -42,4 +42,12 @@ define Device/erlite
 endef
 TARGET_DEVICES += erlite
 
+USG3P_CMDLINE:=-mtdparts=phys_mapped_flash:512k(boot0)ro,512k(boot1)ro,64k(eeprom)ro root=/dev/sda2 rootfstype=squashfs,ext4 rootwait
+define Device/usg3p
+  CMDLINE := $(USG3P_CMDLINE)
+  DEVICE_TITLE := UniFi Security Gateway 3P
+  DEVICE_PACKAGES := kmod-leds-gpio kmod-ledtrig-gpio
+endef
+TARGET_DEVICES += usg3p
+
 $(eval $(call BuildImage))

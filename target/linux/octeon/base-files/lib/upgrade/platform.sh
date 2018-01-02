@@ -23,7 +23,7 @@ platform_get_rootfs() {
 
 platform_copy_config() {
 	case "$(board_name)" in
-	erlite)
+	erlite | usg3p)
 		mount -t vfat /dev/sda1 /mnt
 		cp -af "$CONF_TAR" /mnt/
 		umount /mnt
@@ -62,7 +62,7 @@ platform_do_upgrade() {
 
 	[ -b "${rootfs}" ] || return 1
 	case "$board" in
-	erlite)
+	erlite | usg3p)
 		kernel=sda1
 		;;
 	er)
@@ -83,7 +83,7 @@ platform_check_image() {
 
 	case "$board" in
 	erlite | \
-	er)
+	er | usg3p)
 		local tar_file="$1"
 		local kernel_length=`(tar xf $tar_file sysupgrade-$board/kernel -O | wc -c) 2> /dev/null`
 		local rootfs_length=`(tar xf $tar_file sysupgrade-$board/root -O | wc -c) 2> /dev/null`
