@@ -4,7 +4,8 @@
 #include "EASY80920.dtsi"
 
 / {
-	model = "EASY80920NAND - Intel EASY80920 Nand";
+	compatible = "lantiq,easy80920-nand", "lantiq,easy80920", "lantiq,xway", "lantiq,vr9";
+	model = "Intel EASY80920 Nand";
 
 	chosen {
 		bootargs = "ubi.mtd=ubi ubi.block=0,rootfsA root=/dev/ubiblock0_1";

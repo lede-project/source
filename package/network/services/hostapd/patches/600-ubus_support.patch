@@ -296,6 +296,14 @@
  		break;
  	}
  }
+@@ -1212,6 +1214,7 @@ void ap_sta_set_authorized(struct hostap
+ 					  buf, ip_addr);
+ 	} else {
+ 		wpa_msg(hapd->msg_ctx, MSG_INFO, AP_STA_DISCONNECTED "%s", buf);
++		hostapd_ubus_notify(hapd, "disassoc", sta->addr);
+ 
+ 		if (hapd->msg_ctx_parent &&
+ 		    hapd->msg_ctx_parent != hapd->msg_ctx)
 --- a/src/ap/wpa_auth_glue.c
 +++ b/src/ap/wpa_auth_glue.c
 @@ -175,6 +175,7 @@ static void hostapd_wpa_auth_psk_failure

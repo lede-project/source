@@ -142,6 +142,15 @@ define Device/newifi-d1
 endef
 TARGET_DEVICES += newifi-d1
 
+define Device/d-team_newifi-d2
+  DTS := Newifi-D2
+  IMAGE_SIZE := $(ralink_default_fw_size_32M)
+  DEVICE_TITLE := Newifi D2
+  DEVICE_PACKAGES := \
+	kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += d-team_newifi-d2
+
 define Device/pbr-m1
   DTS := PBR-M1
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
@@ -224,6 +233,14 @@ define Device/timecloud
   DEVICE_PACKAGES := kmod-usb3
 endef
 TARGET_DEVICES += timecloud
+
+define Device/u7621-06-256M-16M
+  DTS := U7621-06-256M-16M
+  IMAGE_SIZE := 16064k
+  DEVICE_TITLE := UniElec U7621-06 (256M RAM/16M flash)
+  DEVICE_PACKAGES := kmod-ata-core kmod-ata-ahci kmod-sdhci-mt7620 kmod-usb3
+endef
+TARGET_DEVICES += u7621-06-256M-16M
 
 define Device/ubnt-erx
   DTS := UBNT-ERX
@@ -320,6 +337,16 @@ define Device/zbt-we1326
 	kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-sdhci-mt7620 wpad-mini
 endef
 TARGET_DEVICES += zbt-we1326
+
+define Device/zbtlink_zbt-we3526
+  DTS := ZBT-WE3526
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := ZBT WE3526
+  DEVICE_PACKAGES := \
+	kmod-sdhci-mt7620 kmod-mt7603 kmod-mt76x2 \
+	kmod-usb3 kmod-usb-ledtrig-usbport wpad-mini
+endef
+TARGET_DEVICES += zbtlink_zbt-we3526
 
 define Device/zbt-wg2626
   DTS := ZBT-WG2626

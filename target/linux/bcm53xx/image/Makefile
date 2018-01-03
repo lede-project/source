@@ -59,9 +59,7 @@ define Build/trx
 endef
 
 define Build/trx-serial
-	$(STAGING_DIR_HOST)/bin/trx \
-		-o $@.new \
-		-m 33554432 \
+	$(STAGING_DIR_HOST)/bin/otrx create $@.new \
 		-f $(IMAGE_KERNEL) -a 1024 \
 		-f $@ -a 0x10000 -A $(KDIR)/fs_mark
 	mv $@.new $@
@@ -72,9 +70,7 @@ define Build/trx-nand
 	#	  if it grows up between releases
 	# root: UBI with one extra block containing UBI mark to trigger erasing
 	#	rest of partition
-	$(STAGING_DIR_HOST)/bin/trx \
-		-o $@.new \
-		-m 33554432 \
+	$(STAGING_DIR_HOST)/bin/otrx create $@.new \
 		-f $(IMAGE_KERNEL) -a 0x20000 -b 0x400000 \
 		-f $@ \
 		-A $(KDIR)/ubi_mark -a 0x20000
@@ -307,6 +303,8 @@ define Device/smartrg-sr400ac
   DEVICE_PACKAGES := $(BRCMFMAC_43602A1) $(USB3_PACKAGES)
   IMAGES := trx
   IMAGE/trx := append-rootfs | trx-serial
+  KERNEL_INITRAMFS_SUFFIX := .bin
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | lzma-d16
 endef
 TARGET_DEVICES += smartrg-sr400ac
 

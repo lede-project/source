@@ -170,6 +170,7 @@ static const struct fw_region regions[] = {
 	/* Default region (universal) uses code 0 as well */
 	{"US", 1},
 	{"EU", 0},
+	{"BR", 0},
 };
 
 static const struct fw_region * find_region(const char *country) {
@@ -307,10 +308,10 @@ static int check_options(void)
 
 		if (rootfs_align) {
 			kernel_len += sizeof(struct fw_header);
-			kernel_len = ALIGN(kernel_len, rootfs_align);
+			rootfs_ofs = ALIGN(kernel_len, rootfs_align);
 			kernel_len -= sizeof(struct fw_header);
 
-			DBG("kernel length aligned to %u", kernel_len);
+			DBG("rootfs offset aligned to 0x%u", rootfs_ofs);
 
 			exceed_bytes = kernel_len + rootfs_info.file_size - (fw_max_len - sizeof(struct fw_header));
 			if (exceed_bytes > 0) {

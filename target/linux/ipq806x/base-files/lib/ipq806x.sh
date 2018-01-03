@@ -14,6 +14,9 @@ ipq806x_board_detect() {
 	machine=$(cat /proc/device-tree/model)
 
 	case "$machine" in
+	*"AP-DK01.1-C1")
+		name="ap-dk01.1-c1"
+		;;
 	*"AP148")
 		name="ap148"
 		;;
@@ -58,16 +61,4 @@ ipq806x_board_detect() {
 
 	echo "$IPQ806X_BOARD_NAME" > /tmp/sysinfo/board_name
 	echo "$IPQ806X_MODEL" > /tmp/sysinfo/model
-}
-
-ipq806x_get_dt_led() {
-	local label
-	local ledpath
-	local basepath="/proc/device-tree"
-	local nodepath="$basepath/aliases/led-$1"
-
-	[ -f "$nodepath" ] && ledpath=$(cat "$nodepath")
-	[ -n "$ledpath" ] && label=$(cat "$basepath$ledpath/label")
-
-	echo "$label"
 }
