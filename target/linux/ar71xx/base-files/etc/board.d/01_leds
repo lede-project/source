@@ -227,6 +227,15 @@ cr5000)
 	ucidef_set_led_wlan "wlan" "WLAN" "pcs:blue:wlan" "phy0tpt"
 	ucidef_set_led_usbdev "usb" "USB" "pcs:white:wps" "1-1"
 	;;
+dlb-5)
+	ucidef_set_led_default "power" "POWER" "ligodlb:green:power" "1"
+	ucidef_set_led_netdev "lan0" "LAN0" "ligodlb:green:lan0" "eth0"
+	ucidef_set_rssimon "wlan0" "200000" "1"
+	ucidef_set_led_rssi "rssilow" "RSSILOW" "ligodlb:yellow:link1" "wlan0" "1" "100" "0" "13"
+	ucidef_set_led_rssi "rssimediumlow" "RSSIMEDIUMLOW" "ligodlb:yellow:link2" "wlan0" "26" "100" "-25" "13"
+	ucidef_set_led_rssi "rssimediumhigh" "RSSIMEDIUMHIGH" "ligodlb:yellow:link3" "wlan0" "51" "100" "-50" "13"
+	ucidef_set_led_rssi "rssihigh" "RSSIHIGH" "ligodlb:yellow:link4" "wlan0" "76" "100" "-75" "13"
+	;;
 dr344)
 	ucidef_set_led_netdev "lan" "LAN" "$board:green:lan" "eth1"
 	;;

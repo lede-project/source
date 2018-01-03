@@ -554,6 +554,9 @@ ar71xx_board_detect() {
 	*"DB120 reference board")
 		name="db120"
 		;;
+	*"LigoDLB Propeller 5")
+		name="dlb-5"
+		;;
 	*"DGL-5500 rev. A1")
 		name="dgl-5500-a1"
 		;;
