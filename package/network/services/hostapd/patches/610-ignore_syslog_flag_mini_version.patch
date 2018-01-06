@@ -1,0 +1,32 @@
+--- a/hostapd/main.c
++++ b/hostapd/main.c
+@@ -735,11 +735,11 @@ int main(int argc, char *argv[])
+ 			bss_config = tmp_bss;
+ 			bss_config[num_bss_configs++] = optarg;
+ 			break;
+-#ifdef CONFIG_DEBUG_SYSLOG
+ 		case 's':
++#ifdef CONFIG_DEBUG_SYSLOG
+ 			wpa_debug_syslog = 1;
+-			break;
+ #endif /* CONFIG_DEBUG_SYSLOG */
++			break;
+ 		case 'S':
+ 			start_ifaces_in_sync = 1;
+ 			break;
+--- a/wpa_supplicant/main.c
++++ b/wpa_supplicant/main.c
+@@ -287,11 +287,11 @@ int main(int argc, char *argv[])
+ 		case 'q':
+ 			params.wpa_debug_level++;
+ 			break;
+-#ifdef CONFIG_DEBUG_SYSLOG
+ 		case 's':
++#ifdef CONFIG_DEBUG_SYSLOG
+ 			params.wpa_debug_syslog++;
+-			break;
+ #endif /* CONFIG_DEBUG_SYSLOG */
++			break;
+ #ifdef CONFIG_DEBUG_LINUX_TRACING
+ 		case 'T':
+ 			params.wpa_debug_tracing++;
