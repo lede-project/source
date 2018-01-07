@@ -182,6 +182,36 @@ alfa_check_image() {
 
 	return 0
 }
+gl_ar300m_is_nand() {
+	local size="$(mtd_get_part_size 'ubi')"
+	case "$size" in
+	132120576)
+		return 0
+		;;
+	*)
+		return 1
+		;;
+	esac
+}
+
+# $(1) image file
+# $(2) board name
+# $(3) magic
+platform_check_image_gl_ar300m() {
+	local board=$2
+	local magic=$3
+
+	if gl_ar300m_is_nand; then
+		nand_do_platform_check $board $1
+		return $?
+	else
+		[ "$magic" != "2705" ] && {
+			echo "Invalid image type."
+			return 1
+		}
+		return 0
+	fi
+}
 
 platform_check_image() {
 	local board=$(board_name)
@@ -240,7 +270,6 @@ platform_check_image() {
 	ew-dorin|\
 	ew-dorin-router|\
 	gl-ar150|\
-	gl-ar300m|\
 	gl-ar300|\
 	gl-domino|\
 	gl-mifi|\
@@ -300,6 +329,10 @@ platform_check_image() {
 		}
 
 		return 0
+		;;
+	gl-ar300m)
+		platform_check_image_gl_ar300m "$1" "$board" "$magic" && return 0
+		return 1
 		;;
 	alfa-ap96|\
 	alfa-nx|\
@@ -671,10 +704,20 @@ platform_check_image() {
 	return 1
 }
 
+platform_pre_upgrade_gl_ar300m() {
+	if gl_ar300m_is_nand; then
+		nand_do_upgrade "$1"
+	fi
+}
+
+
 platform_pre_upgrade() {
 	local board=$(board_name)
 
 	case "$board" in
+	gl-ar300m)
+		platform_pre_upgrade_gl_ar300m "$1"
+		;;
 	c-60|\
 	hiveap-121|\
 	nbg6716|\
