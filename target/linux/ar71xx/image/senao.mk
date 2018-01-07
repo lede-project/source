@@ -16,6 +16,18 @@ define Build/senao-factory-image
 	rm -rf $@.senao
 endef
 
+define Device/ens200
+  DEVICE_TITLE := EnGenius ENS200
+  BOARDNAME := ENS200
+  DEVICE_PACKAGES := rssileds
+  IMAGE_SIZE := 5952k
+  IMAGES += factory.bin
+  KERNEL_INITRAMFS := kernel-bin | patch-cmdline | lzma | uImage lzma
+  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env),320k(custom)ro,1024k(kernel),4928k(rootfs),1536k(failsafe)ro,64k(art)ro,5952k@0xa0000(firmware)
+  IMAGE/factory.bin/squashfs := append-rootfs | pad-rootfs | senao-factory-image ens200 $$$$@
+  IMAGE/sysupgrade.bin := append-kernel | pad-to 64k | append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE)
+endef
+TARGET_DEVICES += ens200
 
 define Device/ens202ext
   DEVICE_TITLE := EnGenius ENS202EXT

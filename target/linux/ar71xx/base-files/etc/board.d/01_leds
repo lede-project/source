@@ -245,6 +245,12 @@ eap300v2)
 	ucidef_set_led_netdev "lan" "LAN" "engenius:blue:lan" "eth0"
 	ucidef_set_led_wlan "wlan" "WLAN" "engenius:blue:wlan" "phy0tpt"
 	;;
+ens200)
+	ucidef_set_rssimon "wlan0" "200000" "1"
+	ucidef_set_led_rssi "rssilow" "RSSILOW" "engenius:red:wlan2" "wlan0" "1" "33"
+	ucidef_set_led_rssi "rssimedium" "RSSIMEDIUM" "engenius:orange:wlan3" "34" "66"
+	ucidef_set_led_rssi "rssihigh" "RSSIHIGH" "engenius:green:wlan4" "67" "100"
+	;;
 ens202ext)
 	ucidef_set_rssimon "wlan0" "200000" "1"
 	ucidef_set_led_rssi "rssilow" "RSSILOW" "engenius:amber:wlan1" "wlan0" "1"  "100" "0" "13"

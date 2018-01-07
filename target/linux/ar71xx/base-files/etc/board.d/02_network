@@ -177,6 +177,7 @@ ar71xx_setup_interfaces()
 	all0315n|\
 	dlan-hotspot|\
 	dlan-pro-500-wp|\
+	ens200|\
 	ens202ext|\
 	ja76pf2|\
 	rocket-m-ti|\
