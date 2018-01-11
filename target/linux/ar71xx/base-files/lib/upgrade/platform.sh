@@ -380,6 +380,7 @@ platform_check_image() {
 	gl-inet|\
 	mc-mac1200r|\
 	minibox-v1|\
+	minibox-v3.2|\
 	omy-g1|\
 	omy-x1|\
 	onion-omega|\
@@ -451,6 +452,7 @@ platform_check_image() {
 	tl-wr941nd|\
 	tl-wr941nd-v5|\
 	tl-wr941nd-v6)
+
 		local magic_ver="0100"
 
 		case "$board" in
