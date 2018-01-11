@@ -30,10 +30,6 @@ enablemodem_do() {
 			else
 				logger -t adb-enablemodem 'ERROR: failed to start httpd on modem'
 			fi
-			option_newid='/sys/bus/usb-serial/drivers/option1/new_id'
-			if [ -e "$option_newid" ]; then
-				printf '%s %s' "$vendor_id" "$product_id" > "$option_newid"
-			fi
 			;;
 		stop)
 			if adb_exec 'start-stop-daemon -x httpd -K'; then

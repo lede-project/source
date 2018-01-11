@@ -421,7 +421,17 @@ define Device/tl-mr6400-v1
   DEVICE_PROFILE := TLMR6400
   TPLINK_HWID := 0x64000001
 endef
-TARGET_DEVICES += tl-mr6400-v1
+
+define Device/tl-mr6400-v2
+  $(Device/tplink-8mlzma)
+  DEVICE_TITLE := TP-LINK TL-MR6400 v2
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-net kmod-usb-net-rndis kmod-usb-serial kmod-usb-serial-option
+  BOARDNAME := TL-MR6400-v2
+  DEVICE_PROFILE := TLMR6400_V2
+  TPLINK_HWID := 0x64000001
+endef
+
+TARGET_DEVICES += tl-mr6400-v1 tl-mr6400-v2
 
 define Device/tl-wa701nd-v1
   $(Device/tplink-4m)

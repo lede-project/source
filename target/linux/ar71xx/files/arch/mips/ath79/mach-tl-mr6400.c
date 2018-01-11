@@ -149,3 +149,11 @@ static void __init tl_mr6400_setup(void)
 
 MIPS_MACHINE(ATH79_MACH_TL_MR6400, "TL-MR6400", "TP-LINK TL-MR6400",
 	     tl_mr6400_setup);
+
+static void __init tl_mr6400_v2_setup(void)
+{
+	tl_mr6400_setup();
+}
+
+MIPS_MACHINE(ATH79_MACH_TL_MR6400_V2, "TL-MR6400-v2", "TP-LINK TL-MR6400 v2",
+	     tl_mr6400_v2_setup);
