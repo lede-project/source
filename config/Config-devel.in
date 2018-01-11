@@ -47,6 +47,14 @@ menuconfig DEVEL
 		  This allows you to symlink build_dir into a scratch location, e.g. a ramdisk,
 		  which does not have enough space to keep a complete build_dir.
 
+	config EXTRA_IMAGE_NAME
+		string "Extra name to include in produced images" if DEVEL
+		default ""
+		help
+		  Extra string that is included before the $(BOARD) part in the filenames of produced images.
+		  This allows you to create images with different .config files without overwriting previously
+		  built images.
+
 	config BUILD_SUFFIX
 		string "Build suffix to append to the target BUILD_DIR variable" if DEVEL
 		default ""

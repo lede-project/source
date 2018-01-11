@@ -39,6 +39,10 @@ KDIR=$(KERNEL_BUILD_DIR)
 KDIR_TMP=$(KDIR)/tmp
 DTS_DIR:=$(LINUX_DIR)/arch/$(LINUX_KARCH)/boot/dts
 
+# If there is no explicit EXTRA_IMAGE_NAME use the unquoted one from the .config
+ifeq ($(EXTRA_IMAGE_NAME),)
+  EXTRA_IMAGE_NAME := $(call qstrip,$(CONFIG_EXTRA_IMAGE_NAME))
+endif
 IMG_PREFIX_EXTRA:=$(if $(EXTRA_IMAGE_NAME),$(call sanitize,$(EXTRA_IMAGE_NAME))-)
 IMG_PREFIX_VERNUM:=$(if $(CONFIG_VERSION_FILENAMES),$(call sanitize,$(VERSION_NUMBER))-)
 IMG_PREFIX_VERCODE:=$(if $(CONFIG_VERSION_CODE_FILENAMES),$(call sanitize,$(VERSION_CODE))-)
