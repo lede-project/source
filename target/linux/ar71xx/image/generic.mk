@@ -733,6 +733,17 @@ define Device/tellstick-znet-lite
 endef
 TARGET_DEVICES += tellstick-znet-lite
 
+define Device/dpt-module-v1
+  $(Device/tplink-16mlzma)
+  DEVICE_TITLE := DPTechnics DPT-Module V1
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME := DPT_MODULE_V1
+  DEVICE_PROFILE := DPTMODULEV1
+  TPLINK_HWID := 0xD0000101
+  CONSOLE := ttyATH0,19200
+endef
+TARGET_DEVICES += dpt-module-v1
+
 define Device/oolite
   $(Device/tplink-16mlzma)
   DEVICE_TITLE := Gainstrong OOLITE

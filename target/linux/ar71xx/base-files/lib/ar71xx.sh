@@ -293,6 +293,9 @@ tplink_board_detect() {
 	"3C0002"*)
 		model="MINIBOX_V1"
 		;;
+	"D00001"*)
+		model="DPT_MODULE_V1"
+		;;
 	"430000"*)
 		model="TP-Link TL-WDR4300"
 		;;
@@ -828,6 +831,9 @@ ar71xx_board_detect() {
 		;;
 	*"Oolite V1.0")
 		name="oolite"
+		;;
+	*"DPT-Module V1")
+		name="dpt-module-v1"
 		;;
 	*"PB42")
 		name="pb42"

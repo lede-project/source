@@ -176,6 +176,9 @@ get_status_led() {
 	oolite)
 		status_led="$board:red:system"
 		;;
+	dpt-module-v1)
+		status_led="dptmodule:green:system"
+		;;
 	dw33d)
 		status_led="$board:blue:status"
 		;;

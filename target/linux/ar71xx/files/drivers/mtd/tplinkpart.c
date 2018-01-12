@@ -17,14 +17,17 @@
 #include <linux/mtd/partitions.h>
 #include <linux/version.h>
 
-#define TPLINK_NUM_PARTS	5
-#define TPLINK_HEADER_V1	0x01000000
-#define TPLINK_HEADER_V2	0x02000000
-#define MD5SUM_LEN		16
+#define TPLINK_NUM_PARTS        5
+#define TPLINK_HEADER_V1        0x01000000
+#define TPLINK_HEADER_V2        0x02000000
+#define MD5SUM_LEN              16
 
-#define TPLINK_ART_LEN		0x10000
-#define TPLINK_KERNEL_OFFS	0x20000
-#define TPLINK_64K_KERNEL_OFFS	0x10000
+#define TPLINK_ART_LEN          0x10000
+#define TPLINK_KERNEL_OFFS      0x20000
+#define TPLINK_64K_KERNEL_OFFS  0x10000
+
+#define DPTMODULE_V1_NUM_PARTS  7
+#define DPTMODULE_V1_PERS_SIZE  0x10000
 
 struct tplink_fw_header {
 	uint32_t	version;	/* header version */
@@ -185,6 +188,91 @@ err:
 	return ret;
 }
 
+static int dpt_module_v1_parse_partitions_offset(struct mtd_info *master,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,5,0)
+				   struct mtd_partition **pparts,
+#else
+				   const struct mtd_partition **pparts,
+#endif
+				   struct mtd_part_parser_data *data,
+				   size_t offset)
+{
+	struct mtd_partition *parts;
+	struct tplink_fw_header *header;
+	int nr_parts;
+	size_t art_offset;
+	size_t rootfs_offset;
+	size_t squashfs_offset;
+	int ret;
+
+	nr_parts = DPTMODULE_V1_NUM_PARTS;
+	parts = kzalloc(nr_parts * sizeof(struct mtd_partition), GFP_KERNEL);
+	if (!parts) {
+		ret = -ENOMEM;
+		goto err;
+	}
+
+	header = tplink_read_header(master, offset);
+	if (!header) {
+		pr_notice("%s: no TP-Link header found\n", master->name);
+		ret = -ENODEV;
+		goto err_free_parts;
+	}
+
+	squashfs_offset = offset + sizeof(struct tplink_fw_header) +
+			  be32_to_cpu(header->kernel_len);
+
+	ret = tplink_check_rootfs_magic(master, squashfs_offset);
+	if (ret == 0)
+		rootfs_offset = squashfs_offset;
+	else
+		rootfs_offset = offset + be32_to_cpu(header->rootfs_ofs);
+
+	art_offset = master->size - TPLINK_ART_LEN;
+
+	parts[0].name = "u-boot";
+	parts[0].offset = 0;
+	parts[0].size = offset/2;
+	parts[0].mask_flags = MTD_WRITEABLE;
+
+	parts[1].name = "dpt-persistent";
+	parts[1].offset = offset/2;
+	parts[1].size = DPTMODULE_V1_PERS_SIZE/2;
+
+	parts[2].name = "dpt-factory";
+	parts[2].offset = (offset/2) + DPTMODULE_V1_PERS_SIZE/2;
+	parts[2].size = DPTMODULE_V1_PERS_SIZE/2;
+	parts[2].mask_flags = MTD_WRITEABLE;
+
+	parts[3].name = "kernel";
+	parts[3].offset = offset;
+	parts[3].size = rootfs_offset - offset;
+
+	parts[4].name = "rootfs";
+	parts[4].offset = rootfs_offset;
+	parts[4].size = art_offset - rootfs_offset;
+
+	parts[5].name = "art";
+	parts[5].offset = art_offset;
+	parts[5].size = TPLINK_ART_LEN;
+	parts[5].mask_flags = MTD_WRITEABLE;
+
+	parts[6].name = "firmware";
+	parts[6].offset = offset;
+	parts[6].size = art_offset - offset;
+
+	vfree(header);
+
+	*pparts = parts;
+	return nr_parts;
+
+err_free_parts:
+	kfree(parts);
+err:
+	*pparts = NULL;
+	return ret;
+}
+
 static int tplink_parse_partitions(struct mtd_info *master,
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4,5,0)
 				   struct mtd_partition **pparts,
@@ -209,6 +297,18 @@ static int tplink_parse_64k_partitions(struct mtd_info *master,
 		                              TPLINK_64K_KERNEL_OFFS);
 }
 
+static int dpt_module_v1_parse_partitions(struct mtd_info *master,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,5,0)
+				   struct mtd_partition **pparts,
+#else
+				   const struct mtd_partition **pparts,
+#endif
+				   struct mtd_part_parser_data *data)
+{
+	return dpt_module_v1_parse_partitions_offset(master, pparts, data,
+		                              TPLINK_KERNEL_OFFS);
+}
+
 static struct mtd_part_parser tplink_parser = {
 	.owner		= THIS_MODULE,
 	.parse_fn	= tplink_parse_partitions,
@@ -221,10 +321,17 @@ static struct mtd_part_parser tplink_64k_parser = {
 	.name		= "tp-link-64k",
 };
 
+static struct mtd_part_parser dpt_module_v1_parser = {
+	.owner		= THIS_MODULE,
+	.parse_fn	= dpt_module_v1_parse_partitions,
+	.name		= "dpt-module-v1",
+};
+
 static int __init tplink_parser_init(void)
 {
 	register_mtd_parser(&tplink_parser);
 	register_mtd_parser(&tplink_64k_parser);
+	register_mtd_parser(&dpt_module_v1_parser);
 
 	return 0;
 }
