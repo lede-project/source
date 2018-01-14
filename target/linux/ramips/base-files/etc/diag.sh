@@ -38,6 +38,7 @@ get_status_led() {
 	nbg-419n2|\
 	pwh2004|\
 	r6220|\
+	tplink,c20-v4|\
 	tplink,tl-mr3420-v5|\
 	tl-wr840n-v4|\
 	tl-wr840n-v5|\
@@ -124,7 +125,6 @@ get_status_led() {
 	w502u)
 		status_led="$boardname:blue:wps"
 		;;
-	c20|\
 	d240|\
 	dap-1350|\
 	na930|\
@@ -136,6 +136,7 @@ get_status_led() {
 	rt-n14u|\
 	rt-n15|\
 	rt-n56u|\
+	tplink,c20-v1|\
 	wl-330n|\
 	wl-330n3g|\
 	wli-tx4-ag300n|\
