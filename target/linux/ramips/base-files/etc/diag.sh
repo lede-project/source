@@ -192,6 +192,7 @@ get_status_led() {
 	mir3g)
 		status_led="$boardname:yellow:status"
 		;;
+	miwifi-r3|\
 	miwifi-mini|\
 	zte-q7)
 		status_led="$boardname:red:status"
