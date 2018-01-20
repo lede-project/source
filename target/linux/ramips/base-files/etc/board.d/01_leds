@@ -167,6 +167,9 @@ vr500)
 dir-860l-b1)
 	ucidef_set_led_netdev "wan" "wan" "$boardname:green:net" "eth0.2"
 	;;
+dwr-512-b)
+	ucidef_set_led_netdev "wan3g" "wan3g" "$board:green:3g" "usb0"
+	;;
 ex2700|\
 wn3000rpv3)
 	set_wifi_led "$boardname:green:router"
