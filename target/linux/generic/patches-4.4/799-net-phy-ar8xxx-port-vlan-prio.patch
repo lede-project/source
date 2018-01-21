@@ -1,0 +1,109 @@
+--- linux-4.4.108/drivers/net/phy/ar8216.h.orig	2018-01-07 10:34:04.397022000 +0800
++++ linux-4.4.108/drivers/net/phy/ar8216.h	2018-01-13 15:16:19.925364735 +0800
+@@ -462,6 +462,8 @@
+ 	bool mirror_tx;
+ 	int source_port;
+ 	int monitor_port;
++
++	u8 port_vlan_prio[AR8X16_MAX_PORTS];
+ };
+ 
+ u32
+--- linux-4.4.108/drivers/net/phy/ar8327.h.orig	2018-01-07 10:34:19.317022000 +0800
++++ linux-4.4.108/drivers/net/phy/ar8327.h	2018-01-13 18:51:56.173568191 +0800
+@@ -166,10 +166,15 @@
+ #define AR8327_REG_PORT_VLAN0(_i)		(0x420 + (_i) * 0x8)
+ #define   AR8327_PORT_VLAN0_DEF_SVID		BITS(0, 12)
+ #define   AR8327_PORT_VLAN0_DEF_SVID_S		0
++#define   AR8327_PORT_VLAN0_DEF_SPRI		BITS(13, 3)
++#define   AR8327_PORT_VLAN0_DEF_SPRI_S		13
+ #define   AR8327_PORT_VLAN0_DEF_CVID		BITS(16, 12)
+ #define   AR8327_PORT_VLAN0_DEF_CVID_S		16
++#define   AR8327_PORT_VLAN0_DEF_CPRI		BITS(29, 3)
++#define   AR8327_PORT_VLAN0_DEF_CPRI_S		29
+ 
+ #define AR8327_REG_PORT_VLAN1(_i)		(0x424 + (_i) * 0x8)
++#define   AR8327_PORT_VLAN1_VLAN_PRI_PROP	BIT(4)
+ #define   AR8327_PORT_VLAN1_PORT_VLAN_PROP	BIT(6)
+ #define   AR8327_PORT_VLAN1_OUT_MODE		BITS(12, 2)
+ #define   AR8327_PORT_VLAN1_OUT_MODE_S		12
+--- linux-4.4.108/drivers/net/phy/ar8327.c.orig	2018-01-07 10:34:11.661022000 +0800
++++ linux-4.4.108/drivers/net/phy/ar8327.c	2018-01-13 18:54:45.981568191 +0800
+@@ -926,10 +926,26 @@
+ 
+ 	t = pvid << AR8327_PORT_VLAN0_DEF_SVID_S;
+ 	t |= pvid << AR8327_PORT_VLAN0_DEF_CVID_S;
++
++	if (priv->vlan) {
++		if (priv->port_vlan_prio[port] > 0) {
++			u32 prio = priv->port_vlan_prio[port] & 0x07;
++			t |= prio << AR8327_PORT_VLAN0_DEF_SPRI_S;
++			t |= prio << AR8327_PORT_VLAN0_DEF_CPRI_S;
++		}
++	}
++
+ 	ar8xxx_write(priv, AR8327_REG_PORT_VLAN0(port), t);
+ 
+ 	t = AR8327_PORT_VLAN1_PORT_VLAN_PROP;
+ 	t |= egress << AR8327_PORT_VLAN1_OUT_MODE_S;
++
++	if (priv->vlan) {
++		if (priv->port_vlan_prio[port] > 0) {
++			t |= AR8327_PORT_VLAN1_VLAN_PRI_PROP;
++		}
++	}
++
+ 	ar8xxx_write(priv, AR8327_REG_PORT_VLAN1(port), t);
+ 
+ 	t = members;
+@@ -1268,6 +1288,35 @@
+ 	return 0;
+ }
+ 
++static int
++ar8327_sw_set_port_vlan_prio(struct switch_dev *dev, const struct switch_attr *attr,
++			     struct switch_val *val)
++{
++	struct ar8xxx_priv *priv = swdev_to_ar8xxx(dev);
++	int port = val->port_vlan;
++
++	if (port >= dev->ports)
++		return -EINVAL;
++	if (port == 0 || port == 6)
++		return -EOPNOTSUPP;
++
++        priv->port_vlan_prio[port] = val->value.i;
++
++	return 0;
++}
++
++static int
++ar8327_sw_get_port_vlan_prio(struct switch_dev *dev, const struct switch_attr *attr,
++                  struct switch_val *val)
++{
++        struct ar8xxx_priv *priv = swdev_to_ar8xxx(dev);
++	int port = val->port_vlan;
++
++        val->value.i = priv->port_vlan_prio[port];
++
++        return 0;
++}
++
+ static const struct switch_attr ar8327_sw_attr_globals[] = {
+ 	{
+ 		.type = SWITCH_TYPE_INT,
+@@ -1389,6 +1440,14 @@
+ 		.get = ar8327_sw_get_port_igmp_snooping,
+ 		.max = 1
+ 	},
++	{
++		.type = SWITCH_TYPE_INT,
++		.name = "vlan_prio",
++		.description = "Port VLAN default priority (VLAN PCP) (0-7)",
++		.set = ar8327_sw_set_port_vlan_prio,
++		.get = ar8327_sw_get_port_vlan_prio,
++		.max = 7,
++	},
+ };
+ 
+ static const struct switch_dev_ops ar8327_sw_ops = {
