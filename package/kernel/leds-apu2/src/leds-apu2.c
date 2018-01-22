@@ -45,7 +45,7 @@
 #define FCH_GPIO_BASE           (FCH_ACPI_MMIO_BASE + 0x1500)
 #define FCH_GPIO_SIZE           0x300
 
-#define APU_NUM_GPIO            4
+#define APU_NUM_GPIO            5
 
 #define GPIO_BIT_DIR            23
 #define GPIO_BIT_WRITE          22
@@ -66,10 +66,10 @@ static const struct pci_device_id gpio_apu2_pci_tbl[] ={
 };
 MODULE_DEVICE_TABLE (pci, gpio_apu2_pci_tbl);
 
-/* EGPIO89=GPIO32, AGPIO68=GPIO57, AGPIO69=GPIO58, AGPIO70=GPIO59 */
-static u8 gpio_offset[APU_NUM_GPIO] = {89, 68, 69, 70};
+/* EGPIO89=GPIO32, EGPIO90=GPIO33, AGPIO68=GPIO57, AGPIO69=GPIO58, AGPIO70=GPIO59 */
+static u8 gpio_offset[APU_NUM_GPIO] = {89, 90, 68, 69, 70};
 
-static void __iomem *gpio_addr[APU_NUM_GPIO] = {NULL, NULL, NULL, NULL};
+static void __iomem *gpio_addr[APU_NUM_GPIO] = {NULL, NULL, NULL, NULL, NULL};
 
 static int gpio_apu2_get_dir (struct gpio_chip *chip, unsigned offset)
 {
@@ -251,7 +251,7 @@ static struct gpio_keys_button apu2_gpio_keys[] = {
 		.type           = EV_KEY,
 		.code           = KEY_RESTART,
 		.debounce_interval = 60,
-		.gpio           = 508,
+		.gpio           = 507,
 		.active_low     = 1,
 	},
 };
