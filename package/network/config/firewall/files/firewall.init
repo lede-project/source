@@ -29,7 +29,7 @@ validate_firewall_rule()
 }
 
 service_triggers() {
-	procd_add_reload_trigger firewall	
+	procd_add_reload_trigger firewall
 
 	procd_open_validate
 	validate_firewall_redirect
@@ -38,19 +38,27 @@ service_triggers() {
 }
 
 restart() {
+	ACTION="pre-restart" /sbin/hotplug-call firewall
 	fw3 restart
+	ACTION="post-restart" /sbin/hotplug-call firewall
 }
 
 start_service() {
+	ACTION="pre-start" /sbin/hotplug-call firewall
 	fw3 ${QUIET} start
+	ACTION="post-start" /sbin/hotplug-call firewall
 }
 
 stop_service() {
+	ACTION="pre-stop" /sbin/hotplug-call firewall
 	fw3 flush
+	ACTION="post-stop" /sbin/hotplug-call firewall
 }
 
 reload_service() {
+	ACTION="pre-reload" /sbin/hotplug-call firewall
 	fw3 reload
+	ACTION="post-reload" /sbin/hotplug-call firewall
 }
 
 boot() {
