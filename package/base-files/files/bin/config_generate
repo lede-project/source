@@ -66,12 +66,12 @@ generate_network() {
 		json_select ..
 	json_select ..
 
-	[ -n "$ifname" ] || return
-
 	# force bridge for multi-interface devices (and lan)
 	case "$1:$ifname" in
 		*\ * | lan:*) type="bridge" ;;
 	esac
+
+	[ -n "$ifname" -o "$type" = "bridge" ] || return
 
 	uci -q batch <<-EOF
 		delete network.$1
