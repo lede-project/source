@@ -656,6 +656,9 @@ platform_check_image() {
 		return 0;
 		;;
 	# these boards use metadata images
+	e1700ac|\
+	e600g|\
+	e600gac|\
 	fritz300e|\
 	rb-750-r2|\
 	rb-750p-pbr2|\

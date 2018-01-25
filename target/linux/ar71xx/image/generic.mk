@@ -272,6 +272,86 @@ define Device/dragino2
 endef
 TARGET_DEVICES += dragino2
 
+define Device/e00qx-8m
+  IMAGE_SIZE := 7744k
+  KERNEL_SIZE := 1984k
+  ROOTFS_SIZE := 5760k
+  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,64k(pri-data)ro,1984k(kernel),5760k(rootfs),64k(art)ro,7744k@0x50000(firmware)
+endef
+
+define Device/e00qx-16m
+  IMAGE_SIZE := 16000k
+  KERNEL_SIZE := 1984k
+  ROOTFS_SIZE := 13952k
+  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,64k(pri-data)ro,1984k(kernel),13952k(rootfs),64k(art)ro,16000k@0x50000(firmware)
+endef
+
+define Device/e1700ac
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k ath10k-firmware-qca988x
+  BOARDNAME := E1700AC
+  IMAGE/sysupgrade.bin :=append-kernel | pad-to $$$$(KERNEL_SIZE) | \
+	append-rootfs | pad-rootfs | pad-to $$$$(ROOTFS_SIZE) | \
+	append-metadata | check-size $$$$(IMAGE_SIZE)
+endef
+
+define Device/e1700ac-8M
+  DEVICE_TITLE := WHQX E1700AC-8M (8MB flash)
+  $(Device/e00qx-8m)
+  $(Device/e1700ac)
+endef
+TARGET_DEVICES += e1700ac-8M
+
+define Device/e1700ac-16M
+  DEVICE_TITLE := WHQX E1700AC-16M (16MB flash)
+  $(Device/e00qx-16m)
+  $(Device/e1700ac)
+endef
+TARGET_DEVICES += e1700ac-16M
+
+define Device/e600g
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME := E600G
+  IMAGE/sysupgrade.bin :=append-kernel | pad-to $$$$(KERNEL_SIZE) | \
+	append-rootfs | pad-rootfs | pad-to $$$$(ROOTFS_SIZE) | \
+	append-metadata | check-size $$$$(IMAGE_SIZE)
+endef
+
+define Device/e600g-8M
+  DEVICE_TITLE := WHQX E600G-8M (8MB flash)
+  $(Device/e00qx-8m)
+  $(Device/e600g)
+endef
+TARGET_DEVICES += e600g-8M
+
+define Device/e600g-16M
+  DEVICE_TITLE := WHQX E600G-16M (16MB flash)
+  $(Device/e00qx-16m)
+  $(Device/e600g)
+endef
+TARGET_DEVICES += e600g-16M
+
+define Device/e600gac
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k ath10k-firmware-qca9887
+  BOARDNAME := E600GAC
+  IMAGE/sysupgrade.bin :=append-kernel | pad-to $$$$(KERNEL_SIZE) | \
+	append-rootfs | pad-rootfs | pad-to $$$$(ROOTFS_SIZE) | \
+	append-metadata | check-size $$$$(IMAGE_SIZE)
+endef
+
+define Device/e600gac-8M
+  DEVICE_TITLE := WHQX E600GAC-8M (8MB flash)
+  $(Device/e00qx-8m)
+  $(Device/e600gac)
+endef
+TARGET_DEVICES += e600gac-8M
+
+define Device/e600gac-16M
+  DEVICE_TITLE := WHQX E600GAC-16M (16MB flash)
+  $(Device/e00qx-16m)
+  $(Device/e600gac)
+endef
+TARGET_DEVICES += e600gac-16M
+
 define Device/ew-dorin
   DEVICE_TITLE := Embedded Wireless Dorin Platform
   DEVICE_PACKAGES := kmod-usb-core kmod-usb-chipidea

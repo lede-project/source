@@ -185,6 +185,13 @@ get_status_led() {
 	r36a)
 		status_led="$board:blue:status"
 		;;
+	e1700ac)
+		status_led="$board:green:ds11"
+		;;
+	e600g|\
+	e600gac)
+		status_led="$board:green:ds10"
+		;;
 	eap300v2)
 		status_led="engenius:blue:power"
 		;;
