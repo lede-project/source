@@ -10,6 +10,7 @@ proto_ncm_init_config() {
 	no_device=1
 	available=1
 	proto_config_add_string "device:device"
+	proto_config_add_string manufacturer
 	proto_config_add_string apn
 	proto_config_add_string auth
 	proto_config_add_string username
@@ -25,10 +26,10 @@ proto_ncm_init_config() {
 proto_ncm_setup() {
 	local interface="$1"
 
-	local manufacturer initialize setmode connect finalize ifname devname devpath
+	local initialize setmode connect finalize ifname devname devpath
 
-	local device apn auth username password pincode delay mode pdptype profile $PROTO_DEFAULT_OPTIONS
-	json_get_vars device apn auth username password pincode delay mode pdptype profile $PROTO_DEFAULT_OPTIONS
+	local device manufacturer apn auth username password pincode delay mode pdptype profile $PROTO_DEFAULT_OPTIONS
+	json_get_vars device manufacturer apn auth username password pincode delay mode pdptype profile $PROTO_DEFAULT_OPTIONS
 
 	[ "$metric" = "" ] && metric="0"
 
@@ -73,11 +74,13 @@ proto_ncm_setup() {
 
 	[ -n "$delay" ] && sleep "$delay"
 
-	manufacturer=`gcom -d "$device" -s /etc/gcom/getcardinfo.gcom | awk 'NF && $0 !~ /AT\+CGMI/ { sub(/\+CGMI: /,""); print tolower($1); exit; }'`
-	[ $? -ne 0 ] && {
-		echo "Failed to get modem information"
-		proto_notify_error "$interface" GETINFO_FAILED
-		return 1
+	[ -n "$manufacturer" ] || {
+		manufacturer=`gcom -d "$device" -s /etc/gcom/getcardinfo.gcom | awk 'NF && $0 !~ /AT\+CGMI/ { sub(/\+CGMI: /,""); print tolower($1); exit; }'`
+		[ $? -ne 0 ] && {
+			echo "Failed to get modem information"
+			proto_notify_error "$interface" GETINFO_FAILED
+			return 1
+		}
 	}
 
 	json_load "$(cat /etc/gcom/ncm.json)"
