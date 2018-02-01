@@ -19,7 +19,6 @@ define Package/otrx
   CATEGORY:=Base system
   TITLE:=Utility for opening (analyzing) TRX firmware images
   MAINTAINER:=Rafał Miłecki <zajec5@gmail.com>
-  DEPENDS:=@TARGET_brcm47xx||@TARGET_bcm53xx
 endef
 
 define Package/otrx/description
