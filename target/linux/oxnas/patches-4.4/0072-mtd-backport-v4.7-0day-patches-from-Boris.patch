@@ -4101,7 +4101,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
   * Sample table portion for 8MB flash (Winbond w25q64fw):
   *
   *   SEC  |  TB   |  BP2  |  BP1  |  BP0  |  Prot Length  | Protected Portion
-@@ -454,26 +504,55 @@ static int stm_is_locked_sr(struct spi_n
+@@ -454,27 +504,55 @@ static int stm_is_locked_sr(struct spi_n
   *    0   |   0   |   1   |   0   |   1   |  2 MB         | Upper 1/4
   *    0   |   0   |   1   |   1   |   0   |  4 MB         | Upper 1/2
   *    X   |   X   |   1   |   1   |   1   |  8 MB         | ALL
@@ -4125,7 +4125,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +	loff_t lock_len;
 +	bool can_be_top = true, can_be_bottom = nor->flags & SNOR_F_HAS_SR_TB;
 +	bool use_top;
-+	int ret;
+ 	int ret;
  
  	status_old = read_sr(nor);
 +	if (status_old < 0)
@@ -4166,7 +4166,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  
  	/*
  	 * Need smallest pow such that:
-@@ -484,7 +563,7 @@ static int stm_lock(struct spi_nor *nor,
+@@ -485,7 +563,7 @@ static int stm_lock(struct spi_nor *nor,
  	 *
  	 *   pow = ceil(log2(size / len)) = log2(size) - floor(log2(len))
  	 */
@@ -4175,7 +4175,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  	val = mask - (pow << shift);
  	if (val & ~mask)
  		return -EINVAL;
-@@ -492,14 +571,27 @@ static int stm_lock(struct spi_nor *nor,
+@@ -493,10 +571,20 @@ static int stm_lock(struct spi_nor *nor,
  	if (!(val & mask))
  		return -EINVAL;
  
@@ -4198,15 +4198,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  		return -EINVAL;
  
  	write_enable(nor);
--	return write_sr(nor, status_new);
-+	ret = write_sr(nor, status_new);
-+	if (ret)
-+		return ret;
-+	return spi_nor_wait_till_ready(nor);
- }
- 
- /*
-@@ -510,17 +602,43 @@ static int stm_lock(struct spi_nor *nor,
+@@ -514,18 +602,43 @@ static int stm_lock(struct spi_nor *nor,
  static int stm_unlock(struct spi_nor *nor, loff_t ofs, uint64_t len)
  {
  	struct mtd_info *mtd = &nor->mtd;
@@ -4217,12 +4209,15 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +	loff_t lock_len;
 +	bool can_be_top = true, can_be_bottom = nor->flags & SNOR_F_HAS_SR_TB;
 +	bool use_top;
-+	int ret;
+ 	int ret;
  
  	status_old = read_sr(nor);
 +	if (status_old < 0)
 +		return status_old;
-+
+ 
+-	/* Cannot unlock; would unlock larger region than requested */
+-	if (stm_is_locked_sr(nor, ofs - mtd->erasesize, mtd->erasesize,
+-			     status_old))
 +	/* If nothing in our range is locked, we don't need to do anything */
 +	if (stm_is_unlocked_sr(nor, ofs, len, status_old))
 +		return 0;
@@ -4235,10 +4230,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +	if (!stm_is_unlocked_sr(nor, ofs + len, mtd->size - (ofs + len),
 +				status_old))
 +		can_be_bottom = false;
- 
--	/* Cannot unlock; would unlock larger region than requested */
--	if (stm_is_locked_sr(nor, ofs - mtd->erasesize, mtd->erasesize,
--			     status_old))
++
 +	if (!can_be_bottom && !can_be_top)
  		return -EINVAL;
  
@@ -4254,7 +4246,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  	/*
  	 * Need largest pow such that:
  	 *
-@@ -530,8 +648,8 @@ static int stm_unlock(struct spi_nor *no
+@@ -535,8 +648,8 @@ static int stm_unlock(struct spi_nor *no
  	 *
  	 *   pow = floor(log2(size / len)) = log2(size) - ceil(log2(len))
  	 */
@@ -4265,7 +4257,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  		val = 0; /* fully unlocked */
  	} else {
  		val = mask - (pow << shift);
-@@ -540,14 +658,28 @@ static int stm_unlock(struct spi_nor *no
+@@ -545,10 +658,21 @@ static int stm_unlock(struct spi_nor *no
  			return -EINVAL;
  	}
  
@@ -4289,15 +4281,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  		return -EINVAL;
  
  	write_enable(nor);
--	return write_sr(nor, status_new);
-+	ret = write_sr(nor, status_new);
-+	if (ret)
-+		return ret;
-+	return spi_nor_wait_till_ready(nor);
- }
- 
- /*
-@@ -737,8 +869,8 @@ static const struct flash_info spi_nor_i
+@@ -745,8 +869,8 @@ static const struct flash_info spi_nor_i
  	{ "n25q032a",	 INFO(0x20bb16, 0, 64 * 1024,   64, SPI_NOR_QUAD_READ) },
  	{ "n25q064",     INFO(0x20ba17, 0, 64 * 1024,  128, SECT_4K | SPI_NOR_QUAD_READ) },
  	{ "n25q064a",    INFO(0x20bb17, 0, 64 * 1024,  128, SECT_4K | SPI_NOR_QUAD_READ) },
@@ -4308,7 +4292,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  	{ "n25q256a",    INFO(0x20ba19, 0, 64 * 1024,  512, SECT_4K | SPI_NOR_QUAD_READ) },
  	{ "n25q512a",    INFO(0x20bb20, 0, 64 * 1024, 1024, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ) },
  	{ "n25q512ax3",  INFO(0x20ba20, 0, 64 * 1024, 1024, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ) },
-@@ -772,6 +904,7 @@ static const struct flash_info spi_nor_i
+@@ -780,6 +904,7 @@ static const struct flash_info spi_nor_i
  	{ "s25fl008k",  INFO(0xef4014,      0,  64 * 1024,  16, SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },
  	{ "s25fl016k",  INFO(0xef4015,      0,  64 * 1024,  32, SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },
  	{ "s25fl064k",  INFO(0xef4017,      0,  64 * 1024, 128, SECT_4K) },
@@ -4316,7 +4300,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  	{ "s25fl132k",  INFO(0x014016,      0,  64 * 1024,  64, SECT_4K) },
  	{ "s25fl164k",  INFO(0x014017,      0,  64 * 1024, 128, SECT_4K) },
  	{ "s25fl204k",  INFO(0x014013,      0,  64 * 1024,   8, SECT_4K | SPI_NOR_DUAL_READ) },
-@@ -835,11 +968,23 @@ static const struct flash_info spi_nor_i
+@@ -843,11 +968,23 @@ static const struct flash_info spi_nor_i
  	{ "w25x16", INFO(0xef3015, 0, 64 * 1024,  32, SECT_4K) },
  	{ "w25x32", INFO(0xef3016, 0, 64 * 1024,  64, SECT_4K) },
  	{ "w25q32", INFO(0xef4016, 0, 64 * 1024,  64, SECT_4K) },
@@ -4343,7 +4327,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  	{ "w25q80", INFO(0xef5014, 0, 64 * 1024,  16, SECT_4K) },
  	{ "w25q80bl", INFO(0xef4014, 0, 64 * 1024,  16, SECT_4K) },
  	{ "w25q128", INFO(0xef4018, 0, 64 * 1024, 256, SECT_4K) },
-@@ -862,7 +1007,7 @@ static const struct flash_info *spi_nor_
+@@ -870,7 +1007,7 @@ static const struct flash_info *spi_nor_
  
  	tmp = nor->read_reg(nor, SPINOR_OP_RDID, id, SPI_NOR_MAX_ID_LEN);
  	if (tmp < 0) {
@@ -4352,7 +4336,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  		return ERR_PTR(tmp);
  	}
  
-@@ -873,7 +1018,7 @@ static const struct flash_info *spi_nor_
+@@ -881,7 +1018,7 @@ static const struct flash_info *spi_nor_
  				return &spi_nor_ids[tmp];
  		}
  	}
@@ -4361,7 +4345,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  		id[0], id[1], id[2]);
  	return ERR_PTR(-ENODEV);
  }
-@@ -1019,6 +1164,8 @@ static int macronix_quad_enable(struct s
+@@ -1027,6 +1164,8 @@ static int macronix_quad_enable(struct s
  	int ret, val;
  
  	val = read_sr(nor);
@@ -4370,7 +4354,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  	write_enable(nor);
  
  	write_sr(nor, val | SR_QUAD_EN_MX);
-@@ -1107,7 +1254,7 @@ static int set_quad_mode(struct spi_nor
+@@ -1115,7 +1254,7 @@ static int set_quad_mode(struct spi_nor
  static int spi_nor_check(struct spi_nor *nor)
  {
  	if (!nor->dev || !nor->read || !nor->write ||
@@ -4379,7 +4363,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  		pr_err("spi-nor: please fill all the necessary fields!\n");
  		return -EINVAL;
  	}
-@@ -1120,7 +1267,7 @@ int spi_nor_scan(struct spi_nor *nor, co
+@@ -1128,7 +1267,7 @@ int spi_nor_scan(struct spi_nor *nor, co
  	const struct flash_info *info = NULL;
  	struct device *dev = nor->dev;
  	struct mtd_info *mtd = &nor->mtd;
@@ -4388,15 +4372,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  	int ret;
  	int i;
  
-@@ -1174,6 +1321,7 @@ int spi_nor_scan(struct spi_nor *nor, co
- 	    info->flags & SPI_NOR_HAS_LOCK) {
- 		write_enable(nor);
- 		write_sr(nor, 0);
-+		spi_nor_wait_till_ready(nor);
- 	}
- 
- 	if (!mtd->name)
-@@ -1208,6 +1356,8 @@ int spi_nor_scan(struct spi_nor *nor, co
+@@ -1217,6 +1356,8 @@ int spi_nor_scan(struct spi_nor *nor, co
  
  	if (info->flags & USE_FSR)
  		nor->flags |= SNOR_F_USE_FSR;
@@ -4405,7 +4381,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  
  #ifdef CONFIG_MTD_SPI_NOR_USE_4K_SECTORS
  	/* prefer "small sector" erase if possible */
-@@ -1310,6 +1460,12 @@ int spi_nor_scan(struct spi_nor *nor, co
+@@ -1319,6 +1460,12 @@ int spi_nor_scan(struct spi_nor *nor, co
  		nor->addr_width = 3;
  	}
  
