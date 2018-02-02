@@ -15,4 +15,16 @@
 #define LIBNL_STRING "libnl"
 #define LIBNL_VERSION "2.0"
 
+#define LIBNL_VER_NUM ((LIBNL_VER_MAJ) << 16 | (LIBNL_VER_MIN) << 8 | (LIBNL_VER_MIC))
+#define LIBNL_VER_MAJ 2
+#define LIBNL_VER_MIN 0
+#define LIBNL_VER_MIC 0
+
+/* Run-time version information */
+
+extern const int        nl_ver_num;
+extern const int        nl_ver_maj;
+extern const int        nl_ver_min;
+extern const int        nl_ver_mic;
+
 #endif
