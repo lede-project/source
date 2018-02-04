@@ -2,6 +2,9 @@ choice
     prompt "Select the wireless firmware"
     default K3_WF_EA9500
     depends on PACKAGE_phicommk3-firmware
+     
+     config K3_WF_ASUS-DHD24
+        bool "ASUS-DHD24"
 
     config K3_WF_AC88U
         bool "AC88U"
