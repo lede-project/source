@@ -33,6 +33,7 @@ endef
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/lib/firmware/brcm
+	$(if $(CONFIG_K3_WF_ASUS-DHD24),$(INSTALL_DATA) $(PKG_BUILD_DIR)/brcmfmac4366c-pcie.bin.asus-dhd24 $(1)/lib/firmware/brcm/brcmfmac4366c-pcie.bin)
 	$(if $(CONFIG_K3_WF_AC88U),$(INSTALL_DATA) $(PKG_BUILD_DIR)/brcmfmac4366c-pcie.bin.ac88u $(1)/lib/firmware/brcm/brcmfmac4366c-pcie.bin)
 	$(if $(CONFIG_K3_WF_EA9500),$(INSTALL_DATA) $(PKG_BUILD_DIR)/brcmfmac4366c-pcie.bin.ea9500 $(1)/lib/firmware/brcm/brcmfmac4366c-pcie.bin)
 	$(if $(CONFIG_K3_WF_K3),$(INSTALL_DATA) $(PKG_BUILD_DIR)/brcmfmac4366c-pcie.bin.k3 $(1)/lib/firmware/brcm/brcmfmac4366c-pcie.bin)
