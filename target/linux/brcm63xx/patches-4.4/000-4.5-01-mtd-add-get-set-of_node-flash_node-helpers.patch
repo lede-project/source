@@ -58,7 +58,7 @@ Reviewed-by: Boris Brezillon <boris.brezillon@free-electrons.com>
   */
 --- a/include/linux/mtd/spi-nor.h
 +++ b/include/linux/mtd/spi-nor.h
-@@ -184,6 +184,17 @@ struct spi_nor {
+@@ -194,6 +194,17 @@ struct spi_nor {
  	void *priv;
  };
  

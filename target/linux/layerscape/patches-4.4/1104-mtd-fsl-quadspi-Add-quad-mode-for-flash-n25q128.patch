@@ -86,7 +86,7 @@ Signed-off-by: Yunhui Cui <yunhui.cui@nxp.com>
  
 @@ -523,8 +539,15 @@ static int fsl_qspi_get_seqid(struct fsl
  	case SPINOR_OP_READ_FAST:
- 	case SPINOR_OP_READ4_FAST:
+ 	case SPINOR_OP_READ_FAST_4B:
  		return SEQID_READ;
 +	/*
 +	 * Spansion & Micron use the same command value 0x65

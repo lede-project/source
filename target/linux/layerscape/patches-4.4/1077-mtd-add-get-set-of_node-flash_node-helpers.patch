@@ -42,7 +42,7 @@ Signed-off-by: Yuan Yao <yao.yuan@nxp.com>
  	      void **virt, resource_size_t *phys);
 --- a/include/linux/mtd/spi-nor.h
 +++ b/include/linux/mtd/spi-nor.h
-@@ -184,6 +184,17 @@ struct spi_nor {
+@@ -194,6 +194,17 @@ struct spi_nor {
  	void *priv;
  };
  

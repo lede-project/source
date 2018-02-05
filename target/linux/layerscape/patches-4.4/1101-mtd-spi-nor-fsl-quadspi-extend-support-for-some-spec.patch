@@ -58,10 +58,10 @@ Signed-off-by: Yunhui Cui <yunhui.cui@nxp.com>
  static int fsl_qspi_get_seqid(struct fsl_qspi *q, u8 cmd)
  {
  	switch (cmd) {
-+	case SPINOR_OP_READ4_1_1_4:
++	case SPINOR_OP_READ_1_1_4_4B:
  	case SPINOR_OP_READ_1_1_4:
  	case SPINOR_OP_READ_FAST:
-+	case SPINOR_OP_READ4_FAST:
++	case SPINOR_OP_READ_FAST_4B:
  		return SEQID_READ;
 +	case SPINOR_OP_SPANSION_RDAR:
 +		return SEQID_RDAR;
@@ -109,7 +109,7 @@ Signed-off-by: Yunhui Cui <yunhui.cui@nxp.com>
  
 --- a/include/linux/mtd/spi-nor.h
 +++ b/include/linux/mtd/spi-nor.h
-@@ -74,6 +74,10 @@
+@@ -84,6 +84,10 @@
  /* Used for Spansion flashes only. */
  #define SPINOR_OP_BRWR		0x17	/* Bank register write */
  
