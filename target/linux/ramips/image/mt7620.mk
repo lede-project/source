@@ -147,6 +147,13 @@ define Device/dir-810l
 endef
 TARGET_DEVICES += dir-810l
 
+define Device/dwr-921-c1
+  DTS := DWR-921-C1
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := D-Link DWR-921-C1
+endef
+TARGET_DEVICES += dwr-921-c1
+
 define Device/e1700
   DTS := E1700
   IMAGES += factory.bin

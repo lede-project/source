@@ -255,6 +255,14 @@
 				ralink,function = "uartlite";
 			};
 		};
+
+                wled_pins: wled {
+                        wled {
+                                ralink,group = "wled";
+                                ralink,function = "wled";
+                        };
+                };
+
 	};
 
 	rstctrl: rstctrl {
