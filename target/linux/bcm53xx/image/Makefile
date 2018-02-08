@@ -244,6 +244,13 @@ define Device/linksys-ea9500
 endef
 # TARGET_DEVICES += linksys-ea9500
 
+define Device/phicomm-k3
+  DEVICE_TITLE := Phicomm K3
+  DEVICE_PACKAGES := $(BRCMFMAC_4366C0) $(USB3_PACKAGES)
+  IMAGES := trx
+endef
+TARGET_DEVICES += phicomm-k3
+
 define Device/netgear
   IMAGES := chk
   IMAGE/chk := append-ubi | trx-nand | netgear-chk
