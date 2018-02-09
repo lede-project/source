@@ -58,8 +58,7 @@ sc1750|\
 sc450)
 	ucidef_set_led_wlan "wlan" "WLAN" "$board:green:wlan" "phy0tpt"
 	;;
-archer-c25-v1|\
-archer-c7-v4)
+archer-c25-v1)
 	ucidef_set_led_netdev "wan" "WAN" "$board:green:wan" "eth0"
 	ucidef_set_led_wlan "wlan" "WLAN" "$board:green:wlan2g" "phy1tpt"
 	ucidef_set_led_wlan "wlan5g" "WLAN5G" "$board:green:wlan5g" "phy0tpt"
@@ -67,12 +66,6 @@ archer-c7-v4)
 	ucidef_set_led_switch "lan2" "LAN2" "$board:green:lan2" "switch0" "0x08"
 	ucidef_set_led_switch "lan3" "LAN3" "$board:green:lan3" "switch0" "0x04"
 	ucidef_set_led_switch "lan4" "LAN4" "$board:green:lan4" "switch0" "0x02"
-	case "$board" in
-		archer-c7-v4)
-			ucidef_set_led_usbdev "usb1" "USB1" "$board:green:usb1" "1-1"
-			ucidef_set_led_usbdev "usb2" "USB2" "$board:green:usb2" "2-1"
-		;;
-	esac
 	;;
 archer-c58-v1|\
 archer-c59-v1|\
@@ -126,6 +119,22 @@ dr531)
 		ucidef_set_led_rssi "rssimediumlow" "RSSIMEDIUMLOW" "$board:green:link2" "wlan0" "26" "100" "-25" "13"
 		ucidef_set_led_rssi "rssimediumhigh" "RSSIMEDIUMHIGH" "$board:green:link3" "wlan0" "51" "100" "-50" "13"
 		ucidef_set_led_rssi "rssihigh" "RSSIHIGH" "$board:green:link4" "wlan0" "76" "100" "-75" "13"
+		;;
+	esac
+	;;
+ap91-5g|\
+n5q)
+	ucidef_set_led_netdev "lan" "LAN" "$board:green:lan" "eth0"
+	ucidef_set_rssimon "wlan0" "200000" "1"
+	ucidef_set_led_rssi "signal1" "SIGNAL1" "$board:red:signal1" "wlan0" "1" "100"
+	ucidef_set_led_rssi "signal2" "SIGNAL2" "$board:orange:signal2" "wlan0" "25" "100"
+	ucidef_set_led_rssi "signal3" "SIGNAL3" "$board:green:signal3" "wlan0" "50" "100"
+	ucidef_set_led_rssi "signal4" "SIGNAL4" "$board:green:signal4" "wlan0" "75" "100"
+
+	case "$board" in
+	n5q)
+		ucidef_set_led_netdev "wan" "WAN" "$board:green:wan" "eth1"
+		ucidef_set_led_wlan "wlan" "WLAN" "$board:green:wlan" "phy0tpt"
 		;;
 	esac
 	;;
@@ -283,6 +292,10 @@ rb-750up-r2)
 	ucidef_set_led_switch "port4" "port3" "rb:green:port4" "switch0" "0x04"
 	ucidef_set_led_switch "port5" "port5" "rb:green:port5" "switch0" "0x02"
 	;;
+rb-911-2hn|\
+rb-911-5hn)
+	ucidef_set_led_netdev "eth" "ETH" "rb:green:eth" "eth0"
+	;;
 rb-941-2nd)
 	ucidef_set_led_timer "user" "USR/ACT" "rb:green:user" "1000" "1000"
 	;;
@@ -390,6 +403,10 @@ dlan-pro-1200-ac)
 	;;
 gl-ar300m)
 	ucidef_set_led_wlan "wlan" "WLAN" "$board:red:wlan" "phy0tpt"
+	;;
+gl-ar750)
+	ucidef_set_led_wlan "wlan2g" "WLAN2G" "$board:white:wlan2g" "phy1tpt"
+	ucidef_set_led_wlan "wlan5g" "WLAN5G" "$board:white:wlan5g" "phy0tpt"
 	;;
 gl-mifi)
 	ucidef_set_led_wlan "wlan" "WLAN" "$board:green:wlan" "phy0tpt"
@@ -564,6 +581,12 @@ pqi-air-pen)
 qihoo-c301)
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "qihoo:red:status" "phy1tpt"
 	;;
+r36a)
+	ucidef_set_led_netdev "lan" "LAN" "$board:blue:lan" "eth0"
+	ucidef_set_led_usbdev "usb" "USB" "$board:blue:usb" "1-1"
+	ucidef_set_led_netdev "wan" "WAN" "$board:blue:wan" "eth1"
+	ucidef_set_led_wlan "wlan" "WLAN" "$board:blue:wlan" "phy0tpt"
+	;;
 r602n|\
 zbt-we1526)
 	ucidef_set_led_netdev "wan" "WAN" "$board:green:wan" "eth1"
@@ -578,6 +601,12 @@ re450)
 	ucidef_set_led_netdev "lan_link" "LAN Link" "$board:green:lan_link" "eth0" "link"
 	ucidef_set_led_wlan "wlan2g" "WLAN 2.4 GHz" "$board:blue:wlan2g" "phy1tpt"
 	ucidef_set_led_wlan "wlan5g" "WLAN 5 GHz" "$board:blue:wlan5g" "phy0tpt"
+	;;
+rut900)
+	ucidef_set_led_netdev "wan" "WAN" "$board:green:wan" "eth1"
+	ucidef_set_led_switch "lan1" "LAN1" "$board:green:lan1" "switch0" "0x10"
+	ucidef_set_led_switch "lan2" "LAN2" "$board:green:lan2" "switch0" "0x08"
+	ucidef_set_led_switch "lan3" "LAN3" "$board:green:lan3" "switch0" "0x04"
 	;;
 smart-300)
 	ucidef_set_led_netdev "wan" "WAN" "nc-link:green:wan" "eth0"
@@ -749,6 +778,17 @@ archer-c7)
 	ucidef_set_led_usbdev "usb2" "USB2" "tp-link:green:usb2" "2-1"
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "tp-link:blue:wlan2g" "phy1tpt"
 	ucidef_set_led_wlan "wlan5g" "WLAN5G" "tp-link:blue:wlan5g" "phy0tpt"
+	;;
+archer-c7-v4)
+	ucidef_set_led_wlan "wlan" "WLAN" "$board:green:wlan2g" "phy1tpt"
+	ucidef_set_led_wlan "wlan5g" "WLAN5G" "$board:green:wlan5g" "phy0tpt"
+	ucidef_set_led_switch "wan" "WAN" "$board:green:wan" "switch0" "0x02"
+	ucidef_set_led_switch "lan1" "LAN1" "$board:green:lan4" "switch0" "0x04"
+	ucidef_set_led_switch "lan2" "LAN2" "$board:green:lan3" "switch0" "0x08"
+	ucidef_set_led_switch "lan3" "LAN3" "$board:green:lan2" "switch0" "0x10"
+	ucidef_set_led_switch "lan4" "LAN4" "$board:green:lan1" "switch0" "0x20"
+	ucidef_set_led_usbdev "usb1" "USB1" "$board:green:usb1" "1-1"
+	ucidef_set_led_usbdev "usb2" "USB2" "$board:green:usb2" "2-1"
 	;;
 tl-wpa8630)
 	ucidef_set_led_netdev "lan" "LAN" "$board:green:lan" "eth0"

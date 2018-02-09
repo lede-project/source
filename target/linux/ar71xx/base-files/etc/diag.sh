@@ -40,6 +40,7 @@ get_status_led() {
 	db120|\
 	dr342|\
 	dr344|\
+	rut900|\
 	tew-632brp|\
 	tl-wr942n-v1|\
 	wpj344|\
@@ -79,6 +80,10 @@ get_status_led() {
 	gl-inet|\
 	gl-mifi)
 		status_led="$board:green:lan"
+		;;
+	ap91-5g|\
+	n5q)
+		status_led="$board:green:signal4"
 		;;
 	ap96)
 		status_led="$board:green:led2"
@@ -176,7 +181,8 @@ get_status_led() {
 	oolite)
 		status_led="$board:red:system"
 		;;
-	dw33d)
+	dw33d|\
+	r36a)
 		status_led="$board:blue:status"
 		;;
 	eap300v2)
@@ -193,6 +199,9 @@ get_status_led() {
 	el-mini)
 		status_led="easylink:green:system"
 		;;
+	ew-balin)
+		status_led="balin:green:status"
+		;;
 	ew-dorin|\
 	ew-dorin-router)
 		status_led="dorin:green:status"
@@ -204,6 +213,7 @@ get_status_led() {
 	esr1750)
 		status_led="$board:amber:power"
 		;;
+	gl-ar750|\
 	hiveap-121|\
 	nbg6716)
 		status_led="$board:white:power"
@@ -312,6 +322,8 @@ get_status_led() {
 	rb-750-r2|\
 	rb-750p-pbr2|\
 	rb-750up-r2|\
+	rb-911-2hn|\
+	rb-911-5hn|\
 	rb-911g-2hpnd|\
 	rb-911g-5hpacd|\
 	rb-911g-5hpnd|\
@@ -521,7 +533,8 @@ set_state() {
 	done)
 		status_led_on
 		case $(board_name) in
-		gl-ar300m)
+		gl-ar300m|\
+		gl-ar750)
 			fw_printenv lc >/dev/null 2>&1 && fw_setenv "bootcount" 0
 			;;
 		qihoo-c301)

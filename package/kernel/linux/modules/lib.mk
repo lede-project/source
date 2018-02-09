@@ -101,6 +101,7 @@ $(eval $(call KernelPackage,lib-crc32c))
 define KernelPackage/lib-lzo
   SUBMENU:=$(LIB_MENU)
   TITLE:=LZO support
+  DEPENDS:=+LINUX_4_14:kmod-crypto-acompress
   KCONFIG:= \
 	CONFIG_CRYPTO_LZO@ge4.9 \
 	CONFIG_LZO_COMPRESS \
@@ -120,9 +121,32 @@ endef
 $(eval $(call KernelPackage,lib-lzo))
 
 
+define KernelPackage/lib-zstd
+  SUBMENU:=$(LIB_MENU)
+  TITLE:=ZSTD support
+  KCONFIG:= \
+	CONFIG_ZSTD_COMPRESS \
+	CONFIG_ZSTD_DECOMPRESS \
+	CONFIG_XXHASH
+  HIDDEN:=1
+  FILES:= \
+	$(LINUX_DIR)/lib/xxhash.ko \
+	$(LINUX_DIR)/lib/zstd/zstd_compress.ko \
+	$(LINUX_DIR)/lib/zstd/zstd_decompress.ko
+  AUTOLOAD:=$(call AutoProbe,xxhash zstd_compress zstd_decompress)
+endef
+
+define KernelPackage/lib-zstd/description
+ Kernel module for ZSTD compression/decompression support
+endef
+
+$(eval $(call KernelPackage,lib-zstd))
+
+
 define KernelPackage/lib-lz4
   SUBMENU:=$(LIB_MENU)
   TITLE:=LZ4 support
+  DEPENDS:=+LINUX_4_14:kmod-crypto-acompress
   HIDDEN:=1
   KCONFIG:= \
 	CONFIG_CRYPTO_LZ4@ge4.9 \

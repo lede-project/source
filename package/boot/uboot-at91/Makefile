@@ -17,6 +17,7 @@ include $(INCLUDE_DIR)/package.mk
 
 define U-Boot/Default
   BUILD_TARGET:=at91
+  HIDDEN:=1
   UBOOT_IMAGE:=u-boot.bin boot.bin
 endef
 
@@ -88,7 +89,7 @@ UBOOT_TARGETS := \
 define Build/Compile
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		CROSS_COMPILE=$(TARGET_CROSS) \
-		KCFLAGS="$(filter-out -fstack-protector, $(TARGET_CFLAGS))"
+		KCFLAGS="$(filter-out -fstack-protector -mfloat-abi=hard, $(TARGET_CFLAGS)) -mfloat-abi=soft" 
 endef
 
 $(eval $(call BuildPackage/U-Boot))

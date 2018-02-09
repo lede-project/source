@@ -39,7 +39,7 @@ define Device/Default
   DEVICE_DTS_DIR := ../dts
   IMAGES := sysupgrade.bin
   IMAGE_SIZE := $(ralink_default_fw_size_8M)
-  SUPPORTED_DEVICES = $(1)
+  SUPPORTED_DEVICES := $(subst _,$(comma),$(1))
   sysupgrade_bin := append-kernel | append-rootfs | pad-rootfs
   IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
 endef
@@ -118,7 +118,7 @@ endef
 # $(2), filename of image data
 # $(3), output filename
 define MkImage
-	$(eval imagename=$(if $(4),$(4),MIPS OpenWrt Linux-$(LINUX_VERSION)))
+	$(eval imagename=$(if $(4),$(4),MIPS $(VERSION_DIST) Linux-$(LINUX_VERSION)))
 	-mkimage -A mips -O linux -T kernel -C $(1) -a $(loadaddr-y) -e $(loadaddr-y) \
 		-n "$(imagename)" \
 		-d $(2) $(3)

@@ -9,9 +9,9 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
-PKG_VERSION:=2017.07
+PKG_VERSION:=2017.11
 
-PKG_HASH:=5374bfdc8acb9a38c025371b1ff20f45e7533668e84e685d0df5d9e7c0e4feff
+PKG_HASH:=6a018fd3caf58f3dcfa23ee989a82bd35df03af71872b9dca8c6d758a0d26c05
 
 PKG_MAINTAINER:=Zoltan HERPAI <wigyori@uid0.hu>
 
@@ -96,7 +96,7 @@ define U-Boot/Hummingbird_A31
   NAME:=Hummingbird A31 board
 endef
 
-define U-Boot/Marsboard
+define U-Boot/Marsboard_A10
   BUILD_SUBTARGET:=cortexa8
   NAME:=Marsboard
   BUILD_DEVICES:=sun4i-a10-marsboard
@@ -189,6 +189,7 @@ UBOOT_TARGETS := \
 	Cubieboard2 \
 	Cubietruck \
 	Hummingbird_A31 \
+	Marsboard_A10 \
 	Mele_M9 \
 	OLIMEX_A13_SOM \
 	Linksprite_pcDuino \

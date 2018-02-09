@@ -225,6 +225,15 @@ config ATH79_MACH_AP90Q
 	select ATH79_DEV_M25P80
 	select ATH79_DEV_WMAC
 
+config ATH79_MACH_AP91_5G
+	bool "ALFA Network AP91-5G support"
+	select SOC_AR724X
+	select ATH79_DEV_AP9X_PCI if PCI
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+
 config ATH79_MACH_AP96
 	bool "Atheros AP96 board support"
 	select SOC_AR71XX
@@ -702,6 +711,17 @@ config ATH79_MACH_ESR900
 	select ATH79_DEV_WMAC
 	select ATH79_NVRAM
 
+config ATH79_MACH_EW_BALIN
+	bool "embedded wireless Balin Platform support"
+	select SOC_AR934X
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_WMAC
+	select ATH79_DEV_ETH
+	select ATH79_DEV_USB
+	select ATH79_DEV_AP9X_PCI if PCI
+
 config ATH79_MACH_EW_DORIN
 	bool "embedded wireless Dorin Platform support"
 	select SOC_AR933X
@@ -754,6 +774,17 @@ config ATH79_MACH_GL_AR300
 config ATH79_MACH_GL_AR300M
 	bool "GL_AR300M support"
 	select SOC_QCA953X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
+config ATH79_MACH_GL_AR750
+	bool "GL.iNet GL-AR750 support"
+	select SOC_QCA953X
+	select ATH79_DEV_AP9X_PCI if PCI
 	select ATH79_DEV_ETH
 	select ATH79_DEV_GPIO_BUTTONS
 	select ATH79_DEV_LEDS_GPIO
@@ -925,6 +956,16 @@ config ATH79_MACH_WRTNODE2Q
 	select ATH79_DEV_M25P80
 	select ATH79_DEV_WMAC
 
+config ATH79_MACH_R36A
+	bool "ALFA Network R36A support"
+	select SOC_QCA953X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+
 config ATH79_MACH_R602N
 	bool "P&W R602N support"
 	select SOC_QCA953X
@@ -1024,6 +1065,8 @@ config ATH79_MACH_RBSPI
 	select ATH79_ROUTERBOOT
 	help
 	  Say 'Y' here if you want your kernel to support the
+	  MikroTik ROuterBOARD 911-2Hn (911 Lite2)
+	  MikroTik ROuterBOARD 911-5Hn (911 Lite5)
 	  MikroTik RouterBOARD mAP
 	  MikroTik RouterBOARD mAP lite
 	  MikroTik RouterBOARD hAP lite
@@ -1271,6 +1314,17 @@ config ATH79_MACH_RE450
 	select ATH79_DEV_LEDS_GPIO
 	select ATH79_DEV_M25P80
 	select ATH79_DEV_WMAC
+
+config ATH79_MACH_RUT9XX
+	bool "Teltonika RUT900 series support"
+	select SOC_AR934X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_M25P80
+	select ATH79_DEV_USB
+	select ATH79_DEV_WMAC
+	select GPIO_PCA953X
 
 config ATH79_MACH_RW2458N
 	bool "Redwave RW2458N board support"
@@ -1998,6 +2052,14 @@ config ATH79_MACH_ZCN_1523H
 	select ATH79_DEV_GPIO_BUTTONS
 	select ATH79_DEV_LEDS_GPIO
 	select ATH79_DEV_M25P80
+
+config ATH79_MACH_N5Q
+	bool "ALFA Network N5Q support"
+	select SOC_AR934X
+	select ATH79_DEV_ETH
+	select ATH79_DEV_GPIO_BUTTONS
+	select ATH79_DEV_LEDS_GPIO
+	select ATH79_DEV_WMAC
 
 config ATH79_MACH_NBG460N
 	bool "Zyxel NBG460N/550N/550NH board support"
