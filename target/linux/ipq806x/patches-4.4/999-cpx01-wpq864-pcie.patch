@@ -1,0 +1,54 @@
+--- a/arch/arm/boot/dts/qcom-ipq8064-ap148.dts
++++ b/arch/arm/boot/dts/qcom-ipq8064-ap148.dts
+@@ -169,6 +169,11 @@
+ 			phy-tx0-term-offset = <7>;
+ 		};
+ 
++		pcie2: pci@1b900000 {
++			status = "ok";
++			phy-tx0-term-offset = <7>;
++		};
++
+ 		nand@1ac00000 {
+ 			status = "ok";
+ 
+--- a/arch/arm/boot/dts/qcom-ipq8064.dtsi
++++ b/arch/arm/boot/dts/qcom-ipq8064.dtsi
+@@ -373,7 +373,7 @@
+ 
+ 			pcie2_pins: pcie2_pinmux {
+ 				mux {
+-					pins = "gpio63";
++					pins = "gpio16";
+ 					function = "pcie3_rst";
+ 					drive-strength = <2>;
+ 					bias-disable;
+@@ -877,7 +877,7 @@
+ 			pinctrl-0 = <&pcie2_pins>;
+ 			pinctrl-names = "default";
+ 
+-			perst-gpios = <&qcom_pinmux 63 GPIO_ACTIVE_LOW>;
++			perst-gpios = <&qcom_pinmux 16 GPIO_ACTIVE_LOW>;
+ 
+ 			status = "disabled";
+ 		};
+--- a/drivers/pinctrl/qcom/pinctrl-ipq8064.c
++++ b/drivers/pinctrl/qcom/pinctrl-ipq8064.c
+@@ -469,7 +469,7 @@ static const char * const pcie2_clk_req_
+ };
+ 
+ static const char * const pcie3_rst_groups[] = {
+-	"gpio63",
++	"gpio63", "gpio16",
+ };
+ 
+ static const char * const pcie3_prsnt_groups[] = {
+@@ -562,7 +562,7 @@ static const struct msm_pingroup ipq8064
+ 	PINGROUP(13, gsbi4, pcie2_pwrflt, pcie1_pwrflt, pcie3_pwrflt, NA, NA, NA, NA, NA, NA),
+ 	PINGROUP(14, audio_pcm, nss_spi, NA, NA, NA, NA, NA, NA, NA, NA),
+ 	PINGROUP(15, audio_pcm, nss_spi, NA, NA, NA, NA, NA, NA, NA, NA),
+-	PINGROUP(16, audio_pcm, nss_spi, pdm, NA, NA, NA, NA, NA, NA, NA),
++	PINGROUP(16, audio_pcm, nss_spi, pdm, pcie3_rst, NA, NA, NA, NA, NA, NA),
+ 	PINGROUP(17, audio_pcm, nss_spi, pdm, NA, NA, NA, NA, NA, NA, NA),
+ 	PINGROUP(18, gsbi5, NA, NA, NA, NA, NA, NA, NA, NA, NA),
+ 	PINGROUP(19, gsbi5, NA, NA, NA, NA, NA, NA, NA, NA, NA),

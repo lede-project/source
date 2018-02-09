@@ -1,0 +1,20 @@
+--- a/arch/arm/kernel/setup.c
++++ b/arch/arm/kernel/setup.c
+@@ -935,6 +935,7 @@ void __init hyp_mode_check(void)
+ void __init setup_arch(char **cmdline_p)
+ {
+ 	const struct machine_desc *mdesc;
++	char *ubimtd;
+ 
+ 	setup_processor();
+ 	mdesc = setup_machine_fdt(__atags_pointer);
+@@ -953,6 +954,9 @@ void __init setup_arch(char **cmdline_p)
+ 	init_mm.brk	   = (unsigned long) _end;
+ 
+ 	/* populate cmd_line too for later use, preserving boot_command_line */
++	ubimtd = strstr(boot_command_line, "ubi.mtd=rootfs");
++	if ( ubimtd )
++		strcpy(ubimtd, "");
+ 	strlcpy(cmd_line, boot_command_line, COMMAND_LINE_SIZE);
+ 	*cmdline_p = cmd_line;
+ 

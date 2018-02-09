@@ -241,6 +241,17 @@ define Device/VR2600v
 	IMAGE/sysupgrade.bin := pad-extra 512 | append-kernel | pad-to $$$${KERNEL_SIZE} | append-rootfs | pad-rootfs | append-metadata
 endef
 
-TARGET_DEVICES += AP148 AP148-legacy C2600 D7800 DB149 EA8500 R7500 R7500v2 R7800 NBG6817 VR2600v
+define Device/WPQ864
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_DTS := qcom-ipq8064-wpq864
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	BOARD_NAME := ap148
+	DEVICE_TITLE := Compex WPQ864
+	DEVICE_PACKAGES := ath10k-firmware-qca99x0
+endef
+
+TARGET_DEVICES += AP148 AP148-legacy C2600 D7800 DB149 EA8500 R7500 R7500v2 R7800 NBG6817 VR2600v WPQ864
 
 $(eval $(call BuildImage))

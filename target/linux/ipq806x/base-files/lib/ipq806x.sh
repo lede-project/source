@@ -44,6 +44,9 @@ ipq806x_board_detect() {
 	*"VR2600v")
 		name="vr2600v"
 		;;
+	*"WPQ864")
+		name="wpq864"
+		;;
 	esac
 
 	[ -z "$name" ] && name="unknown"

@@ -1,0 +1,370 @@
+#include "qcom-ipq8064-v1.0.dtsi"
+#include <dt-bindings/input/input.h>
+
+/ {
+	model = "Compex WPQ864";
+	compatible = "compex,wpq864", "qcom,ipq8064";
+	aliases {
+		serial0 = &uart4;
+		mdio-gpio0 = &mdio0;
+	};
+	
+	chosen {
+		linux,stdout-path = "serial0:11520n8";
+	};
+	
+	memory@0 {
+		reg = <0x42000000 0x1e000000>;
+		device_type = "memory";
+	};
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+		rsvd@41200000{
+			reg = <0x41200000 0x300000>;
+			no-map;
+		};
+	};
+
+	soc {
+		pinmux@800000{
+			spi_pins: spi_pins {
+				mux {
+					pins = "gpio18", "gpio19";
+					function = "gsbi5";
+					drive-strength = <10>;
+					bias-pull-down;
+				};
+				clk {
+					pins = "gpio21";
+					function = "gsbi5";
+					drive-strength = <12>;
+					bias-pull-down;
+				};
+				cs {
+					pins = "gpio20";
+					function = "gpio";
+					drive-strength = <10>;
+					bias-pull-up;
+				};
+			};
+			nand_pins: nand_pins {
+				mux {
+					pins = "gpio34", "gpio35", "gpio36",
+					       "gpio37", "gpio38", "gpio39",
+					       "gpio40", "gpio41", "gpio42",
+					       "gpio43", "gpio44", "gpio45",
+					       "gpio46", "gpio47";
+					function = "nand";
+					drive-strength = <10>;
+					bias-disable;
+				};
+				pullups {
+					pins = "gpio39";
+					bias-pull-up;
+				};
+				hold {
+					pins = "gpio40", "gpio41", "gpio42",
+					       "gpio43", "gpio44", "gpio45",
+					       "gpio46", "gpio47";
+					bias-bus-hold;
+				};
+			};
+
+			mdio0_pins: mdio0_pins {
+				mux {
+					pins = "gpio0", "gpio1";
+					function = "gpio";
+					drive-strength = <8>;
+					bias-disable;
+				};
+			};
+
+			rgmii2_pins: rgmii2_pins {
+				mux {
+					pins = "gpio27", "gpio28", "gpio29",
+						"gpio30", "gpio31", "gpio32",
+						"gpio51", "gpio52", "gpio59",
+						"gpio60", "gpio61", "gpio62";
+					function = "rgmii2";
+					drive-strength = <8>;
+					bias-disable;
+				};
+			};
+
+			pcie2_pins: pcie2_pinmux {
+				mux {
+					pins = "gpio16";
+					function = "pcie3_rst";
+					drive-strength = <12>;
+					bias-disable;
+				};
+			};
+
+			leds_pins: leds_pins {
+				mux {
+					pins = "gpio7", "gpio8", "gpio9",
+					       "gpio26", "gpio53",
+					       "gpio22", "gpio23", "gpio24",
+					       "gpio25", "gpio55";
+					function = "gpio";
+					drive-strength = <2>;
+					bias-pull-down;
+					output-low;
+				};
+			};
+
+			buttons_pins: buttons_pins {
+				mux {
+					pins = "gpio54", "gpio65";
+					drive-strength = <2>;
+					bias-pull-up;
+				};
+			};
+		};
+		gsbi@16300000 {
+			qcom,mode = <GSBI_PROT_I2C_UART>;
+			status = "ok";
+			serial@16340000 {
+				status = "ok";
+			};
+			/*
+			 * The i2c device on gsbi4 should not be enabled.
+			 * On ipq806x designs gsbi4 i2c is meant for exclusive
+			 * RPM usage. Turning this on in kernel manifests as
+			 * i2c failure for the RPM.
+			 */
+		};
+		gsbi5: gsbi@1a200000 {
+			qcom,mode = <GSBI_PROT_SPI>;
+			status = "ok";
+
+			spi4: spi@1a280000 {
+				status = "ok";
+				spi-max-frequency = <50000000>;
+
+				pinctrl-0 = <&spi_pins>;
+				pinctrl-names = "default";
+
+				cs-gpios = <&qcom_pinmux 20 0>;
+				dmas = <&adm_dma 6>, <&adm_dma 5>;
+				dma-names = "rx", "tx";
+				qcom,rx-crci = <9>;
+				qcom,tx-crci = <10>;
+
+				flash: m25p80@0 {
+					compatible = "s25fl256s1";
+					#address-cells = <1>;
+					#size-cells = <1>;
+					spi-max-frequency = <50000000>;
+					reg = <0>;
+                                        linux,part-probe = "qcom-smem";
+				};
+			};
+		};
+		sata-phy@1b400000 {
+			status = "ok";
+		};
+
+		sata@29000000 {
+			status = "ok";
+		};
+
+		pcie0: pci@1b500000 {
+			status = "ok";
+		};
+
+		pcie1: pci@1b700000 {
+			status = "ok";
+			force_gen1 = <1>;
+		};
+
+		pcie2: pci@1b900000 {
+			perst-gpio = <&qcom_pinmux 16 GPIO_ACTIVE_LOW>;
+ 			phy-tx0-term-offset = <7>;
+			status = "ok";
+		};
+		
+
+
+		nand@1ac00000 {
+			status = "ok";
+
+			pinctrl-0 = <&nand_pins>;
+			pinctrl-names = "default";
+
+			nand-ecc-strength = <4>;
+			nand-bus-width = <8>;
+			linux,part-probe = "qcom-smem";
+		};
+
+		mdio0: mdio {
+			compatible = "virtual,mdio-gpio";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			gpios = <&qcom_pinmux 1 0 &qcom_pinmux 0 0>;
+			pinctrl-0 = <&mdio0_pins>;
+			pinctrl-names = "default";
+
+			phy0: ethernet-phy@0 {
+				device_type = "ethernet-phy";
+				reg = <0>;
+				qca,ar8327-initvals = <
+					0x00004 0x7600000   /* PAD0_MODE */
+					0x00008 0x1000000   /* PAD5_MODE */
+					0x0000c 0x80        /* PAD6_MODE */
+					0x000e4 0xaa545     /* MAC_POWER_SEL */
+					0x000e0 0xc74164de  /* SGMII_CTRL */
+					0x0007c 0x4e        /* PORT0_STATUS */
+					0x00094 0x4e        /* PORT6_STATUS */
+					>;
+				link-polling-required = <0>;
+				link-intr-gpio = <2>;
+			};
+
+			phy4: ethernet-phy@4 {
+				device_type = "ethernet-phy";
+				reg = <4>;
+			};
+		};
+
+		gmac1: ethernet@37200000 {
+			status = "ok";
+			phy-mode = "rgmii";
+			qcom,id = <1>;
+
+			pinctrl-0 = <&rgmii2_pins>;
+			pinctrl-names = "default";
+
+			fixed-link {
+				speed = <1000>;
+				full-duplex;
+			};
+		};
+
+		gmac2: ethernet@37400000 {
+			status = "ok";
+			phy-mode = "sgmii";
+			qcom,id = <2>;
+
+			fixed-link {
+				speed = <1000>;
+				full-duplex;
+			};
+		};
+
+		phy@100f8800 {
+			status = "ok";
+		};
+
+		phy@100f8830 {
+			status = "ok";
+		};
+
+		usb30@0 {
+			status = "ok";
+		};
+
+		phy@110f8800 {
+			status = "ok";
+		};
+
+		phy@110f8830 {
+			status = "ok";
+		};
+
+		usb30@1 {
+			status = "ok";
+		};
+
+		gpio_keys {
+			compatible = "gpio-keys";
+			pinctrl-0 = <&buttons_pins>;
+			pinctrl-names = "default";
+
+			button@1 {
+				label = "reset";
+				linux,code = <KEY_RESTART>;
+				gpios = <&qcom_pinmux 54 GPIO_ACTIVE_LOW>;
+				linux,input-type = <1>;
+				debounce-interval = <60>;
+			};
+			button@2 {
+				label = "wps";
+				linux,code = <KEY_WPS_BUTTON>;
+				gpios = <&qcom_pinmux 65 GPIO_ACTIVE_LOW>;
+				linux,input-type = <1>;
+				debounce-interval = <60>;
+			};
+		};
+
+		leds {
+			compatible = "gpio-leds";
+			pinctrl-0 = <&leds_pins>;
+			pinctrl-names = "default";
+
+			rssi1 {
+				label = "rssi1";
+				gpios = <&qcom_pinmux 22 GPIO_ACTIVE_HIGH>;
+				default-state = "off";
+			};
+			rssi2 {
+				label = "rssi2";
+				gpios = <&qcom_pinmux 23 GPIO_ACTIVE_HIGH>;
+				default-state = "off";
+			};
+			rssi3 {
+				label = "rssi3";
+				gpios = <&qcom_pinmux 24 GPIO_ACTIVE_HIGH>;
+				default-state = "off";
+			};
+			rssi4 {
+				label = "rssi4";
+				gpios = <&qcom_pinmux 25 GPIO_ACTIVE_HIGH>;
+				default-state = "off";
+			};
+			buzzer {
+				label = "buzzer";
+				gpios = <&qcom_pinmux 55 GPIO_ACTIVE_HIGH>;
+				default-state = "off";
+			};
+
+			led@7 {
+				label = "led_usb1";
+				gpios = <&qcom_pinmux 7 GPIO_ACTIVE_HIGH>;
+				linux,default-trigger = "usbdev";
+				default-state = "off";
+			};
+
+			led@8 {
+				label = "led_usb3";
+				gpios = <&qcom_pinmux 8 GPIO_ACTIVE_HIGH>;
+				linux,default-trigger = "usbdev";
+				default-state = "off";
+			};
+
+			led@9 {
+				label = "status_led_fail";
+				gpios = <&qcom_pinmux 9 GPIO_ACTIVE_HIGH>;
+				default-state = "off";
+			};
+
+			led@26 {
+				label = "sata_led";
+				gpios = <&qcom_pinmux 26 GPIO_ACTIVE_HIGH>;
+				default-state = "off";
+			};
+
+			led@53 {
+				label = "status_led_pass";
+				gpios = <&qcom_pinmux 53 GPIO_ACTIVE_HIGH>;
+				default-state = "off";
+			};
+		};
+	};
+};
+
+&adm_dma {
+	status = "ok";
+};
