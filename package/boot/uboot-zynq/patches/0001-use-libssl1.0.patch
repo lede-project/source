@@ -1,0 +1,11 @@
+--- a/tools/Makefile	2016-03-14 14:20:21.000000000 +0000
++++ b/tools/Makefile	2016-03-14 14:20:21.000000000 +0000
+@@ -128,7 +128,7 @@
+ # MXSImage needs LibSSL
+ ifneq ($(CONFIG_MX23)$(CONFIG_MX28)$(CONFIG_FIT_SIGNATURE),)
+ HOSTLOADLIBES_mkimage += \
+-	$(shell pkg-config --libs libssl libcrypto 2> /dev/null || echo "-lssl -lcrypto")
++	-l:libssl.so.1.0.0 -l:libcrypto.so.1.0.0
+ 
+ # OS X deprecate openssl in favour of CommonCrypto, supress deprecation
+ # warnings on those systems
