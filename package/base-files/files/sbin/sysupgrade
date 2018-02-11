@@ -18,6 +18,7 @@ export NEED_IMAGE=
 export HELP=0
 export FORCE=0
 export TEST=0
+export META_DATA=0
 
 # parse options
 while [ -n "$1" ]; do
@@ -28,6 +29,7 @@ while [ -n "$1" ]; do
 		-n) export SAVE_CONFIG=0;;
 		-c) export SAVE_OVERLAY=1;;
 		-p) export SAVE_PARTITIONS=0;;
+		-m) export META_DATA=1;;
 		-b|--create-backup) export CONF_BACKUP="$2" NEED_IMAGE=1; shift;;
 		-r|--restore-backup) export CONF_RESTORE="$2" NEED_IMAGE=1; shift;;
 		-l|--list-backup) export CONF_BACKUP_LIST=1; break;;
@@ -69,6 +71,8 @@ upgrade-option:
 	-h | --help  display this help
 
 backup-command:
+	-m           append/check meta information only applicable if file is
+	             not read/write from/to stdin/stdout '-'.
 	-b | --create-backup <file>
 	             create .tar.gz of files specified in sysupgrade.conf
 	             then exit. Does not flash an image. If file is '-',
@@ -148,6 +152,8 @@ do_save_conffiles() {
 	[ "$VERBOSE" -gt 1 ] && TAR_V="v" || TAR_V=""
 	tar c${TAR_V}zf "$conf_tar" -T "$CONFFILES" 2>/dev/null
 
+	[ "$META_DATA" -gt 0 ] && fwtool_append_meta_config "$conf_tar"
+
 	rm -f "$CONFFILES"
 }
 
@@ -168,6 +174,30 @@ if [ -n "$CONF_RESTORE" ]; then
 		echo "Backup archive '$CONF_RESTORE' not found."
 		exit 1
 	fi
+
+	[ "$META_DATA" -gt 0 ] && {
+		fwtool_check_meta_config "$CONF_RESTORE"
+		case "$?" in
+			0)
+				;;
+			2)
+				echo "Meta data not found"
+				exit 2
+				;;
+			3)
+				echo "Checksum does not match"
+				exit 3
+				;;
+			4)
+				echo "Board name does not match"
+				exit 4
+				;;
+			*)
+				echo "Unknown error"
+				exit 5
+				;;
+		esac
+	}
 
 	[ "$VERBOSE" -gt 1 ] && TAR_V="v" || TAR_V=""
 	tar -C / -x${TAR_V}zf "$CONF_RESTORE"
