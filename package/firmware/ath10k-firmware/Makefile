@@ -104,6 +104,20 @@ define Download/ath10k-firmware-qca9984-ct
 endef
 $(eval $(call Download,ath10k-firmware-qca9984-ct))
 
+CT_BOARD_FILE = $(1)-$($(1)_BOARD_FILE_CT)
+
+define Download/ct-board
+	URL := https://www.candelatech.com/downloads/$(2)
+	FILE := $(call CT_BOARD_FILE,$(1))
+	URL_FILE := $($(1)_BOARD_FILE_CT)
+endef
+
+QCA9984_BOARD_FILE_CT:=board-2-ct.bin
+define Download/ath10k-board-qca9984-ct
+	$(call Download/ct-board,QCA9984,ath10k-9984-10-4)
+endef
+$(eval $(call Download,ath10k-board-qca9984-ct))
+
 define Package/ath10k-firmware-qca99x0
 $(Package/ath10k-firmware-default)
   TITLE:=ath10k firmware for QCA99x0 devices
@@ -320,7 +334,7 @@ define Package/ath10k-firmware-qca9984-ct/install
 		../../cal-pci-0000:01:00.0.bin \
 		$(1)/lib/firmware/ath10k/QCA9984/hw1.0/board.bin
 	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/QCA9984/hw1.0/board-2.bin \
+		$(DL_DIR)/$(call CT_BOARD_FILE,QCA9984) \
 		$(1)/lib/firmware/ath10k/QCA9984/hw1.0/board-2.bin
 	$(INSTALL_DATA) \
 		$(DL_DIR)/$(call CT_FIRMWARE_FILE,QCA9984) \
