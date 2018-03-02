@@ -1,0 +1,115 @@
+diff --git a/arch/mips/ath79/mach-gl-ar150.c b/arch/mips/ath79/mach-gl-ar150.c
+index df52784..921bc28 100644
+--- a/arch/mips/ath79/mach-gl-ar150.c
++++ b/arch/mips/ath79/mach-gl-ar150.c
+@@ -12,6 +12,23 @@
+ */
+ 
+ #include <linux/gpio.h>
++#include <linux/pps-gpio.h>
++#include <linux/platform_device.h>
++#include <linux/syscore_ops.h>
++#include <linux/interrupt.h>
++#include <linux/amba/bus.h>
++#include <linux/amba/clcd.h>
++#include <linux/clk-provider.h>
++#include <linux/clkdev.h>
++#include <linux/clockchips.h>
++#include <linux/cnt32_to_63.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/of_platform.h>
++#include <linux/spi/spi.h>
++#include <linux/w1-gpio.h>
++#include <linux/pps-gpio.h>
++
+ 
+ #include <asm/mach-ath79/ath79.h>
+ 
+@@ -27,6 +44,8 @@
+ #define GL_AR150_GPIO_LED_LAN		   13
+ #define GL_AR150_GPIO_LED_WAN		   15 
+ 
++static int ar150_pps_gpio_pin = 14;
++
+ #define GL_AR150_GPIO_BIN_USB         6
+ #define GL_AR150_GPIO_BTN_MANUAL      7
+ #define GL_AR150_GPIO_BTN_AUTO	   	   8
+@@ -40,6 +59,38 @@
+ #define GL_AR150_CALDATA_OFFSET	0x1000
+ #define GL_AR150_WMAC_MAC_OFFSET	0x0000
+ 
++static struct pps_gpio_platform_data pps_gpio_info = {
++        .assert_falling_edge = false,
++        .capture_clear = false,
++        .gpio_pin = -1,
++        .gpio_label = "PPS",
++};
++
++static struct platform_device pps_gpio_device = {
++        .name = "pps-gpio",
++        .id = PLATFORM_DEVID_NONE,
++        .dev.platform_data = &pps_gpio_info,
++};
++
++
++int __init gl_ar150_register_device(struct platform_device *pdev)
++{
++        int ret;
++
++        ret = platform_device_register(pdev);
++        if (ret)
++                pr_debug("Unable to register platform device '%s': %d\n",
++                         pdev->name, ret);
++
++        return ret;
++}
++
++
++
++
++
++
++
+ static struct gpio_led gl_ar150_leds_gpio[] __initdata = {
+ 	{
+ 		.name = "gl-ar150:orange:wlan",
+@@ -120,6 +171,14 @@ static void __init gl_ar150_setup(void)
+ 
+ 	/* register wireless mac with cal data */
+ 	ath79_register_wmac(art + GL_AR150_CALDATA_OFFSET, art + GL_AR150_WMAC_MAC_OFFSET);
++
++	pr_info("ath79: GPIO %d setup as pps-gpio device\n", ar150_pps_gpio_pin);
++	pps_gpio_info.gpio_pin = ar150_pps_gpio_pin;
++	pps_gpio_device.id = ar150_pps_gpio_pin;
++	gl_ar150_register_device(&pps_gpio_device);
++
++
++
+ }
+ 
+ MIPS_MACHINE(ATH79_MACH_GL_AR150, "GL-AR150", "GL AR150",gl_ar150_setup);
+diff --git a/arch/mips/include/asm/mach-ath79/irq.h b/arch/mips/include/asm/mach-ath79/irq.h
+index 5c9ca76..fb69b90 100644
+--- a/arch/mips/include/asm/mach-ath79/irq.h
++++ b/arch/mips/include/asm/mach-ath79/irq.h
+@@ -10,7 +10,7 @@
+ #define __ASM_MACH_ATH79_IRQ_H
+ 
+ #define MIPS_CPU_IRQ_BASE	0
+-#define NR_IRQS			51
++#define NR_IRQS			83
+ 
+ #define ATH79_CPU_IRQ(_x)	(MIPS_CPU_IRQ_BASE + (_x))
+ 
+@@ -30,6 +30,10 @@
+ #define ATH79_IP3_IRQ_COUNT     3
+ #define ATH79_IP3_IRQ(_x)       (ATH79_IP3_IRQ_BASE + (_x))
+ 
++#define ATH79_GPIO_IRQ_BASE     (ATH79_IP3_IRQ_BASE + ATH79_IP3_IRQ_COUNT)
++#define ATH79_GPIO_IRQ_COUNT    32
++#define ATH79_GPIO_IRQ(_x)      (ATH79_GPIO_IRQ_BASE + (_x))
++
+ #include_next <irq.h>
+ 
+ #endif /* __ASM_MACH_ATH79_IRQ_H */
