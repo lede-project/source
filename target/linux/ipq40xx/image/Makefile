@@ -117,6 +117,23 @@ define Device/glinet_gl-b1300
 endef
 TARGET_DEVICES += glinet_gl-b1300
 
+define Device/linksys_ea8300
+        $(call Device/LegacyImage)
+        DEVICE_DTS := qcom-ipq4019-ea8300
+        PAGESIZE := 2048
+        BLOCKSIZE := 128k
+        KERNEL_SIZE := 3072k
+        KERNEL = kernel-bin | append-dtb | uImage none | append-uImage-fakehdr filesystem
+        BOARD_NAME := ea8300
+        SUPPORTED_DEVICES += ea8300
+        UBINIZE_OPTS := -E 5
+        IMAGES := factory.bin sysupgrade.bin
+        IMAGE/factory.bin := append-kernel | pad-to $$$${KERNEL_SIZE} | append-ubi
+        DEVICE_TITLE := Linksys EA8300
+        DEVICE_PACKAGES := ath10k-firmware-qca9888 uboot-envtools
+endef
+TARGET_DEVICES += linksys_ea8300
+
 define Device/meraki_mr33
 	$(call Device/FitImage)
 	DEVICE_DTS := qcom-ipq4029-mr33
