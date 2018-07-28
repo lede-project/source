@@ -122,13 +122,13 @@ define Device/linksys_ea8300
         DEVICE_DTS := qcom-ipq4019-ea8300
         PAGESIZE := 2048
         BLOCKSIZE := 128k
-        KERNEL_SIZE := 3072k
+        KERNEL_SIZE := 10240k
         KERNEL = kernel-bin | append-dtb | uImage none | append-uImage-fakehdr filesystem
         BOARD_NAME := ea8300
         SUPPORTED_DEVICES += ea8300
         UBINIZE_OPTS := -E 5
         IMAGES := factory.bin sysupgrade.bin
-        IMAGE/factory.bin := append-kernel | pad-to $$$${KERNEL_SIZE} | append-ubi
+        IMAGE/factory.bin := append-kernel | pad-to $$$${KERNEL_SIZE} | append-ubi | pad-to $$$$(PAGESIZE)
         DEVICE_TITLE := Linksys EA8300
         DEVICE_PACKAGES := ath10k-firmware-qca9888 uboot-envtools
 endef
