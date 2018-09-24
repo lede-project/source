@@ -47,6 +47,7 @@ define Device/ubnt-xm
   UBNT_TYPE := XM
   UBNT_BOARD := XM
   UBNT_CHIP := ar7240
+  KERNEL := kernel-bin | patch-cmdline | relocate-kernel | lzma | uImage lzma
   IMAGES := sysupgrade.bin factory.bin
   IMAGE/factory.bin = $$(IMAGE/sysupgrade.bin) | mkubntimage-split
   IMAGE/sysupgrade.bin = append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE)
@@ -82,7 +83,7 @@ define Device/ubnt-unifiac
   DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2
   DEVICE_PROFILE := UBNT
   IMAGE_SIZE := 7744k
-  MTDPARTS = spi0.0:384k(u-boot)ro,64k(u-boot-env)ro,7744k(firmware),7744k(ubnt-airos)ro,128k(bs)ro,256k(cfg)ro,64k(EEPROM)ro
+  MTDPARTS = spi0.0:384k(u-boot)ro,64k(u-boot-env)ro,7744k(firmware),7744k(ubnt-airos)ro,128k(bs),256k(cfg)ro,64k(EEPROM)ro
   IMAGES := sysupgrade.bin
   IMAGE/sysupgrade.bin = append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE)
 endef

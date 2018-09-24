@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=iproute2
 PKG_VERSION:=4.4.0
-PKG_RELEASE:=9
+PKG_RELEASE:=10
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/utils/net/iproute2
@@ -18,6 +18,10 @@ PKG_BUILD_PARALLEL:=1
 PKG_LICENSE:=GPL-2.0
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
+
+USE_CAKE:=$(if $(filter 1y,$(SDK)$(CONFIG_BUILDBOT)),cake-legacy,cake-upstream)
+PKG_FLAGS:=$(if $(filter cake-upstream,$(USE_CAKE)),nonshared)
+PKG_RELEASE:=$(PKG_RELEASE)-$(USE_CAKE)
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -70,6 +74,14 @@ ifeq ($(BUILD_VARIANT),tiny)
   IP_CONFIG_TINY:=y
 endif
 
+PATCH_DIR:=$(PKG_BUILD_DIR)/openwrt-patches
+
+define Build/Patch
+	$(INSTALL_DIR) $(PATCH_DIR)
+	$(CP) ./patches/* ./patches-$(USE_CAKE)/* $(PATCH_DIR)/
+	$(call Build/Patch/Default)
+endef
+
 define Build/Configure
 	$(SED) "s,-I/usr/include/db3,," $(PKG_BUILD_DIR)/Makefile
 	$(SED) "s,^KERNEL_INCLUDE.*,KERNEL_INCLUDE=$(LINUX_DIR)/include," \
@@ -97,7 +109,7 @@ endef
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include
-	$(CP) $(PKG_BUILD_DIR)/include/libnetlink.h $(1)/usr/include/
+	$(CP) $(PKG_BUILD_DIR)/include/{libgenl,libnetlink,ll_map}.h $(1)/usr/include/
 	$(INSTALL_DIR) $(1)/usr/lib
 	$(CP) $(PKG_BUILD_DIR)/lib/libnetlink.a $(1)/usr/lib/
 endef

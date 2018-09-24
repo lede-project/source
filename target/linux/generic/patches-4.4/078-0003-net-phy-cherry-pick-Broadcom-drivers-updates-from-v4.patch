@@ -1,6 +1,5 @@
 From: =?UTF-8?q?Rafa=C5=82=20Mi=C5=82ecki?= <rafal@milecki.pl>
-Subject: [PATCH 1/2] net: phy: cherry-pick Broadcom drivers updates from
- v4.10-rc1
+Subject: [PATCH] net: phy: cherry-pick Broadcom drivers updates from v4.10
 
 Signed-off-by: Rafał Miłecki <rafal@milecki.pl>
 ---
@@ -266,9 +265,9 @@ Signed-off-by: Rafał Miłecki <rafal@milecki.pl>
  {
 --- a/drivers/net/phy/bcm-phy-lib.h
 +++ b/drivers/net/phy/bcm-phy-lib.h
-@@ -19,6 +19,9 @@
- int bcm_phy_write_exp(struct phy_device *phydev, u16 reg, u16 val);
- int bcm_phy_read_exp(struct phy_device *phydev, u16 reg);
+@@ -26,6 +26,9 @@ static inline int bcm_phy_write_exp_sel(
+ 	return bcm_phy_write_exp(phydev, reg | MII_BCM54XX_EXP_SEL_ER, val);
+ }
  
 +int bcm54xx_auxctl_write(struct phy_device *phydev, u16 regnum, u16 val);
 +int bcm54xx_auxctl_read(struct phy_device *phydev, u16 regnum);

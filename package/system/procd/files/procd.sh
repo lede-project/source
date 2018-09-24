@@ -351,8 +351,10 @@ _procd_close_instance() {
 	if json_select respawn ; then
 		json_get_values respawn_vals
 		if [ -z "$respawn_vals" ]; then
+			local respawn_threshold=$(uci_get system.@service[0].respawn_threshold)
+			local respawn_timeout=$(uci_get system.@service[0].respawn_timeout)
 			local respawn_retry=$(uci_get system.@service[0].respawn_retry)
-			_procd_add_array_data 3600 5 ${respawn_retry:-5}
+			_procd_add_array_data ${respawn_threshold:-3600} ${respawn_timeout:-5} ${respawn_retry:-5}
 		fi
 		json_select ..
 	fi
@@ -421,7 +423,7 @@ procd_add_mdns_service() {
 	json_add_int port "$port"
 	[ -n "$1" ] && {
 		json_add_array txt
-		for txt in $@; do json_add_string "" $txt; done
+		for txt in "$@"; do json_add_string "" "$txt"; done
 		json_select ..
 	}
 	json_select ..
@@ -430,7 +432,7 @@ procd_add_mdns_service() {
 procd_add_mdns() {
 	procd_open_data
 	json_add_object "mdns"
-	procd_add_mdns_service $@
+	procd_add_mdns_service "$@"
 	json_close_object
 	procd_close_data
 }

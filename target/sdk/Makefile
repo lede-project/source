@@ -48,6 +48,12 @@ BASE_FEED:=$(if $(BASE_FEED),$(BASE_FEED),$(shell cd $(TOPDIR); LC_ALL=C svn inf
 BASE_FEED:=$(if $(BASE_FEED),$(BASE_FEED),src-git base https://git.lede-project.org/source.git$(if $(GIT_BRANCH),;$(GIT_BRANCH),$(if $(GIT_TAGNAME),;$(GIT_TAGNAME))))
 
 KDIR_BASE = $(patsubst $(TOPDIR)/%,%,$(LINUX_DIR))
+KDIR_ARCHES = $(LINUX_KARCH)
+
+# arch/arm64/ includes reference files in arch/arm/, so we'll need both
+ifeq ($(LINUX_KARCH),arm64)
+  KDIR_ARCHES += arm
+endif
 
 KERNEL_FILES_ARCH = \
 	Makefile* \
@@ -66,7 +72,7 @@ KERNEL_FILES_BASE := \
 	include \
 	Module.symvers \
 	modules.builtin \
-	$(addprefix arch/$(LINUX_KARCH)/,$(KERNEL_FILES_ARCH))
+	$(foreach arch,$(KDIR_ARCHES),$(addprefix arch/$(arch)/,$(KERNEL_FILES_ARCH)))
 
 KERNEL_FILES := $(patsubst $(TOPDIR)/%,%,$(wildcard $(addprefix $(LINUX_DIR)/,$(KERNEL_FILES_BASE))))
 
@@ -81,6 +87,10 @@ $(BIN_DIR)/$(SDK_NAME).tar.xz: clean
 			-type f -name '*.bin' -or -name '*.cis' -or -name '*.csp' -or -name '*.dsp' -or -name '*.fw'` \
 		$(foreach exclude,$(EXCLUDE_DIRS),--exclude="$(exclude)") \
 		$(SDK_DIRS) $(KERNEL_FILES) | \
+		$(TAR) -xf - -C $(SDK_BUILD_DIR)
+
+	# Copy usbip sources, this is required for the usbip userspace packages to be buildable by the SDK.
+	$(TAR) -cf - -C $(TOPDIR) $(KDIR_BASE)/tools/usb/usbip/ | \
 		$(TAR) -xf - -C $(SDK_BUILD_DIR)
 
 	(cd $(SDK_BUILD_DIR); find $(STAGING_SUBDIR_HOST)/bin $(STAGING_SUBDIR_HOST)/usr/bin \

@@ -62,7 +62,7 @@ Build/Patch:=$(Build/Patch/Default)
 ifneq ($(strip $(PKG_UNPACK)),)
   define Build/Prepare/Default
 	$(PKG_UNPACK)
-	[ ! -d ./src/ ] || $(CP) ./src/* $(PKG_BUILD_DIR)
+	[ ! -d ./src/ ] || $(CP) ./src/. $(PKG_BUILD_DIR)
 	$(Build/Patch)
   endef
 endif
@@ -92,7 +92,6 @@ CONFIGURE_ARGS = \
 		--mandir=$(CONFIGURE_PREFIX)/man \
 		--infodir=$(CONFIGURE_PREFIX)/info \
 		$(DISABLE_NLS) \
-		$(DISABLE_LARGEFILE) \
 		$(DISABLE_IPV6)
 
 CONFIGURE_VARS = \

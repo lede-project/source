@@ -436,11 +436,11 @@ LEGACY_DEVICES += WNR2000
 define LegacyDevice/WNR2000V3
   DEVICE_TITLE := NETGEAR WNR2000V3
 endef
-LEGACY_DEVICES += WNR2000V3
+# FS#672 - Looses always settings after power loss, nothig is been saved 
+#LEGACY_DEVICES += WNR2000V3
 
 define LegacyDevice/WNR2000V4
   DEVICE_TITLE := NETGEAR WNR2000V4
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
 endef
 LEGACY_DEVICES += WNR2000V4
 

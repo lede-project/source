@@ -139,6 +139,9 @@ hostapd_common_add_bss_config() {
 	config_add_int \
 		wep_rekey eap_reauth_period \
 		wpa_group_rekey wpa_pair_rekey wpa_master_rekey
+	config_add_boolean wpa_disable_eapol_key_retries
+
+	config_add_boolean tdls_prohibit
 
 	config_add_boolean rsn_preauth auth_cache
 	config_add_int ieee80211w
@@ -151,6 +154,7 @@ hostapd_common_add_bss_config() {
 	config_add_string acct_server
 	config_add_string acct_secret
 	config_add_int acct_port
+	config_add_int acct_interval
 
 	config_add_string dae_client
 	config_add_string dae_secret
@@ -203,12 +207,13 @@ hostapd_set_bss_options() {
 
 	json_get_vars \
 		wep_rekey wpa_group_rekey wpa_pair_rekey wpa_master_rekey \
+		wpa_disable_eapol_key_retries tdls_prohibit \
 		maxassoc max_inactivity disassoc_low_ack isolate auth_cache \
 		wps_pushbutton wps_label ext_registrar wps_pbc_in_m1 wps_ap_setup_locked \
 		wps_independent wps_device_type wps_device_name wps_manufacturer wps_pin \
 		macfilter ssid wmm uapsd hidden short_preamble rsn_preauth \
-		iapp_interface eapol_version acct_server acct_secret acct_port \
-		dynamic_vlan ieee80211w
+		iapp_interface eapol_version dynamic_vlan ieee80211w nasid \
+		acct_server acct_secret acct_port acct_interval
 
 	set_default isolate 0
 	set_default maxassoc 0
@@ -218,6 +223,8 @@ hostapd_set_bss_options() {
 	set_default hidden 0
 	set_default wmm 1
 	set_default uapsd 1
+	set_default wpa_disable_eapol_key_retries 0
+	set_default tdls_prohibit 0
 	set_default eapol_version 0
 	set_default acct_port 1813
 
@@ -238,17 +245,22 @@ hostapd_set_bss_options() {
 	append bss_conf "ignore_broadcast_ssid=$hidden" "$N"
 	append bss_conf "uapsd_advertisement_enabled=$uapsd" "$N"
 
+	[ "$tdls_prohibit" -gt 0 ] && append bss_conf "tdls_prohibit=$tdls_prohibit" "$N"
+
 	[ "$wpa" -gt 0 ] && {
 		[ -n "$wpa_group_rekey"  ] && append bss_conf "wpa_group_rekey=$wpa_group_rekey" "$N"
 		[ -n "$wpa_pair_rekey"   ] && append bss_conf "wpa_ptk_rekey=$wpa_pair_rekey"    "$N"
 		[ -n "$wpa_master_rekey" ] && append bss_conf "wpa_gmk_rekey=$wpa_master_rekey"  "$N"
 	}
 
+	[ -n "$nasid" ] && append bss_conf "nas_identifier=$nasid" "$N"
 	[ -n "$acct_server" ] && {
 		append bss_conf "acct_server_addr=$acct_server" "$N"
 		append bss_conf "acct_server_port=$acct_port" "$N"
 		[ -n "$acct_secret" ] && \
 			append bss_conf "acct_server_shared_secret=$acct_secret" "$N"
+		[ -n "$acct_interval" ] && \
+			append bss_conf "radius_acct_interim_interval=$acct_interval" "$N"
 	}
 
 	local vlan_possible=""
@@ -369,9 +381,8 @@ hostapd_set_bss_options() {
 	}
 
 	if [ "$wpa" -ge "1" ]; then
-		json_get_vars nasid ieee80211r
+		json_get_vars ieee80211r
 		set_default ieee80211r 0
-		[ -n "$nasid" ] && append bss_conf "nas_identifier=$nasid" "$N"
 
 		if [ "$ieee80211r" -gt "0" ]; then
 			json_get_vars mobility_domain r0_key_lifetime r1_key_holder \
@@ -398,6 +409,8 @@ hostapd_set_bss_options() {
 				append bss_conf "r1kh=${kh//,/ }" "$N"
 			done
 		fi
+
+		append bss_conf "wpa_disable_eapol_key_retries=$wpa_disable_eapol_key_retries" "$N"
 
 		hostapd_append_wpa_key_mgmt
 		[ -n "$wpa_key_mgmt" ] && append bss_conf "wpa_key_mgmt=$wpa_key_mgmt" "$N"
@@ -710,6 +723,7 @@ wpa_supplicant_add_network() {
 	}
 	local beacon_int brates mrate
 	[ -n "$bssid" ] && append network_data "bssid=$bssid" "$N$T"
+	[ -n "$beacon_int" ] && append network_data "beacon_int=$beacon_int" "$N$T"
 
 	local bssid_blacklist bssid_whitelist
 	json_get_values bssid_blacklist bssid_blacklist
@@ -731,10 +745,6 @@ wpa_supplicant_add_network() {
 		wpa_supplicant_add_rate mc_rate "$mcast_rate"
 		append network_data "mcast_rate=$mc_rate" "$N$T"
 	}
-
-	local ht_str
-	[[ "$_w_mode" = adhoc ]] || ibss_htmode=
-	[ -n "$ibss_htmode" ] && append network_data "htmode=$ibss_htmode" "$N$T"
 
 	cat >> "$_config" <<EOF
 network={

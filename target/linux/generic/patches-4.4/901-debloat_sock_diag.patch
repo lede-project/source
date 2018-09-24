@@ -30,7 +30,7 @@
  static void __sk_free(struct sock *sk)
  {
 +#ifdef CONFIG_SOCK_DIAG
- 	if (unlikely(sock_diag_has_destroy_listeners(sk) && sk->sk_net_refcnt))
+ 	if (unlikely(sk->sk_net_refcnt && sock_diag_has_destroy_listeners(sk)))
  		sock_diag_broadcast_destroy(sk);
  	else
 +#endif
@@ -39,7 +39,7 @@
  
 --- a/net/ipv4/Kconfig
 +++ b/net/ipv4/Kconfig
-@@ -414,6 +414,7 @@ config INET_LRO
+@@ -416,6 +416,7 @@ config INET_LRO
  
  config INET_DIAG
  	tristate "INET: socket monitoring interface"

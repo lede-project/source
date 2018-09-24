@@ -2667,7 +2667,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +}
 +
 +static int
-+mtk_nand_write_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip, const uint8_t * buf, int oob_required)
++mtk_nand_write_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip, const uint8_t * buf, int oob_required, int page)
 +{
 +	mtk_nand_write_buf(mtd, buf, mtd->writesize);
 +	mtk_nand_write_buf(mtd, chip->oob_poi, mtd->oobsize);
@@ -3344,7 +3344,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +	data |= ((0x2<<18) |(0x2<<16));
 +	DRV_WriteReg32(RALINK_SYSCTL_BASE+0x60, data);
 +
-+	hw = &mt7621_nand_hw,
++	hw = &mt7621_nand_hw;
 +	BUG_ON(!hw);
 +	/* Allocate memory for the device structure (and zero it) */
 +	host = kzalloc(sizeof(struct mtk_nand_host), GFP_KERNEL);
@@ -4078,7 +4078,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  {
  	struct nand_chip *chip = mtd->priv;
  
-@@ -829,7 +829,7 @@ static void panic_nand_get_device(struct
+@@ -834,7 +834,7 @@ static void panic_nand_get_device(struct
   *
   * Get the device and lock it for exclusive access
   */

@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dnsmasq
 PKG_VERSION:=2.78
-PKG_RELEASE:=1
+PKG_RELEASE:=6
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=http://thekelleys.org.uk/dnsmasq/
@@ -88,22 +88,22 @@ define Package/dnsmasq-full/config
 	config PACKAGE_dnsmasq_full_dhcpv6
 		bool "Build with DHCPv6 support."
 		depends on IPV6
-		default y
+		default n
 	config PACKAGE_dnsmasq_full_dnssec
 		bool "Build with DNSSEC support."
-		default y
+		default n
 	config PACKAGE_dnsmasq_full_auth
 		bool "Build with the facility to act as an authoritative DNS server."
-		default y
+		default n
 	config PACKAGE_dnsmasq_full_ipset
 		bool "Build with IPset support."
 		default y
 	config PACKAGE_dnsmasq_full_conntrack
 		bool "Build with Conntrack support."
-		default y
+		default n
 	config PACKAGE_dnsmasq_full_noid
 		bool "Build with NO_ID. (hide *.bind pseudo domain)"
-		default y
+		default n
 	config PACKAGE_dnsmasq_full_broken_rtc
 		bool "Build with HAVE_BROKEN_RTC."
 		default n
@@ -137,7 +137,7 @@ endif
 
 MAKE_FLAGS := \
 	$(TARGET_CONFIGURE_OPTS) \
-	CFLAGS="$(TARGET_CFLAGS)" \
+	CFLAGS="$(TARGET_CFLAGS) $(TARGET_CPPFLAGS)" \
 	LDFLAGS="$(TARGET_LDFLAGS)" \
 	COPTS="$(COPTS)" \
 	PREFIX="/usr"

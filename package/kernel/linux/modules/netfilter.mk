@@ -446,10 +446,9 @@ $(eval $(call KernelPackage,ipt-nfqueue))
 define KernelPackage/ipt-debug
   TITLE:=Module for debugging/development
   KCONFIG:=$(KCONFIG_IPT_DEBUG)
-  DEFAULT:=n
   FILES:=$(foreach mod,$(IPT_DEBUG-m),$(LINUX_DIR)/net/$(mod).ko)
   AUTOLOAD:=$(call AutoProbe,$(notdir $(IPT_DEBUG-m)))
-  $(call AddDepends/ipt)
+  $(call AddDepends/ipt,+kmod-ipt-raw +IPV6:kmod-ipt-raw6)
 endef
 
 define KernelPackage/ipt-debug/description
@@ -835,6 +834,24 @@ define KernelPackage/ipt-hashlimit/description
 endef
 
 $(eval $(call KernelPackage,ipt-hashlimit))
+
+define KernelPackage/ipt-rpfilter
+  SUBMENU:=$(NF_MENU)
+  TITLE:=Netfilter rpfilter match
+  DEPENDS:=+kmod-ipt-core
+  KCONFIG:=$(KCONFIG_IPT_RPFILTER)
+  FILES:=$(realpath \
+	$(LINUX_DIR)/net/ipv4/netfilter/ipt_rpfilter.ko \
+	$(LINUX_DIR)/net/ipv6/netfilter/ip6t_rpfilter.ko)
+  AUTOLOAD:=$(call AutoProbe,ipt_rpfilter ip6t_rpfilter)
+  $(call KernelPackage/ipt)
+endef
+
+define KernelPackage/ipt-rpfilter/description
+ Kernel modules support for the Netfilter rpfilter match
+endef
+
+$(eval $(call KernelPackage,ipt-rpfilter))
 
 
 define KernelPackage/nft-core

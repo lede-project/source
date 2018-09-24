@@ -158,7 +158,7 @@ insert_modules() {
 		if [ -f /etc/modules.d/$m ]; then
 			sed 's/^[^#]/insmod &/' /etc/modules.d/$m | ash 2>&- || :
 		else
-			modprobe $m
+			modprobe $m || :
 		fi
 	done
 }
@@ -240,7 +240,7 @@ default_postinst() {
 		[ -d /tmp/.uci ] || mkdir -p /tmp/.uci
 		for i in $(sed -ne 's!^/etc/uci-defaults/!!p' "/usr/lib/opkg/info/${pkgname}.list"); do (
 			cd /etc/uci-defaults
-			[ -f "$i" ] && . "$i" && rm -f "$i"
+			[ -f "$i" ] && . ./"$i" && rm -f "$i"
 		) done
 		uci commit
 	fi
@@ -351,6 +351,10 @@ user_add() {
 
 user_exists() {
 	grep -qs "^${1}:" ${IPKG_INSTROOT}/etc/passwd
+}
+
+board_name() {
+	[ -e /tmp/sysinfo/board_name ] && cat /tmp/sysinfo/board_name || echo "generic"
 }
 
 [ -z "$IPKG_INSTROOT" -a -f /lib/config/uci.sh ] && . /lib/config/uci.sh

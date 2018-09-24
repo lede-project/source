@@ -39,7 +39,7 @@ Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
  	info->platform   = plat;
 --- a/drivers/mtd/nand/brcmnand/brcmnand.c
 +++ b/drivers/mtd/nand/brcmnand/brcmnand.c
-@@ -2156,8 +2156,7 @@ int brcmnand_probe(struct platform_devic
+@@ -2149,8 +2149,7 @@ int brcmnand_probe(struct platform_devic
  
  	init_completion(&ctrl->done);
  	init_completion(&ctrl->dma_done);
@@ -75,7 +75,7 @@ Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
  		elbc_fcm_ctrl = fsl_lbc_ctrl_dev->nand;
 --- a/drivers/mtd/nand/fsl_ifc_nand.c
 +++ b/drivers/mtd/nand/fsl_ifc_nand.c
-@@ -1073,8 +1073,7 @@ static int fsl_ifc_nand_probe(struct pla
+@@ -1077,8 +1077,7 @@ static int fsl_ifc_nand_probe(struct pla
  		ifc_nand_ctrl->addr = NULL;
  		fsl_ifc_ctrl_dev->nand = ifc_nand_ctrl;
  
@@ -87,7 +87,7 @@ Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
  	}
 --- a/drivers/mtd/nand/nand_base.c
 +++ b/drivers/mtd/nand/nand_base.c
-@@ -3202,8 +3202,7 @@ static void nand_set_defaults(struct nan
+@@ -3213,8 +3213,7 @@ static void nand_set_defaults(struct nan
  
  	if (!chip->controller) {
  		chip->controller = &chip->hwcontrol;
@@ -135,7 +135,7 @@ Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
  
 --- a/drivers/mtd/nand/sunxi_nand.c
 +++ b/drivers/mtd/nand/sunxi_nand.c
-@@ -1426,8 +1426,7 @@ static int sunxi_nfc_probe(struct platfo
+@@ -1432,8 +1432,7 @@ static int sunxi_nfc_probe(struct platfo
  		return -ENOMEM;
  
  	nfc->dev = dev;

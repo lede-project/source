@@ -21,6 +21,7 @@ DUMP:=1
 endif
 
 export TMP_DIR:=$(TOPDIR)/tmp
+export TMPDIR:=$(TMP_DIR)
 
 qstrip=$(strip $(subst ",,$(1)))
 #"))
@@ -29,7 +30,7 @@ empty:=
 space:= $(empty) $(empty)
 comma:=,
 merge=$(subst $(space),,$(1))
-confvar=$(call merge,$(foreach v,$(1),$(if $($(v)),y,n)))
+confvar=$(shell echo '$(foreach v,$(1),$(v)=$(subst ','\'',$($(v))))' | $(STAGING_DIR_HOST)/bin/mkhash md5)
 strip_last=$(patsubst %.$(lastword $(subst .,$(space),$(1))),%,$(1))
 
 paren_left = (
@@ -124,12 +125,13 @@ else
     GNU_TARGET_NAME=$(shell gcc -dumpmachine)
   endif
   REAL_GNU_TARGET_NAME=$(GNU_TARGET_NAME)
-  TARGET_DIR_NAME:=target-$(GNU_TARGET_NAME)$(if $(BUILD_SUFFIX),_$(BUILD_SUFFIX))
+  LIBC:=$(call qstrip,$(CONFIG_LIBC))
+  TARGET_DIR_NAME:=target-$(GNU_TARGET_NAME)_$(LIBC)$(if $(BUILD_SUFFIX),_$(BUILD_SUFFIX))
   TOOLCHAIN_DIR_NAME:=toolchain-$(GNU_TARGET_NAME)
 endif
 
 ifeq ($(or $(CONFIG_EXTERNAL_TOOLCHAIN),$(CONFIG_GCC_VERSION_4_8),$(CONFIG_TARGET_uml)),)
-  iremap = -iremap $(1):$(2)
+  iremap = -iremap$(1):$(2)
 endif
 
 PACKAGE_DIR:=$(BIN_DIR)/packages

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2016 LEDE project
+# Copyright (C) 2016-2017 LEDE project
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,8 +8,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libressl
-PKG_VERSION:=2.5.0
-PKG_HASH:=8652bf6b55ab51fb37b686a3f604a2643e0e8fde2c56e6a936027d12afda6eae
+PKG_VERSION:=2.5.4
+PKG_HASH:=107a5b522fbb8318d4c3be668075e5e607296f0a9255d71674caa94571336efa
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz

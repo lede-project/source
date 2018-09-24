@@ -13,10 +13,10 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/dtaht/sch_cake.git
-PKG_SOURCE_DATE:=2017-01-28
-PKG_SOURCE_VERSION:=9789742cfc596d48583ba4cdbc8f38d026121fa6
-PKG_MIRROR_HASH:=2a5afc45722c28ca8778eb50452eb305306e7898b32d7d6d73d3e77edf3cce99
-PKG_MAINTAINER:=Kevin Darbyshire-Bryant <kevin@darbyshire-bryant.me.uk>
+PKG_SOURCE_DATE:=2018-07-16
+PKG_SOURCE_VERSION:=f39ab9a402ad51d7c17d4cde18ca15b2b7022030
+PKG_MIRROR_HASH:=fc22fc6eb7a24f4595c2777f33758ebcf9a2a404c16d00aa37ae389cd7f9c78f
+PKG_MAINTAINER:=Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
 
 include $(INCLUDE_DIR)/package.mk
 

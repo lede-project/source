@@ -70,28 +70,59 @@ _relpath() {
 	done
 }
 
-_wrapper() {
-	cat <<-EOT | ${CC:-gcc} -x c -o "$1" -
+_runas_so() {
+	cat <<-EOT | ${CC:-gcc} -x c -fPIC -shared -o "$1" -
 		#include <unistd.h>
 		#include <stdio.h>
+		#include <stdlib.h>
 
-		int main(int argc, char **argv) {
-			const char *self   = argv[0];
-			const char *target = argv[1];
+		int mangle_arg0(int argc, char **argv, char **env) {
+			char *arg0 = getenv("RUNAS_ARG0");
 
-			if (argc < 3) {
-				fprintf(stderr, "Usage: %s executable arg0 [args...]\n", self);
-				return 1;
+			if (arg0) {
+				argv[0] = arg0;
+				unsetenv("RUNAS_ARG0");
 			}
 
-			return execv(target, argv + 2);
+			return 0;
 		}
+
+		#ifdef __APPLE__
+		__attribute__((section("__DATA,__mod_init_func")))
+		#else
+		__attribute__((section(".init_array")))
+		#endif
+		static void *mangle_arg0_constructor = &mangle_arg0;
 	EOT
 
 	[ -x "$1" ] || {
-		echo "compiling wrapper failed" >&2
+		echo "compiling preload library failed" >&2
 		exit 5
 	}
+}
+
+_patch_ldso() {
+	_cp "$1" "$1.patched"
+	sed -i -e 's,/\(usr\|lib\|etc\)/,/###/,g' "$1.patched"
+
+	if "$1.patched" 2>&1 | grep -q -- --library-path; then
+		_mv "$1.patched" "$1"
+	else
+		echo "binary patched ${1##*/} not executable, using original" >&2
+		rm -f "$1.patched"
+	fi
+}
+
+_patch_glibc() {
+	_cp "$1" "$1.patched"
+	sed -i -e 's,/usr/\(\(lib\|share\)/locale\),/###/\1,g' "$1.patched"
+
+	if "$1.patched" 2>&1 | grep -q -- GNU; then
+		_mv "$1.patched" "$1"
+	else
+		echo "binary patched ${1##*/} not executable, using original" >&2
+		rm -f "$1.patched"
+	fi
 }
 
 for LDD in ${PATH//://ldd }/ldd; do
@@ -113,25 +144,29 @@ for BIN in "$@"; do
 		_ln "../lib" "$DIR/usr/lib"
 	}
 
-	[ ! -x "$DIR/lib/runas" ] && {
-		_wrapper "$DIR/lib/runas"
+	[ ! -x "$DIR/lib/runas.so" ] && {
+		_runas_so "$DIR/lib/runas.so"
 	}
 
 	LDSO=""
 
-	[ -n "$LDD" ] && [ -x "$BIN" ] && file "$BIN" | grep -sqE "ELF.*executable" && {
+	[ -n "$LDD" ] && [ -x "$BIN" ] && file "$BIN" | grep -sqE "ELF.*(executable|interpreter)" && {
 		for token in $("$LDD" "$BIN" 2>/dev/null); do
 			case "$token" in */*.so*)
-				case "$token" in
-					*ld-*.so*) LDSO="${token##*/}" ;;
-				esac
-
 				dest="$DIR/lib/${token##*/}"
 				ddir="${dest%/*}"
+
+				case "$token" in
+					*/ld-*.so*) LDSO="${token##*/}" ;;
+				esac
 
 				[ -f "$token" -a ! -f "$dest" ] && {
 					_md "$ddir"
 					_cp "$token" "$dest"
+					case "$token" in
+						*/ld-*.so*) _patch_ldso "$dest" ;;
+						*/libc.so.6) _patch_glibc "$dest" ;;
+					esac
 				}
 			;; esac
 		done
@@ -150,7 +185,9 @@ for BIN in "$@"; do
 		cat <<-EOF > "$BIN"
 			#!/usr/bin/env bash
 			dir="\$(dirname "\$0")"
-			exec "\$dir/${REL:+$REL/}$LDSO" --library-path "\$dir/${REL:+$REL/}" "\$dir/${REL:+$REL/}runas" "\$dir/.${BIN##*/}.bin" "\$0" "\$@"
+			export RUNAS_ARG0="\$0"
+			export LD_PRELOAD="\$dir/${REL:+$REL/}runas.so"
+			exec "\$dir/${REL:+$REL/}$LDSO" --library-path "\$dir/${REL:+$REL/}" "\$dir/.${BIN##*/}.bin" "\$@"
 		EOF
 
 		chmod ${VERBOSE:+-v} 0755 "$BIN"
