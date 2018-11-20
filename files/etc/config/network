@@ -1,0 +1,27 @@
+
+config interface 'loopback'
+        option ifname 'lo'
+        option proto 'static'
+        option ipaddr '127.0.0.1'
+        option netmask '255.0.0.0'
+
+config globals 'globals'
+        option ula_prefix 'fd1d:48c4:7633::/48'
+
+config interface 'wlan'
+        option type 'bridge'
+#        option ifname 'eth0.1'
+#        option ifname 'ra0'
+        option proto 'static'
+        option ipaddr '192.168.3.1'
+        option netmask '255.255.255.0'
+        option ip6assign '60'
+
+config interface 'wan'
+        option ifname 'eth0'
+        option proto 'dhcp'
+
+config interface 'wwan'
+        option ifname 'apcli0'
+        option proto 'dhcp'
+	option hostname 'OnionOmega2'

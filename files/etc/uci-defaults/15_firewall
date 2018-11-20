@@ -1,0 +1,19 @@
+#!/bin/sh
+
+uci -q batch <<-EOF > /dev/null
+        set firewall.@zone[0].network='wlan'
+	set firewall.@defaults[0].disable_ipv6='1'
+	set firewall.@zone[0].network='wlan'
+	set firewall.@zone[1].network='wwan'
+	set firewall.@zone[1].input='ACCEPT'
+	set firewall.@zone[2].name='wan'
+	set firewall.@zone[2].masq='1'
+	set firewall.@zone[2].mtu_fix='1'
+	set firewall.@zone[2].network='wan'
+	set firewall.@zone[2].input='ACCEPT'
+	set firewall.@zone[2].output='ACCEPT'
+	set firewall.@zone[2].forward='ACCEPT'
+	commit firewall
+EOF
+
+exit 0

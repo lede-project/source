@@ -1,0 +1,11 @@
+#!/bin/sh
+
+redflag1=$(uci -q get wireless.\@wifi-iface[0].ApCliEnable)
+redflag2=$(uci -q get wireless.ap.ApCliEnable)
+
+if [ "$redflag1" != "" ] ||
+   [ "$redflag2" != "" ]; 
+then
+	sh /usr/bin/wifisetup reset
+fi
+exit 0

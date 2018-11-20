@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# change mosquitto configuration to enable mqtt over websockets
+echo "# mqtt over websocket configuration
+bind_address 0.0.0.0
+port 1883
+protocol mqtt
+log_type information
+log_type websockets
+websockets_log_level 0
+listener 9001 0.0.0.0
+protocol websockets
+" > /etc/mosquitto/mosquitto.conf
+EOF
+
+exit 0

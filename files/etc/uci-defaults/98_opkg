@@ -1,0 +1,22 @@
+#!/bin/sh
+
+## TODO: update this to new repo location
+
+# fix the feeds configuration
+#	comment out the onion feed
+#	uncomment the packages feed
+cat /etc/opkg/distfeeds.conf | sed \
+	-e 's/^/#/g' \
+	> /etc/opkg/distfeeds.conf.new
+
+echo "src/gz omega2_core http://repo.onion.io/omega2/packages/core
+src/gz omega2_base http://repo.onion.io/omega2/packages/base
+src/gz omega2_packages http://repo.onion.io/omega2/packages/packages
+src/gz omega2_routing http://repo.onion.io/omega2/packages/routing
+src/gz omega2_onion http://repo.onion.io/omega2/packages/onion" \
+>> /etc/opkg/distfeeds.conf.new
+
+cp /etc/opkg/distfeeds.conf.new /etc/opkg/distfeeds.conf
+EOF
+
+exit 0
