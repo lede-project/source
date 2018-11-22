@@ -1,0 +1,37 @@
+--- a/drivers/mtd/devices/m25p80.c	2018-11-23 02:00:45.638745572 +0530
++++ b/drivers/mtd/devices/m25p80.c	2018-11-23 01:59:59.114747517 +0530
+@@ -304,15 +304,25 @@
+ 				   data ? data->nr_parts : 0);
+ }
+ 
+-
+ static int m25p_remove(struct spi_device *spi)
+ {
+ 	struct m25p	*flash = spi_get_drvdata(spi);
+ 
++	// addition for reboot: spi flash reset code
++        flash->command[0] = 0x66;
++        spi_write(flash->spi,flash->command,1);
++        flash->command[0] = 0x99;
++        spi_write(flash->spi,flash->command,1);
++
+ 	/* Clean up MTD stuff. */
+ 	return mtd_device_unregister(&flash->spi_nor.mtd);
+ }
+ 
++static void m25p_shutdown(struct spi_device *spi)
++{
++	m25p_remove(spi);
++}
++
+ /*
+  * Do NOT add to this array without reading the following:
+  *
+@@ -387,6 +397,7 @@
+ 	.id_table	= m25p_ids,
+ 	.probe	= m25p_probe,
+ 	.remove	= m25p_remove,
++	.shutdown = m25p_shutdown, // addition for spi flash reset code
+ 
+ 	/* REVISIT: many of these chips have deep power-down modes, which
+ 	 * should clearly be entered on suspend() to minimize power use.
