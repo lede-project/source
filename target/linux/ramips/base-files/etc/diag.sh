@@ -228,7 +228,8 @@ get_status_led() {
 		status_led="$boardname:blue:status"
 		;;
 	omega2| \
-	omega2p)
+	omega2p| \
+	omega2pro)
 		status_led="$boardname:amber:system"
 		;;
 	oy-0001|\

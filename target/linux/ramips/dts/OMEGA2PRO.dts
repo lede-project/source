@@ -1,0 +1,39 @@
+/dts-v1/;
+
+#include "OMEGA2.dtsi"
+
+/ {
+	model = "Onion Omega2 Pro";
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x4000000>;
+	};
+
+	new-leds {
+		compatible = "gpio-leds";
+
+		wifi {
+        	        label = "omega2pro:blue:wifi";
+                	gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
+        	};
+	};
+};
+
+&firmware {
+	reg = <0x50000 0xfb0000>;
+};
+
+&system_led {
+	label = "omega2pro:amber:system";
+	gpios = <&gpio1 12 GPIO_ACTIVE_LOW>;
+};
+
+&pinctrl {
+        state_default: pinctrl0 {
+                uart2 {
+			ralink,group = "uart2";
+                        ralink,function = "gpio";
+                };
+        };
+};

@@ -106,6 +106,14 @@ define Device/omega2p
 endef
 TARGET_DEVICES += omega2p
 
+define Device/omega2pro
+  DTS := OMEGA2PRO
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := Onion Omega2 Pro
+  DEVICE_PACKAGES:= kmod-usb2 kmod-usb-ohci uboot-envtools kmod-sdhci-mt7620
+endef
+TARGET_DEVICES += omega2pro
+
 define Device/pbr-d1
   DTS := PBR-D1
   IMAGE_SIZE := $(ralink_default_fw_size_16M)

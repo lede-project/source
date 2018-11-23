@@ -306,6 +306,9 @@ newifi-d1)
 nw718)
 	set_usb_led "$boardname:amber:usb"
 	;;
+omega2pro)
+	set_wifi_led "$board:blue:wifi"
+	;;
 oy-0001)
 	ucidef_set_led_default "power" "power" "$boardname:green:power" "1"
 	set_wifi_led "$boardname:green:wifi"
