@@ -133,7 +133,7 @@
 	spidev@1 {
 		#address-cells = <1>;
 		#size-cells = <1>;
-		compatible = "linux,spidev";
+		compatible = "rohm,dh2228fv";
 		reg = <1>;
 		spi-max-frequency = <40000000>;
 	};
