@@ -1,0 +1,9 @@
+{
+        "version": "0.3.0",
+        "system": "openwrt",
+        "core": "omega2",
+        "devices": [
+                {"name":"omega2pro","symbol":"omega2pro"}
+        ]
+}
+
