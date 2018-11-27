@@ -1,0 +1,41 @@
+--- a/drivers/spi/spi-mt7621.c	2018-11-28 03:31:10.704736754 +0530
++++ b/drivers/spi/spi-mt7621.c	2018-11-28 03:33:00.540732160 +0530
+@@ -90,11 +90,9 @@
+ 
+ 	master |= 7 << 29;
+ 	master |= 1 << 2;
+-#ifdef CONFIG_SOC_MT7620
+ 	if (duplex)
+ 		master |= 1 << 10;
+ 	else
+-#endif
+ 		master &= ~(1 << 10);
+ 
+ 	mt7621_spi_write(rs, MT7621_SPI_MASTER, master);
+@@ -269,7 +267,6 @@
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_SOC_MT7620
+ static int mt7621_spi_transfer_full_duplex(struct spi_master *master,
+ 					   struct spi_message *m)
+ {
+@@ -354,18 +351,15 @@
+ 
+ 	return 0;
+ }
+-#endif
+ 
+ static int mt7621_spi_transfer_one_message(struct spi_master *master,
+ 					   struct spi_message *m)
+ {
+ 	struct spi_device *spi = m->spi;
+-#ifdef CONFIG_SOC_MT7620
+ 	int cs = spi->chip_select;
+ 
+ 	if (cs)
+ 		return mt7621_spi_transfer_full_duplex(master, m);
+-#endif
+ 	return mt7621_spi_transfer_half_duplex(master, m);
+ }
+ 
