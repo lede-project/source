@@ -1,0 +1,20 @@
+Index: linux-4.4.45/drivers/w1/masters/w1-gpio.c
+===================================================================
+--- linux-4.4.45.orig/drivers/w1/masters/w1-gpio.c
++++ linux-4.4.45/drivers/w1/masters/w1-gpio.c
+@@ -87,6 +87,7 @@ static int w1_gpio_probe_dt(struct platf
+ 	if (of_get_property(np, "linux,open-drain", NULL))
+ 		pdata->is_open_drain = 1;
+ 
++	if (pdev->dev.of_node) {        /*(Virtual) of_node can be absent*/ 
+ 	gpio = of_get_gpio(np, 0);
+ 	if (gpio < 0) {
+ 		if (gpio != -EPROBE_DEFER)
+@@ -105,6 +106,7 @@ static int w1_gpio_probe_dt(struct platf
+ 	pdata->ext_pullup_enable_pin = gpio;
+ 
+ 	pdev->dev.platform_data = pdata;
++	}
+ 
+ 	return 0;
+ }
