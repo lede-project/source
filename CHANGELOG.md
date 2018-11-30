@@ -190,6 +190,16 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b203
+*Nov 30, 2018*
+
+* Omega2 Pro DTS is now correct:
+	* System status LED on GPIO43
+	* Wifi status LED on GPIO44
+	* Note that this coincides with updated u-boot
+* Writing wifi LED to wireless config
+	* Had to update ramips.sh file to bring back `ramips_board_name` function
+
 #### b202 
 *Nov 28, 2018*
 

@@ -15,7 +15,7 @@
 
 		wifi {
         	        label = "omega2pro:blue:wifi";
-                	gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
+                	gpios = <&gpio1 12 GPIO_ACTIVE_LOW>;
         	};
 	};
 };
@@ -26,7 +26,7 @@
 
 &system_led {
 	label = "omega2pro:amber:system";
-	gpios = <&gpio1 12 GPIO_ACTIVE_LOW>;
+	gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
 };
 
 &pinctrl {

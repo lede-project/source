@@ -12,6 +12,7 @@ uci -q batch <<-EOF > /dev/null
     	set system.@led[0].trigger='default-on'
 	commit system
 	set wireless.@wifi-iface[0].ssid='Omega-$m1$m2'
+	set wireless.sta.led='${board}:blue:wifi'
 	commit wireless
 EOF
 
