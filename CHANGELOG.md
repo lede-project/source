@@ -190,6 +190,16 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b204
+*Dec 4, 2018*
+
+* Added blockd to firmware
+	* Modified package so it will run earlier in the boot sequence (before network init)
+	* Enabling anonymous mounting - so that it acts like mountd
+* Ledchain kernel module will now be automatically inserted at boot
+* Added LED morse trigger to firmware
+* Sysupgrade will preserve `/root` directory
+
 #### b203
 *Nov 30, 2018*
 
@@ -216,6 +226,7 @@ Defining the changes in each build. *Note that if a number is missing, that buil
 		* Clock Stretching
 		* ACK/NAK Handling (i2cdetect command support)
 		* Unlimited message length
+	* Reboot
 
 #### b200
 **Updating to version 0.2.2**
