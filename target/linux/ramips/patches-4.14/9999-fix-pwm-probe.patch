@@ -1,0 +1,20 @@
+--- a/drivers/base/pinctrl.c	2018-12-09 16:17:51.760614970 +0530
++++ b/drivers/base/pinctrl.c	2018-12-09 16:19:18.076611360 +0530
+@@ -94,13 +94,9 @@
+ 	devm_kfree(dev, dev->pins);
+ 	dev->pins = NULL;
+ 
+-	/* Return deferrals */
+-	if (ret == -EPROBE_DEFER)
+-		return ret;
+-	/* Return serious errors */
+-	if (ret == -EINVAL)
+-		return ret;
+-	/* We ignore errors like -ENOENT meaning no pinctrl state */
++	/* Only return deferrals */
++	if (ret != -EPROBE_DEFER)
++		ret = 0;
+ 
+-	return 0;
++	return ret;
+ }
