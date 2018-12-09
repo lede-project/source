@@ -190,6 +190,11 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b205
+*Dec 9, 2018*
+
+* Hardware PWM is now supported!
+
 #### b204
 *Dec 4, 2018*
 
