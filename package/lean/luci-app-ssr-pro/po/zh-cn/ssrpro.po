@@ -112,7 +112,9 @@ msgstr "使用SS新版代替SSR"
 msgid "Using incorrect encryption mothod may causes service fail to start"
 msgstr "设置不正确的加密方法可能会导致SS/SSR服务无法启动"
 
+msgid "Shadowsocks New Vesion"
+msgstr "Shadowsocks 原版(支持新增协议)"
 
-
-
+msgid "Tool Select"
+msgstr "SS/SSR 版本选择"
 

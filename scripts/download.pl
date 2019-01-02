@@ -88,6 +88,7 @@ sub download_cmd($) {
 }
 
 my $hash_cmd = hash_cmd();
+$hash_cmd or ($file_hash eq "skip") or die "Cannot find appropriate hash command, ensure the provided hash is either a MD5 or SHA256 checksum.\n";
 
 sub download
 {
@@ -190,7 +191,7 @@ foreach my $mirror (@ARGV) {
 	if ($mirror =~ /^\@SF\/(.+)$/) {
 		# give sourceforge a few more tries, because it redirects to different mirrors
 		for (1 .. 5) {
-			push @mirrors, "http://downloads.sourceforge.net/$1";
+			push @mirrors, "https://downloads.sourceforge.net/$1";
 		}
 	} elsif ($mirror =~ /^\@APACHE\/(.+)$/) {
 		push @mirrors, "https://mirror.netcologne.de/apache.org/$1";
@@ -256,10 +257,10 @@ foreach my $mirror (@ARGV) {
 	}
 }
 
-#push @mirrors, 'http://mirror1.openwrt.org';
-push @mirrors, 'http://sources.lede-project.org';
-push @mirrors, 'http://mirror2.openwrt.org/sources';
-push @mirrors, 'http://downloads.openwrt.org/sources';
+#push @mirrors, 'https://mirror1.openwrt.org';
+push @mirrors, 'https://sources.lede-project.org';
+push @mirrors, 'https://mirror2.openwrt.org/sources';
+push @mirrors, 'https://downloads.openwrt.org/sources';
 
 while (!-f "$target/$filename") {
 	my $mirror = shift @mirrors;

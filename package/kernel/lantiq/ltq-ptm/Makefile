@@ -12,6 +12,7 @@ PKG_RELEASE:=1
 PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/ltq-ptm-$(BUILD_VARIANT)
 
 PKG_MAINTAINER:=John Crispin <john@phrozen.org>
+PKG_LICENSE:=GPL-2.0+
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -23,6 +24,14 @@ define KernelPackage/ltq-ptm-template
   URL:=http://www.lantiq.com/
   VARIANT:=$(1)
   DEPENDS:=@TARGET_lantiq_$(2)
+ifeq ($(1),vr9)
+  DEPENDS+= +kmod-ltq-vdsl-vr9-mei
+else
+  DEPENDS+= +kmod-ltq-adsl-$(1)-mei
+endif
+ifeq ($(1),ase)
+  DEPENDS+=@BROKEN
+endif
   FILES:=$(PKG_BUILD_DIR)/ltq_ptm_$(1).ko 
 endef
 

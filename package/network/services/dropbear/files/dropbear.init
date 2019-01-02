@@ -2,7 +2,7 @@
 # Copyright (C) 2006-2010 OpenWrt.org
 # Copyright (C) 2006 Carlos Sobrinho
 
-START=50
+START=19
 STOP=50
 
 USE_PROCD=1
@@ -42,6 +42,7 @@ validate_section_dropbear()
 		'SSHKeepAlive:uinteger:300' \
 		'IdleTimeout:uinteger:0' \
 		'MaxAuthTries:uinteger:3' \
+		'RecvWindowSize:uinteger:0' \
 		'mdns:bool:1'
 }
 
@@ -50,7 +51,7 @@ dropbear_instance()
 	local PasswordAuth enable Interface GatewayPorts \
 		RootPasswordAuth RootLogin rsakeyfile \
 		BannerFile Port SSHKeepAlive IdleTimeout \
-		MaxAuthTries mdns ipaddrs
+		MaxAuthTries RecvWindowSize mdns ipaddrs
 
 	validate_section_dropbear "${1}" || {
 		echo "validation failed"
@@ -58,6 +59,8 @@ dropbear_instance()
 	}
 
 	[ -n "${Interface}" ] && {
+		[ -n "${BOOT}" ] && return 0
+
 		network_get_ipaddrs_all ipaddrs "${Interface}" || {
 			echo "interface ${Interface} has no physdev or physdev has no suitable ip"
 			return 1
@@ -80,6 +83,8 @@ dropbear_instance()
 	[ "${IdleTimeout}" -ne 0 ] && procd_append_param command -I "${IdleTimeout}"
 	[ "${SSHKeepAlive}" -ne 0 ] && procd_append_param command -K "${SSHKeepAlive}"
 	[ "${MaxAuthTries}" -ne 0 ] && procd_append_param command -T "${MaxAuthTries}"
+	[ "${RecvWindowSize}" -gt 0 -a "${RecvWindowSize}" -le 1048576 ] && \
+		procd_append_param command -W "${RecvWindowSize}"
 	[ "${mdns}" -ne 0 ] && procd_add_mdns "ssh" "tcp" "$Port" "daemon=dropbear"
 	procd_set_param respawn
 	procd_close_instance
@@ -116,6 +121,12 @@ load_interfaces()
 	[ "${enable}" = "1" ] && interfaces=" ${interface} ${interfaces}"
 }
 
+boot()
+{
+	BOOT=1
+	start "$@"
+}
+
 start_service()
 {
 	[ -s /etc/dropbear/dropbear_rsa_host_key ] || keygen
@@ -143,6 +154,11 @@ service_triggers()
 	}
 
 	procd_add_validation validate_section_dropbear
+}
+
+shutdown() {
+	# close all open connections
+	killall dropbear
 }
 
 killclients()

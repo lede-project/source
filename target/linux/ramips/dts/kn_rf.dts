@@ -6,6 +6,7 @@
 #include <dt-bindings/input/input.h>
 
 / {
+	compatible = "zyxel,keenetic-omni-ii", "ralink,mt7620n-soc";
 	model = "ZyXEL Keenetic Omni II";
 
 	gpio-leds {
@@ -13,7 +14,7 @@
 
 		wan {
 			label = "kn_rc:green:wan";
-			gpios = <&gpio0 38 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;
 		};
 
 		usb {
@@ -23,12 +24,12 @@
 
 		wifi {
 			label = "kn_rc:green:wifi";
-			gpios = <&gpio0 72 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio3 0 GPIO_ACTIVE_LOW>;
 		};
 
 		power {
 			label = "kn_rc:green:power";
-			gpios = <&gpio0 39 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
 		};
 	};
 
@@ -67,6 +68,14 @@
 			gpios = <&gpio0 21 GPIO_ACTIVE_HIGH>;
 		};
 	};
+};
+
+&gpio1 {
+	status = "okay";
+};
+
+&gpio3 {
+	status = "okay";
 };
 
 &spi0 {
@@ -115,7 +124,7 @@
 
 &ethernet {
 	mtd-mac-address = <&factory 0x4>;
-	ralink,port-map = "wllll";
+	mediatek,portmap = "wllll";
 };
 
 &wmac {

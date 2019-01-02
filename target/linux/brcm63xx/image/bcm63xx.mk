@@ -1,3 +1,4 @@
+
 #
 # BCM33XX/BCM63XX Profiles
 #
@@ -174,6 +175,21 @@ define Device/96368MVWG-generic
 endef
 TARGET_DEVICES += 96368MVWG-generic
 
+### Actiontec ###
+define Device/R1000H
+  $(Device/bcm63xx)
+  FILESYSTEMS := squashfs
+  DEVICE_TITLE := Actiontec R1000H
+  DEVICE_DTS := r1000h
+  CFE_BOARD_ID := 96368MVWG
+  CFE_CHIP_ID := 6368
+  FLASH_MB := 32
+  IMAGE_OFFSET := 0x20000
+  DEVICE_PACKAGES := \
+    $(USB2_PACKAGES) $(BRCMWL_PACKAGES)
+endef
+TARGET_DEVICES += R1000H
+
 ### ADB ###
 define Device/A4001N
   $(Device/bcm63xx)
@@ -199,6 +215,18 @@ define Device/A4001N1
     $(USB2_PACKAGES) $(B43_PACKAGES)
 endef
 TARGET_DEVICES += A4001N1
+
+define Device/AV4202N
+  $(Device/bcm63xx)
+  IMAGE_OFFSET := 0x20000
+  DEVICE_TITLE := ADB P.DG AV4202N
+  DEVICE_DTS := av4202n
+  CFE_BOARD_ID := 96368_Swiss_S1
+  CFE_CHIP_ID := 6368
+  DEVICE_PACKAGES := \
+    $(USB2_PACKAGES) $(B43_PACKAGES)
+endef
+TARGET_DEVICES += AV4202N
 
 ### Alcatel ###
 define Device/RG100A
@@ -329,6 +357,19 @@ endef
 TARGET_DEVICES += BTV2500V
 
 ### Comtrend ###
+define Device/AR5315u
+  $(Device/bcm63xx)
+  IMAGES += sysupgrade.bin
+  DEVICE_TITLE := Comtrend AR-5315u
+  DEVICE_DTS := ar-5315u
+  CFE_BOARD_ID := 96318A-1441N1
+  CFE_CHIP_ID := 6318
+  FLASH_MB := 16
+  DEVICE_PACKAGES := \
+    $(B43_PACKAGES) $(USB2_PACKAGES)
+endef
+TARGET_DEVICES += AR5315u
+
 define Device/AR5381u
   $(Device/bcm63xx)
   IMAGES += sysupgrade.bin
@@ -930,6 +971,18 @@ define Device/FAST2704V2
 endef
 TARGET_DEVICES += FAST2704V2
 
+### Sercomm ###
+define Device/AD1018-SPI_flash
+  $(Device/bcm63xx)
+  DEVICE_TITLE := Sercomm AD1018 (SPI flash mod)
+  DEVICE_DTS := ad1018-nor
+  CFE_BOARD_ID := 96328avngr
+  CFE_CHIP_ID := 6328
+  DEVICE_PACKAGES := \
+    $(B43_PACKAGES) $(USB2_PACKAGES)
+endef
+TARGET_DEVICES += AD1018-SPI_flash
+
 ### SFR ###
 define Device/NEUFBOX4-SER
   $(Device/bcm63xx)
@@ -937,7 +990,7 @@ define Device/NEUFBOX4-SER
   DEVICE_DTS := nb4-ser-r0
   CFE_BOARD_ID := 96358VW
   CFE_CHIP_ID := 6358
-  CFE_EXTRAS += --rsa-signature "LEDE-$(firstword $(subst -,$(space),$(REVISION)))"
+  CFE_EXTRAS += --rsa-signature "$(VERSION_DIST)-$(firstword $(subst -,$(space),$(REVISION)))"
   DEVICE_PACKAGES := \
     $(B43_PACKAGES) $(USB2_PACKAGES)
 endef
@@ -949,7 +1002,7 @@ define Device/NEUFBOX4-FXC
   DEVICE_DTS := nb4-fxc-r1
   CFE_BOARD_ID := 96358VW
   CFE_CHIP_ID := 6358
-  CFE_EXTRAS += --rsa-signature "LEDE-$(firstword $(subst -,$(space),$(REVISION)))"
+  CFE_EXTRAS += --rsa-signature "$(VERSION_DIST)-$(firstword $(subst -,$(space),$(REVISION)))"
   DEVICE_PACKAGES := \
     $(B43_PACKAGES) $(USB2_PACKAGES)
 endef
@@ -961,7 +1014,7 @@ define Device/NEUFBOX6
   DEVICE_DTS := nb6-ser-r0
   CFE_BOARD_ID := NB6-SER-r0
   CFE_CHIP_ID := 6362
-  CFE_EXTRAS += --rsa-signature "LEDE-$(firstword $(subst -,$(space),$(REVISION)))"
+  CFE_EXTRAS += --rsa-signature "$(VERSION_DIST)-$(firstword $(subst -,$(space),$(REVISION)))"
   DEVICE_PACKAGES := \
     $(B43_PACKAGES) $(USB2_PACKAGES)
 endef
@@ -1018,18 +1071,17 @@ endef
 TARGET_DEVICES += GW6200
 
 ### Telsey ###
-define Device/CVPA502PLUS
+define Device/CPVA502PLUS
   $(Device/bcm63xx)
-  IMAGES :=
   DEVICE_TITLE := Telsey CPVA502+
   DEVICE_DTS := cpva502plus
   CFE_BOARD_ID := CPVA502+
   CFE_CHIP_ID := 6348
-  CFE_EXTRAS += --signature "Telsey Tlc" --signature2 "99.99.999" --second-image-flag "0"
+  CFE_EXTRAS += --signature "Telsey Tlc" --signature2 "99.99.999"
   DEVICE_PACKAGES := \
     $(B43_PACKAGES)
 endef
-TARGET_DEVICES += CVPA502PLUS
+TARGET_DEVICES += CPVA502PLUS
 
 define Device/CPA-ZNTE60T
   $(Device/bcm63xx)

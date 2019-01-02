@@ -14,11 +14,11 @@ export TOPDIR LC_ALL LANG TZ
 
 empty:=
 space:= $(empty) $(empty)
-$(if $(findstring $(space),$(TOPDIR)),$(error ERROR: The path to the LEDE directory must not include any spaces))
+$(if $(findstring $(space),$(TOPDIR)),$(error ERROR: The path to the OpenWrt directory must not include any spaces))
 
 world:
 
-include $(TOPDIR)/include/host.mk
+export PATH:=$(TOPDIR)/staging_dir/host/bin:$(PATH)
 
 ifneq ($(OPENWRT_BUILD),1)
   _SINGLE=export MAKEFLAGS=$(space);
@@ -27,6 +27,8 @@ ifneq ($(OPENWRT_BUILD),1)
   export OPENWRT_BUILD
   GREP_OPTIONS=
   export GREP_OPTIONS
+  CDPATH=
+  export CDPATH
   include $(TOPDIR)/include/debug.mk
   include $(TOPDIR)/include/depends.mk
   include $(TOPDIR)/include/toplevel.mk
@@ -39,8 +41,8 @@ else
   include tools/Makefile
   include toolchain/Makefile
 
-$(toolchain/stamp-install): $(tools/stamp-install)
-$(target/stamp-compile): $(toolchain/stamp-install) $(tools/stamp-install) $(BUILD_DIR)/.prepared
+$(toolchain/stamp-compile): $(tools/stamp-compile)
+$(target/stamp-compile): $(toolchain/stamp-compile) $(tools/stamp-compile) $(BUILD_DIR)/.prepared
 $(package/stamp-compile): $(target/stamp-compile) $(package/stamp-cleanup)
 $(package/stamp-install): $(package/stamp-compile)
 $(target/stamp-install): $(package/stamp-compile) $(package/stamp-install)
@@ -55,7 +57,7 @@ clean: FORCE
 	rm -rf $(BUILD_DIR) $(STAGING_DIR) $(BIN_DIR) $(OUTPUT_DIR)/packages/$(ARCH_PACKAGES) $(BUILD_LOG_DIR) $(TOPDIR)/staging_dir/packages
 
 dirclean: clean
-	rm -rf $(STAGING_DIR_HOST) $(TOOLCHAIN_DIR) $(BUILD_DIR_HOST) $(BUILD_DIR_TOOLCHAIN)
+	rm -rf $(STAGING_DIR_HOST) $(STAGING_DIR_HOSTPKG) $(TOOLCHAIN_DIR) $(BUILD_DIR_BASE)/host $(BUILD_DIR_BASE)/hostpkg $(BUILD_DIR_TOOLCHAIN)
 	rm -rf $(TMP_DIR)
 
 ifndef DUMP_TARGET_DB
@@ -85,16 +87,17 @@ prereq: $(target/stamp-prereq) tmp/.prereq_packages
 	fi
 
 checksum: FORCE
-	$(call sha256sums,$(BIN_DIR))
+	$(call sha256sums,$(BIN_DIR),$(CONFIG_BUILDBOT))
 
 diffconfig: FORCE
 	mkdir -p $(BIN_DIR)
 	$(SCRIPT_DIR)/diffconfig.sh > $(BIN_DIR)/config.seed
 
-prepare: .config $(tools/stamp-install) $(toolchain/stamp-install)
+prepare: .config $(tools/stamp-compile) $(toolchain/stamp-compile)
+	$(_SINGLE)$(SUBMAKE) -r diffconfig
+
 world: prepare $(target/stamp-compile) $(package/stamp-compile) $(package/stamp-install) $(target/stamp-install) FORCE
 	$(_SINGLE)$(SUBMAKE) -r package/index
-	$(_SINGLE)$(SUBMAKE) -r diffconfig
 	$(_SINGLE)$(SUBMAKE) -r checksum
 
 .PHONY: clean dirclean prereq prepare world package/symlinks package/symlinks-install package/symlinks-clean

@@ -8,90 +8,43 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
-PKG_NAME:=u-boot
-PKG_VERSION:=2016.03
+PKG_VERSION:=2018.03
 PKG_RELEASE:=1
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=\
-	http://mirror2.openwrt.org/sources \
-	ftp://ftp.denx.de/pub/u-boot
-PKG_HASH:=e49337262ecac44dbdeac140f2c6ebd1eba345e0162b0464172e7f05583ed7bb
+PKG_HASH:=7e7477534409d5368eb1371ffde6820f0f79780a1a1f676161c48442cb303dfd
 
-PKG_LICENSE:=GPL-2.0 GPL-2.0+
-PKG_LICENSE_FILES:=Licenses/README
-
-PKG_BUILD_PARALLEL:=1
-
+include $(INCLUDE_DIR)/u-boot.mk
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/host-build.mk
 
-define uboot/Default
-  TITLE:=
+define U-Boot/Default
+  BUILD_TARGET:=mvebu
+  HIDDEN:=1
 endef
 
-define uboot/clearfog
-  TITLE:=U-Boot for SolidRun ClearFog A1
-  DEVICE:=armada-388-clearfog
+define U-Boot/clearfog
+  NAME:=SolidRun ClearFog A1
+  BUILD_DEVICES:=armada-388-clearfog-base armada-388-clearfog-pro
+  BUILD_SUBTARGET:=cortexa9
+  UBOOT_IMAGE:=u-boot-spl.kwb
 endef
 
-UBOOTS:= \
+UBOOT_TARGETS:= \
 	clearfog
 
-define Package/uboot/template
-define Package/uboot-mvebu-$(1)
-  SECTION:=boot
-  CATEGORY:=Boot Loaders
-  DEPENDS:=@(TARGET_DEVICE_mvebu_DEVICE_$(3)||TARGET_mvebu_DEVICE_$(3)||TARGET_mvebu_Default)
-  DEFAULT:=m
-  HIDDEN:=1
-  TITLE:=$(2)
-  URL:=http://www.denx.de/wiki/U-Boot
-  VARIANT:=$(1)
-  MAINTAINER:=Felix Fietkau <nbd@nbd.name>
-endef
-endef
-
-define BuildUBootPackage
-	$(eval $(uboot/Default))
-	$(eval $(uboot/$(1)))
-	$(call Package/uboot/template,$(1),$(TITLE),$(DEVICE))
-endef
+Build/Exports:=$(Host/Exports)
 
 define Build/Configure
-	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
-		$(BUILD_VARIANT)_config
+	# enable additional options beyond clearfog_defconfig
+	echo CONFIG_NET_RANDOM_ETHADDR=y >> $(PKG_BUILD_DIR)/configs/$(BUILD_VARIANT)_defconfig
+	echo CONFIG_CMD_SETEXPR=y >> $(PKG_BUILD_DIR)/configs/$(BUILD_VARIANT)_defconfig
+
+	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) $(UBOOT_CONFIGURE_VARS) $(UBOOT_CONFIG)_config
 endef
 
-define Build/Compile
-	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
-		CROSS_COMPILE=$(TARGET_CROSS) \
-		DTC_DIR=$(LINUX_DIR)/scripts/dtc/
+define Build/InstallDev
+	$(INSTALL_DIR) $(STAGING_DIR_IMAGE)
+	$(CP) $(PKG_BUILD_DIR)/$(UBOOT_IMAGE) $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-u-boot-spl.kwb
 endef
 
-define Package/uboot/install/default
-	$(INSTALL_DIR) $(BIN_DIR)/uboot-$(BOARD)-$(1)
-	$(CP) $(PKG_BUILD_DIR)/u-boot-spl.kwb \
-		$(BIN_DIR)/uboot-$(BOARD)-$(1)/openwrt-$(BOARD)-$(1)-u-boot-spl.kwb
-	$(INSTALL_DIR) $(KERNEL_BUILD_DIR)/
-	$(CP) $(PKG_BUILD_DIR)/u-boot-spl.kwb \
-		$(KERNEL_BUILD_DIR)/openwrt-$(BOARD)-$(1)-u-boot-spl.kwb
-	$(INSTALL_DIR) $(BIN_DIR)/u-boot-kwboot/
-	$(CP) $(PKG_BUILD_DIR)/tools/kwboot \
-		$(BIN_DIR)/u-boot-kwboot/
-endef
-
-define Package/uboot/install/template
-define Package/uboot-mvebu-$(1)/install
-	$(call Package/uboot/install/default,$(2))
-endef
-endef
-
-$(foreach u,$(UBOOTS), \
-	$(eval $(call Package/uboot/install/template,$(u),$(u))) \
-)
-
-$(foreach u,$(UBOOTS), \
-	$(eval $(call BuildUBootPackage,$(u))) \
-	$(eval $(call BuildPackage,uboot-mvebu-$(u))) \
-)
+$(eval $(call BuildPackage/U-Boot))

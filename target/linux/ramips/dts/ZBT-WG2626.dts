@@ -2,9 +2,11 @@
 
 #include "mt7621.dtsi"
 
+#include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 
 / {
+	compatible = "zbtlink,zbt-wg2626", "mediatek,mt7621-soc";
 	model = "ZBT-WG2626";
 
 	memory@0 {
@@ -30,7 +32,7 @@
 
 		reset {
 			label = "reset";
-			gpios = <&gpio0 18 1>;
+			gpios = <&gpio0 18 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 		};
 	};
@@ -40,7 +42,7 @@
 
 		status {
 			label = "zbt-wg2626:green:status";
-			gpios = <&gpio0 24 1>;
+			gpios = <&gpio0 24 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
@@ -114,7 +116,7 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "wdt", "rgmii2", "wdt rst", "jtag", "mdio";
+			ralink,group = "wdt", "rgmii2", "jtag", "mdio";
 			ralink,function = "gpio";
 		};
 	};

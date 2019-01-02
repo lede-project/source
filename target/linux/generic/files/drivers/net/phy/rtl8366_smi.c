@@ -19,6 +19,8 @@
 #include <linux/of_platform.h>
 #include <linux/of_gpio.h>
 #include <linux/rtl8366.h>
+#include <linux/version.h>
+#include <linux/of_mdio.h>
 
 #ifdef CONFIG_RTL8366_SMI_DEBUG_FS
 #include <linux/debugfs.h>
@@ -914,7 +916,12 @@ static inline void rtl8366_debugfs_remove(struct rtl8366_smi *smi) {}
 static int rtl8366_smi_mii_init(struct rtl8366_smi *smi)
 {
 	int ret;
-	int i;
+
+#ifdef CONFIG_OF
+	struct device_node *np = NULL;
+
+	np = of_get_child_by_name(smi->parent->of_node, "mdio-bus");
+#endif
 
 	smi->mii_bus = mdiobus_alloc();
 	if (smi->mii_bus == NULL) {
@@ -930,11 +937,22 @@ static int rtl8366_smi_mii_init(struct rtl8366_smi *smi)
 		 dev_name(smi->parent));
 	smi->mii_bus->parent = smi->parent;
 	smi->mii_bus->phy_mask = ~(0x1f);
-	smi->mii_bus->irq = smi->mii_irq;
-	for (i = 0; i < PHY_MAX_ADDR; i++)
-		smi->mii_irq[i] = PHY_POLL;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,5,0)
+	{
+		int i;
+		smi->mii_bus->irq = smi->mii_irq;
+		for (i = 0; i < PHY_MAX_ADDR; i++)
+			smi->mii_irq[i] = PHY_POLL;
+	}
+#endif
 
-	ret = mdiobus_register(smi->mii_bus);
+#ifdef CONFIG_OF
+	if (np)
+		ret = of_mdiobus_register(smi->mii_bus, np);
+	else
+#endif
+		ret = mdiobus_register(smi->mii_bus);
+
 	if (ret)
 		goto err_free;
 
@@ -1024,6 +1042,33 @@ int rtl8366_sw_get_port_mib(struct switch_dev *dev,
 	return 0;
 }
 EXPORT_SYMBOL_GPL(rtl8366_sw_get_port_mib);
+
+int rtl8366_sw_get_port_stats(struct switch_dev *dev, int port,
+				struct switch_port_stats *stats,
+				int txb_id, int rxb_id)
+{
+	struct rtl8366_smi *smi = sw_to_rtl8366_smi(dev);
+	unsigned long long counter = 0;
+	int ret;
+
+	if (port >= smi->num_ports)
+		return -EINVAL;
+
+	ret = smi->ops->get_mib_counter(smi, txb_id, port, &counter);
+	if (ret)
+		return ret;
+
+	stats->tx_bytes = counter;
+
+	ret = smi->ops->get_mib_counter(smi, rxb_id, port, &counter);
+	if (ret)
+		return ret;
+
+	stats->rx_bytes = counter;
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(rtl8366_sw_get_port_stats);
 
 int rtl8366_sw_get_vlan_info(struct switch_dev *dev,
 			     const struct switch_attr *attr,

@@ -1,13 +1,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ubox
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(LEDE_GIT)/project/ubox.git
-PKG_SOURCE_DATE:=2017-03-10
-PKG_SOURCE_VERSION:=16f7e16181e2f3e9cf3e2ce56a7e291844900d09
-PKG_MIRROR_HASH:=5f10f3df134eb8a69d281a73d39f5d2e2fc96af531a2f3960b0c6116ff11a707
+PKG_SOURCE_URL=$(PROJECT_GIT)/project/ubox.git
+PKG_SOURCE_DATE:=2018-02-14
+PKG_SOURCE_VERSION:=128bc35fa951ac3beff6e977bc3cced87c2e2600
+PKG_MIRROR_HASH:=f58dfb9a9bb69c6303cb69bbd850b14bd29ec59ea240bac4063fd74a7fce64aa
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
@@ -41,11 +41,11 @@ define Package/ubox/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/getrandom $(1)/usr/bin/
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libvalidate.so $(1)/lib
 
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/rmmod
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/insmod
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/lsmod
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/modinfo
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/modprobe
+	$(LN) kmodloader $(1)/sbin/rmmod
+	$(LN) kmodloader $(1)/sbin/insmod
+	$(LN) kmodloader $(1)/sbin/lsmod
+	$(LN) kmodloader $(1)/sbin/modinfo
+	$(LN) kmodloader $(1)/sbin/modprobe
 endef
 
 define Package/logd/install

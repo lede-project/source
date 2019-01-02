@@ -3,22 +3,24 @@
 # Copyright (C) 2017 LEDE project
 
 . /lib/functions/uci-defaults.sh
-. /lib/brcm2708.sh
 . /lib/functions.sh
 . /lib/functions/system.sh
 
 board_config_update
 
-board=$(brcm2708_board_name)
+board=$(board_name)
 
 case "$board" in
-rpi-2-b |\
-rpi-3-b |\
-rpi-b |\
-rpi-b-plus)
+raspberrypi,model-b |\
+raspberrypi,model-b-plus |\
+raspberrypi,model-b-rev2 |\
+raspberrypi,2-model-b |\
+raspberrypi,3-model-b |\
+raspberrypi,3-model-b-plus)
 	ucidef_set_interface_lan "eth0"
 	;;
-rpi-zero-w)
+
+raspberrypi,model-zero-w)
 	ucidef_set_interface_lan "wlan0"
 	;;
 esac

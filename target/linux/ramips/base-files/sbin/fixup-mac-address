@@ -1,16 +1,16 @@
 #!/bin/sh
 . /lib/functions.sh
 . /lib/functions/system.sh
-. /lib/ramips.sh
 
 partname=""
 offset=""
 NEW_MAC=
 YES=
 
-board=$(ramips_board_name)
+board=$(board_name)
 case $board in
-	witi)
+	mqmaker,witi-256m|\
+	mqmaker,witi-512m)
 		partname=factory
 		offset=$((0xe000))
 	;;

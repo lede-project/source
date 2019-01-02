@@ -28,9 +28,9 @@ proto_map_setup() {
 	# uncomment for legacy MAP0 mode
 	#export LEGACY=1
 
-	local type mtu ttl tunlink zone
+	local type mtu ttl tunlink zone encaplimit
 	local rule ipaddr ip4prefixlen ip6prefix ip6prefixlen peeraddr ealen psidlen psid offset
-	json_get_vars type mtu ttl tunlink zone
+	json_get_vars type mtu ttl tunlink zone encaplimit
 	json_get_vars rule ipaddr ip4prefixlen ip6prefix ip6prefixlen peeraddr ealen psidlen psid offset
 
 	[ -z "$zone" ] && zone="wan"
@@ -84,18 +84,23 @@ proto_map_setup() {
 		json_add_string local $(eval "echo \$RULE_${k}_IPV6ADDR")
 		json_add_string remote $(eval "echo \$RULE_${k}_BR")
 		json_add_string link $(eval "echo \$RULE_${k}_PD6IFACE")
-
-		if [ "$type" = "map-e" ]; then
-			json_add_array "fmrs"
+		json_add_object "data"
+			[ -n "$encaplimit" ] && json_add_string encaplimit "$encaplimit"
+			if [ "$type" = "map-e" ]; then
+				json_add_array "fmrs"
 				for i in $(seq $RULE_COUNT); do
 					[ "$(eval "echo \$RULE_${i}_FMR")" != 1 ] && continue
-					fmr="$(eval "echo \$RULE_${i}_IPV6PREFIX")/$(eval "echo \$RULE_${i}_PREFIX6LEN")"
-					fmr="$fmr,$(eval "echo \$RULE_${i}_IPV4PREFIX")/$(eval "echo \$RULE_${i}_PREFIX4LEN")"
-					fmr="$fmr,$(eval "echo \$RULE_${i}_EALEN"),$(eval "echo \$RULE_${i}_OFFSET")"
-					json_add_string "" "$fmr"
+					json_add_object ""
+					json_add_string prefix6 "$(eval "echo \$RULE_${i}_IPV6PREFIX")/$(eval "echo \$RULE_${i}_PREFIX6LEN")"
+					json_add_string prefix4 "$(eval "echo \$RULE_${i}_IPV4PREFIX")/$(eval "echo \$RULE_${i}_PREFIX4LEN")"
+					json_add_int ealen $(eval "echo \$RULE_${i}_EALEN")
+					json_add_int offset $(eval "echo \$RULE_${i}_OFFSET")
+					json_close_object
 				done
-			json_close_array
-		fi
+				json_close_array
+			fi
+		json_close_object
+
 
 		proto_close_tunnel
 	elif [ "$type" = "map-t" -a -f "/proc/net/nat46/control" ]; then
@@ -225,6 +230,7 @@ proto_map_init_config() {
 	proto_config_add_int "mtu"
 	proto_config_add_int "ttl"
 	proto_config_add_string "zone"
+	proto_config_add_string "encaplimit"
 }
 
 [ -n "$INCLUDE_ONLY" ] || {

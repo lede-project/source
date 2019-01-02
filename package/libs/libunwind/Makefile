@@ -20,6 +20,7 @@ PKG_INSTALL:=1
 
 PKG_LICENSE:=X11
 PKG_LICENSE_FILES:=LICENSE
+PKG_CPE_ID:=cpe:/a:libunwind_project:libunwind
 
 PKG_MAINTAINER:=Yousong Zhou <yszhou4tech@gmail.com>
 
@@ -31,7 +32,7 @@ define Package/libunwind
   CATEGORY:=Libraries
   TITLE:=The libunwind project
   URL:=http://www.nongnu.org/libunwind/
-  DEPENDS:=@(mips||mipsel||powerpc||i386||x86_64||arm)
+  DEPENDS:=@(mips||mipsel||powerpc||i386||x86_64||arm||aarch64)
 endef
 
 define Package/libunwind/description

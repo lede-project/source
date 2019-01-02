@@ -9,7 +9,8 @@
 	compatible = "d-link,dsl-2650u", "brcm,bcm6358";
 
 	chosen {
-		bootargs = "root=/dev/mtdblock2 rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		bootargs = "rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		stdout-path = "serial0:115200n8";
 	};
 
 	gpio-leds {
@@ -17,20 +18,20 @@
 
 		stop_green {
 			label = "96358VW2:green:stop";
-			gpios = <&gpio0 4 1>;
+			gpios = <&pinctrl 4 1>;
 		};
 		power_green {
 			label = "96358VW2:green:power";
-			gpios = <&gpio0 5 1>;
+			gpios = <&pinctrl 5 1>;
 			default-state = "on";
 		};
 		adsl_green {
 			label = "96358VW2:green:adsl";
-			gpios = <&gpio0 22 1>;
+			gpios = <&pinctrl 22 1>;
 		};
 		ppp_fail_green {
 			label = "96358VW2:green:ppp-fail";
-			gpios = <&gpio0 23 0>;
+			gpios = <&pinctrl 23 0>;
 		};
 	};
 };
@@ -40,19 +41,30 @@
 
 	linux,part-probe = "bcm63xxpart";
 
-	cfe@0 {
-		label = "CFE";
-		reg = <0x000000 0x010000>;
-		read-only;
-	};
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
 
-	linux@10000 {
-		label = "linux";
-		reg = <0x010000 0x7e0000>;
-	};
+		cfe@0 {
+			label = "CFE";
+			reg = <0x000000 0x010000>;
+			read-only;
+		};
 
-	nvram@7f0000 {
-		label = "nvram";
-		reg = <0x7f0000 0x010000>;
+		linux@10000 {
+			label = "linux";
+			reg = <0x010000 0x7e0000>;
+			compatible = "brcm,bcm963xx-imagetag";
+		};
+
+		nvram@7f0000 {
+			label = "nvram";
+			reg = <0x7f0000 0x010000>;
+		};
 	};
+};
+
+&uart0 {
+	status = "ok";
 };

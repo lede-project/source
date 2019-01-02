@@ -9,7 +9,8 @@
 	compatible = "t-com,spw303v", "brcm,bcm6358";
 
 	chosen {
-		bootargs = "root=/dev/mtdblock2 rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		bootargs = "rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		stdout-path = "serial0:115200n8";
 	};
 
 	gpio-keys-polled {
@@ -21,12 +22,12 @@
 
 		reset {
 			label = "reset";
-			gpios = <&gpio0 11 0>;
+			gpios = <&pinctrl 11 0>;
 			linux,code = <KEY_RESTART>;
 		};
 		ses {
 			label = "ses";
-			gpios = <&gpio1 5 1>;
+			gpios = <&pinctrl 37 1>;
 			linux,code = <KEY_WPS_BUTTON>;
 		};
 	};
@@ -36,28 +37,28 @@
 
 		ses_green {
 			label = "spw303v:green:ses";
-			gpios = <&gpio0 0 1>;
+			gpios = <&pinctrl 0 1>;
 		};
 		power_adsl_red {
 			label = "spw303v:red:power+adsl";
-			gpios = <&gpio0 2 1>;
+			gpios = <&pinctrl 2 1>;
 		};
 		ppp_green {
 			label = "spw303v:green:ppp";
-			gpios = <&gpio0 5 1>;
+			gpios = <&pinctrl 5 1>;
 		};
 		power_adsl_green {
 			label = "spw303v:green:power+adsl";
-			gpios = <&gpio0 22 1>;
+			gpios = <&pinctrl 22 1>;
 			default-state = "on";
 		};
 		voip_green {
 			label = "spw303v:green:voip";
-			gpios = <&gpio0 27 1>;
+			gpios = <&pinctrl 27 1>;
 		};
 		pots_green {
 			label = "spw303v:green:pots";
-			gpios = <&gpio0 31 1>;
+			gpios = <&pinctrl 31 1>;
 		};
 	};
 };
@@ -67,19 +68,30 @@
 
 	linux,part-probe = "bcm63xxpart";
 
-	cfe@0 {
-		label = "CFE";
-		reg = <0x000000 0x010000>;
-		read-only;
-	};
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
 
-	linux@10000 {
-		label = "linux";
-		reg = <0x010000 0x7e0000>;
-	};
+		cfe@0 {
+			label = "CFE";
+			reg = <0x000000 0x010000>;
+			read-only;
+		};
 
-	nvram@7f0000 {
-		label = "nvram";
-		reg = <0x7f0000 0x010000>;
+		linux@10000 {
+			label = "linux";
+			reg = <0x010000 0x7e0000>;
+			compatible = "brcm,bcm963xx-imagetag";
+		};
+
+		nvram@7f0000 {
+			label = "nvram";
+			reg = <0x7f0000 0x010000>;
+		};
 	};
+};
+
+&uart0 {
+	status = "ok";
 };

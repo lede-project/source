@@ -38,57 +38,58 @@ ath10kcal_patch_mac() {
 
 [ -e /lib/firmware/$FIRMWARE ] && exit 0
 
-. /lib/ipq806x.sh
 . /lib/functions.sh
 . /lib/functions/system.sh
 
-board=$(ipq806x_board_name)
+board=$(board_name)
 
 
 case "$FIRMWARE" in
-"ath10k/cal-pci-0000:01:00.0.bin")
+"ath10k/pre-cal-pci-0000:01:00.0.bin")
 	case $board in
-	c2600)
+	linksys,ea8500)
+		hw_mac_addr=$(mtd_get_mac_ascii devinfo hw_mac_addr)
+		ath10kcal_extract "art" 4096 12064
+		;;
+	netgear,d7800 |\
+	netgear,r7500v2 |\
+	netgear,r7800)
+		ath10kcal_extract "art" 4096 12064
+		;;
+	tplink,c2600)
 		ath10kcal_extract "radio" 4096 12064
 # 		ath10kcal_patch_mac $(macaddr_add $(mtd_get_mac_binary default-mac 8) -1)
 		;;
-	d7800 |\
-	r7500v2 |\
-	r7800)
-		ath10kcal_extract "art" 4096 12064
-		;;
-	ea8500)
-		hw_mac_addr=$(mtd_get_mac_ascii devinfo hw_mac_addr)
-		ath10kcal_extract "art" 4096 12064
-		;;
-	nbg6817)
-		ath10kcal_extract "0:ART" 4096 12064
-		;;
-	vr2600v)
+	nec,wg2600hp |\
+	tplink,vr2600v)
 		ath10kcal_extract "ART" 4096 12064
+		;;
+	zyxel,nbg6817)
+		ath10kcal_extract "0:ART" 4096 12064
 		;;
 	esac
 	;;
-"ath10k/cal-pci-0001:01:00.0.bin")
+"ath10k/pre-cal-pci-0001:01:00.0.bin")
 	case $board in
-	c2600)
-		ath10kcal_extract "radio" 20480 12064
-# 		ath10kcal_patch_mac $(macaddr_add $(mtd_get_mac_binary default-mac 8) -2)
-		;;
-	d7800 |\
-	r7500v2 |\
-	r7800)
-		ath10kcal_extract "art" 20480 12064
-		;;
-	ea8500)
+	linksys,ea8500)
 		hw_mac_addr=$(mtd_get_mac_ascii devinfo hw_mac_addr)
 		ath10kcal_extract "art" 20480 12064
 		;;
-	nbg6817)
-		ath10kcal_extract "0:ART" 20480 12064
+	netgear,d7800 |\
+	netgear,r7500v2 |\
+	netgear,r7800)
+		ath10kcal_extract "art" 20480 12064
 		;;
-	vr2600v)
+	tplink,c2600)
+		ath10kcal_extract "radio" 20480 12064
+# 		ath10kcal_patch_mac $(macaddr_add $(mtd_get_mac_binary default-mac 8) -2)
+		;;
+	nec,wg2600hp |\
+	tplink,vr2600v)
 		ath10kcal_extract "ART" 20480 12064
+		;;
+	zyxel,nbg6817)
+		ath10kcal_extract "0:ART" 20480 12064
 		;;
 	esac
 	;;

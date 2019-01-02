@@ -1,46 +1,52 @@
-# Copyright (c) 2014 The Linux Foundation. All rights reserved.
+#
+# Copyright (C) 2012-2015 OpenWrt.org
+# Copyright (C) 2016-2017 LEDE project
+#
+# This is free software, licensed under the GNU General Public License v2.
+# See /LICENSE for more information.
 #
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
-define Image/BuilduImage
-	$(CP) $(KDIR)/zImage$(2) $(KDIR)/zImage-$(1)$(2)
-	cat $(LINUX_DIR)/arch/arm/boot/dts/mt7623-$1.dtb >> $(KDIR)/zImage-$(1)$(2)
-	mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 -n 'MIPS OpenWrt Linux-$(LINUX_VERSION)'  -d $(KDIR)/zImage-$(1)$(2) $(KDIR)/uImage-$(1)$(2)
-endef
+# for arm
+KERNEL_LOADADDR := 0x80008000
 
-define Image/Build/SysupgradeCombined
-	$(call Image/BuilduImage,$1)
-ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
-	$(call Image/BuilduImage,$1,-initramfs)
-	$(CP) $(KDIR)/uImage-$(1)-initramfs $(BIN_DIR)/$(IMG_PREFIX)-uImage-$(1)-initramfs
+# for arm64
+ifeq ($(SUBTARGET),mt7622)
+KERNEL_LOADADDR = 0x41080000
 endif
-	mkdir -p "$(KDIR_TMP)/sysupgrade-$(1)/"
-	echo "BOARD=$(1)" > "$(KDIR_TMP)/sysupgrade-$(1)/CONTROL"
-	$(CP) "$(KDIR)/root.$(2)" "$(KDIR_TMP)/sysupgrade-$(1)/root"
-	$(CP) "$(KDIR)/uImage-$(1)" "$(KDIR_TMP)/sysupgrade-$(1)/kernel"
-	(cd "$(KDIR_TMP)"; $(TAR) cvf \
-		"$(BIN_DIR)/$(IMG_PREFIX)-$(1)-sysupgrade.tar" sysupgrade-$(1) \
-			$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
-	)
-endef
 
-define Image/Build/squashfs
-	$(call prepare_generic_squashfs,$(KDIR)/root.squashfs)
-	$(CP) $(KDIR)/root.squashfs $(BIN_DIR)/$(IMG_PREFIX)-root.squashfs
-
-	$(call Image/Build/SysupgradeCombined,eMMC,squashfs)
-
-	$(call Image/BuilduImage,NAND)
-ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
-	$(call Image/BuilduImage,NAND,-initramfs)
-	$(CP) $(KDIR)/uImage-NAND-initramfs $(BIN_DIR)/$(IMG_PREFIX)-uImage-NAND-initramfs
+# default all platform image(fit) build 
+define Device/Default
+  PROFILES = Default $$(DEVICE_NAME)
+  KERNEL_NAME := zImage
+  FILESYSTEMS := squashfs
+  DEVICE_DTS_DIR := $(DTS_DIR)
+  IMAGES := sysupgrade.bin
+  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata 
+ifeq ($(SUBTARGET),mt7623)
+  KERNEL_NAME := zImage
+  KERNEL := kernel-bin | append-dtb | uImage none
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | uImage none
 endif
-	$(call Image/Build/SysupgradeNAND,NAND,$(1),$(KDIR)/uImage-NAND)
+ifeq ($(SUBTARGET),mt7622)
+  KERNEL_NAME := Image
+  KERNEL = kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  KERNEL_INITRAMFS = kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+endif
 endef
+
+ifeq ($(SUBTARGET),mt7622)
+include mt7622.mk
+endif
+
+ifeq ($(SUBTARGET),mt7623)
+include mt7623.mk
+endif
 
 define Image/Build
 	$(call Image/Build/$(1),$(1))
 endef
 
 $(eval $(call BuildImage))
+

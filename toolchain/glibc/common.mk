@@ -6,29 +6,19 @@
 #
 include $(TOPDIR)/rules.mk
 
-
-HASH_2.24 = 714d26c0daf6a8acf73fc8b6053349880c79f240f96ca57b00ab0ecbbead2b73
-REVISION_2.24 = 8c716c2
-
-
 PKG_NAME:=glibc
-PKG_VERSION:=$(call qstrip,$(CONFIG_GLIBC_VERSION))
-
-PKG_REVISION:=$(REVISION_$(PKG_VERSION))
-PKG_MIRROR_HASH:=$(HASH_$(PKG_VERSION))
+PKG_VERSION:=2.26
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=git://sourceware.org/git/glibc.git
-PKG_SOURCE_VERSION:=$(PKG_REVISION)
-PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_REVISION)
-PKG_SOURCE:=$(PKG_SOURCE_SUBDIR).tar.bz2
-
-GLIBC_PATH:=
-
-PATCH_DIR:=$(PATH_PREFIX)/patches/$(PKG_VERSION)
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_VERSION:=c5c90b480e4f21ed1d28e0e6d942b06b8d9e8bd7
+PKG_MIRROR_HASH:=f8e81f714fb5df5b142c0004d69aba87fc73235cffb86b1b1837e993e910bc13
+PKG_SOURCE_URL:=https://sourceware.org/git/glibc.git
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
 
 HOST_BUILD_DIR:=$(BUILD_DIR_TOOLCHAIN)/$(PKG_SOURCE_SUBDIR)
 CUR_BUILD_DIR:=$(HOST_BUILD_DIR)-$(VARIANT)
+PATCH_DIR:=$(PATH_PREFIX)/patches
 
 include $(INCLUDE_DIR)/toolchain-build.mk
 
@@ -54,6 +44,7 @@ endif
 # only -O2 tested by upstream changeset
 # "Optimize i386 syscall inlining for GCC 5"
 GLIBC_CONFIGURE:= \
+	unset LD_LIBRARY_PATH; \
 	BUILD_CC="$(HOSTCC)" \
 	$(TARGET_CONFIGURE_OPTS) \
 	CFLAGS="-O2 $(filter-out -Os,$(call qstrip,$(TARGET_CFLAGS)))" \
@@ -85,7 +76,7 @@ endef
 
 define Host/Configure
 	[ -f $(HOST_BUILD_DIR)/.autoconf ] || { \
-		cd $(HOST_BUILD_DIR)/$(GLIBC_PATH); \
+		cd $(HOST_BUILD_DIR)/; \
 		autoconf --force && \
 		touch $(HOST_BUILD_DIR)/.autoconf; \
 	}

@@ -2,11 +2,11 @@
 # Copyright (C) 2014-2016 OpenWrt.org
 # Copyright (C) 2016 LEDE-Project.org
 
+. /lib/functions.sh
 . /lib/functions/leds.sh
-. /lib/mvebu.sh
 
 get_status_led() {
-	case $(mvebu_board_name) in
+	case $(board_name) in
 	armada-385-linksys-caiman)
 		status_led="caiman:white:power"
 		;;
@@ -18,6 +18,9 @@ get_status_led() {
 		;;
 	armada-385-linksys-shelby)
 		status_led="shelby:white:power"
+		;;
+	armada-385-linksys-venom)
+		status_led="venom:blue:power"
 		;;
 	armada-xp-linksys-mamba)
 		status_led="mamba:white:power"

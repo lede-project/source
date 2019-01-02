@@ -1,13 +1,11 @@
+RAMFS_COPY_BIN='osafeloader oseama'
+
 PART_NAME=firmware
 
 # $(1): file to read magic from
 # $(2): offset in bytes
 get_magic_long_at() {
 	dd if="$1" skip=$2 bs=1 count=4 2>/dev/null | hexdump -v -e '1/1 "%02x"'
-}
-
-platform_machine() {
-	cat /proc/device-tree/compatible | tr '\0' '\t' | cut -f 1
 }
 
 platform_flash_type() {
@@ -21,7 +19,7 @@ platform_flash_type() {
 }
 
 platform_expected_image() {
-	local machine=$(platform_machine)
+	local machine=$(board_name)
 
 	case "$machine" in
 		"dlink,dir-885l")	echo "seama wrgac42_dlink.2015_dir885l"; return;;
@@ -260,8 +258,6 @@ platform_pre_upgrade_seama() {
 }
 
 platform_pre_upgrade() {
-	export RAMFS_COPY_BIN="${RAMFS_COPY_BIN} /usr/bin/osafeloader /usr/bin/oseama /bin/sed"
-
 	local file_type=$(platform_identify "$1")
 
 	[ "$(platform_flash_type)" != "nand" ] && return
@@ -278,11 +274,11 @@ platform_pre_upgrade() {
 platform_trx_from_chk_cmd() {
 	local header_len=$((0x$(get_magic_long_at "$1" 4)))
 
-	echo -n dd bs=$header_len skip=1
+	echo -n dd skip=$header_len iflag=skip_bytes
 }
 
 platform_trx_from_cybertan_cmd() {
-	echo -n dd bs=32 skip=1
+	echo -n dd skip=32 iflag=skip_bytes
 }
 
 platform_img_from_safeloader() {
@@ -331,7 +327,7 @@ platform_do_upgrade() {
 	case "$file_type" in
 		"chk")		cmd=$(platform_trx_from_chk_cmd "$trx");;
 		"cybertan")	cmd=$(platform_trx_from_cybertan_cmd "$trx");;
-		"safeloader")	trx=$(platform_img_from_safeloader "$trx");;
+		"safeloader")	trx=$(platform_img_from_safeloader "$trx"); PART_NAME=os-image;;
 		"seama")	trx=$(platform_img_from_seama "$trx");;
 	esac
 

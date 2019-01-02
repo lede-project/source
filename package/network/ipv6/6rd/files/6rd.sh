@@ -40,8 +40,8 @@ proto_6rd_setup() {
 
 	# Determine the relay prefix.
 	local ip4prefixlen="${ip4prefixlen:-0}"
-	local ip4prefix=$(ipcalc.sh "$ipaddr/$ip4prefixlen" | grep NETWORK)
-	ip4prefix="${ip4prefix#NETWORK=}"
+	local ip4prefix
+	eval "$(ipcalc.sh "$ipaddr/$ip4prefixlen")";ip4prefix=$NETWORK
 
 	# Determine our IPv6 address.
 	local ip6subnet=$(6rdcalc "$ip6prefix/$ip6prefixlen" "$ipaddr/$ip4prefixlen")
@@ -64,9 +64,13 @@ proto_6rd_setup() {
 	json_add_int ttl "${ttl:-64}"
 	[ -n "$tos" ] && json_add_string tos "$tos"
 	json_add_string local "$ipaddr"
-	json_add_string 6rd-prefix "$ip6prefix/$ip6prefixlen"
-	json_add_string 6rd-relay-prefix "$ip4prefix/$ip4prefixlen"
 	[ -n "$tunlink" ] && json_add_string link "$tunlink"
+
+	json_add_object 'data'
+	json_add_string prefix "$ip6prefix/$ip6prefixlen"
+	json_add_string relay-prefix "$ip4prefix/$ip4prefixlen"
+	json_close_object
+
 	proto_close_tunnel
 
 	proto_add_data

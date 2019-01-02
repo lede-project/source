@@ -128,7 +128,7 @@ static struct ar8327_platform_data tl_wpa8630_qca8337_data = {
 static struct mdio_board_info tl_wpa8630_mdio0_info[] = {
 	{
 		.bus_id = "ag71xx-mdio.0",
-		.phy_addr = 0,
+		.mdio_addr = 0,
 		.platform_data = &tl_wpa8630_qca8337_data,
 	},
 };
@@ -168,5 +168,5 @@ static void __init tl_wpa8630_setup(void)
 					tl_wpa8630_gpio_keys);
 }
 
-MIPS_MACHINE(ATH79_MACH_TL_WPA8630, "TL-WPA8630", "TP-Link TL-WPA8630",
+MIPS_MACHINE(ATH79_MACH_TL_WPA8630, "TL-WPA8630", "TP-LINK TL-WPA8630",
 	tl_wpa8630_setup);

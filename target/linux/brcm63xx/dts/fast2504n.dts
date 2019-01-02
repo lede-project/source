@@ -9,7 +9,8 @@
 	compatible = "sagem,f@st2504n", "brcm,bcm6362";
 
 	chosen {
-		bootargs = "root=/dev/mtdblock2 rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		bootargs = "rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		stdout-path = "serial0:115200n8";
 	};
 
 	gpio-keys-polled {
@@ -21,12 +22,12 @@
 
 		reset {
 			label = "reset";
-			gpios = <&gpio0 24 1>;
+			gpios = <&pinctrl 24 1>;
 			linux,code = <KEY_RESTART>;
 		};
 		wps {
 			label = "wps";
-			gpios = <&gpio0 25 1>;
+			gpios = <&pinctrl 25 1>;
 			linux,code = <KEY_WPS_BUTTON>;
 		};
 	};
@@ -36,28 +37,72 @@
 
 		power_orange {
 			label = "fast2504n:orange:power";
-			gpios = <&gpio0 2 1>;
+			gpios = <&pinctrl 2 1>;
 		};
 		power_green {
 			label = "fast2504n:green:power";
-			gpios = <&gpio0 10 1>;
+			gpios = <&pinctrl 10 1>;
 			default-state = "on";
 		};
 		inet_red {
 			label = "fast2504n:red:internet";
-			gpios = <&gpio0 26 1>;
+			gpios = <&pinctrl 26 1>;
 		};
 		ok_green {
 			label = "fast2504n:green:ok";
-			gpios = <&gpio0 28 1>;
+			gpios = <&pinctrl 28 1>;
 		};
 		ok_orange {
 			label = "fast2504n:orange:ok";
-			gpios = <&gpio0 29 1>;
+			gpios = <&pinctrl 29 1>;
 		};
 		wlan_orangee {
 			label = "fast2504n:orange:wlan";
-			gpios = <&gpio0 30 1>;
+			gpios = <&pinctrl 30 1>;
 		};
 	};
+};
+
+&hsspi {
+	status = "ok";
+
+	flash@0 {
+		compatible = "jedec,spi-nor";
+		spi-max-frequency = <20000000>;
+		spi-tx-bus-width = <2>;
+		spi-rx-bus-width = <2>;
+		reg = <0>;
+
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		linux,part-probe = "bcm63xxpart";
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			cfe@0 {
+				reg = <0x000000 0x010000>;
+				label = "cfe";
+				read-only;
+			};
+
+			linux@10000 {
+				reg = <0x010000 0x7e0000>;
+				label = "linux";
+				compatible = "brcm,bcm963xx-imagetag";
+			};
+
+			nvram@7f0000 {
+				reg = <0x7f0000 0x010000>;
+				label = "nvram";
+			};
+		};
+	};
+};
+
+&uart0 {
+	status = "ok";
 };

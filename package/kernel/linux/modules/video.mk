@@ -56,34 +56,13 @@ $(eval $(call KernelPackage,backlight-pwm))
 
 define KernelPackage/fb
   SUBMENU:=$(VIDEO_MENU)
-  TITLE:=Framebuffer support
+  TITLE:=Framebuffer and framebuffer console support
   DEPENDS:=@DISPLAY_SUPPORT
   KCONFIG:= \
 	CONFIG_FB \
 	CONFIG_FB_MXS=n \
-	CONFIG_FB_SM750=n
-  FILES:=$(LINUX_DIR)/drivers/video/fbdev/core/fb.ko
-  AUTOLOAD:=$(call AutoLoad,06,fb)
-endef
-
-define KernelPackage/fb/description
- Kernel support for framebuffers
-endef
-
-define KernelPackage/fb/x86
-  FILES+=$(LINUX_DIR)/arch/x86/video/fbdev.ko
-  AUTOLOAD+=$(call AutoLoad,06,fbdev fb)
-endef
-
-$(eval $(call KernelPackage,fb))
-
-
-define KernelPackage/fbcon
-  SUBMENU:=$(VIDEO_MENU)
-  TITLE:=Framebuffer Console support
-  DEPENDS:=+kmod-fb
-  KCONFIG:= \
-	CONFIG_FRAMEBUFFER_CONSOLE \
+	CONFIG_FB_SM750=n \
+	CONFIG_FRAMEBUFFER_CONSOLE=y \
 	CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY=y \
 	CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y \
 	CONFIG_FONTS=y \
@@ -102,23 +81,22 @@ define KernelPackage/fbcon
 	CONFIG_CONSOLE_TRANSLATIONS=y \
 	CONFIG_VT_CONSOLE=y \
 	CONFIG_VT_HW_CONSOLE_BINDING=y
-  FILES:= \
-	$(LINUX_DIR)/drivers/video/console/bitblit.ko \
-	$(LINUX_DIR)/drivers/video/console/softcursor.ko \
-	$(LINUX_DIR)/drivers/video/console/fbcon.ko \
-	$(LINUX_DIR)/drivers/video/console/fbcon_rotate.ko \
-	$(LINUX_DIR)/drivers/video/console/fbcon_cw.ko \
-	$(LINUX_DIR)/drivers/video/console/fbcon_ud.ko \
-	$(LINUX_DIR)/drivers/video/console/fbcon_ccw.ko \
+  FILES:=$(LINUX_DIR)/drivers/video/fbdev/core/fb.ko \
 	$(LINUX_DIR)/lib/fonts/font.ko
-  AUTOLOAD:=$(call AutoLoad,94,font softcursor tileblit fbcon_cw fbcon_ud fbcon_ccw fbcon_rotate bitblit fbcon)
+  AUTOLOAD:=$(call AutoLoad,06,fb font)
 endef
 
-define KernelPackage/fbcon/description
-  Kernel support for framebuffer console
+define KernelPackage/fb/description
+ Kernel support for framebuffers and framebuffer console.
 endef
 
-$(eval $(call KernelPackage,fbcon))
+define KernelPackage/fb/x86
+  FILES+=$(LINUX_DIR)/arch/x86/video/fbdev.ko
+  AUTOLOAD:=$(call AutoLoad,06,fbdev fb font)
+endef
+
+$(eval $(call KernelPackage,fb))
+
 
 define KernelPackage/fb-cfb-fillrect
   SUBMENU:=$(VIDEO_MENU)
@@ -186,40 +164,8 @@ define KernelPackage/drm
   SUBMENU:=$(VIDEO_MENU)
   TITLE:=Direct Rendering Manager (DRM) support
   HIDDEN:=1
-  DEPENDS:=+kmod-dma-buf
-  KCONFIG:=CONFIG_DRM \
-	CONFIG_DRM_FBDEV_EMULATION=n \
-	CONFIG_DRM_LOAD_EDID_FIRMWARE=n \
-	CONFIG_DRM_IMX=n \
-	CONFIG_DRM_PTN3460=n \
-	CONFIG_DRM_PS8622=n \
-	CONFIG_DRM_TDFX=n \
-	CONFIG_DRM_R128=n \
-	CONFIG_DRM_RADEON=n \
-	CONFIG_DRM_AMDGPU=n \
-	CONFIG_DRM_NOUVEAU=n \
-	CONFIG_DRM_MGA=n \
-	CONFIG_DRM_VIA=n \
-	CONFIG_DRM_SAVAGE=n \
-	CONFIG_DRM_VGEM=n \
-	CONFIG_DRM_EXYNOS=n \
-	CONFIG_DRM_VMWGFX=n \
-	CONFIG_DRM_UDL=n \
-	CONFIG_DRM_AST=n \
-	CONFIG_DRM_MGAG200=n \
-	CONFIG_DRM_CIRRUS_QEMU=n \
-	CONFIG_DRM_ARMADA=n \
-	CONFIG_DRM_TILCDC=n \
-	CONFIG_DRM_QXL=n \
-	CONFIG_DRM_BOCHS=n \
-	CONFIG_DRM_FSL_DCU=n \
-	CONFIG_DRM_STI=n \
-	CONFIG_DRM_NXP_PTN3460=n \
-	CONFIG_DRM_PARADE_PS8622=n \
-	CONFIG_DRM_I2C_ADV7511=n \
-	CONFIG_DRM_I2C_CH7006=n \
-	CONFIG_DRM_I2C_SIL164=n \
-	CONFIG_DRM_I2C_NXP_TDA998X=n
+  DEPENDS:=+kmod-dma-buf +kmod-i2c-core
+  KCONFIG:=CONFIG_DRM
   FILES:=$(LINUX_DIR)/drivers/gpu/drm/drm.ko
   AUTOLOAD:=$(call AutoLoad,05,drm)
 endef
@@ -236,6 +182,7 @@ define KernelPackage/drm-imx
   DEPENDS:=@TARGET_imx6 +kmod-drm +kmod-fb +kmod-fb-cfb-copyarea +kmod-fb-cfb-imgblt +kmod-fb-cfb-fillrect +kmod-fb-sys-fops
   KCONFIG:=CONFIG_DRM_IMX \
 	CONFIG_DRM_FBDEV_EMULATION=y \
+	CONFIG_DRM_FBDEV_OVERALLOC=100 \
 	CONFIG_IMX_IPUV3_CORE \
 	CONFIG_RESET_CONTROLLER=y \
 	CONFIG_DRM_IMX_IPUV3 \
@@ -255,7 +202,6 @@ define KernelPackage/drm-imx
   FILES:= \
 	$(LINUX_DIR)/drivers/gpu/drm/imx/imxdrm.ko \
 	$(LINUX_DIR)/drivers/gpu/ipu-v3/imx-ipu-v3.ko \
-	$(LINUX_DIR)/drivers/gpu/drm/imx/imx-ipuv3-crtc.ko \
 	$(LINUX_DIR)/drivers/video/fbdev/core/syscopyarea.ko \
 	$(LINUX_DIR)/drivers/video/fbdev/core/sysfillrect.ko \
 	$(LINUX_DIR)/drivers/video/fbdev/core/sysimgblt.ko \
@@ -274,12 +220,13 @@ define KernelPackage/drm-imx-hdmi
   TITLE:=Freescale i.MX HDMI DRM support
   DEPENDS:=+kmod-sound-core kmod-drm-imx
   KCONFIG:=CONFIG_DRM_IMX_HDMI \
-	CONFIG_DRM_DW_HDMI_AHB_AUDIO
+	CONFIG_DRM_DW_HDMI_AHB_AUDIO \
+	CONFIG_DRM_DW_HDMI_I2S_AUDIO
   FILES:= \
-	$(LINUX_DIR)/drivers/gpu/drm/bridge/dw_hdmi.ko \
-	$(LINUX_DIR)/drivers/gpu/drm/bridge/dw_hdmi-ahb-audio.ko \
+	$(LINUX_DIR)/drivers/gpu/drm/bridge/synopsys/dw-hdmi.ko \
+	$(LINUX_DIR)/drivers/gpu/drm/bridge/synopsys/dw-hdmi-ahb-audio.ko \
 	$(LINUX_DIR)/drivers/gpu/drm/imx/dw_hdmi-imx.ko
-  AUTOLOAD:=$(call AutoLoad,05,dw_hdmi dw_hdmi-ahb-audio.ko dw_hdmi-imx)
+  AUTOLOAD:=$(call AutoLoad,05,dw-hdmi dw-hdmi-ahb-audio.ko dw_hdmi-imx)
 endef
 
 define KernelPackage/drm-imx-hdmi/description
@@ -299,7 +246,9 @@ define KernelPackage/drm-imx-ldb
 	CONFIG_DRM_PANEL_SAMSUNG_S6E8AA0=n \
 	CONFIG_DRM_PANEL_LG_LG4573=n \
 	CONFIG_DRM_PANEL_LD9040=n \
-	CONFIG_DRM_PANEL_S6E8AA0=n
+	CONFIG_DRM_PANEL_LVDS=n \
+	CONFIG_DRM_PANEL_S6E8AA0=n \
+	CONFIG_DRM_PANEL_SITRONIX_ST7789V=n
   FILES:=$(LINUX_DIR)/drivers/gpu/drm/imx/imx-ldb.ko \
 	$(LINUX_DIR)/drivers/gpu/drm/panel/panel-simple.ko
   AUTOLOAD:=$(call AutoLoad,05,imx-ldb)

@@ -9,16 +9,16 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=strace
-
-PKG_VERSION:=4.16
+PKG_VERSION:=4.22
 PKG_RELEASE:=1
-PKG_HASH:=98487cb5178ec1259986cc9f6e2a844f50e5d1208c112cc22431a1e4d9adf0ef
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=@SF/$(PKG_NAME)
+PKG_SOURCE_URL:=https://strace.io/files/$(PKG_VERSION)
+PKG_HASH:=068cd09264c95e4d591bbcd3ea08f99a693ed8663cd5169b0fdad72eb5bdb39d
 
 PKG_LICENSE:=BSD-3c
 PKG_LICENSE_FILES:=COPYRIGHT
+PKG_CPE_ID:=cpe:/a:paul_kranenburg:strace
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
@@ -29,6 +29,10 @@ PKG_INSTALL:=1
 include $(INCLUDE_DIR)/package.mk
 
 HOST_CFLAGS += -I$(LINUX_DIR)/user_headers/include
+
+ifeq ($(ARCH),aarch64)
+  CONFIGURE_ARGS += --enable-mpers=check
+endif
 
 CONFIGURE_VARS+= \
 	LDFLAGS_FOR_BUILD="$(HOST_LDFLAGS)" \

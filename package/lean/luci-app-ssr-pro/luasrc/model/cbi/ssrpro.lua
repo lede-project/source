@@ -74,8 +74,10 @@ safe_dns_tcp.rmempty = false
 
 s:tab("main",  translate("Server Setting"))
 
-moreopt = s:taboption("main",Flag, "more", translate("Using SS instead of SSR"),translate("Using incorrect encryption mothod may causes service fail to start"))
-moreopt.rmempty = false
+more = s:taboption("main",ListValue, "more", translate("Tool Select"))
+more:value("0", translate("ShadowsockR"))
+more:value("1", translate("Shadowsocks New Vesion"))
+more.description = translate("Using incorrect encryption mothod may causes service fail to start")
 
 server = s:taboption("main",Value, "server", translate("Server Address"))
 server.optional = false

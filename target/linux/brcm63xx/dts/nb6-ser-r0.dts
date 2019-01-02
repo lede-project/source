@@ -9,7 +9,8 @@
 	compatible = "sfr,nb6-ser-r0", "brcm,bcm6362";
 
 	chosen {
-		bootargs = "root=/dev/mtdblock2 rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		bootargs = "rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		stdout-path = "serial0:115200n8";
 	};
 
 	gpio-keys-polled {
@@ -21,31 +22,75 @@
 
 		service {
 			label = "service";
-			gpios = <&gpio0 10 1>;
+			gpios = <&pinctrl 10 1>;
 			linux,code = <BTN_0>;
 		};
 		wlan {
 			label = "wlan";
-			gpios = <&gpio0 12 1>;
+			gpios = <&pinctrl 12 1>;
 			linux,code = <KEY_WLAN>;
 		};
 		reset {
 			label = "reset";
-			gpios = <&gpio0 24 1>;
+			gpios = <&pinctrl 24 1>;
 			linux,code = <KEY_RESTART>;
 		};
 		wps {
 			label = "wps";
-			gpios = <&gpio0 25 1>;
+			gpios = <&pinctrl 25 1>;
 			linux,code = <KEY_WPS_BUTTON>;
 		};
 	};
 
 	switch {
 		compatible = "realtek,rtl8367";
-		gpio-sda = <&gpio0 18 0>;
-		gpio-sck = <&gpio0 20 0>;
+		gpio-sda = <&pinctrl 18 0>;
+		gpio-sck = <&pinctrl 20 0>;
 
 		realtek,extif0 = <1 5 1 1 1 1 1 1 2>;
 	};
+};
+
+&hsspi {
+	status = "ok";
+
+	flash@0 {
+		compatible = "jedec,spi-nor";
+		spi-max-frequency = <20000000>;
+		spi-tx-bus-width = <2>;
+		spi-rx-bus-width = <2>;
+		reg = <0>;
+
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		linux,part-probe = "bcm63xxpart";
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			cfe@0 {
+				reg = <0x000000 0x010000>;
+				label = "cfe";
+				read-only;
+			};
+
+			linux@10000 {
+				reg = <0x010000 0xfe0000>;
+				label = "linux";
+				compatible = "brcm,bcm963xx-imagetag";
+			};
+
+			nvram@ff0000 {
+				reg = <0xff0000 0x010000>;
+				label = "nvram";
+			};
+		};
+	};
+};
+
+&uart0 {
+	status = "ok";
 };

@@ -4,6 +4,7 @@
  * Author: Steven Barth <cyrus@openwrt.org>
  * Copyright (c) 2014-2015 cisco Systems, Inc.
  * Copyright (c) 2015 Steven Barth <cyrus@openwrt.org>
+ * Copyright (c) 2018 Hans Dedecker <dedeckeh@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2
@@ -118,7 +119,7 @@ static void match_prefix(int *pdlen, struct in6_addr *pd, struct blob_attr *cur,
 	struct blob_attr *d;
 	unsigned drem;
 
-	if (!cur || blobmsg_type(cur) != BLOBMSG_TYPE_ARRAY || !blobmsg_check_attr(cur, NULL))
+	if (!cur || blobmsg_type(cur) != BLOBMSG_TYPE_ARRAY || !blobmsg_check_attr(cur, false))
 		return;
 
 	blobmsg_for_each_attr(d, cur, drem) {
@@ -311,25 +312,30 @@ int main(int argc, char *argv[])
 
 		if (psidlen <= 0) {
 			psidlen = ealen - (32 - prefix4len);
+			if (psidlen < 0)
+				psidlen = 0;
+
 			psid = -1;
 		}
 
-		if (psid < 0 && psidlen <= 16 && psidlen >= 0 && pdlen >= 0 && ealen >= psidlen) {
-			bmemcpys64(&psid16, &pd, prefix6len + ealen - psidlen, psidlen);
-			psid = be16_to_cpu(psid16);
-		}
-
-		psid = psid >> (16 - psidlen);
-		psid16 = cpu_to_be16(psid);
-		psid = psid << (16 - psidlen);
-
-		if (prefix4len < 0 || prefix6len < 0 || ealen < 0 || ealen < psidlen) {
+		if (prefix4len < 0 || prefix6len < 0 || ealen < 0 || psidlen > 16 || ealen < psidlen) {
 			fprintf(stderr, "Skipping invalid or incomplete rule: %s\n", argv[i]);
 			status = 1;
 			continue;
 		}
 
-		if ((pdlen >= 0 || ealen == psidlen) && ealen >= psidlen) {
+		if (psid < 0 && psidlen >= 0 && pdlen >= 0) {
+			bmemcpys64(&psid16, &pd, prefix6len + ealen - psidlen, psidlen);
+			psid = be16_to_cpu(psid16);
+		}
+
+		if (psidlen > 0) {
+			psid = psid >> (16 - psidlen);
+			psid16 = cpu_to_be16(psid);
+			psid = psid << (16 - psidlen);
+		}
+
+		if (pdlen >= 0 || ealen == psidlen) {
 			bmemcpys64(&ipv4addr, &pd, prefix6len, ealen - psidlen);
 			ipv4addr.s_addr = htonl(ntohl(ipv4addr.s_addr) >> prefix4len);
 			bmemcpy(&ipv4addr, &ipv4prefix, prefix4len);

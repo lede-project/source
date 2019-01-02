@@ -1,42 +1,44 @@
 #!/bin/sh
 
+. /lib/functions.sh
 . /lib/functions/leds.sh
-. /lib/apm821xx.sh
 
-get_status_led() {
-	local board=$(apm821xx_board_name)
-
-	case $board in
-	mbl|\
-	mr24|\
-	mx60|\
-	wndr4700)
-		status_led="$board:green:power"
-		;;
-
-	*)
-		;;
-	esac
-}
+boot="$(get_dt_led boot)"
+failsafe="$(get_dt_led failsafe)"
+running="$(get_dt_led running)"
+upgrade="$(get_dt_led upgrade)"
 
 set_state() {
-	get_status_led
+	status_led="$boot"
 
 	case "$1" in
-	preinit)
-		status_led_blink_preinit
-		;;
-
-	failsafe)
-		status_led_blink_failsafe
-		;;
-
 	preinit_regular)
 		status_led_blink_preinit_regular
 		;;
-
+	preinit)
+		status_led_blink_preinit
+		;;
+	failsafe)
+		status_led_off
+		[ -n "$running" ] && {
+			status_led="$running"
+			status_led_off
+		}
+		status_led="$failsafe"
+		status_led_blink_failsafe
+		;;
+	upgrade)
+		[ -n "$running" ] && {
+			status_led="$upgrade"
+			status_led_blink_preinit_regular
+		}
+		;;
 	done)
-		status_led_on
+		status_led_off
+		[ -n "$running" ] && {
+			status_led="$running"
+			status_led_on
+		}
 		;;
 	esac
 }

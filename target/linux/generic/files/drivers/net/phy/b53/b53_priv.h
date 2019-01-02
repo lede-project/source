@@ -170,6 +170,14 @@ static inline int is_cpu_port(struct b53_device *dev, int port)
 	return dev->sw_dev.cpu_port == port;
 }
 
+static inline int is_imp_port(struct b53_device *dev, int port)
+{
+	if (is5325(dev) || is5365(dev))
+		return port == B53_CPU_PORT_25;
+	else
+		return port == B53_CPU_PORT;
+}
+
 static inline struct b53_device *sw_to_b53(struct switch_dev *sw)
 {
 	return container_of(sw, struct b53_device, sw_dev);
@@ -302,16 +310,16 @@ static inline int b53_write64(struct b53_device *dev, u8 page, u8 reg,
 }
 
 #ifdef CONFIG_BCM47XX
+#include <bcm47xx_board.h>
+#endif
 
 #include <linux/version.h>
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
 #include <linux/bcm47xx_nvram.h>
-#else
-#include <bcm47xx_nvram.h>
 #endif
-#include <bcm47xx_board.h>
 static inline int b53_switch_get_reset_gpio(struct b53_device *dev)
 {
+#ifdef CONFIG_BCM47XX
 	enum bcm47xx_board board = bcm47xx_board_get();
 
 	switch (board) {
@@ -319,13 +327,15 @@ static inline int b53_switch_get_reset_gpio(struct b53_device *dev)
 	case BCM47XX_BOARD_LINKSYS_WRT310NV1:
 		return 8;
 	default:
-		return bcm47xx_nvram_gpio_pin("robo_reset");
+		break;
 	}
-}
-#else
-static inline int b53_switch_get_reset_gpio(struct b53_device *dev)
-{
-	return -ENOENT;
-}
 #endif
+
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
+	return bcm47xx_nvram_gpio_pin("robo_reset");
+#else
+	return -ENOENT;
+#endif
+}
+
 #endif

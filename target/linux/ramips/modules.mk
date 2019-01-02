@@ -7,29 +7,29 @@
 
 OTHER_MENU:=Other modules
 
-define KernelPackage/pwm-mediatek
+define KernelPackage/pwm-mediatek-ramips
   SUBMENU:=Other modules
   TITLE:=MT7628 PWM
-  DEPENDS:=@(TARGET_ramips_mt7628||TARGET_ramips_mt7688)
+  DEPENDS:=@(TARGET_ramips_mt76x8)
   KCONFIG:= \
 	CONFIG_PWM=y \
-	CONFIG_PWM_MEDIATEK \
+	CONFIG_PWM_MEDIATEK_RAMIPS \
 	CONFIG_PWM_SYSFS=y
   FILES:= \
-	$(LINUX_DIR)/drivers/pwm/pwm-mediatek.ko
-  AUTOLOAD:=$(call AutoProbe,pwm-mediatek)
+	$(LINUX_DIR)/drivers/pwm/pwm-mediatek-ramips.ko
+  AUTOLOAD:=$(call AutoProbe,pwm-mediatek-ramips)
 endef
 
 define KernelPackage/pwm-mediatek/description
   Kernel modules for MediaTek Pulse Width Modulator
 endef
 
-$(eval $(call KernelPackage,pwm-mediatek))
+$(eval $(call KernelPackage,pwm-mediatek-ramips))
 
 define KernelPackage/sdhci-mt7620
   SUBMENU:=Other modules
   TITLE:=MT7620 SDCI
-  DEPENDS:=@(TARGET_ramips_mt7620||TARGET_ramips_mt7628||TARGET_ramips_mt7621||TARGET_ramips_mt7688) +kmod-sdhci
+  DEPENDS:=@(TARGET_ramips_mt7620||TARGET_ramips_mt76x8||TARGET_ramips_mt7621) +kmod-mmc
   KCONFIG:= \
 	CONFIG_MTK_MMC \
 	CONFIG_MTK_AEE_KDUMP=n \
@@ -48,7 +48,7 @@ define KernelPackage/i2c-ralink
   $(call i2c_defaults,$(I2C_RALINK_MODULES),59)
   TITLE:=Ralink I2C Controller
   DEPENDS:=kmod-i2c-core @TARGET_ramips \
-	@!(TARGET_ramips_mt7621||TARGET_ramips_mt7628||TARGET_ramips_mt7688)
+	@!(TARGET_ramips_mt7621||TARGET_ramips_mt76x8)
 endef
 
 define KernelPackage/i2c-ralink/description
@@ -65,7 +65,7 @@ define KernelPackage/i2c-mt7628
   $(call i2c_defaults,$(I2C_MT7621_MODULES),59)
   TITLE:=MT7628/88 I2C Controller
   DEPENDS:=kmod-i2c-core \
-	@(TARGET_ramips_mt7628||TARGET_ramips_mt7688)
+	@(TARGET_ramips_mt76x8)
 endef
 
 define KernelPackage/i2c-mt7628/description
@@ -120,10 +120,12 @@ define KernelPackage/sound-mt7620
   KCONFIG:= \
 	CONFIG_SND_RALINK_SOC_I2S \
 	CONFIG_SND_SIMPLE_CARD \
+	CONFIG_SND_SIMPLE_CARD_UTILS \
 	CONFIG_SND_SOC_WM8960
   FILES:= \
 	$(LINUX_DIR)/sound/soc/ralink/snd-soc-ralink-i2s.ko \
 	$(LINUX_DIR)/sound/soc/generic/snd-soc-simple-card.ko \
+	$(LINUX_DIR)/sound/soc/generic/snd-soc-simple-card-utils.ko \
 	$(LINUX_DIR)/sound/soc/codecs/snd-soc-wm8960.ko
   AUTOLOAD:=$(call AutoLoad,90,snd-soc-wm8960 snd-soc-ralink-i2s snd-soc-simple-card)
   $(call AddDepends/sound)

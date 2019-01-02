@@ -9,7 +9,8 @@
 	compatible = "netgear,evg2000", "brcm,bcm6368";
 
 	chosen {
-		bootargs = "root=/dev/mtdblock2 rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		bootargs = "rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		stdout-path = "serial0:115200n8";
 	};
 
 	gpio-keys-polled {
@@ -21,12 +22,12 @@
 
 		reset {
 			label = "reset";
-			gpios = <&gpio0 25 1>;
+			gpios = <&pinctrl 25 1>;
 			linux,code = <KEY_RESTART>;
 		};
 		wps {
 			label = "wps";
-			gpios = <&gpio0 26 1>;
+			gpios = <&pinctrl 26 1>;
 			linux,code = <KEY_WPS_BUTTON>;
 		};
 	};
@@ -36,44 +37,44 @@
 
 		voip1_green {
 			label = "EVG2000:green:voip1";
-			gpios = <&gpio0 14 1>;
+			gpios = <&pinctrl 14 1>;
 		};
 		voip2_green {
 			label = "EVG2000:green:voip2";
-			gpios = <&gpio0 2 1>;
+			gpios = <&pinctrl 2 1>;
 		};
 		inet_red {
 			label = "EVG2000:red:inet";
-			gpios = <&gpio0 4 1>;
+			gpios = <&pinctrl 4 1>;
 		};
 		inet_green {
 			label = "EVG2000:green:inet";
-			gpios = <&gpio0 5 1>;
+			gpios = <&pinctrl 5 1>;
 		};
 		usb_green {
 			label = "EVG2000:green:usb";
-			gpios = <&gpio0 15 1>;
+			gpios = <&pinctrl 15 1>;
 		};
 		power_green {
 			label = "EVG2000:green:power";
-			gpios = <&gpio0 22 1>;
+			gpios = <&pinctrl 22 1>;
 			default-state = "on";
 		};
 		power_red {
 			label = "EVG2000:red:power";
-			gpios = <&gpio0 23 1>;
+			gpios = <&pinctrl 23 1>;
 		};
 		lan_green {
 			label = "EVG2000:green:lan";
-			gpios = <&gpio0 24 1>;
+			gpios = <&pinctrl 24 1>;
 		};
 		wireless_green {
 			label = "EVG2000:green:wireless";
-			gpios = <&gpio0 26 1>;
+			gpios = <&pinctrl 26 1>;
 		};
 		wan_green {
 			label = "EVG2000:green:wan";
-			gpios = <&gpio0 27 1>;
+			gpios = <&pinctrl 27 1>;
 		};
 	};
 };
@@ -83,25 +84,41 @@
 
 	linux,part-probe = "bcm63xxpart";
 
-	cfe@0 {
-		label = "CFE";
-		reg = <0x00000000 0x00020000>;
-		read-only;
-	};
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
 
-	linux@20000 {
-		label = "linux";
-		reg = <0x00020000 0x00f40000>;
-	};
+		cfe@0 {
+			label = "CFE";
+			reg = <0x00000000 0x00020000>;
+			read-only;
+		};
 
-	board_data@f60000 {
-		label = "board_data";
-		reg = <0x00f60000 0x00080000>;
-		read-only;
-	};
+		linux@20000 {
+			label = "linux";
+			reg = <0x00020000 0x00f40000>;
+			compatible = "brcm,bcm963xx-imagetag";
+		};
 
-	nvram@fe0000 {
-		label = "nvram";
-		reg = <0x00fe0000 0x00020000>;
+		board_data@f60000 {
+			label = "board_data";
+			reg = <0x00f60000 0x00080000>;
+			read-only;
+		};
+
+		nvram@fe0000 {
+			label = "nvram";
+			reg = <0x00fe0000 0x00020000>;
+		};
 	};
+};
+
+&pinctrl {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pci>;
+};
+
+&uart0 {
+	status = "ok";
 };

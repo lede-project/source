@@ -18,6 +18,12 @@ brcm63xx_dt_detect() {
 	"ADB P.DG A4001N1")
 		board_name="a4001n1"
 		;;
+	"ADB P.DG AV4202N")
+		board_name="av4202n"
+		;;
+	"Actiontec R1000H")
+		board_name="r1000h"
+		;;
 	"Alcatel RG100A")
 		board_name="rg100a"
 		;;
@@ -80,6 +86,9 @@ brcm63xx_dt_detect() {
 		;;
 	"BT Voyager V2500V")
 		board_name="v2500v_bb"
+		;;
+	"Comtrend AR-5315u")
+		board_name="ar-5315u"
 		;;
 	"Comtrend AR-5381u")
 		board_name="ar-5381u"
@@ -219,6 +228,9 @@ brcm63xx_dt_detect() {
 	"Sagem F@ST2704V2")
 		board_name="fast2704v2"
 		;;
+	"Sercomm AD1018 (SPI flash mod)")
+		board_name="ad1018-nor"
+		;;
 	"SFR Neuf Box 4"*)
 		board_name="neufbox4"
 		;;
@@ -237,7 +249,7 @@ brcm63xx_dt_detect() {
 	"TECOM GW6200")
 		board_name="g6200"
 		;;
-	"Telsey CVPA502+")
+	"Telsey CPVA502+")
 		board_name="cpva502p"
 		;;
 	"Telsey CPVA642-type (CPA-ZNTE60T)")
@@ -292,13 +304,4 @@ brcm63xx_detect() {
 
 	echo "$board_name" > /tmp/sysinfo/board_name
 	echo "$model" > /tmp/sysinfo/model
-}
-
-brcm63xx_board_name() {
-	local name
-
-	[ -f /tmp/sysinfo/board_name ] && name=$(cat /tmp/sysinfo/board_name)
-	[ -n "$name" ] || name="unknown"
-
-	echo $name
 }

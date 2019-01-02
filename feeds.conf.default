@@ -1,4 +1,4 @@
-src-git packages https://git.lede-project.org/feed/packages.git;lede-17.01
-src-git luci https://git.lede-project.org/project/luci.git;lede-17.01
-src-git routing https://git.lede-project.org/feed/routing.git;lede-17.01
-src-git telephony https://git.lede-project.org/feed/telephony.git;lede-17.01
+src-git luci https://github.com/coolsnowwolf/luci
+src-git packages https://github.com/coolsnowwolf/packages
+src-git routing https://git.openwrt.org/feed/routing.git;openwrt-18.06
+#src-git telephony https://git.openwrt.org/feed/telephony.git;openwrt-18.06

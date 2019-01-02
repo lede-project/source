@@ -1,11 +1,12 @@
 /dts-v1/;
 
 #include "mt7620a.dtsi"
-#include <dt-bindings/input/input.h>
+
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
 
 / {
-	compatible = "ralink,mt7620a-soc";
+	compatible = "tplink,mr200", "ralink,mt7620a-soc";
 	model = "TP-Link Archer MR200";
 
 	chosen {
@@ -91,7 +92,7 @@
 		power_usb {
 			gpio-export,name = "power_usb1";
 			gpio-export,output = <1>;
-			gpios = <&gpio0 11 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
 		};
 	};
 

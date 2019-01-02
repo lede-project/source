@@ -9,7 +9,8 @@
 	compatible = "brcm,bcm96318ref_p300", "brcm,bcm6318";
 
 	chosen {
-		bootargs = "root=/dev/mtdblock2 rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		bootargs = "rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		stdout-path = "serial0:115200n8";
 	};
 
 	gpio-keys-polled {
@@ -21,13 +22,13 @@
 
 		wps {
 			label = "wps";
-			gpios = <&gpio1 1 1>;
+			gpios = <&pinctrl 33 1>;
 			linux,code = <KEY_WPS_BUTTON>;
 		};
 
 		reset {
 			label = "reset";
-			gpios = <&gpio1 2 1>;
+			gpios = <&pinctrl 34 1>;
 			linux,code = <KEY_RESTART>;
 		};
         };
@@ -37,23 +38,53 @@
 
 		inet {
 			label = "96318REF_P300:green:inet";
-			gpios = <&gpio0 8 1>;
+			gpios = <&pinctrl 8 1>;
 		};
 
 		inet_fail {
 			label = "96318REF_P300:red:inet-fail";
-			gpios = <&gpio0 9 1>;
+			gpios = <&pinctrl 9 1>;
 		};
 
 		post_failed {
 			label = "96318REF_P300:red:post-failed";
-			gpios = <&gpio0 11 1>;
+			gpios = <&pinctrl 11 1>;
 		};
 
 		usb_pwron {
 			label = "96318REF_P300::usb-pwron";
-			gpios = <&gpio0 13 1>;
+			gpios = <&pinctrl 13 1>;
 			default-state = "on";
 		};
 	};
+};
+
+&hsspi {
+	status = "ok";
+
+	flash@0 {
+		compatible = "jedec,spi-nor";
+		spi-max-frequency = <62500000>;
+		spi-tx-bus-width = <2>;
+		spi-rx-bus-width = <2>;
+		reg = <0>;
+
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		linux,part-probe = "bcm63xxpart";
+
+		partitions {
+			compatible = "brcm,bcm963xx-cfe-nor-partitions";
+		};
+	};
+};
+
+&pinctrl {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usb_pwron>;
+};
+
+&uart0 {
+	status = "ok";
 };

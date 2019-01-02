@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lldpd
-PKG_VERSION:=0.9.7
+PKG_VERSION:=1.0.1
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://media.luffy.cx/files/lldpd
-PKG_HASH:=b9360355c30a3c06fd5c0a6e658f2ad8bf77037d5a17c6fcabf20e62882e0db8
+PKG_HASH:=450b622aac7ae1758f1ef82f3b7b94ec47f2ff33abfb0e6ac82555b9ee55f151
 
 PKG_MAINTAINER:=Stijn Tintel <stijn@linux-ipv6.be>
 PKG_LICENSE:=ISC
@@ -86,6 +86,10 @@ endef
 define Package/lldpd/conffiles
 /etc/config/lldpd
 endef
+
+CONFIGURE_VARS += \
+	$(if $(CONFIG_USE_GLIBC),,libbsd_CFLAGS=-ldo-not-link-bsd) \
+	$(if $(CONFIG_USE_GLIBC),,libbsd_LDFLAGS=-ldo-not-link-bsd)
 
 CONFIGURE_ARGS += \
 	$(if $(CONFIG_LLDPD_WITH_PRIVSEP), \

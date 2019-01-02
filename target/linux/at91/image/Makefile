@@ -7,88 +7,118 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
-UBIFS_OPTS = -F -m 2048 -e 126KiB -c 2048 -U
-UBI_OPTS = -m 2048 -p 128KiB -s 512
+KERNEL_LOADADDR := 0x20008000
 
-AT91SAMA5D3XPLAINED_UBIFS_OPTS = -m 2048 -e 124KiB -c 2048
-AT91SAMA5D3XPLAINED_UBI_OPTS = -m 2048 -p 128KiB -s 2048
-
-define Image/Prepare
-	cp $(LINUX_DIR)/arch/arm/boot/Image $(KDIR)/Image
-	cp $(LINUX_DIR)/arch/arm/boot/zImage $(KDIR)/zImage
+define Build/at91-install-zImage
+    $(CP) $(KDIR)/zImage $@
 endef
 
-define MkuImageDtb
-	cat $(KDIR)/zImage $(DTS_DIR)/$(2).dtb > $(KDIR)/zImage-$(1)
-	mkimage -A arm -T kernel -C none -a 0x20008000 -e 0x20008000 \
-		-n "OpenWrt ARM $(LINUX_VERSION)" \
-		-d $(KDIR)/zImage-$(1) $(BIN_DIR)/$(IMG_PREFIX)-$(1)-uImage
+ifeq ($(SUBTARGET),legacy)
+include ./legacy.mk
+endif
+ifeq ($(SUBTARGET),sama5d2)
+include ./sama5d2.mk
+endif
+ifeq ($(SUBTARGET),sama5d3)
+include ./sama5d3.mk
+endif
+ifeq ($(SUBTARGET),sama5d4)
+include ./sama5d4.mk
+endif
+
+AT91_SD_BOOT_PARTSIZE:=64
+FAT32_BLOCK_SIZE:=1024
+FAT32_BLOCKS:=$(shell echo \
+  $$(($(AT91_SD_BOOT_PARTSIZE)*1024*1024/$(FAT32_BLOCK_SIZE))))
+
+define Device/Default
+  $(Device/default-nand)
+  PROFILES := Default
+  FILESYSTEMS := squashfs ubifs ext4
+  DEVICE_DTS := $(1)
+  KERNEL_NAME := zImage
+  KERNEL_SIZE := 4096k
+  KERNEL := kernel-bin | append-dtb | lzma | uImage lzma
+  DTB_SIZE := 128k
 endef
 
-define MkOftree
-	cp -u $(KDIR)/zImage $(BIN_DIR)/$(IMG_PREFIX)-zImage
-	cp $(DTS_DIR)/$(2).dtb $(BIN_DIR)/$(IMG_PREFIX)-$(1)-oftree.dtb
+define Device/dtb
+  KERNEL := kernel-bin | lzma | uImage lzma
 endef
 
-# Atmel
-Image/Build/Kernel/AT91SAM9263EK=$(call MkuImageDtb,9263ek,at91sam9263ek)
-Image/Build/Kernel/AT91SAM9G15EK=$(call MkuImageDtb,9g15ek,at91sam9g15ek)
-Image/Build/Kernel/AT91SAM9G20EK=$(call MkOftree,9g20ek,at91sam9g20ek)
-Image/Build/Kernel/AT91SAM9G20EK-2MMC=$(call MkOftree,9g20ek_2mmc,at91sam9g20ek_2mmc)
-Image/Build/Kernel/AT91SAM9G25EK=$(call MkuImageDtb,9g25ek,at91sam9g25ek)
-Image/Build/Kernel/AT91SAM9G35EK=$(call MkuImageDtb,9g35ek,at91sam9g35ek)
-Image/Build/Kernel/AT91SAM9M10G45EK=$(call MkuImageDtb,9m10g45ek,at91sam9m10g45ek)
-Image/Build/Kernel/AT91SAM9X25EK=$(call MkuImageDtb,9x25ek,at91sam9x25ek)
-Image/Build/Kernel/AT91SAM9X35EK=$(call MkuImageDtb,9x35ek,at91sam9x35ek)
-Image/Build/Kernel/AT91SAMA5D3XPLAINED=$(call MkuImageDtb,sama5,at91-sama5d3_xplained)
-# CalAmp
-Image/Build/Kernel/LMU5000=$(call MkuImageDtb,lmu5000,lmu5000)
-# Calao
-Image/Build/Kernel/TNYA9260=$(call MkuImageDtb,tny_a9260,tny_a9260)
-Image/Build/Kernel/TNYA9263=$(call MkuImageDtb,tny_a9263,tny_a9263)
-Image/Build/Kernel/TNYA9G20=$(call MkuImageDtb,tny_a9g20,tny_a9g20)
-Image/Build/Kernel/USBA9260=$(call MkuImageDtb,usb_a9260,usb_a9260)
-Image/Build/Kernel/USBA9263=$(call MkuImageDtb,usb_a9263,usb_a9263)
-Image/Build/Kernel/USBA9G20=$(call MkuImageDtb,usb_a9g20,usb_a9g20)
-# Ethernut
-Image/Build/Kernel/ETHERNUT5=$(call MkuImageDtb,ethernut5,ethernut5)
-# Exegin
-Image/Build/Kernel/Q5XR5=$(call MkOftree,q5xr5,at91-q5xr5)
+define Build/at91-sdcard
+  $(if $(findstring ext4,$@), \
+  rm -f $@.boot
+  mkfs.fat -C $@.boot $(FAT32_BLOCKS)
 
+  mcopy -i $@.boot $(KDIR)/zImage ::zImage
 
-define Image/Build/Kernel/Default
-	$(call Image/Build/Kernel/AT91SAM9263EK)
-	$(call Image/Build/Kernel/AT91SAM9G15EK)
-	$(call Image/Build/Kernel/AT91SAM9G20EK)
-	$(call Image/Build/Kernel/AT91SAM9G20EK-2MMC)
-	$(call Image/Build/Kernel/AT91SAM9G25EK)
-	$(call Image/Build/Kernel/AT91SAM9G35EK)
-	$(call Image/Build/Kernel/AT91SAM9M10G45EK)
-	$(call Image/Build/Kernel/AT91SAM9X25EK)
-	$(call Image/Build/Kernel/AT91SAM9X35EK)
-	$(call Image/Build/Kernel/LMU5000)
-	$(call Image/Build/Kernel/TNYA9260)
-	$(call Image/Build/Kernel/TNYA9263)
-	$(call Image/Build/Kernel/TNYA9G20)
-	$(call Image/Build/Kernel/USBA9260)
-	$(call Image/Build/Kernel/USBA9263)
-	$(call Image/Build/Kernel/USBA9G20)
-	$(call Image/Build/Kernel/ETHERNUT5)
-	$(call Image/Build/Kernel/Q5XR5)
+  $(foreach dts,$(DEVICE_DTS), \
+     mcopy -i $@.boot $(DTS_DIR)/$(dts).dtb \
+        ::$(dts).dtb)
+
+  mcopy -i $@.boot \
+    $(BIN_DIR)/u-boot-$(DEVICE_NAME:at91-%=%)_mmc/u-boot.bin \
+    ::u-boot.bin
+
+  mcopy -i $@.boot \
+    $(BIN_DIR)/at91bootstrap-$(DEVICE_NAME:at91-%=%)sd*/at91bootstrap.bin \
+    ::BOOT.bin
+
+  ./gen_at91_sdcard_img.sh \
+      $@.img \
+      $@.boot \
+      $(KDIR)/root.ext4 \
+      $(AT91_SD_BOOT_PARTSIZE) \
+      $(CONFIG_TARGET_ROOTFS_PARTSIZE)
+
+  gzip -nc9 $@.img > $@
+
+  rm -f $@.img $@.boot )
 endef
 
-define Image/BuildKernel
-	mkimage -A arm -T kernel -C none -a 0x20008000 -e 0x20008000 -n linux-2.6 \
-		-d $(KDIR)/Image $(BIN_DIR)/$(IMG_PREFIX)-uImage
-	if [ $(CONFIG_FLEXIBITY_ROOT) ]; then \
-		$(INSTALL_BIN) $(BIN_DIR)/$(IMG_PREFIX)-uImage $(TARGET_DIR)/uImage ; \
-	fi
-	$(call Image/Build/Kernel/$(PROFILE))
+define Device/evaluation-sdimage
+  IMAGES += sdcard.img.gz
+  IMAGE/sdcard.img.gz := at91-sdcard
 endef
 
-define Image/Build
-	$(call Image/Build/$(1))
-	cp $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_PREFIX)-root.$(1)
+define Device/evaluation
+  KERNEL_INSTALL := 1
+  KERNEL_SUFFIX := -uImage
+  IMAGES := root.ubi
+  IMAGE/root.ubi := append-ubi
+endef
+
+define Device/evaluation-zImage
+  IMAGES += zImage
+  IMAGE/zImage := at91-install-zImage
+endef
+
+define Device/evaluation-dtb
+  $(Device/evaluation)
+  $(Device/dtb)
+  $(Device/evaluation-zImage)
+  IMAGES += dtb
+  IMAGE/dtb := install-dtb
+endef
+
+define Device/evaluation-fit
+  $(Device/evaluation)
+  KERNEL_SUFFIX := -fit-uImage.itb
+  KERNEL := kernel-bin | lzma | fit lzma $$(DTS_DIR)/$$(DEVICE_DTS).dtb
+endef
+
+define Device/production
+  UBINIZE_OPTS := -E 5
+  IMAGES := factory.bin
+  IMAGE/factory.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi
+endef
+
+define Device/production-dtb
+  $(Device/production)
+  $(Device/dtb)
+  IMAGE/factory.bin := append-dtb | pad-to $$$$(DTB_SIZE) \
+	  | append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi
 endef
 
 $(eval $(call BuildImage))

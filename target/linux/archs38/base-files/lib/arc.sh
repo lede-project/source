@@ -21,6 +21,9 @@ arc_board_detect() {
 	"snps,axs103""snps,arc-sdp")
 		board="arc-sdp";
 		;;
+        "snps,hsdk")
+                board="arc-hsdk";
+                ;;
 	"snps,nsim_hs")
 		board="arc-nsim";
 		;;
@@ -38,13 +41,3 @@ arc_board_detect() {
 	echo "$ARC_BOARD_MODEL" > /tmp/sysinfo/model
 	echo "Detected $ARC_BOARD_NAME // $ARC_BOARD_MODEL"
 }
-
-arc_board_name() {
-	local name
-
-	[ -f /tmp/sysinfo/board_name ] && name="$(cat /tmp/sysinfo/board_name)"
-	[ -z "$name" ] && name="unknown"
-
-	echo "$name"
-}
-

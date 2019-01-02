@@ -4,16 +4,17 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
+
 include $(TOPDIR)/rules.mk
 
 ARCH:=arm
 BOARD:=omap
 BOARDNAME:=TI OMAP3/4/AM33xx
 FEATURES:=usb usbgadget ext4 targz fpu audio display nand ubifs
-CPU_TYPE:=cortex-a9
+CPU_TYPE:=cortex-a8
 CPU_SUBTYPE:=vfpv3
 
-KERNEL_PATCHVER:=4.4
+KERNEL_PATCHVER:=4.14
 
 MAINTAINER:=Alexander Couzens <lynxis@fe80.eu>
 
@@ -24,7 +25,5 @@ define Target/Description
 endef
 
 include $(INCLUDE_DIR)/target.mk
-
-DEFAULT_PACKAGES += uboot-omap-am335x_evm uboot-omap-omap3_beagle uboot-omap-omap3_overo uboot-omap-omap4_panda
 
 $(eval $(call BuildTarget))

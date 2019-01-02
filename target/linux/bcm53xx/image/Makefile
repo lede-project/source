@@ -38,10 +38,28 @@ define Build/bcm53xx-tplink-safeloader
 	rm $@.trx
 endef
 
-define Build/trx-serial
+define Build/buffalo-wzr-header
+	$(eval product=$(word 1,$(1)))
+	$(eval region=$(word 2,$(1)))
+	( \
+		echo $(product)_$(BUFFALO_TAG_VERSION)_$(BUFFALO_TAG_MINOR)_$(region)_$(BUFFALO_TAG_PLATFORM); \
+		echo filelen=$$(stat -c%s $@); \
+		cat $@ \
+	) > $@.new
+	mv $@.new $@
+endef
+
+# TRX with only one (kernel) partition
+define Build/trx
 	$(STAGING_DIR_HOST)/bin/trx \
 		-o $@.new \
 		-m 33554432 \
+		-f $@
+	mv $@.new $@
+endef
+
+define Build/trx-serial
+	$(STAGING_DIR_HOST)/bin/otrx create $@.new \
 		-f $(IMAGE_KERNEL) -a 1024 \
 		-f $@ -a 0x10000 -A $(KDIR)/fs_mark
 	mv $@.new $@
@@ -52,9 +70,7 @@ define Build/trx-nand
 	#	  if it grows up between releases
 	# root: UBI with one extra block containing UBI mark to trigger erasing
 	#	rest of partition
-	$(STAGING_DIR_HOST)/bin/trx \
-		-o $@.new \
-		-m 33554432 \
+	$(STAGING_DIR_HOST)/bin/otrx create $@.new \
 		-f $(IMAGE_KERNEL) -a 0x20000 -b 0x400000 \
 		-f $@ \
 		-A $(KDIR)/ubi_mark -a 0x20000
@@ -85,6 +101,7 @@ define Build/seama-nand
 endef
 
 DEVICE_VARS += PRODUCTID SIGNATURE NETGEAR_BOARD_ID NETGEAR_REGION TPLINK_BOARD
+DEVICE_VARS += BUFFALO_TAG_PLATFORM BUFFALO_TAG_VERSION BUFFALO_TAG_MINOR
 
 IEEE8021X := wpad-mini
 B43 := $(IEEE8021X) kmod-b43
@@ -101,6 +118,8 @@ define Device/Default
   DEVICE_DTS := $(patsubst %.dtb,%,$(notdir $(wildcard $(if $(IB),$(KDIR),$(DTS_DIR))/*-$(1).dtb)))
   KERNEL := kernel-bin | append-dtb | lzma-d16
   KERNEL_DEPENDS = $$(wildcard $(DTS_DIR)/$$(DEVICE_DTS).dts)
+  KERNEL_INITRAMFS_SUFFIX := .trx
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | lzma-d16 | trx
   FILESYSTEMS := squashfs
   KERNEL_NAME := zImage
   IMAGE_NAME = $$(IMAGE_PREFIX)-$$(1).$$(2)
@@ -139,25 +158,53 @@ define Device/asus-rt-n18u
 endef
 TARGET_DEVICES += asus-rt-n18u
 
+# Buffalo devices have TFTP recovery mode which can work nicely with initramfs
+# kernels.
+# We should have two initramfs images for Buffalo: plain initramfs kernel and
+# TRX with initramfs kernel. It's not possible right now so let's just build
+# plain initramfs kernel as it may be more useful.
+define Device/buffalo/Default
+  KERNEL_INITRAMFS_SUFFIX = $$(KERNEL_SUFFIX)
+  KERNEL_INITRAMFS = $$(KERNEL)
+endef
+
 define Device/buffalo-wxr-1900dhp
+  $(call Device/buffalo/Default)
   DEVICE_TITLE := Buffalo WXR-1900DHP
   DEVICE_PACKAGES := $(USB3_PACKAGES)
 endef
 TARGET_DEVICES += buffalo-wxr-1900dhp
 
 define Device/buffalo-wzr-600dhp2
+  $(call Device/buffalo/Default)
   DEVICE_TITLE := Buffalo WZR-600DHP2
   DEVICE_PACKAGES := $(B43) $(USB2_PACKAGES)
 endef
 TARGET_DEVICES += buffalo-wzr-600dhp2
 
 define Device/buffalo-wzr-900dhp
+  $(call Device/buffalo/Default)
   DEVICE_TITLE := Buffalo WZR-900DHP
   DEVICE_PACKAGES := $(B43) $(USB3_PACKAGES)
+  BUFFALO_TAG_PLATFORM := bcm
+  BUFFALO_TAG_VERSION := 9.99
+  BUFFALO_TAG_MINOR := 9.99
+  IMAGES += factory-DHP-EU.bin factory-DHP2-JP.bin
+  IMAGE/factory-DHP-EU.bin := \
+	append-ubi | trx-nand | buffalo-wzr-header WZR-900DHP EU | \
+	buffalo-enc WZR-900DHP $$(BUFFALO_TAG_VERSION) | \
+	buffalo-tag-dhp WZR-900DHP EU mlang20 | buffalo-enc-tag | \
+	buffalo-dhp-image
+  IMAGE/factory-DHP2-JP.bin := \
+	append-ubi | trx-nand | buffalo-wzr-header WZR-900DHP2 JP | \
+	buffalo-enc WZR-900DHP2 $$(BUFFALO_TAG_VERSION) | \
+	buffalo-tag-dhp WZR-900DHP2 JP jp | buffalo-enc-tag | \
+	buffalo-dhp-image
 endef
 TARGET_DEVICES += buffalo-wzr-900dhp
 
 define Device/buffalo-wzr-1750dhp
+  $(call Device/buffalo/Default)
   DEVICE_TITLE := Buffalo WZR-1750DHP
   DEVICE_PACKAGES := $(B43) $(USB3_PACKAGES)
 endef
@@ -256,8 +303,17 @@ define Device/smartrg-sr400ac
   DEVICE_PACKAGES := $(BRCMFMAC_43602A1) $(USB3_PACKAGES)
   IMAGES := trx
   IMAGE/trx := append-rootfs | trx-serial
+  KERNEL_INITRAMFS_SUFFIX := .bin
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | lzma-d16
 endef
 TARGET_DEVICES += smartrg-sr400ac
+
+define Device/phicomm-k3
+  DEVICE_TITLE := PHICOMM K3
+  DEVICE_PACKAGES := $(BRCMFMAC_4366C0) $(USB3_PACKAGES) k3wifi k3screenctrl
+  IMAGES := trx
+endef
+TARGET_DEVICES += phicomm-k3
 
 define Device/tenda-ac9
   DEVICE_TITLE := Tenda AC9
@@ -265,7 +321,7 @@ define Device/tenda-ac9
   IMAGES := trx
   IMAGE/trx := append-rootfs | trx-serial
 endef
-TARGET_DEVICES += tenda-ac9
+#TARGET_DEVICES += tenda-ac9
 
 define Device/tplink-archer-c5-v2
   DEVICE_TITLE := TP-LINK Archer C5 V2
@@ -274,7 +330,7 @@ define Device/tplink-archer-c5-v2
   IMAGE/bin := append-rootfs | bcm53xx-tplink-safeloader
   TPLINK_BOARD := ARCHER-C5-V2
 endef
-TARGET_DEVICES += tplink-archer-c5-v2
+#TARGET_DEVICES += tplink-archer-c5-v2
 
 define Device/tplink-archer-c9-v1
   DEVICE_TITLE := TP-LINK Archer C9 V1
@@ -283,6 +339,6 @@ define Device/tplink-archer-c9-v1
   IMAGE/bin := append-rootfs | bcm53xx-tplink-safeloader
   TPLINK_BOARD := ARCHERC9
 endef
-TARGET_DEVICES += tplink-archer-c9-v1
+#TARGET_DEVICES += tplink-archer-c9-v1
 
 $(eval $(call BuildImage))

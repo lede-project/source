@@ -3,7 +3,7 @@
 #include "rt5350.dtsi"
 
 / {
-	compatible = "NCS601W", "ralink,rt5350-soc";
+	compatible = "wansview,ncs601w", "ralink,rt5350-soc";
 	model = "Wansview NCS601W";
 };
 
@@ -45,7 +45,7 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "i2c", "jtag", "rgmii", "mdio", "uartf";
+			ralink,group = "i2c", "jtag", "uartf";
 			ralink,function = "gpio";
 		};
 	};

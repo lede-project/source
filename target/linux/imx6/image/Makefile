@@ -22,7 +22,7 @@ define Build/boot-overlay
 
 	$(foreach dts,$(DEVICE_DTS), \
 		$(CP) \
-			$(LINUX_DIR)/arch/$(ARCH)/boot/dts/$(dts).dtb \
+			$(DTS_DIR)/$(dts).dtb \
 			$@.boot/$(IMG_PREFIX)-$(dts).dtb; \
 		ln -sf \
 			$(IMG_PREFIX)-$(dts).dtb \
@@ -78,6 +78,8 @@ define Device/ventana
 	imx6dl-gw54xx \
 	imx6dl-gw551x \
 	imx6dl-gw552x \
+	imx6dl-gw553x \
+	imx6dl-gw5904 \
 	imx6q-gw51xx \
 	imx6q-gw52xx \
 	imx6q-gw53xx \
@@ -85,7 +87,8 @@ define Device/ventana
 	imx6q-gw5400-a \
 	imx6q-gw551x \
 	imx6q-gw552x \
-	imx6q-gw553x
+	imx6q-gw553x \
+	imx6q-gw5904
   DEVICE_PACKAGES := kmod-sky2 kmod-sound-core kmod-sound-soc-imx kmod-sound-soc-imx-sgtl5000 \
 	kmod-can kmod-can-flexcan kmod-can-raw \
 	kmod-hwmon-gsc \
@@ -101,6 +104,7 @@ define Device/ventana
   BLOCKSIZE := 128k
   MKUBIFS_OPTS := -m $$(PAGESIZE) -e 124KiB
 endef
+TARGET_DEVICES += ventana
 
 define Device/ventana-large
   $(Device/ventana)
@@ -111,14 +115,12 @@ define Device/ventana-large
   BLOCKSIZE := 256k
   MKUBIFS_OPTS := -m $$(PAGESIZE) -e 248KiB
 endef
+TARGET_DEVICES += ventana-large
 
 define Device/wandboard
   DEVICE_TITLE := Wandboard Dual
   DEVICE_DTS := imx6dl-wandboard
 endef
-
-TARGET_DEVICES += \
-	ventana ventana-large \
-	wandboard
+TARGET_DEVICES += wandboard
 
 $(eval $(call BuildImage))

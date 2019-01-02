@@ -13,8 +13,6 @@ uci -q batch <<-EOF >/dev/null
 	commit firewall
 EOF
 
-/etc/init.d/shadowsocks-libev stop
-/etc/init.d/shadowsocks-libev disable
 /etc/init.d/ssrpro stop
 /etc/init.d/ssrpro enable
 

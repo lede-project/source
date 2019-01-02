@@ -22,7 +22,8 @@ define Image/Build/Initramfs
 	$(call Image/Build/Profile/$(PROFILE),initramfs)
 endef
 
-DEVICE_VARS += DTS IMAGE_SIZE
+DEVICE_VARS += DTS IMAGE_SIZE NETGEAR_BOARD_ID NETGEAR_HW_ID
+DEVICE_VARS += BUFFALO_TAG_PLATFORM BUFFALO_TAG_VERSION BUFFALO_TAG_MINOR
 
 loadaddr-y := 0x80000000
 loadaddr-$(CONFIG_TARGET_ramips_rt288x) := 0x88000000
@@ -35,9 +36,10 @@ define Device/Default
   PROFILES = Default $$(DTS)
   KERNEL_DEPENDS = $$(wildcard ../dts/$$(DTS).dts)
   KERNEL := $(KERNEL_DTB) | uImage lzma
+  DEVICE_DTS_DIR := ../dts
   IMAGES := sysupgrade.bin
   IMAGE_SIZE := $(ralink_default_fw_size_8M)
-  SUPPORTED_DEVICES = $(1)
+  SUPPORTED_DEVICES := $(subst _,$(comma),$(1))
   sysupgrade_bin := append-kernel | append-rootfs | pad-rootfs
   IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
 endef
@@ -48,11 +50,27 @@ define Build/patch-dtb
 endef
 
 define Build/trx
-	$(STAGING_DIR_HOST)/bin/trx \
+	$(STAGING_DIR_HOST)/bin/trx $(1) \
 		-o $@ \
 		-m $(IMAGE_SIZE) \
 		-f $(IMAGE_KERNEL) \
 		-a 4 -f $(IMAGE_ROOTFS)
+endef
+
+define Build/loader-common
+	rm -rf $@.src
+	$(MAKE) -C lzma-loader \
+		PKG_BUILD_DIR="$@.src" \
+		TARGET_DIR="$(dir $@)" LOADER_NAME="$(notdir $@)" \
+		BOARD="$(BOARDNAME)" PLATFORM="$(PLATFORM)" \
+		LZMA_TEXT_START=0x82000000 LOADADDR=$(KERNEL_LOADADDR) \
+		$(1) compile loader.$(LOADER_TYPE)
+	mv "$@.$(LOADER_TYPE)" "$@"
+	rm -rf $@.src
+endef
+
+define Build/loader-kernel
+	$(call Build/loader-common,LOADER_DATA="$@")
 endef
 
 define Build/relocate-kernel
@@ -109,6 +127,26 @@ define Build/wrg-header
 	mv $@.new $@
 endef
 
+# combine kernel and rootfs into one image
+# mkdlinkfw <type> <optional extra arguments to mkdlinkfw binary>
+
+define Build/mkdlinkfw
+	-$(STAGING_DIR_HOST)/bin/mkdlinkfw \
+		-k $(IMAGE_KERNEL) \
+		-r $(IMAGE_ROOTFS) \
+		-o $@ \
+		-s $(DLINK_FIRMWARE_SIZE)
+endef
+
+define Build/mkdlinkfw-factory
+	-$(STAGING_DIR_HOST)/bin/mkdlinkfw \
+		-m $(DLINK_ROM_ID) -f $(DLINK_FAMILY_MEMBER) \
+		-F $@ \
+		-o $@.new \
+		-s $(DLINK_FIRMWARE_SIZE)
+	mv $@.new $@
+endef
+
 #
 # The real magic happens inside these templates
 #
@@ -116,7 +154,7 @@ endef
 # $(2), filename of image data
 # $(3), output filename
 define MkImage
-	$(eval imagename=$(if $(4),$(4),MIPS OpenWrt Linux-$(LINUX_VERSION)))
+	$(eval imagename=$(if $(4),$(4),MIPS $(VERSION_DIST) Linux-$(LINUX_VERSION)))
 	-mkimage -A mips -O linux -T kernel -C $(1) -a $(loadaddr-y) -e $(loadaddr-y) \
 		-n "$(imagename)" \
 		-d $(2) $(3)
@@ -210,12 +248,8 @@ ifeq ($(SUBTARGET),mt7621)
 include mt7621.mk
 endif
 
-ifeq ($(SUBTARGET),mt7628)
-include mt7628.mk
-endif
-
-ifeq ($(SUBTARGET),mt7688)
-include mt7688.mk
+ifeq ($(SUBTARGET),mt76x8)
+include mt76x8.mk
 endif
 
 ifdef LEGACY_DEVICES

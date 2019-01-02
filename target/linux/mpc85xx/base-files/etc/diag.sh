@@ -1,15 +1,18 @@
 #!/bin/sh
 # Copyright (C) 2013 OpenWrt.org
 
+. /lib/functions.sh
 . /lib/functions/leds.sh
-. /lib/mpc85xx.sh
 
 get_status_led() {
-        case $(mpc85xx_board_name) in
-        tl-wdr4900-v1)
-                status_led="tp-link:blue:system"
-                ;;
-        esac
+	case $(board_name) in
+	aerohive,hiveap-330)
+		status_led="hiveap-330:green:tricolor0"
+		;;
+	tplink,tl-wdr4900-v1)
+		status_led="tp-link:blue:system"
+		;;
+	esac
 }
 
 set_state() {

@@ -72,10 +72,7 @@ TARGET_DEVICES += hpm
 define Device/rt-n56u
   DTS := RT-N56U
   BLOCKSIZE := 64k
-  IMAGES += factory.bin
   IMAGE/sysupgrade.bin += | mkrtn56uimg -s
-  IMAGE/factory.bin := 	$$(sysupgrade_bin) | \
-	check-size $$$$(IMAGE_SIZE) | mkrtn56uimg -f
   DEVICE_TITLE := Asus RT-N56U
   DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 swconfig
 endef
@@ -117,3 +114,11 @@ define Device/wlr-6000
   DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 swconfig
 endef
 TARGET_DEVICES += wlr-6000
+
+
+define Device/wmdr-143n
+  DTS := WMDR-143N
+  BLOCKSIZE := 64k
+  DEVICE_TITLE := Loewe WMDR-143N
+endef
+TARGET_DEVICES += wmdr-143n

@@ -8,9 +8,11 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libressl
-PKG_VERSION:=2.5.4
-PKG_HASH:=107a5b522fbb8318d4c3be668075e5e607296f0a9255d71674caa94571336efa
+PKG_VERSION:=2.7.2
+PKG_HASH:=917a8779c342177ff3751a2bf955d0262d1d8916a4b408930c45cef326700995
 PKG_RELEASE:=1
+
+PKG_CPE_ID:=cpe:/a:openbsd:libressl
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://mirror.ox.ac.uk/pub/OpenBSD/LibreSSL \
@@ -23,5 +25,9 @@ include $(INCLUDE_DIR)/host-build.mk
 
 HOST_CONFIGURE_ARGS += --disable-shared
 HOST_CFLAGS += $(FPIC)
+
+ifeq ($(GNU_HOST_NAME),x86_64-linux-gnux32)
+HOST_CONFIGURE_ARGS += --disable-asm
+endif
 
 $(eval $(call HostBuild))

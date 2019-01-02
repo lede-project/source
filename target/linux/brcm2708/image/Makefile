@@ -7,7 +7,6 @@
 #
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
-include $(INCLUDE_DIR)/host.mk
 
 FAT32_BLOCK_SIZE=1024
 FAT32_BLOCKS=$(shell echo $$(($(CONFIG_BRCM2708_SD_BOOT_PARTSIZE)*1024*1024/$(FAT32_BLOCK_SIZE))))
@@ -34,7 +33,7 @@ define Build/boot-img
 	mcopy -i $@.boot $(KDIR)/fixup_cd.dat ::
 	mcopy -i $@.boot cmdline.txt ::
 	mcopy -i $@.boot config.txt ::
-	mcopy -i $@.boot $(IMAGE_KERNEL) ::kernel.img
+	mcopy -i $@.boot $(IMAGE_KERNEL) ::$(KERNEL_IMG)
 	$(foreach dts,$(shell echo $(DEVICE_DTS)),mcopy -i $@.boot $(DTS_DIR)/$(dts).dtb ::;)
 	mmd -i $@.boot ::/overlays
 	mcopy -i $@.boot $(DTS_DIR)/overlays/*.dtbo ::/overlays/
@@ -48,33 +47,36 @@ endef
 
 ### Devices ###
 define Device/Default
-  FILESYSTEMS := ext4
   KERNEL := kernel-bin | kernel-img
-  IMAGES := sdcard.img
-  IMAGE/sdcard.img := boot-img | sdcard-img
+  KERNEL_IMG := kernel.img
+  IMAGES := factory.img.gz sysupgrade.img.gz
+  IMAGE/sysupgrade.img.gz := boot-img | sdcard-img | gzip | append-metadata
+  IMAGE/factory.img.gz := boot-img | sdcard-img | gzip
 endef
 
 define Device/rpi
   DEVICE_TITLE := Raspberry Pi B/B+/CM/Zero/ZeroW
   DEVICE_DTS := bcm2708-rpi-b bcm2708-rpi-b-plus bcm2708-rpi-cm bcm2708-rpi-0-w
-  DEVICE_PACKAGES := brcmfmac-firmware-43430-sdio kmod-brcmfmac wpad-mini
+  SUPPORTED_DEVICES := rpi-b rpi-b-plus rpi-cm rpi-zero rpi-zero-w raspberrypi,model-b raspberrypi,model-b-plus raspberrypi,compute-module-1 raspberrypi,model-b-rev2 raspberrypi,model-zero raspberrypi,model-zero-w
 endef
 ifeq ($(SUBTARGET),bcm2708)
   TARGET_DEVICES += rpi
 endif
 
 define Device/rpi-2
-  DEVICE_TITLE := Raspberry Pi 2 B
-  DEVICE_DTS := bcm2709-rpi-2-b
+  DEVICE_TITLE := Raspberry Pi 2B/3B/3B+/3CM
+  DEVICE_DTS := bcm2709-rpi-2-b bcm2710-rpi-3-b bcm2710-rpi-3-b-plus bcm2710-rpi-cm3
+  SUPPORTED_DEVICES := rpi-2-b rpi-3-b rpi-3-b-plus rpi-cm raspberrypi,2-model-b raspberrypi,3-model-b raspberrypi,3-model-b-plus raspberrypi,compute-module-3
 endef
 ifeq ($(SUBTARGET),bcm2709)
   TARGET_DEVICES += rpi-2
 endif
 
 define Device/rpi-3
-  DEVICE_TITLE := Raspberry Pi 3 B/CM
-  DEVICE_DTS := bcm2710-rpi-3-b bcm2710-rpi-cm3
-  DEVICE_PACKAGES := brcmfmac-firmware-43430-sdio kmod-brcmfmac wpad-mini
+  KERNEL_IMG := kernel8.img
+  DEVICE_TITLE := Raspberry Pi 3B/3B+
+  DEVICE_DTS := broadcom/bcm2710-rpi-3-b broadcom/bcm2710-rpi-3-b-plus
+  SUPPORTED_DEVICES := rpi-3-b rpi-3-b-plus raspberrypi,3-model-b raspberrypi,3-model-b-plus
 endef
 ifeq ($(SUBTARGET),bcm2710)
   TARGET_DEVICES += rpi-3

@@ -1,66 +1,36 @@
 #!/bin/sh
 
-. /lib/apm821xx.sh
-
 PART_NAME=firmware
-RAMFS_COPY_DATA=/lib/apm821xx.sh
+REQUIRE_IMAGE_METADATA=1
 
 platform_check_image() {
-	local board=$(apm821xx_board_name)
-
-	[ "$#" -gt 1 ] && return 1
+	local board=$(board_name)
 
 	case "$board" in
-	mbl)
-		mbl_do_platform_check $board "$1"
+	wd,mybooklive|\
+	wd,mybooklive-duo)
+		mbl_do_platform_check "$1"
 		return $?;
 		;;
-
-	mr24|\
-	mx60)
-		merakinand_do_platform_check $board "$1"
-		return $?;
-		;;
-
-	wndr4700)
-		nand_do_platform_check $board "$1"
-		return $?;
-		;;
-
 	*)
-		;;
-	esac
-
-	echo "Sysupgrade is not yet supported on $board."
-	return 1
-}
-
-platform_pre_upgrade() {
-	local board=$(apm821xx_board_name)
-
-	case "$board" in
-	mr24|\
-	mx60)
-		merakinand_do_upgrade "$1"
-		;;
-
-	wndr4700)
-		nand_do_upgrade "$1"
-		;;
-
-	*)
+		return 0
 		;;
 	esac
 }
 
 platform_do_upgrade() {
-	local board=$(apm821xx_board_name)
+	local board=$(board_name)
 
 	case "$board" in
-	mbl)
+	wd,mybooklive|\
+	wd,mybooklive-duo)
 		mbl_do_upgrade "$ARGV"
 		;;
-
+	meraki,mr24|\
+	meraki,mx60|\
+	netgear,wndr4700)
+		nand_do_upgrade "$1"
+		;;
 	*)
 		default_do_upgrade "$ARGV"
 		;;
@@ -68,10 +38,11 @@ platform_do_upgrade() {
 }
 
 platform_copy_config() {
-	local board=$(apm821xx_board_name)
+	local board=$(board_name)
 
 	case "$board" in
-	mbl)
+	wd,mybooklive|\
+	wd,mybooklive-duo)
 		mbl_copy_config
 		;;
 
@@ -79,13 +50,3 @@ platform_copy_config() {
 		;;
 	esac
 }
-
-disable_watchdog() {
-	killall watchdog
-	( ps | grep -v 'grep' | grep '/dev/watchdog' ) && {
-		echo 'Could not disable watchdog'
-		return 1
-	}
-}
-
-append sysupgrade_pre_upgrade disable_watchdog

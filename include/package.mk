@@ -37,9 +37,20 @@ endif
 
 include $(INCLUDE_DIR)/hardening.mk
 include $(INCLUDE_DIR)/prereq.mk
-include $(INCLUDE_DIR)/host.mk
 include $(INCLUDE_DIR)/unpack.mk
 include $(INCLUDE_DIR)/depends.mk
+
+ifneq ($(if $(CONFIG_SRC_TREE_OVERRIDE),$(wildcard ./git-src)),)
+  USE_GIT_TREE:=1
+  QUILT:=1
+endif
+ifdef USE_SOURCE_DIR
+  QUILT:=1
+endif
+ifneq ($(wildcard $(PKG_BUILD_DIR)/.source_dir),)
+  QUILT:=1
+endif
+
 include $(INCLUDE_DIR)/quilt.mk
 
 find_library_dependencies = $(wildcard $(patsubst %,$(STAGING_DIR)/pkginfo/%.version, \
@@ -58,7 +69,7 @@ ifneq ($(PREV_STAMP_PREPARED),)
   STAMP_PREPARED:=$(PREV_STAMP_PREPARED)
   CONFIG_AUTOREBUILD:=
 else
-  STAMP_PREPARED=$(PKG_BUILD_DIR)/.prepared$(if $(QUILT)$(DUMP),,_$(shell $(call find_md5,${CURDIR} $(PKG_FILE_DEPENDS),))$(call confvar,$(PKG_PREPARED_DEPENDS)))
+  STAMP_PREPARED=$(PKG_BUILD_DIR)/.prepared$(if $(QUILT)$(DUMP),,_$(shell $(call find_md5,${CURDIR} $(PKG_FILE_DEPENDS),))_$(call confvar,CONFIG_AUTOREMOVE $(PKG_PREPARED_DEPENDS)))
 endif
 STAMP_CONFIGURED=$(PKG_BUILD_DIR)/.configured$(if $(DUMP),,_$(call confvar,$(PKG_CONFIG_DEPENDS)))
 STAMP_CONFIGURED_WILDCARD=$(PKG_BUILD_DIR)/.configured_*
@@ -77,16 +88,6 @@ define CleanStaging
 	)
 endef
 
-ifneq ($(if $(CONFIG_SRC_TREE_OVERRIDE),$(wildcard ./git-src)),)
-  USE_GIT_TREE:=1
-  QUILT:=1
-endif
-ifdef USE_SOURCE_DIR
-  QUILT:=1
-endif
-ifneq ($(wildcard $(PKG_BUILD_DIR)/.source_dir),)
-  QUILT:=1
-endif
 
 PKG_INSTALL_STAMP:=$(PKG_INFO_DIR)/$(PKG_DIR_NAME).$(if $(BUILD_VARIANT),$(BUILD_VARIANT),default).install
 
@@ -95,6 +96,8 @@ include $(INCLUDE_DIR)/package-dumpinfo.mk
 include $(INCLUDE_DIR)/package-ipkg.mk
 include $(INCLUDE_DIR)/package-bin.mk
 include $(INCLUDE_DIR)/autotools.mk
+
+_pkg_target:=$(if $(QUILT),,.)
 
 override MAKEFLAGS=
 CONFIG_SITE:=$(INCLUDE_DIR)/site/$(ARCH)
@@ -117,7 +120,12 @@ ifdef USE_GIT_TREE
   define Build/Prepare/Default
 	mkdir -p $(PKG_BUILD_DIR)
 	ln -s $(CURDIR)/git-src $(PKG_BUILD_DIR)/.git
-	( cd $(PKG_BUILD_DIR); git checkout .)
+	( cd $(PKG_BUILD_DIR); \
+		git checkout .; \
+		git submodule update --recursive; \
+		git submodule foreach git config --unset core.worktree; \
+		git submodule foreach git checkout .; \
+	)
   endef
 endif
 ifdef USE_SOURCE_DIR
@@ -130,19 +138,23 @@ ifdef USE_SOURCE_DIR
 endif
 
 define Build/Exports/Default
-  $(1) : export ACLOCAL_INCLUDE=$$(foreach p,$$(wildcard $$(STAGING_DIR)/usr/share/aclocal $$(STAGING_DIR)/usr/share/aclocal-* $$(STAGING_DIR)/host/share/aclocal $$(STAGING_DIR)/host/share/aclocal-*),-I $$(p))
+  $(1) : export ACLOCAL_INCLUDE=$$(foreach p,$$(wildcard $$(STAGING_DIR)/usr/share/aclocal $$(STAGING_DIR)/usr/share/aclocal-* $$(STAGING_DIR_HOSTPKG)/share/aclocal $$(STAGING_DIR_HOSTPKG)/share/aclocal-* $$(STAGING_DIR)/host/share/aclocal $$(STAGING_DIR)/host/share/aclocal-*),-I $$(p))
   $(1) : export STAGING_PREFIX=$$(STAGING_DIR)/usr
   $(1) : export PATH=$$(TARGET_PATH_PKG)
   $(1) : export CONFIG_SITE:=$$(CONFIG_SITE)
   $(1) : export PKG_CONFIG_PATH:=$$(PKG_CONFIG_PATH)
   $(1) : export PKG_CONFIG_LIBDIR:=$$(PKG_CONFIG_PATH)
-  $(1) : export CCACHE_DIR:=$(STAGING_DIR)/ccache
+  $(if $(CONFIG_CCACHE),$(1) : export CCACHE_DIR:=$(STAGING_DIR)/ccache)
 endef
 Build/Exports=$(Build/Exports/Default)
 
 define Build/CoreTargets
+  STAMP_PREPARED:=$$(STAMP_PREPARED)
+  STAMP_CONFIGURED:=$$(STAMP_CONFIGURED)
+
   $(if $(QUILT),$(Build/Quilt))
   $(call Build/Autoclean)
+  $(call DefaultTargets)
 
   download:
 	$(foreach hook,$(Hooks/Download),
@@ -153,6 +165,7 @@ define Build/CoreTargets
   $(STAMP_PREPARED): $(STAMP_PREPARED_DEPENDS)
 	@-rm -rf $(PKG_BUILD_DIR)
 	@mkdir -p $(PKG_BUILD_DIR)
+	touch $$@_check
 	$(foreach hook,$(Hooks/Prepare/Pre),$(call $(hook))$(sep))
 	$(Build/Prepare)
 	$(foreach hook,$(Hooks/Prepare/Post),$(call $(hook))$(sep))
@@ -160,15 +173,17 @@ define Build/CoreTargets
 
   $(call Build/Exports,$(STAMP_CONFIGURED))
   $(STAMP_CONFIGURED): $(STAMP_PREPARED) $(STAMP_CONFIGURED_DEPENDS)
+	rm -f $(STAMP_CONFIGURED_WILDCARD)
 	$(CleanStaging)
 	$(foreach hook,$(Hooks/Configure/Pre),$(call $(hook))$(sep))
 	$(Build/Configure)
 	$(foreach hook,$(Hooks/Configure/Post),$(call $(hook))$(sep))
-	rm -f $(STAMP_CONFIGURED_WILDCARD)
 	touch $$@
 
   $(call Build/Exports,$(STAMP_BUILT))
   $(STAMP_BUILT): $(STAMP_CONFIGURED) $(STAMP_BUILT_DEPENDS)
+	rm -f $$@
+	touch $$@_check
 	$(foreach hook,$(Hooks/Compile/Pre),$(call $(hook))$(sep))
 	$(Build/Compile)
 	$(foreach hook,$(Hooks/Compile/Post),$(call $(hook))$(sep))
@@ -203,13 +218,20 @@ define Build/CoreTargets
 	touch $$@
 
   ifdef Build/InstallDev
-    compile: $(STAMP_INSTALLED)
+    $(_pkg_target)compile: $(STAMP_INSTALLED)
   endif
 
-  prepare: $(STAMP_PREPARED)
-  configure: $(STAMP_CONFIGURED)
-  dist: $(STAMP_CONFIGURED)
-  distcheck: $(STAMP_CONFIGURED)
+  $(_pkg_target)prepare: $(STAMP_PREPARED)
+  $(_pkg_target)configure: $(STAMP_CONFIGURED)
+  $(_pkg_target)dist: $(STAMP_CONFIGURED)
+  $(_pkg_target)distcheck: $(STAMP_CONFIGURED)
+
+  ifneq ($(CONFIG_AUTOREMOVE),)
+    compile:
+		-touch -r $(PKG_BUILD_DIR)/.built $(PKG_BUILD_DIR)/.autoremove 2>/dev/null >/dev/null
+		$(FIND) $(PKG_BUILD_DIR) -mindepth 1 -maxdepth 1 -not '(' -type f -and -name '.*' -and -size 0 ')' -and -not -name '.pkgdir' | \
+			$(XARGS) rm -rf
+  endif
 endef
 
 define Build/DefaultTargets
@@ -220,14 +242,7 @@ define Build/DefaultTargets
   endef
 endef
 
-define Build/IncludeOverlay
-  $(eval -include $(wildcard $(TOPDIR)/overlay/*/$(PKG_DIR_NAME).mk))
-  define Build/IncludeOverlay
-  endef
-endef
-
 define BuildPackage
-  $(Build/IncludeOverlay)
   $(eval $(Package/Default))
   $(eval $(Package/$(1)))
 
@@ -281,25 +296,26 @@ Build/DistCheck=$(call Build/DistCheck/Default,)
 .PHONY: prepare-package-install
 prepare-package-install:
 	@mkdir -p $(PKG_INFO_DIR)
-	@touch $(PKG_INSTALL_STAMP).clean
+	@rm -f $(PKG_INSTALL_STAMP)
 	@echo "$(filter-out essential nonshared,$(PKG_FLAGS))" > $(PKG_INSTALL_STAMP).flags
 
 $(PACKAGE_DIR):
 	mkdir -p $@
 
-dumpinfo:
-download:
-prepare:
-configure:
-compile: prepare-package-install
+compile:
+.install: .compile
 install: compile
 
-clean: FORCE
+force-clean-build: FORCE
+	rm -rf $(PKG_BUILD_DIR)
+
+clean-build: $(if $(wildcard $(PKG_BUILD_DIR)/.autoremove),force-clean-build)
+
+clean: force-clean-build
 	$(CleanStaging)
 	$(call Build/UninstallDev,$(STAGING_DIR),$(STAGING_DIR_HOST))
 	$(Build/Clean)
 	rm -f $(STAGING_DIR)/packages/$(STAGING_FILES_LIST) $(STAGING_DIR_HOST)/packages/$(STAGING_FILES_LIST)
-	rm -rf $(PKG_BUILD_DIR)
 
 dist:
 	$(Build/Dist)

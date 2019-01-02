@@ -9,7 +9,8 @@
 	compatible = "tecom,gw6200", "brcm,bcm6348";
 
 	chosen {
-		bootargs = "root=/dev/mtdblock2 rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		bootargs = "rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		stdout-path = "serial0:115200n8";
 	};
 
 	gpio-keys-polled {
@@ -21,7 +22,7 @@
 
 		reset {
 			label = "reset";
-			gpios = <&gpio1 4 1>;
+			gpios = <&pinctrl 36 1>;
 			linux,code = <KEY_RESTART>;
 		};
 	};
@@ -31,19 +32,57 @@
 
 		line1_green {
 			label = "GW6200:green:line1";
-			gpios = <&gpio0 4 1>;
+			gpios = <&pinctrl 4 1>;
 		};
 		line2_green {
 			label = "GW6200:green:line2";
-			gpios = <&gpio0 5 1>;
+			gpios = <&pinctrl 5 1>;
 		};
 		line3_green {
 			label = "GW6200:green:line3";
-			gpios = <&gpio0 6 1>;
+			gpios = <&pinctrl 6 1>;
 		};
 		tel_green {
 			label = "GW6200:green:tel";
-			gpios = <&gpio0 7 1>;
+			gpios = <&pinctrl 7 1>;
 		};
 	};
+};
+
+&pflash {
+	status = "ok";
+
+	linux,part-probe = "bcm63xxpart";
+
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		cfe@0 {
+			label = "CFE";
+			reg = <0x000000 0x010000>;
+			read-only;
+		};
+
+		linux@10000 {
+			label = "linux";
+			reg = <0x010000 0x7e0000>;
+			compatible = "brcm,bcm963xx-imagetag";
+		};
+
+		nvram@7f0000 {
+			label = "nvram";
+			reg = <0x7f0000 0x010000>;
+		};
+	};
+};
+
+&pinctrl {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pci &pinctrl_ext_mii &pinctrl_mii_pccard>;
+};
+
+&uart0 {
+	status = "ok";
 };

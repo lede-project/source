@@ -9,7 +9,8 @@
 	compatible = "d-link,dva-g3810bn/tl", "brcm,bcm6358";
 
 	chosen {
-		bootargs = "root=/dev/mtdblock2 rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		bootargs = "rootfstype=squashfs,jffs2 noinitrd console=ttyS0,115200";
+		stdout-path = "serial0:115200n8";
 	};
 
 	gpio-keys-polled {
@@ -21,7 +22,7 @@
 
 		reset {
 			label = "reset";
-			gpios = <&gpio1 2 1>;
+			gpios = <&pinctrl 34 1>;
 			linux,code = <KEY_RESTART>;
 		};
 	};
@@ -31,24 +32,57 @@
 
 		voip {
 			label = "DVAG3810BN::voip";
-			gpios = <&gpio0 1 0>;
+			gpios = <&pinctrl 1 0>;
 		};
 		power {
 			label = "DVAG3810BN::power";
-			gpios = <&gpio0 4 0>;
+			gpios = <&pinctrl 4 0>;
 			default-state = "on";
 		};
 		stop {
 			label = "DVAG3810BN::stop";
-			gpios = <&gpio0 5 0>;
+			gpios = <&pinctrl 5 0>;
 		};
 		dsl {
 			label = "DVAG3810BN::dsl";
-			gpios = <&gpio0 22 1>;
+			gpios = <&pinctrl 22 1>;
 		};
 		inet {
 			label = "DVAG3810BN::internet";
-			gpios = <&gpio0 23 1>;
+			gpios = <&pinctrl 23 1>;
 		};
 	};
+};
+
+&pflash {
+	status = "ok";
+
+	linux,part-probe = "bcm63xxpart";
+
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		cfe@0 {
+			label = "CFE";
+			reg = <0x000000 0x010000>;
+			read-only;
+		};
+
+		linux@10000 {
+			label = "linux";
+			reg = <0x010000 0x7e0000>;
+			compatible = "brcm,bcm963xx-imagetag";
+		};
+
+		nvram@7f0000 {
+			label = "nvram";
+			reg = <0x7f0000 0x010000>;
+		};
+	};
+};
+
+&uart0 {
+	status = "ok";
 };

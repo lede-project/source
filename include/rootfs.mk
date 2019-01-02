@@ -1,5 +1,3 @@
-include $(INCLUDE_DIR)/feeds.mk
-
 ifdef CONFIG_USE_MKLIBS
   define mklibs
 	rm -rf $(TMP_DIR)/mklibs-progs $(TMP_DIR)/mklibs-out
@@ -63,10 +61,11 @@ ifdef CONFIG_CLEAN_IPKG
 endif
 
 define prepare_rootfs
-	@if [ -d $(TOPDIR)/files ]; then \
-		$(call file_copy,$(TOPDIR)/files/.,$(1)); \
-	fi
+	$(if $(2),@if [ -d '$(2)' ]; then \
+		$(call file_copy,$(2)/.,$(1)); \
+	fi)
 	@mkdir -p $(1)/etc/rc.d
+	@mkdir -p $(1)/var/lock
 	@( \
 		cd $(1); \
 		for script in ./usr/lib/opkg/info/*.postinst; do \
@@ -87,8 +86,11 @@ define prepare_rootfs
 	@-find $(1) -name .svn  | $(XARGS) rm -rf
 	@-find $(1) -name .git  | $(XARGS) rm -rf
 	@-find $(1) -name '.#*' | $(XARGS) rm -f
+	rm -rf $(1)/tmp/*
 	rm -f $(1)/usr/lib/opkg/lists/*
 	rm -f $(1)/usr/lib/opkg/info/*.postinst*
+	rm -f $(1)/var/lock/*.lock
+	rm -rf $(1)/boot
 	$(call clean_ipkg,$(1))
 	$(call mklibs,$(1))
 endef

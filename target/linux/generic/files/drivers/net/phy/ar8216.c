@@ -177,7 +177,7 @@ ar8xxx_phy_check_aneg(struct phy_device *phydev)
 	if (ret & BMCR_ANENABLE)
 		return 0;
 
-	dev_info(&phydev->dev, "ANEG disabled, re-enabling ...\n");
+	dev_info(&phydev->mdio.dev, "ANEG disabled, re-enabling ...\n");
 	ret |= BMCR_ANENABLE | BMCR_ANRESTART;
 	return phy_write(phydev, MII_BMCR, ret);
 }
@@ -355,6 +355,7 @@ ar8xxx_reg_wait(struct ar8xxx_priv *priv, u32 reg, u32 mask, u32 val,
 			return 0;
 
 		usleep_range(1000, 2000);
+		cond_resched();
 	}
 
 	return -ETIMEDOUT;
@@ -426,6 +427,7 @@ ar8xxx_mib_fetch_port_stat(struct ar8xxx_priv *priv, int port, bool flush)
 			mib_stats[i] = 0;
 		else
 			mib_stats[i] += t;
+		cond_resched();
 	}
 }
 
@@ -565,6 +567,7 @@ ar8216_wait_bit(struct ar8xxx_priv *priv, int reg, u32 mask, u32 val)
 			break;
 
 		udelay(10);
+		cond_resched();
 	}
 
 	pr_err("ar8216: timeout on reg %08x: %08x & %08x != %08x\n",
@@ -730,8 +733,10 @@ ar8216_wait_atu_ready(struct ar8xxx_priv *priv, u16 r2, u16 r1)
 {
 	int timeout = 20;
 
-	while (ar8xxx_mii_read32(priv, r2, r1) & AR8216_ATU_ACTIVE && --timeout)
-                udelay(10);
+	while (ar8xxx_mii_read32(priv, r2, r1) & AR8216_ATU_ACTIVE && --timeout) {
+		udelay(10);
+		cond_resched();
+	}
 
 	if (!timeout)
 		pr_err("ar8216: timeout waiting for atu to become ready\n");
@@ -1696,6 +1701,16 @@ static const struct switch_dev_ops ar8xxx_sw_ops = {
 	.apply_config = ar8xxx_sw_hw_apply,
 	.reset_switch = ar8xxx_sw_reset_switch,
 	.get_port_link = ar8xxx_sw_get_port_link,
+/* The following op is disabled as it hogs the CPU and degrades performance.
+   An implementation has been attempted in 4d8a66d but reading MIB data is slow
+   on ar8xxx switches.
+
+   The high CPU load has been traced down to the ar8xxx_reg_wait() call in
+   ar8xxx_mib_op(), which has to usleep_range() till the MIB busy flag set by
+   the request to update the MIB counter is cleared. */
+#if 0
+	.get_port_stats = ar8xxx_sw_get_port_stats,
+#endif
 };
 
 static const struct ar8xxx_chip ar8216_chip = {
@@ -1997,7 +2012,7 @@ ar8xxx_phy_config_init(struct phy_device *phydev)
 
 	priv->phy = phydev;
 
-	if (phydev->addr != 0) {
+	if (phydev->mdio.addr != 0) {
 		if (chip_is_ar8316(priv)) {
 			/* switch device has been initialized, reinit */
 			priv->dev.ports = (AR8216_NUM_PORTS - 1);
@@ -2045,7 +2060,7 @@ ar8xxx_check_link_states(struct ar8xxx_priv *priv)
 		/* flush ARL entries for this port if it went down*/
 		if (!link_new)
 			priv->chip->atu_flush_port(priv, i);
-		dev_info(&priv->phy->dev, "Port %d is %s\n",
+		dev_info(&priv->phy->mdio.dev, "Port %d is %s\n",
 			 i, link_new ? "up" : "down");
 	}
 
@@ -2064,10 +2079,10 @@ ar8xxx_phy_read_status(struct phy_device *phydev)
 	if (phydev->state == PHY_CHANGELINK)
 		ar8xxx_check_link_states(priv);
 
-	if (phydev->addr != 0)
+	if (phydev->mdio.addr != 0)
 		return genphy_read_status(phydev);
 
-	ar8216_read_port_link(priv, phydev->addr, &link);
+	ar8216_read_port_link(priv, phydev->mdio.addr, &link);
 	phydev->link = !!link.link;
 	if (!phydev->link)
 		return 0;
@@ -2097,7 +2112,7 @@ ar8xxx_phy_read_status(struct phy_device *phydev)
 static int
 ar8xxx_phy_config_aneg(struct phy_device *phydev)
 {
-	if (phydev->addr == 0)
+	if (phydev->mdio.addr == 0)
 		return 0;
 
 	return genphy_config_aneg(phydev);
@@ -2152,15 +2167,15 @@ ar8xxx_phy_probe(struct phy_device *phydev)
 	int ret;
 
 	/* skip PHYs at unused adresses */
-	if (phydev->addr != 0 && phydev->addr != 4)
+	if (phydev->mdio.addr != 0 && phydev->mdio.addr != 4)
 		return -ENODEV;
 
-	if (!ar8xxx_is_possible(phydev->bus))
+	if (!ar8xxx_is_possible(phydev->mdio.bus))
 		return -ENODEV;
 
 	mutex_lock(&ar8xxx_dev_list_lock);
 	list_for_each_entry(priv, &ar8xxx_dev_list, list)
-		if (priv->mii_bus == phydev->bus)
+		if (priv->mii_bus == phydev->mdio.bus)
 			goto found;
 
 	priv = ar8xxx_create();
@@ -2169,7 +2184,7 @@ ar8xxx_phy_probe(struct phy_device *phydev)
 		goto unlock;
 	}
 
-	priv->mii_bus = phydev->bus;
+	priv->mii_bus = phydev->mdio.bus;
 
 	ret = ar8xxx_probe_switch(priv);
 	if (ret)
@@ -2190,7 +2205,7 @@ ar8xxx_phy_probe(struct phy_device *phydev)
 found:
 	priv->use_count++;
 
-	if (phydev->addr == 0) {
+	if (phydev->mdio.addr == 0) {
 		if (ar8xxx_has_gige(priv)) {
 			phydev->supported = SUPPORTED_1000baseT_Full;
 			phydev->advertising = ADVERTISED_1000baseT_Full;
@@ -2271,44 +2286,28 @@ ar8xxx_phy_remove(struct phy_device *phydev)
 	ar8xxx_free(priv);
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,14,0)
 static int
 ar8xxx_phy_soft_reset(struct phy_device *phydev)
 {
 	/* we don't need an extra reset */
 	return 0;
 }
-#endif
 
-static struct phy_driver ar8xxx_phy_driver = {
-	.phy_id		= 0x004d0000,
-	.name		= "Atheros AR8216/AR8236/AR8316",
-	.phy_id_mask	= 0xffff0000,
-	.features	= PHY_BASIC_FEATURES,
-	.probe		= ar8xxx_phy_probe,
-	.remove		= ar8xxx_phy_remove,
-	.detach		= ar8xxx_phy_detach,
-	.config_init	= ar8xxx_phy_config_init,
-	.config_aneg	= ar8xxx_phy_config_aneg,
-	.read_status	= ar8xxx_phy_read_status,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,14,0)
-	.soft_reset	= ar8xxx_phy_soft_reset,
-#endif
-	.driver		= { .owner = THIS_MODULE },
+static struct phy_driver ar8xxx_phy_driver[] = {
+	{
+		.phy_id		= 0x004d0000,
+		.name		= "Atheros AR8216/AR8236/AR8316",
+		.phy_id_mask	= 0xffff0000,
+		.features	= PHY_BASIC_FEATURES,
+		.probe		= ar8xxx_phy_probe,
+		.remove		= ar8xxx_phy_remove,
+		.detach		= ar8xxx_phy_detach,
+		.config_init	= ar8xxx_phy_config_init,
+		.config_aneg	= ar8xxx_phy_config_aneg,
+		.read_status	= ar8xxx_phy_read_status,
+		.soft_reset	= ar8xxx_phy_soft_reset,
+	}
 };
 
-int __init
-ar8xxx_init(void)
-{
-	return phy_driver_register(&ar8xxx_phy_driver);
-}
-
-void __exit
-ar8xxx_exit(void)
-{
-	phy_driver_unregister(&ar8xxx_phy_driver);
-}
-
-module_init(ar8xxx_init);
-module_exit(ar8xxx_exit);
+module_phy_driver(ar8xxx_phy_driver);
 MODULE_LICENSE("GPL");
