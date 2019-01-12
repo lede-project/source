@@ -190,6 +190,12 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b206
+*Jan 12, 2019*
+
+* Removed deprecated Onion packages from .config file
+* Updated O2 Pro init script to operate more intelligently
+
 #### b205
 *Dec 9, 2018*
 
