@@ -2,7 +2,7 @@
 
 uci -q batch <<-EOF > /dev/null
 	set onion.@onion[0].version='0.3.0'
-	set onion.@onion[0].build='206'
+	set onion.@onion[0].build='207'
 	commit system
 EOF
 

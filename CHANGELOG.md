@@ -16,7 +16,7 @@ The individual parts correspond to the following:
 
 For example:
 ```
-0.0.6 b264
+0.0.6 b164
 ```
 
 The build number will continuously increment over the course of development.
@@ -189,6 +189,12 @@ Initial firmware sent to be flashed at the factory
 
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
+
+#### b207
+*Jan 16, 2019*
+
+* Firmware now includes same packages as previous firwmares built on lede-17.01 branch
+* Building all OnionOS Apps
 
 #### b206
 *Jan 12, 2019*
