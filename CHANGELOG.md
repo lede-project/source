@@ -195,6 +195,7 @@ Defining the changes in each build. *Note that if a number is missing, that buil
 
 * Firmware now includes same packages as previous firwmares built on lede-17.01 branch
 * Building all OnionOS Apps
+* Added Node, NPM, and Node-Red packages to software repo
 
 #### b206
 *Jan 12, 2019*
