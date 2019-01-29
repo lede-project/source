@@ -190,6 +190,13 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b208
+*Jan 29, 2019*
+
+* Now building all kernel modules that were built in the lede-17.01 branch
+	* Required update of wifi warp core binary for compatibility with kernel
+* Updated oupgrade progrom to fix syntax error
+
 #### b207
 *Jan 16, 2019*
 
