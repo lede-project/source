@@ -1,0 +1,18 @@
+#!/bin/sh
+
+## Adding Omega2 Pro Init script to rc.local
+
+. /lib/ramips.sh
+board=$(ramips_board_name)
+
+[ "$board" == "omega2pro" ] && {
+	
+echo "
+# Put your custom commands here that should be executed once
+# the system init finished. By default this file runs the 
+# Omega2 Pro initialization script.
+
+/usr/bin/o2-pro-init
+exit 0" > /etc/rc.local
+
+}

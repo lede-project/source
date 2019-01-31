@@ -190,6 +190,14 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b209
+*Jan 31, 2019*
+
+* Update Omega2 Pro Init script
+	* Now checks that OS is running from internal flash before executing
+	* Relies on rc.local to be triggered
+* Updated Onion-Script for correct Moscow timezone
+
 #### b208
 *Jan 29, 2019*
 
