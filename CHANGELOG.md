@@ -190,6 +190,11 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b210
+*Jan 31, 2019*
+
+* Now compiling and adding to package repos same packages as lede-17.01 branch
+
 #### b209
 *Jan 31, 2019*
 
