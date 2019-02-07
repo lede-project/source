@@ -24,6 +24,11 @@ The build number will continuously increment over the course of development.
 ### Versions
 Definining the differences in each version change
 
+#### 0.3.1
+**Stable Omega2 Pro Firmware**
+
+Firmware and package repos match that of lede-17.01 branch
+
 #### 0.3.0
 **Based on OpenWRT 18.06**
 
