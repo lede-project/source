@@ -195,6 +195,17 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b212
+*Feb 8, 2019*
+
+* WiFi Warp Core update
+	* Adjusted MAC address allocation for client WiFi interface - now correctly setting apcli0 MAC address in such a way that will not collide with eth0 interface MAC address
+
+#### b211
+*Feb 7, 2019*
+
+* Upped to version `0.3.1` so all Omega2 Pros in the wild get upgraded to latest firmware
+
 #### b210
 *Jan 31, 2019*
 
