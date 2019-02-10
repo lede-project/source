@@ -195,6 +195,11 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b213
+*Feb 10, 2019*
+
+* Dummy build
+
 #### b212
 *Feb 8, 2019*
 
