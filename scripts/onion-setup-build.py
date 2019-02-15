@@ -51,26 +51,30 @@ def incrementBuildNumber():
 	return buildNumber
 
 # setup the build
-def setupBuild():
+def setupBuild(buildNumberInput):
 	info = getBuildInfo()
+	buildNum = info['build']
+	if buildNumberInput > 0:
+		buildNum = buildNumberInput
 
 	print '*'*20
 	print "   Version: %s"%info["version"]
-	print "   Build: %s"%info["build"]
+	print "   Build: %s"%buildNum
 	print '*'*20
 	
-	updateFwInfo(info["build"], info["version"])
+	updateFwInfo(buildNum, info["version"])
 
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Prepare build system with version info.')
 	parser.add_argument('-i', '--increment', action='store_true', help='increment build number')
+	parser.add_argument('-b', '--build-number', type=int, default=0, help='set build number')
 	args = parser.parse_args()
 	
 	if args.increment:
 		incrementBuildNumber()
-		
-	setupBuild()
+	
+	setupBuild(args.build_number)
 	
 	
 
