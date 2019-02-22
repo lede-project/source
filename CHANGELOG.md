@@ -195,6 +195,11 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b216
+*Feb 22, 2018*
+
+* Fix for Omega2 Pro DTS file - OS can now use all 128 MB of RAM
+
 #### b215
 *Feb 21, 2018*
 
