@@ -24,6 +24,9 @@ The build number will continuously increment over the course of development.
 ### Versions
 Definining the differences in each version change
 
+#### 0.3.2
+**Whole Omega2 family on OpenWRT 18.06 based firmware**
+
 #### 0.3.1
 **Stable Omega2 Pro Firmware**
 
@@ -195,19 +198,27 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b217 
+*Feb 26, 2019*
+
+**Moving to v0.3.2**
+
+* Removed console-install-tool
+* Building firmware for Omega2 and Omega2+ as well
+
 #### b216
-*Feb 22, 2018*
+*Feb 22, 2019*
 
 * Fix for Omega2 Pro DTS file - OS can now use all 128 MB of RAM
 
 #### b215
-*Feb 21, 2018*
+*Feb 21, 2019*
 
 * Added rtl8821 kernel driver to package repo
-* Additional fix for MAC address allocation
+* WiFi Warp Core - Additional fix for MAC address allocation
 
 #### b214
-*Feb 15, 2018*
+*Feb 15, 2019*
 
 * `python-spidev` module now features a half-duplex write-then-read xfer3 function
 
