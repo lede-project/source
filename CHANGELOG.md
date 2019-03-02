@@ -198,6 +198,13 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b218
+*Mar 1, 2019*
+
+* Added Python3 version of spidev module to package repo
+* Memory leak fixes and code clean-up of fast-gpio utility
+* omega2-ctrl utility gpiomux option now has an alias: pinmux
+
 #### b217 
 *Feb 26, 2019*
 
