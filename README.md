@@ -8,11 +8,8 @@ This buildsystem for the LEDE Linux distribution has been modified by Onion Corp
 
 ## Notes
 
-* ~~Due to incompatibilities with recent kernel updates, building a firmware with the `Ralink APSoC WiFi SoftAP driver` **will cause a kernel panic during boot**~~
-	* ~~This can be fixed by reflashing the Omega's firmware using the Omega's Bootloader and Ethernet Expansion~~
-	* ~~We are working on a new implementation of the WiFi driver, stay tuned!~~
-	* Fixed with release of Onion WiFi Warp Core driver
-		* Available as an [OpenWRT/LEDE package](https://github.com/OnionIoT/OpenWRT-Packages/tree/master/wifi-warp-core) for systems running Linux Kernel 4.4.76
+* This build system generates firmware for the M7688 SoC with Onion's Enhanced Warp Core WiFi driver 
+	* It is available as an [OpenWRT package](https://github.com/OnionIoT/OpenWRT-Packages/tree/openwrt-18.06/wifi-warp-core) for systems running Linux Kernel 4.14.81
 		* **See [this post for more details on the Warp Core](https://onion.io/2bt-brand-new-os-release/)**
 
 ## Additional Reading
@@ -26,6 +23,8 @@ This buildsystem can be used to create packages and firmware for the Omega2 devi
 
 1. Using the `onion/omega2-source` Docker image **Recommended method**
 2. Running the build system on a Linux system
+
+**We strongly recommend first building firmware with our configuration and THEN adding your own customizations** 
 
 ## Using the Docker Image
 
@@ -42,7 +41,14 @@ docker pull onion/omega2-source
 ```
 docker run -it onion/omega2-source /bin/bash
 ```
-4. Your container will now be up and running, and you can compile the build system by running:
+4. Your container will now be up and running!
+
+5. **Optional Step:** Configure the build system for a minimal build - only build packages that are included in the firmware - results in a much faster compile time
+```
+sh scripts/onion-minimal-build.sh
+```
+
+6. Compile the build system by running:
 ```
 make
 ```
@@ -76,7 +82,12 @@ git checkout .config
 ```
 > This will initialize & configure all the package feeds as well as setup the `.config` file to match this repo. With these commands, the firmware built will match the official firmware released by Onion.
 
-4. Compile Build System:
+4. **Optional Step:** Configure the build system for a minimal build - only build packages that are included in the firmware - results in a much faster compile time
+```
+sh scripts/onion-minimal-build.sh
+```
+
+5. Compile Build System:
 ```
 make -j
 ```

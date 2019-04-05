@@ -43,6 +43,8 @@ Moved to OpenWRT-18.06 based firmware
 
 Latest version of the I2C library, no more device client
 
+> Based on lede-17.01 branch
+
 #### 0.2.1
 **OnionOS Release**
 
@@ -51,6 +53,8 @@ Next step forward for the Omega2
 * OnionOS is now part of the firwmare, it features:
 	* An App Manager
 	* A new and improved, built-in Setup Wizard 
+
+> Based on lede-17.01 branch
 
 #### 0.2.0
 **WiFi Warp Core Release**
@@ -61,10 +65,14 @@ A whole slew of updates, the most major being the new WiFi Warp Core - Enhanced 
 * Console Settings app updated for compatibility with WiFi Warp Core
 * Updates to onion ubus package, base-www, et al
 
+> Based on lede-17.01 branch
+
 #### 0.1.10
 **Fast-GPIO Fix Release**
 
 * Fixed issue where `/dev/mem` device was missing, causing `fast-gpio` to seg-fault every time!
+
+> Based on lede-17.01 branch
 
 #### 0.1.9
 **Cloud Fix Release**
@@ -72,11 +80,15 @@ A whole slew of updates, the most major being the new WiFi Warp Core - Enhanced 
 * Cloud connectivity issue is now resolved
 * Reset button on the Docks now works
 
+> Based on lede-17.01 branch
+
 #### 0.1.8
 **Bug Fix Release**
 
 * Fixed reboot for Omega2+
 * Omega2+ can now read SD cards
+
+> Based on lede-17.01 branch
 
 #### 0.1.7
 **Onion Repo Firmware**
@@ -84,12 +96,16 @@ A whole slew of updates, the most major being the new WiFi Warp Core - Enhanced 
 * **Largest Change:** Now hosting and devices using only Onion repos for packages
 * Fix for Node v4.3.1 and support for all Node-related packages
 
+> Based on lede-17.01 branch
+
 #### 0.1.6
 **Omega2 operating Firmware**
 
 * **Largest Change:** Separated Omega2 and Omega2+ firmwares
 * Networking and firewall fixes for max connectivity
 * Bug and stability fixes for Setup Wizard and the Console
+
+> Based on lede-17.01 branch
 
 #### 0.1.5
 **Omega2 Factory Firmware**
@@ -100,6 +116,7 @@ Slew of Omega2 features:
 * Overhauled Setup Wizard
 * New Console
 
+> Based on lede-17.01 branch
 
 #### 0.1.4
 **Repo Fix Release.**
@@ -107,11 +124,13 @@ Slew of Omega2 features:
 * Fix for issue where Onion Repo Keys were not being installed by default, Omega users could not install Onion packages
 * Created new release so all users get the fix!
 
+
 #### 0.1.3
 **Brin J2 Release.**
 
 * Updates to Device Client architecture, now supports additional setup modes and compatibility with latest Cloud services
 * Updates to I2C Expansion Drivers: additional control added for Relay Expansion
+
 
 #### 0.1.2
 **Brin J1 Release.**
@@ -121,6 +140,7 @@ Firmware updates for Onion Cloud App Store
 * Added onion-helper ubus service
 * Updates to I2C Expansion Drivers
 
+
 #### 0.1.1
 **Brin M1 Release.**
 
@@ -129,6 +149,7 @@ Firmware updates for stable Onion Cloud support!
 * Stable device client
 * Support for GPS Expansion
 * Onion sh library fix: no longer creating blank log files
+
 
 #### 0.1.0
 **Brin A2 Release.**
@@ -197,6 +218,12 @@ Initial firmware sent to be flashed at the factory
 
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
+
+#### b219
+*April 5, 2019*
+
+* Upgraded `p44-ledchain` package to version 2.0-7, latest available from Plan44, provides better support for older WS2812 LEDs
+* Added `watch` utility to busybox
 
 #### b218
 *Mar 1, 2019*
