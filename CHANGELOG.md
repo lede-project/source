@@ -219,6 +219,12 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b220
+*April 12, 2019*
+
+* Fixed USB autorun functionality for OpenWRT 18.06 based firmware
+    * Added flexibility, checks for `/mnt/sda1` as well as `/mnt/sda` for USB mount points
+
 #### b219
 *April 5, 2019*
 
