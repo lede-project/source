@@ -219,6 +219,11 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b221
+*April 23, 2019*
+
+* Added `devmem` command to busybox 
+
 #### b220
 *April 12, 2019*
 
