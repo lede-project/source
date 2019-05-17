@@ -12,6 +12,7 @@ import argparse
 dirName = os.path.dirname(os.path.abspath(__file__))
 
 buildInfoFile = "build_info.json"
+baseConfigFile = ".config"
 
 # get build info
 def getBuildInfo():
@@ -49,6 +50,18 @@ def incrementBuildNumber():
 		json.dump(data, f)
 
 	return buildNumber
+	
+# create a symlink to the specified config file
+def setConfigFile(configFile):
+	linkConfigPath = '/'.join([dirName, '..', baseConfigFile])
+	targetConfigPath = '/'.join([dirName, '..', configFile])
+
+	if os.path.islink(linkConfigPath):
+		os.unlink(linkConfigPath)
+	if os.path.isfile(targetConfigPath):
+		print("   Config: %s"%configFile)
+		os.symlink(targetConfigPath, linkConfigPath)
+		
 
 # setup the build
 def setupBuild(buildNumberInput):
@@ -57,10 +70,8 @@ def setupBuild(buildNumberInput):
 	if buildNumberInput > 0:
 		buildNum = buildNumberInput
 
-	print '*'*20
 	print "   Version: %s"%info["version"]
 	print "   Build: %s"%buildNum
-	print '*'*20
 	
 	updateFwInfo(buildNum, info["version"])
 
@@ -69,13 +80,18 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Prepare build system with version info.')
 	parser.add_argument('-i', '--increment', action='store_true', help='increment build number')
 	parser.add_argument('-b', '--build-number', type=int, default=0, help='set build number')
+	parser.add_argument('-c', '--config', default='.config.O2', help='set config file for build system')
 	args = parser.parse_args()
 	
 	if args.increment:
 		incrementBuildNumber()
 	
-	setupBuild(args.build_number)
+	print '*'*20
 	
+	setupBuild(args.build_number)
+	setConfigFile(args.config)
+	
+	print '*'*20
 	
 
 	
