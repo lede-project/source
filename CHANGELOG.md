@@ -1,6 +1,7 @@
 ## Omega Firmware Changelog
 Log of all changes made to the Onion Omega LEDE Firmware
 
+
 ### Version Syntax
 
 The Omega Firmware version is in the following format:
