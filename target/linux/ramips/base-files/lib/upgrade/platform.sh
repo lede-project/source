@@ -120,6 +120,7 @@ platform_check_image() {
 	omega2|\
 	omega2p|\
 	omega2pro|\
+	omega2lte|\
 	oy-0001|\
 	pbr-d1|\
 	pbr-m1|\

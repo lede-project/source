@@ -57,6 +57,7 @@ ramips_setup_interfaces()
 	omega2 | \
 	omega2p | \
 	omega2pro | \
+	omega2lte | \
 	timecloud|\
 	w150m|\
 	widora,neo-16m|\

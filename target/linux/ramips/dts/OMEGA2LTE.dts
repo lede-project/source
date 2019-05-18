@@ -1,0 +1,31 @@
+/dts-v1/;
+
+#include "OMEGA2.dtsi"
+
+/ {
+	model = "Onion Omega2 LTE";
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x8000000>;
+	};
+
+	new-leds {
+		compatible = "gpio-leds";
+
+		wifi {
+        	        label = "omega2lte:blue:wifi";
+                	gpios = <&gpio1 12 GPIO_ACTIVE_LOW>;
+        	};
+	};
+};
+
+&firmware {
+	reg = <0x50000 0x1fb0000>;
+};
+
+&system_led {
+	label = "omega2lte:amber:system";
+	gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
+};
+

@@ -306,7 +306,8 @@ newifi-d1)
 nw718)
 	set_usb_led "$boardname:amber:usb"
 	;;
-omega2pro)
+omega2pro|\
+omega2lte)
 	set_wifi_led "$board:blue:wifi"
 	;;
 oy-0001)
