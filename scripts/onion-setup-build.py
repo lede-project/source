@@ -56,8 +56,12 @@ def setConfigFile(configFile):
 	linkConfigPath = '/'.join([dirName, '..', baseConfigFile])
 	targetConfigPath = '/'.join([dirName, '..', configFile])
 
+	# take care of existing config file
 	if os.path.islink(linkConfigPath):
 		os.unlink(linkConfigPath)
+	elif os.path.isfile(linkConfigPath):
+		os.remove(linkConfigPath)
+		
 	if os.path.isfile(targetConfigPath):
 		print("   Config: %s"%configFile)
 		os.symlink(targetConfigPath, linkConfigPath)
