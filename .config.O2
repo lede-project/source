@@ -3563,8 +3563,8 @@ CONFIG_PACKAGE_perlbase-xsloader=m
 # CONFIG_PACKAGE_flup is not set
 # CONFIG_PACKAGE_gunicorn is not set
 # CONFIG_PACKAGE_jdcal is not set
-CONFIG_PACKAGE_micropython=m
-CONFIG_PACKAGE_micropython-lib=m
+# CONFIG_PACKAGE_micropython is not set
+# CONFIG_PACKAGE_micropython-lib is not set
 # CONFIG_PACKAGE_openpyxl is not set
 CONFIG_PACKAGE_pillow=m
 CONFIG_PACKAGE_python=m
@@ -4480,7 +4480,7 @@ CONFIG_PACKAGE_libss=y
 CONFIG_PACKAGE_libtiff=m
 # CONFIG_PACKAGE_libtiffxx is not set
 # CONFIG_PACKAGE_libtins is not set
-CONFIG_PACKAGE_libtirpc=m
+# CONFIG_PACKAGE_libtirpc is not set
 # CONFIG_PACKAGE_libtorrent is not set
 CONFIG_PACKAGE_libubox=y
 # CONFIG_PACKAGE_libubox-lua is not set
@@ -6300,7 +6300,7 @@ CONFIG_PACKAGE_f2fsck=m
 CONFIG_PACKAGE_mkf2fs=m
 # CONFIG_PACKAGE_mkhfs is not set
 # CONFIG_PACKAGE_ncdu is not set
-CONFIG_PACKAGE_nfs-utils=m
+# CONFIG_PACKAGE_nfs-utils is not set
 CONFIG_PACKAGE_ntfs-3g=m
 # CONFIG_PACKAGE_NTFS-3G_USE_LIBFUSE is not set
 CONFIG_PACKAGE_ntfs-3g-low=m
