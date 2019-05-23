@@ -220,6 +220,12 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b222
+*May 23, 2019*
+
+* Now building firmware for Omega2 LTE
+* Made configuration modular - one config file for omega2 (includes omega2, omega2p, omega2pro), and one for omega2lte
+
 #### b221
 *April 23, 2019*
 
