@@ -220,6 +220,11 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b223
+*June 17, 2019*
+
+* Updated build instructions and minimum build procedure
+
 #### b222
 *May 23, 2019*
 

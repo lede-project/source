@@ -78,7 +78,7 @@ cd source
 3. Prepare build system:
 ```
 sh scripts/onion-feed-setup.sh
-git checkout .config
+python scripts/onion-setup-build.py
 ```
 > This will initialize & configure all the package feeds as well as setup the `.config` file to match this repo. With these commands, the firmware built will match the official firmware released by Onion.
 
