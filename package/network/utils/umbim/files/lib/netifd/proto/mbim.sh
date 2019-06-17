@@ -11,8 +11,10 @@ proto_mbim_init_config() {
 	available=1
 	no_device=1
 	proto_config_add_string "device:device"
+	proto_config_add_string pdptype
 	proto_config_add_string apn
 	proto_config_add_string pincode
+	proto_config_add_boolean ignore_pinfail
 	proto_config_add_string delay
 	proto_config_add_string auth
 	proto_config_add_string username
@@ -25,10 +27,14 @@ _proto_mbim_setup() {
 	local tid=2
 	local ret
 
-	local device apn pincode delay $PROTO_DEFAULT_OPTIONS
-	json_get_vars device apn pincode delay auth username password $PROTO_DEFAULT_OPTIONS
+	local device pdptype apn pincode ignore_pinfail delay auth username password $PROTO_DEFAULT_OPTIONS
+	json_get_vars device pdptype apn pincode ignore_pinfail delay auth username password $PROTO_DEFAULT_OPTIONS
 
 	[ -n "$ctl_device" ] && device=$ctl_device
+
+	pdptype=`echo "$pdptype" | awk '{print tolower($0)}'`
+	[ "$pdptype" = "ip" ] && pdptype="ipv4"
+	[ "$pdptype" = "ipv4" ] || [ "$pdptype" = "ipv6" ] || [ "$pdptype" = "ipv4v6" ] || pdptype="ipv4v6"
 
 	[ -n "$device" ] || {
 		echo "mbim[$$]" "No control device specified"
@@ -84,14 +90,18 @@ _proto_mbim_setup() {
 	echo "mbim[$$]" "Checking pin"
 	umbim $DBG -n -t $tid -d $device pinstate || {
 		echo "mbim[$$]" "PIN required"
-		proto_notify_error "$interface" PIN_FAILED
-		proto_block_restart "$interface"
-		return 1
+		if [ ! "$ignore_pinfail" ] || [ "$ignore_pinfail" = 0 ]; then
+			proto_notify_error "$interface" PIN_FAILED
+			proto_block_restart "$interface"
+			return 1
+		else
+			echo "mbim[$$]" "Ignoring PIN failure"
+		fi
 	}
 	tid=$((tid + 1))
 
 	echo "mbim[$$]" "Checking subscriber"
- 	umbim $DBG -n -t $tid -d $device subscriber || {
+	umbim $DBG -n -t $tid -d $device subscriber || {
 		echo "mbim[$$]" "Subscriber init failed"
 		proto_notify_error "$interface" NO_SUBSCRIBER
 		return 1
@@ -99,7 +109,7 @@ _proto_mbim_setup() {
 	tid=$((tid + 1))
 
 	echo "mbim[$$]" "Register with network"
-  	umbim $DBG -n -t $tid -d $device registration || {
+	umbim $DBG -n -t $tid -d $device registration || {
 		echo "mbim[$$]" "Subscriber registration failed"
 		proto_notify_error "$interface" NO_REGISTRATION
 		return 1
@@ -107,41 +117,85 @@ _proto_mbim_setup() {
 	tid=$((tid + 1))
 
 	echo "mbim[$$]" "Attach to network"
-   	umbim $DBG -n -t $tid -d $device attach || {
+	umbim $DBG -n -t $tid -d $device attach || {
 		echo "mbim[$$]" "Failed to attach to network"
 		proto_notify_error "$interface" ATTACH_FAILED
 		return 1
 	}
 	tid=$((tid + 1))
- 
+
 	echo "mbim[$$]" "Connect to network"
-	while ! umbim $DBG -n -t $tid -d $device connect "$apn" "$auth" "$username" "$password"; do
+	while ! umbim $DBG -n -t $tid -d $device connect "$pdptype:$apn" "$auth" "$username" "$password"; do
 		tid=$((tid + 1))
 		sleep 1;
 	done
 	tid=$((tid + 1))
 
+	echo "mbim[$$]" "Connected, obtain IP address and configure interface"
+	config="/tmp/mbim.$$.config"
+	umbim $DBG -n -t $tid -d $device config > "$config"
+	[ $? = 0 ] || {
+		echo "mbim[$$]" "Failed to obtain IP address"
+		proto_notify_error "$interface" CONFIG_FAILED
+		rm -f "$config"
+		return 1
+	}
+	cat "$config"
+	tid=$((tid + 1))
+
 	uci_set_state network $interface tid "$tid"
 
-	echo "mbim[$$]" "Connected, starting DHCP"
+	local ip_4=`awk '$1=="ipv4address:" {print $2}' "$config"`
+	local ip_6=`awk '$1=="ipv6address:" {print $2}' "$config"`
+	[ "$ip_4" ] || ["$ip_6" ] || {
+		echo "mbim[$$]" "Failed to obtain IP addresses"
+		proto_notify_error "$interface" CONFIG_FAILED
+		rm -f "$config"
+		return 1
+	}
+
 	proto_init_update "$ifname" 1
+	proto_set_keep 1
+	[ "$ip_4" ] && {
+		echo "mbim[$$]" "Configure IPv4 on $ifname"
+		local ip=`echo "$ip_4" | cut -f1 -d/`
+		local mask=`echo "$ip_4" | cut -f2 -d/`
+		local gateway=`awk '$1=="ipv4gateway:" {print $2; exit}' "$config"`
+		local mtu=`awk '$1=="ipv4mtu:" {print $2; exit}' "$config"`
+		local dns1=`awk '$1=="ipv4dnsserver:" {print $2}' "$config" | sed -n "1p"`
+		local dns2=`awk '$1=="ipv4dnsserver:" {print $2}' "$config" | sed -n "2p"`
+
+		proto_add_ipv4_address "$ip" "$mask"
+		[ "$defaultroute" = 0  ] || proto_add_ipv4_route 0.0.0.0 0 "$gateway" "$ip_4" "$metric"
+		[ "$peerdns" = 0 ] || {
+			[ "$dns1" ] && proto_add_dns_server "$dns1"
+			[ "$dns2" ] && proto_add_dns_server "$dns2"
+		}
+		[ "$mtu" ] && ip link set "$ifname" mtu "${mtu:-1460}"
+	}
+	[ "$ip_6" ] && {
+		echo "mbim[$$]" "Configure IPv6 on $ifname"
+		local ip=`echo "$ip_6" | cut -f1 -d/`
+		local mask=`echo "$ip_6" | cut -f2 -d/`
+		local gateway=`awk '$1=="ipv6gateway:" {print $2; exit}' "$config"`
+		local mtu=`awk '$1=="ipv6mtu:" {print $2; exit}' "$config"`
+		local dns1=`awk '$1=="ipv6dnsserver:" {print $2}' "$config" | sed -n "1p"`
+		local dns2=`awk '$1=="ipv6dnsserver:" {print $2}' "$config" | sed -n "2p"`
+
+		proto_add_ipv6_address "$ip" "$mask"
+		proto_add_ipv6_prefix "$ip_6"
+		[ "$defaultroute" = 0  ] || proto_add_ipv6_route "::" 0 "$gateway" "" "" "$ip_6" "$metric"
+		[ "$peerdns" = 0 ] || {
+			[ "$dns1" ] && proto_add_dns_server "$dns1"
+			[ "$dns2" ] && proto_add_dns_server "$dns2"
+		}
+		[ "$mtu" ] && ip link set "$ifname" mtu "${mtu:-1460}"
+		# TODO: Don't know how to propagate IPv6 address to lan from here?
+	}
+
+	rm -f "$config"
 	proto_send_update "$interface"
-
-	json_init
-	json_add_string name "${interface}_4"
-	json_add_string ifname "@$interface"
-	json_add_string proto "dhcp"
-	proto_add_dynamic_defaults
-	json_close_object
-	ubus call network add_dynamic "$(json_dump)"
-
-	json_init
-	json_add_string name "${interface}_6"
-	json_add_string ifname "@$interface"
-	json_add_string proto "dhcpv6"
-	json_add_string extendprefix 1
-	proto_add_dynamic_defaults
-	ubus call network add_dynamic "$(json_dump)"
+	echo "mbim[$$]" "Connection setup complete"
 }
 
 proto_mbim_setup() {
