@@ -220,6 +220,13 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b224
+*July 13, 2019*
+
+* Fixed feed setup script - no longer taking all Onion feed packages as priority
+    * Resolves issue where build fails due to libwebsockets errors since the latest libwebsockets package is being built
+* Setup build script now writes any updates to build number to build_info.json file - makes build automation easier
+
 #### b223
 *June 17, 2019*
 

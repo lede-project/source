@@ -3,7 +3,7 @@
 echo "Preparing package feeds..."
 ./scripts/feeds update -a
 ./scripts/feeds install -a
-./scripts/feeds install -a -p onion
+#./scripts/feeds install -a -p onion
 
 # take care of Onion customized packages
 ./scripts/feeds uninstall bluez-examples bluez-libs bluez-utils pulseaudio-daemon pulseaudio-profiles pulseaudio-tools avrdude

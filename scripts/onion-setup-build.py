@@ -47,9 +47,26 @@ def incrementBuildNumber():
 		data['build'] = buildNumber
 
 		f.seek(0)
+		f.truncate()
 		json.dump(data, f)
 
 	return buildNumber
+	
+# set a specifc build number
+def setBuildNumber(inputBuildNumber):
+	filePath = ("../%s"%buildInfoFile) 	# path relative to this directory
+	filePath = '/'.join([dirName, filePath])
+
+	with open(filePath, "r+") as f:
+		data = json.load(f)
+		data['build'] = inputBuildNumber
+
+		f.seek(0)
+		f.truncate()
+		json.dump(data, f)
+
+	return inputBuildNumber
+	
 	
 # create a symlink to the specified config file
 def setConfigFile(configFile):
@@ -68,16 +85,13 @@ def setConfigFile(configFile):
 		
 
 # setup the build
-def setupBuild(buildNumberInput):
+def setupBuild():
 	info = getBuildInfo()
-	buildNum = info['build']
-	if buildNumberInput > 0:
-		buildNum = buildNumberInput
 
 	print "   Version: %s"%info["version"]
-	print "   Build: %s"%buildNum
+	print "   Build: %s"%info['build']
 	
-	updateFwInfo(buildNum, info["version"])
+	updateFwInfo(info['build'], info["version"])
 
 
 if __name__ == "__main__":
@@ -89,10 +103,12 @@ if __name__ == "__main__":
 	
 	if args.increment:
 		incrementBuildNumber()
+	if args.build_number > 0:
+		setBuildNumber(args.build_number)
 	
 	print '*'*20
 	
-	setupBuild(args.build_number)
+	setupBuild()
 	setConfigFile(args.config)
 	
 	print '*'*20
