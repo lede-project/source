@@ -13,7 +13,14 @@
 };
 
 &firmware {
-	reg = <0x50000 0x1fb0000>;
+	reg = <0x50000 0x1f30000>;
+};
+
+&flash {
+	user: partition@1f80000 {
+		label = "user";
+		reg = <0x1f80000 0x80000>;
+	};
 };
 
 &system_led {

@@ -220,6 +220,12 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b225
+*July 16, 2019*
+
+* Added ethernet-mode init.d script - automatically switches ethernet mode during manufacturing
+* Added a persistent, user partition to the Omega2+ firmware
+
 #### b224
 *July 13, 2019*
 
