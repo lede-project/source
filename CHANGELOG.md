@@ -220,7 +220,15 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
-#### b225
+
+#### b227
+*July 21, 2019*
+
+* Updated USB autorun tool to run more consistently
+* Updated ethernet-mode init.d script to also start telnet server when ethernet host mode is automatically activated
+* Brought over missing `DISCLAIMER.md` file from `lede-17.01` branch
+
+#### b226, b225
 *July 16, 2019*
 
 * Added ethernet-mode init.d script - automatically switches ethernet mode during manufacturing

@@ -1,1 +1,1 @@
-{"core": "omega2", "version": "0.3.2", "system": "openwrt", "devices": [{"symbol": "omega2", "name": "omega2"}, {"symbol": "omega2p", "name": "omega2+"}, {"symbol": "omega2pro", "name": "omega2pro"}, {"symbol": "omega2lte", "name": "omega2lte"}], "build": 224}
+{"core": "omega2", "version": "0.3.2", "system": "openwrt", "devices": [{"symbol": "omega2", "name": "omega2"}, {"symbol": "omega2p", "name": "omega2+"}, {"symbol": "omega2pro", "name": "omega2pro"}, {"symbol": "omega2lte", "name": "omega2lte"}], "build": 227}
