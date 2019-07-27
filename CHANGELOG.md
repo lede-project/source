@@ -1,6 +1,8 @@
 ## Omega Firmware Changelog
 Log of all changes made to the Onion Omega LEDE Firmware
 
+* [Versions](#versions)
+* [Build Notes](#build-notes)
 
 ### Version Syntax
 
@@ -220,6 +222,10 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b229
+*July 26, 2019*
+
+* Fixes for Dockerfile
 
 #### b228
 *July 26, 2019*

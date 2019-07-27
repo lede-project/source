@@ -1,11 +1,14 @@
-FROM ubuntu
+FROM ubuntu:18.04
 MAINTAINER Lazar Demin (lazar@onion.io)
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
     build-essential \
     vim \
     git \
     wget \
+    rsync \
     curl \
     time \
     subversion \
@@ -21,10 +24,7 @@ RUN apt-get update && apt-get install -y \
     python-dev \
     python-pip \
     libxml-parser-perl \
-    default-jdk \
-    npm
-
-RUN npm install -g n node-gyp && n 4.3.1 && dpkg -r --force-depends nodejs
+    default-jdk
 
 ENV FORCE_UNSAFE_CONFIGURE 1
 
