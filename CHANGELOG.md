@@ -221,6 +221,12 @@ Initial firmware sent to be flashed at the factory
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
 
+#### b228
+*July 26, 2019*
+
+* OnionOS Editor: added patch to fix reported mb_ord error when trying to create a new file/directory in an existing project
+* Update omega2-hostname-tool: added optional -f command line option to force the hostname update
+
 #### b227
 *July 21, 2019*
 

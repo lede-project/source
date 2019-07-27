@@ -26,6 +26,11 @@ This buildsystem can be used to create packages and firmware for the Omega2 devi
 
 **We strongly recommend first building firmware with our configuration and THEN adding your own customizations** 
 
+Recommended computer specs:
+
+* At least 4GB RAM
+* At least a Quad Core CPU - the more cores the better
+
 ## Using the Docker Image
 
 The Docker image takes care of all environmental configuration and is the recommended method. We recommend getting familiar with how Docker before trying this procedure.
