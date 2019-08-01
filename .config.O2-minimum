@@ -3317,8 +3317,6 @@ CONFIG_PACKAGE_kmod-rtl8812au=m
 # CONFIG_PACKAGE_node-mozilla-iot-gateway is not set
 # CONFIG_PACKAGE_node-npm is not set
 # CONFIG_PACKAGE_node-serialport is not set
-# CONFIG_PACKAGE_nodejs is not set
-# CONFIG_PACKAGE_npm is not set
 
 #
 # PHP
@@ -3461,7 +3459,6 @@ CONFIG_PACKAGE_kmod-rtl8812au=m
 # CONFIG_PACKAGE_python-unittest is not set
 # CONFIG_PACKAGE_python-unittest-src is not set
 # CONFIG_PACKAGE_python-urllib3 is not set
-# CONFIG_PACKAGE_python-urllib3-src is not set
 # CONFIG_PACKAGE_python-xml is not set
 # CONFIG_PACKAGE_python-xml-src is not set
 # CONFIG_PACKAGE_python-yaml is not set
@@ -3979,7 +3976,6 @@ CONFIG_PACKAGE_libfdisk=y
 # CONFIG_PACKAGE_libfreetype is not set
 # CONFIG_PACKAGE_libftdi is not set
 CONFIG_PACKAGE_libftdi1=y
-# CONFIG_PACKAGE_libgabe is not set
 # CONFIG_PACKAGE_libgcrypt is not set
 # CONFIG_PACKAGE_libgd is not set
 # CONFIG_PACKAGE_libgdbm is not set
@@ -4077,7 +4073,6 @@ CONFIG_PACKAGE_libnl-tiny=y
 # CONFIG_PACKAGE_libp11 is not set
 # CONFIG_PACKAGE_libpagekite is not set
 # CONFIG_PACKAGE_libpam is not set
-# CONFIG_PACKAGE_libpbc is not set
 # CONFIG_PACKAGE_libpcap is not set
 CONFIG_PACKAGE_libpcre=y
 # CONFIG_PACKAGE_libpcre16 is not set
@@ -5380,7 +5375,6 @@ CONFIG_PACKAGE_libonionpwmexp=y
 CONFIG_PACKAGE_libonionrelayexp=y
 # CONFIG_PACKAGE_libonionspi is not set
 # CONFIG_PACKAGE_libonionst7735 is not set
-# CONFIG_PACKAGE_libv8m-rb is not set
 # CONFIG_PACKAGE_node-oled-exp is not set
 # CONFIG_PACKAGE_node-pwm-exp is not set
 # CONFIG_PACKAGE_node-relay-exp is not set
@@ -5410,7 +5404,6 @@ CONFIG_PACKAGE_onion-sh-lib=y
 #
 # Network
 #
-# CONFIG_PACKAGE_device-client is not set
 CONFIG_PACKAGE_hostname-tool=y
 # CONFIG_PACKAGE_ubidots-client is not set
 # CONFIG_PACKAGE_wdb40 is not set
@@ -5438,11 +5431,6 @@ CONFIG_PACKAGE_onion-os=y
 # CONFIG_PACKAGE_oos-app-timelapse-camera is not set
 
 #
-# Ralink
-#
-# CONFIG_PACKAGE_ralink-wifi-mt76x8 is not set
-
-#
 # Utilities
 #
 # CONFIG_PACKAGE_adc-exp is not set
@@ -5455,7 +5443,6 @@ CONFIG_PACKAGE_fast-gpio=y
 # CONFIG_PACKAGE_ili9341-test is not set
 # CONFIG_PACKAGE_neopixel-tool is not set
 # CONFIG_PACKAGE_nfc-exp is not set
-# CONFIG_PACKAGE_o2-wifi is not set
 # CONFIG_PACKAGE_ogps is not set
 CONFIG_PACKAGE_omega2-ctrl=y
 CONFIG_PACKAGE_omega2-pro-base=y
@@ -5465,10 +5452,8 @@ CONFIG_PACKAGE_ethernet-mode=y
 CONFIG_PACKAGE_onion-ubus=y
 CONFIG_PACKAGE_oupgrade=y
 CONFIG_PACKAGE_p44-ledchain=y
-# CONFIG_PACKAGE_setup-wizard is not set
 # CONFIG_PACKAGE_spi-tool is not set
 # CONFIG_PACKAGE_st7735-test is not set
-# CONFIG_PACKAGE_ubus-intf is not set
 CONFIG_PACKAGE_url-enc-dec=y
 
 #

@@ -222,6 +222,21 @@ Initial firmware sent to be flashed at the factory
 ### Build Notes
 Defining the changes in each build. *Note that if a number is missing, that build failed the deployment process.*
 
+#### b230
+*August 1, 2019*
+
+* Updates for optimizing RF calibration during production
+    * New firmware default: ethernet port is set to host mode - will be set to client mode automatically once RF calibration is complete
+    * New actions at boot:
+        * If default MAC address is detected, will activate telnet server required for RF calibration
+        * If unique MAC address is detected (RF calibration is complete), the ethernet port will be set to client mode, if not already 
+    * Package updates to make this happen:
+        * Onion Script: 
+            * Can now check ethernet port mode based on network config file
+            * Ethernet mode init.d script runs sooner in boot process and takes action based on above
+        * Hostname tool:
+            * Avoids unnecessary system process restarts
+
 #### b229
 *July 26, 2019*
 

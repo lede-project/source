@@ -33,4 +33,11 @@ config odhcpd 'odhcpd'
         option leasefile '/tmp/hosts/odhcpd'
         option leasetrigger '/usr/sbin/odhcpd-update'
 
-
+config dhcp 'lan'
+        option interface 'lan'
+        option start '100'
+        option limit '150'
+        option leasetime '12h'
+        option dhcpv6 'server'
+        option ra 'server'
+        
