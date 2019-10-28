@@ -24,7 +24,7 @@ produce a noisy warning.
  
 --- a/drivers/usb/host/xhci.c
 +++ b/drivers/usb/host/xhci.c
-@@ -372,10 +372,14 @@ static int xhci_try_enable_msi(struct us
+@@ -370,10 +370,14 @@ static int xhci_try_enable_msi(struct us
  		free_irq(hcd->irq, hcd);
  	hcd->irq = 0;
  
@@ -50,5 +50,5 @@ produce a noisy warning.
  	/* support xHCI 1.0 spec USB2 hardware LPM */
 +#define XHCI_FORCE_MSI		(1 << 24)
  	unsigned		hw_lpm_support:1;
- 	/* cached usb2 extened protocol capabilites */
- 	u32                     *ext_caps;
+ 	/* Broken Suspend flag for SNPS Suspend resume issue */
+ 	unsigned		broken_suspend:1;

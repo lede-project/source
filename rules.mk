@@ -140,7 +140,11 @@ else
 endif
 
 ifeq ($(or $(CONFIG_EXTERNAL_TOOLCHAIN),$(CONFIG_GCC_VERSION_4_8),$(CONFIG_TARGET_uml)),)
-  iremap = -iremap$(1):$(2)
+  ifeq ($(CONFIG_GCC_USE_EMBEDDED_PATH_REMAP),y)
+    iremap = -fmacro-prefix-map=$(1)=$(2)
+  else
+    iremap = -iremap$(1):$(2)
+  endif
 endif
 
 PACKAGE_DIR:=$(BIN_DIR)/packages

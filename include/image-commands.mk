@@ -49,6 +49,31 @@ define Build/eva-image
 	mv $@.new $@
 endef
 
+define Build/seama
+	$(STAGING_DIR_HOST)/bin/seama -i $@ \
+		-m "dev=/dev/mtdblock/$(SEAMA_MTDBLOCK)" -m "type=firmware"
+	mv $@.seama $@
+endef
+
+define Build/seama-seal
+	$(STAGING_DIR_HOST)/bin/seama -i $@ -s $@.seama \
+		-m "signature=$(SEAMA_SIGNATURE)"
+	mv $@.seama $@
+endef
+
+define Build/zyxel-ras-image
+	let \
+		newsize="$(subst k,* 1024,$(RAS_ROOTFS_SIZE))"; \
+		$(STAGING_DIR_HOST)/bin/mkrasimage \
+			-b $(RAS_BOARD) \
+			-v $(RAS_VERSION) \
+			-r $@ \
+			-s $$newsize \
+			-o $@.new \
+			$(if $(findstring separate-kernel,$(word 1,$(1))),-k $(IMAGE_KERNEL)) \
+		&& mv $@.new $@
+endef
+
 define Build/netgear-chk
 	$(STAGING_DIR_HOST)/bin/mkchkimg \
 		-o $@.new \
@@ -77,6 +102,10 @@ define Build/append-squashfs-fakeroot-be
 	cat $@.fakesquashfs >> $@
 endef
 
+define Build/append-string
+	echo -n $(1) >> $@
+endef
+
 # append a fake/empty uImage header, to fool bootloaders rootfs integrity check
 # for example
 define Build/append-uImage-fakehdr
@@ -101,6 +130,16 @@ define Build/tplink-safeloader
 		$(wordlist 2,$(words $(1)),$(1)) \
 		$(if $(findstring sysupgrade,$(word 1,$(1))),-S) && mv $@.new $@ || rm -f $@
 endef
+
+define Build/mksercommfw
+	-$(STAGING_DIR_HOST)/bin/mksercommfw \
+		$@ \
+		$(KERNEL_OFFSET) \
+		$(HWID) \
+		$(HWVER) \
+		$(SWVER)
+endef
+
 
 define Build/append-dtb
 	cat $(KDIR)/image-$(firstword $(DEVICE_DTS)).dtb >> $@
@@ -215,6 +254,11 @@ define Build/pad-offset
 	mv $@.new $@
 endef
 
+define Build/xor-image
+	$(STAGING_DIR_HOST)/bin/xorimage -i $@ -o $@.xor $(1)
+	mv $@.xor $@
+endef
+
 define Build/check-size
 	@[ $$(($(subst k,* 1024,$(subst m, * 1024k,$(1))))) -ge "$$(stat -c%s $@)" ] || { \
 		echo "WARNING: Image file $@ is too big" >&2; \
@@ -230,6 +274,13 @@ define Build/combined-image
 	@mv $@.new $@
 endef
 
+define Build/linksys-image
+	$(TOPDIR)/scripts/linksys-image.sh \
+		"$(call param_get_default,type,$(1),$(DEVICE_NAME))" \
+		$@ $@.new
+		mv $@.new $@
+endef
+
 define Build/openmesh-image
 	$(TOPDIR)/scripts/om-fwupgradecfg-gen.sh \
 		"$(call param_get_default,ce_type,$(1),$(DEVICE_NAME))" \
@@ -241,6 +292,25 @@ define Build/openmesh-image
 		"$@-fwupgrade.cfg" "fwupgrade.cfg" \
 		"$(call param_get_default,kernel,$(1),$(IMAGE_KERNEL))" "kernel" \
 		"$(call param_get_default,rootfs,$(1),$@)" "rootfs"
+endef
+
+define Build/qsdk-ipq-factory-nand
+	$(TOPDIR)/scripts/mkits-qsdk-ipq-image.sh \
+		$@.its ubi $@
+	mkimage -f $@.its $@.new
+	@mv $@.new $@
+endef
+
+define Build/qsdk-ipq-factory-nor
+	$(TOPDIR)/scripts/mkits-qsdk-ipq-image.sh \
+		$@.its hlos $(IMAGE_KERNEL) rootfs $(IMAGE_ROOTFS)
+	mkimage -f $@.its $@.new
+	@mv $@.new $@
+endef
+
+define Build/senao-header
+	$(STAGING_DIR_HOST)/bin/mksenaofw $(1) -e $@ -o $@.new
+	mv $@.new $@
 endef
 
 define Build/sysupgrade-tar
@@ -296,6 +366,12 @@ metadata_json = \
 
 define Build/append-metadata
 	$(if $(SUPPORTED_DEVICES),-echo $(call metadata_json,$(SUPPORTED_DEVICES)) | fwtool -I - $@)
+	[ ! -s "$(BUILD_KEY)" -o ! -s "$(BUILD_KEY).ucert" -o ! -s "$@" ] || { \
+		cp "$(BUILD_KEY).ucert" "$@.ucert" ;\
+		usign -S -m "$@" -s "$(BUILD_KEY)" -x "$@.sig" ;\
+		ucert -A -c "$@.ucert" -x "$@.sig" ;\
+		fwtool -S "$@.ucert" "$@" ;\
+	}
 endef
 
 define Build/kernel2minor
