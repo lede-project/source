@@ -89,7 +89,9 @@ ath79_setup_interfaces()
 	comfast,cf-e314n-v2|\
 	tplink,cpe210-v1|\
 	tplink,cpe220-v2|\
+	tplink,cpe220-v3|\
 	tplink,cpe510-v1|\
+	tplink,wbs210-v2|\
 	ubnt,nanostation-m|\
 	ubnt,routerstation)
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
@@ -184,6 +186,12 @@ ath79_setup_interfaces()
 		ucidef_add_switch_port_attr "switch0" 2 led 9
 		ucidef_add_switch_port_attr "switch0" 5 led 2
 		;;
+	netgear,wnr2200-8m|\
+	netgear,wnr2200-16m)
+		ucidef_set_interface_wan "eth0"
+		ucidef_add_switch "switch0" \
+			"0@eth1" "1:lan" "2:lan" "3:lan" "4:lan"
+		;;
 	phicomm,k2t)
 		ucidef_add_switch "switch0" \
 			"0@eth0" "3:lan:1" "5:lan:2" "4:wan"
@@ -233,7 +241,8 @@ ath79_setup_interfaces()
 			"1:lan" "2:lan" "3:lan" "4:lan" "0:wan" "5@eth0"
 		;;
 	tplink,tl-wr1043nd-v2|\
-	tplink,tl-wr1043nd-v3)
+	tplink,tl-wr1043nd-v3|\
+	tplink,tl-wr1045nd-v2)
 		ucidef_add_switch "switch0" \
 			"0@eth1" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1" "5:wan" "6@eth0"
 		;;
