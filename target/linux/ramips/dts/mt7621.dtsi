@@ -431,6 +431,17 @@
 
 		clocks = <&nficlock>;
 		clock-names = "nfi_clk";
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&nand_pins>;
+
+		resets = <&rstctrl 15>;
+		reset-names = "nfi";
+
+		interrupt-parent = <&gic>;
+		interrupt-names = "nfi", "ecc";
+		interrupts = <GIC_SHARED 14 IRQ_TYPE_LEVEL_HIGH
+			GIC_SHARED 15 IRQ_TYPE_LEVEL_HIGH>;
 	};
 
 	ethsys: syscon@1e000000 {
