@@ -176,7 +176,7 @@ define KernelPackage/fb-sys-ram
   AUTOLOAD:=$(call AutoLoad,07,syscopyarea sysfillrect sysimgblt)
 endef
 
-define KernelPackage/fb-sys-fops/description
+define KernelPackage/fb-sys-ram/description
  Kernel support for framebuffers in system RAM
 endef
 
@@ -187,7 +187,7 @@ define KernelPackage/fb-tft
   SUBMENU:=$(VIDEO_MENU)
   TITLE:=Support for small TFT LCD display modules
   DEPENDS:= \
-	  @GPIO_SUPPORT @!LINUX_3_18 @!LINUX_4_9 +kmod-backlight \
+	  @GPIO_SUPPORT @!LINUX_4_9 +kmod-backlight \
 	  +kmod-fb +kmod-fb-sys-fops +kmod-fb-sys-ram +kmod-spi-bitbang
   KCONFIG:= \
        CONFIG_FB_BACKLIGHT=y \
@@ -282,6 +282,7 @@ define KernelPackage/drm-amdgpu
 	CONFIG_DRM_AMDGPU_SI=y \
 	CONFIG_DRM_AMDGPU_CIK=y \
 	CONFIG_DRM_AMD_DC=y \
+	CONFIG_HSA_AMD=y \
 	CONFIG_DEBUG_KERNEL_DC=n
   FILES:=$(LINUX_DIR)/drivers/gpu/drm/amd/amdgpu/amdgpu.ko \
 	$(LINUX_DIR)/drivers/gpu/drm/scheduler/gpu-sched.ko@ge4.15 \
@@ -433,7 +434,7 @@ endef
 
 define KernelPackage/video-videobuf2
   TITLE:=videobuf2 lib
-  DEPENDS:=+kmod-dma-buf @!LINUX_3_18
+  DEPENDS:=+kmod-dma-buf
   KCONFIG:= \
 	CONFIG_VIDEOBUF2_CORE \
 	CONFIG_VIDEOBUF2_MEMOPS \
@@ -990,7 +991,7 @@ define KernelPackage/video-gspca-gl860
   $(call AddDepends/camera-gspca)
 endef
 
-define KernelPackage/video-gspca-gl800/description
+define KernelPackage/video-gspca-gl860/description
  The GL860 USB Camera Driver (gl860) kernel module
 endef
 

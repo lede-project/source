@@ -493,7 +493,7 @@ define Device/gl-ar300m
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2
   BOARDNAME := GL-AR300M
   IMAGE_SIZE := 16000k
-  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env),16000k(firmware),64k(art)ro
+  MTDPARTS := spi0.0:256k(u-boot),64k(u-boot-env),16000k(firmware),64k(art)ro
 endef
 TARGET_DEVICES += gl-ar300m
 
@@ -539,7 +539,7 @@ define Device/gl-mifi
   BOARDNAME := GL-MIFI
   IMAGE_SIZE := 16000k
   CONSOLE := ttyATH0,115200
-  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,16000k(firmware),64k(art)ro
+  MTDPARTS := spi0.0:256k(u-boot),64k(u-boot-env)ro,16000k(firmware),64k(art)ro
 endef
 TARGET_DEVICES += gl-mifi
 
@@ -887,6 +887,16 @@ define Device/mc-mac1200r
   TPLINK_HWID := 0x12000001
 endef
 TARGET_DEVICES += mc-mac1200r
+
+define Device/mc-mw4530r
+$(Device/tplink-8mlzma)
+  DEVICE_TITLE := Mercury MW4530R
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME := MC-MW4530R
+  DEVICE_PROFILE := MW4530R
+  TPLINK_HWID := 0x45300001
+endef
+TARGET_DEVICES += mc-mw4530r
 
 define Device/minibox-v1
   $(Device/tplink-16mlzma)
