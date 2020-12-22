@@ -16,10 +16,6 @@ ifeq ($(SUBTARGET),mt7622)
 KERNEL_LOADADDR = 0x41080000
 endif
 
-ifeq ($(SUBTARGET),mt7629)
-KERNEL_LOADADDR = 0x40008000
-endif
-
 define Build/sysupgrade-emmc
 	rm -f $@.recovery
 	mkfs.fat -C $@.recovery 3070
@@ -37,13 +33,13 @@ define Device/Default
   FILESYSTEMS := squashfs
   DEVICE_DTS_DIR := $(DTS_DIR)
   IMAGES := sysupgrade.bin
-  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata
-  SUPPORTED_DEVICES := $(subst _,$(comma),$(1))
+  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata 
 ifeq ($(SUBTARGET),mt7623)
   KERNEL_NAME := zImage
   KERNEL := kernel-bin | append-dtb | uImage none
   KERNEL_INITRAMFS := kernel-bin | append-dtb | uImage none
-else
+endif
+ifeq ($(SUBTARGET),mt7622)
   KERNEL_NAME := Image
   KERNEL = kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
   KERNEL_INITRAMFS = kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
@@ -56,10 +52,6 @@ endif
 
 ifeq ($(SUBTARGET),mt7623)
 include mt7623.mk
-endif
-
-ifeq ($(SUBTARGET),mt7629)
-include mt7629.mk
 endif
 
 define Image/Build
