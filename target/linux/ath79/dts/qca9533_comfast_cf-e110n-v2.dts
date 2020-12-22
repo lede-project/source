@@ -12,9 +12,9 @@
 
 	aliases {
 		serial0 = &uart;
-		led-boot = &led_rssihigh;
-		led-failsafe = &led_rssihigh;
-		led-upgrade = &led_rssihigh;
+		led-boot = &wan;
+		led-failsafe = &wan;
+		led-upgrade = &wan;
 	};
 
 	leds {
@@ -23,7 +23,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&jtag_disable_pins &led_rssilow_pin &led_rssimediumhigh_pin &led_rssihigh_pin>;
 
-		wan {
+		wan: wan {
 			label = "cf-e110n-v2:green:wan";
 			gpios = <&gpio 3 GPIO_ACTIVE_LOW>;
 		};
@@ -48,7 +48,7 @@
 			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
 		};
 
-		led_rssihigh: rssihigh {
+		rssihigh {
 			label = "cf-e110n-v2:green:rssihigh";
 			gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
 		};
@@ -65,7 +65,8 @@
 	};
 
 	keys {
-		compatible = "gpio-keys";
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
 
 		reset {
 			label = "reset";
@@ -92,7 +93,6 @@
 
 &spi {
 	status = "okay";
-
 	num-cs = <1>;
 
 	flash@0 {
@@ -138,14 +138,12 @@
 
 &eth0 {
 	status = "okay";
-
 	mtd-mac-address = <&art 0x0>;
 	phy-handle = <&swphy4>;
 };
 
 &eth1 {
 	status = "okay";
-
 	mtd-mac-address = <&art 0x1002>;
 
 	gmac-config {
@@ -155,7 +153,6 @@
 
 &wmac {
 	status = "okay";
-
 	mtd-cal-data = <&art 0x1000>;
 	mtd-mac-address = <&art 0x6>;
 };

@@ -3,10 +3,6 @@
 #include "ar9344_tplink_tl-wdrxxxx.dtsi"
 
 / {
-	aliases {
-		label-mac-device = &ath9k;
-	};
-
 	gpio-export {
 		compatible = "gpio-export";
 

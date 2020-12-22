@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 /dts-v1/;
 
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
 #include "ar7242_buffalo_wzr-bhr.dtsi"
 
 / {
 	compatible = "buffalo,wzr-hp-g450h", "qca,ar7242";
 	model = "Buffalo WZR-HP-G450H/WZR-450HP";
-
-	aliases {
-		label-mac-device = &eth0;
-	};
 
 	ath9k-leds {
 		compatible = "gpio-leds";
@@ -57,15 +56,12 @@
 	};
 };
 
-&leds {
-	sec_vpn {
-		label = "buffalo:orange:security";
-		gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
-	};
-};
-
 &eth0 {
 	mtd-mac-address = <&art 0x1002>;
+};
+
+&sec_vpn {
+	label = "buffalo:orange:security";
 };
 
 &pcie {

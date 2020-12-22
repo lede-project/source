@@ -1,0 +1,2044 @@
+From d82e6a2f10b5148c73fe0b04766c5b1f6f9e2d9c Mon Sep 17 00:00:00 2001
+From: Hauke Mehrtens <hauke@hauke-m.de>
+Date: Sun, 27 Sep 2020 15:41:08 +0200
+Subject: [PATCH] kernel: Update to version 4.14.199
+
+Compile and runtime tested on lantiq/xrx200 + ath79/generic.
+
+Signed-off-by: Hauke Mehrtens <hauke@hauke-m.de>
+---
+ include/kernel-version.mk                     |  4 +-
+ ...490-usb-ehci-add-quirks-for-qca-socs.patch |  2 +-
+ .../patches-4.14/500-MIPS-fw-myloader.patch   |  2 +-
+ ...490-usb-ehci-add-quirks-for-qca-socs.patch |  2 +-
+ .../950-0037-Add-dwc_otg-driver.patch         |  2 +-
+ ...1-Don-t-use-DT-aliases-for-numbering.patch |  2 +-
+ ...0093-amba_pl011-Round-input-clock-up.patch |  6 +-
+ ...Add-cts-event-workaround-DT-property.patch |  2 +-
+ .../brcm47xx/patches-4.14/159-cpu_fixes.patch |  6 +-
+ .../patches-4.14/610-pci_ide_fix.patch        |  2 +-
+ ...low-limiting-ports-for-ehci-platform.patch |  2 +-
+ ...ption-fix-dwm-158-3g-modem-interface.patch |  2 +-
+ ...les-remove-multihook-chains-and-fami.patch | 18 ++---
+ ...les-remove-hooks-from-family-definit.patch |  6 +-
+ ...bles-add-flow-table-netlink-frontend.patch | 32 ++++-----
+ ...les-remove-nhooks-field-from-struct-.patch |  6 +-
+ ...les-fix-a-typo-in-nf_tables_getflowt.patch |  2 +-
+ ...les-remove-flag-field-from-struct-nf.patch |  4 +-
+ ...les-no-need-for-struct-nft_af_info-t.patch |  4 +-
+ ...les-fix-potential-NULL-ptr-deref-in-.patch |  2 +-
+ ...les-add-single-table-list-for-all-fa.patch | 64 +++++++++---------
+ ...tfilter-exit_net-cleanup-check-added.patch |  4 +-
+ ...nf_tables-get-rid-of-pernet-families.patch | 12 ++--
+ ...les-get-rid-of-struct-nft_af_info-ab.patch | 66 +++++++++----------
+ ...ow_offload-wait-for-garbage-collecto.patch |  2 +-
+ ...tfilter-nf_tables-fix-flowtable-free.patch |  2 +-
+ ...les-allocate-handle-and-delete-objec.patch | 42 ++++++------
+ ...w_table-move-init-code-to-nf_flow_ta.patch |  4 +-
+ ...w_table-fix-priv-pointer-for-netdev-.patch |  2 +-
+ ...w_table-track-flow-tables-in-nf_flow.patch |  4 +-
+ .../301-mips_image_cmdline_hack.patch         |  2 +-
+ .../pending-4.14/110-ehci_hcd_ignore_oc.patch |  6 +-
+ .../300-mips_expose_boot_raw.patch            |  4 +-
+ .../pending-4.14/304-mips_disable_fpu.patch   |  2 +-
+ ...ove-no-op-dma_map_ops-where-possible.patch |  8 +--
+ ...w_table-add-hardware-offload-support.patch |  6 +-
+ ...Add-support-for-MAP-E-FMRs-mesh-mode.patch | 24 +++----
+ ...T-skip-GRO-for-foreign-MAC-addresses.patch |  8 +--
+ .../pending-4.14/834-ledtrig-libata.patch     | 10 +--
+ .../lantiq/patches-4.14/0152-lantiq-VPE.patch |  2 +-
+ .../202-core-linux-support-layerscape.patch   | 14 ++--
+ .../807-usb-support-layerscape.patch          |  2 +-
+ .../oxnas/patches-4.14/999-libata-hacks.patch |  8 +--
+ 43 files changed, 203 insertions(+), 203 deletions(-)
+
+diff --git a/include/kernel-version.mk b/include/kernel-version.mk
+index 188bab14ace0..3ffcb3c59ceb 100644
+--- a/include/kernel-version.mk
++++ b/include/kernel-version.mk
+@@ -6,9 +6,9 @@ ifdef CONFIG_TESTING_KERNEL
+   KERNEL_PATCHVER:=$(KERNEL_TESTING_PATCHVER)
+ endif
+ 
+-LINUX_VERSION-4.14 = .195
++LINUX_VERSION-4.14 = .199
+ 
+-LINUX_KERNEL_HASH-4.14.195 = 394f28798670240baacd9e2cce521fbd79f8da5e1fc191695b0e11381445a021
++LINUX_KERNEL_HASH-4.14.199 = 02f3432a262b3804745501f8c3c51d735133af48a39909df8b031d0b9653d4f9
+ 
+ remove_uri_prefix=$(subst git://,,$(subst http://,,$(subst https://,,$(1))))
+ sanitize_uri=$(call qstrip,$(subst @,_,$(subst :,_,$(subst .,_,$(subst -,_,$(subst /,_,$(1)))))))
+diff --git a/target/linux/ar71xx/patches-4.14/490-usb-ehci-add-quirks-for-qca-socs.patch b/target/linux/ar71xx/patches-4.14/490-usb-ehci-add-quirks-for-qca-socs.patch
+index f9ee417bb4bc..a2c8bb3f7d9a 100644
+--- a/target/linux/ar71xx/patches-4.14/490-usb-ehci-add-quirks-for-qca-socs.patch
++++ b/target/linux/ar71xx/patches-4.14/490-usb-ehci-add-quirks-for-qca-socs.patch
+@@ -1,6 +1,6 @@
+ --- a/drivers/usb/host/ehci-hcd.c
+ +++ b/drivers/usb/host/ehci-hcd.c
+-@@ -252,6 +252,37 @@ int ehci_reset(struct ehci_hcd *ehci)
++@@ -253,6 +253,37 @@ int ehci_reset(struct ehci_hcd *ehci)
+  	command |= CMD_RESET;
+  	dbg_cmd (ehci, "reset", command);
+  	ehci_writel(ehci, command, &ehci->regs->command);
+diff --git a/target/linux/ar71xx/patches-4.14/500-MIPS-fw-myloader.patch b/target/linux/ar71xx/patches-4.14/500-MIPS-fw-myloader.patch
+index 1fdd05a4d9d0..6789fcf6f216 100644
+--- a/target/linux/ar71xx/patches-4.14/500-MIPS-fw-myloader.patch
++++ b/target/linux/ar71xx/patches-4.14/500-MIPS-fw-myloader.patch
+@@ -10,7 +10,7 @@
+  
+ --- a/arch/mips/Kconfig
+ +++ b/arch/mips/Kconfig
+-@@ -1153,6 +1153,9 @@ config MIPS_MSC
++@@ -1154,6 +1154,9 @@ config MIPS_MSC
+  config MIPS_NILE4
+  	bool
+  
+diff --git a/target/linux/ath79/patches-4.14/490-usb-ehci-add-quirks-for-qca-socs.patch b/target/linux/ath79/patches-4.14/490-usb-ehci-add-quirks-for-qca-socs.patch
+index 1d1979cd6eb8..c31c02ab3c89 100644
+--- a/target/linux/ath79/patches-4.14/490-usb-ehci-add-quirks-for-qca-socs.patch
++++ b/target/linux/ath79/patches-4.14/490-usb-ehci-add-quirks-for-qca-socs.patch
+@@ -1,6 +1,6 @@
+ --- a/drivers/usb/host/ehci-hcd.c
+ +++ b/drivers/usb/host/ehci-hcd.c
+-@@ -252,6 +252,37 @@ int ehci_reset(struct ehci_hcd *ehci)
++@@ -253,6 +253,37 @@ int ehci_reset(struct ehci_hcd *ehci)
+  	command |= CMD_RESET;
+  	dbg_cmd (ehci, "reset", command);
+  	ehci_writel(ehci, command, &ehci->regs->command);
+diff --git a/target/linux/brcm2708/patches-4.14/950-0037-Add-dwc_otg-driver.patch b/target/linux/brcm2708/patches-4.14/950-0037-Add-dwc_otg-driver.patch
+index d3d83819a4b5..ee5c34cd554d 100644
+--- a/target/linux/brcm2708/patches-4.14/950-0037-Add-dwc_otg-driver.patch
++++ b/target/linux/brcm2708/patches-4.14/950-0037-Add-dwc_otg-driver.patch
+@@ -852,7 +852,7 @@ Signed-off-by: Malik Olivier Boussejra <malik@boussejra.com>
+  		msleep(100);	/* Cool down */
+ --- a/drivers/usb/core/message.c
+ +++ b/drivers/usb/core/message.c
+-@@ -1932,6 +1932,85 @@ free_interfaces:
++@@ -1925,6 +1925,85 @@ free_interfaces:
+  	if (cp->string == NULL &&
+  			!(dev->quirks & USB_QUIRK_CONFIG_INTF_STRINGS))
+  		cp->string = usb_cache_string(dev, cp->desc.iConfiguration);
+diff --git a/target/linux/brcm2708/patches-4.14/950-0092-amba_pl011-Don-t-use-DT-aliases-for-numbering.patch b/target/linux/brcm2708/patches-4.14/950-0092-amba_pl011-Don-t-use-DT-aliases-for-numbering.patch
+index 3d00f92e678d..d9cd2e268b03 100644
+--- a/target/linux/brcm2708/patches-4.14/950-0092-amba_pl011-Don-t-use-DT-aliases-for-numbering.patch
++++ b/target/linux/brcm2708/patches-4.14/950-0092-amba_pl011-Don-t-use-DT-aliases-for-numbering.patch
+@@ -14,7 +14,7 @@ use the same logic.
+ 
+ --- a/drivers/tty/serial/amba-pl011.c
+ +++ b/drivers/tty/serial/amba-pl011.c
+-@@ -2596,7 +2596,12 @@ static int pl011_setup_port(struct devic
++@@ -2595,7 +2595,12 @@ static int pl011_setup_port(struct devic
+  	if (IS_ERR(base))
+  		return PTR_ERR(base);
+  
+diff --git a/target/linux/brcm2708/patches-4.14/950-0093-amba_pl011-Round-input-clock-up.patch b/target/linux/brcm2708/patches-4.14/950-0093-amba_pl011-Round-input-clock-up.patch
+index c32d58fa747b..e7d0eeb28709 100644
+--- a/target/linux/brcm2708/patches-4.14/950-0093-amba_pl011-Round-input-clock-up.patch
++++ b/target/linux/brcm2708/patches-4.14/950-0093-amba_pl011-Round-input-clock-up.patch
+@@ -59,7 +59,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+  
+  	/* Clear pending error and receive interrupts */
+  	pl011_write(UART011_OEIS | UART011_BEIS | UART011_PEIS |
+-@@ -2342,7 +2359,7 @@ static int __init pl011_console_setup(st
++@@ -2341,7 +2358,7 @@ static int pl011_console_setup(struct co
+  			plat->init();
+  	}
+  
+@@ -68,7 +68,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+  
+  	if (uap->vendor->fixed_options) {
+  		baud = uap->fixed_baud;
+-@@ -2527,6 +2544,7 @@ static struct uart_driver amba_reg = {
++@@ -2526,6 +2543,7 @@ static struct uart_driver amba_reg = {
+  	.cons			= AMBA_CONSOLE,
+  };
+  
+@@ -76,7 +76,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+  static int pl011_probe_dt_alias(int index, struct device *dev)
+  {
+  	struct device_node *np;
+-@@ -2558,6 +2576,7 @@ static int pl011_probe_dt_alias(int inde
++@@ -2557,6 +2575,7 @@ static int pl011_probe_dt_alias(int inde
+  
+  	return ret;
+  }
+diff --git a/target/linux/brcm2708/patches-4.14/950-0122-amba_pl011-Add-cts-event-workaround-DT-property.patch b/target/linux/brcm2708/patches-4.14/950-0122-amba_pl011-Add-cts-event-workaround-DT-property.patch
+index 080ba396d270..c90f140658f4 100644
+--- a/target/linux/brcm2708/patches-4.14/950-0122-amba_pl011-Add-cts-event-workaround-DT-property.patch
++++ b/target/linux/brcm2708/patches-4.14/950-0122-amba_pl011-Add-cts-event-workaround-DT-property.patch
+@@ -33,7 +33,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+  
+ --- a/drivers/tty/serial/amba-pl011.c
+ +++ b/drivers/tty/serial/amba-pl011.c
+-@@ -2680,6 +2680,11 @@ static int pl011_probe(struct amba_devic
++@@ -2682,6 +2682,11 @@ static int pl011_probe(struct amba_devic
+  	if (IS_ERR(uap->clk))
+  		return PTR_ERR(uap->clk);
+  
+diff --git a/target/linux/brcm47xx/patches-4.14/159-cpu_fixes.patch b/target/linux/brcm47xx/patches-4.14/159-cpu_fixes.patch
+index e015610269b6..7f7d27e905c0 100644
+--- a/target/linux/brcm47xx/patches-4.14/159-cpu_fixes.patch
++++ b/target/linux/brcm47xx/patches-4.14/159-cpu_fixes.patch
+@@ -406,7 +406,7 @@
+  	if (!cpu_has_ic_fills_f_dc) {
+  		if (dc_lsize)
+  			vaddr ? flush_dcache_line(addr & ~(dc_lsize - 1))
+-@@ -1880,6 +1894,17 @@ static void coherency_setup(void)
++@@ -1884,6 +1898,17 @@ static void coherency_setup(void)
+  	 * silly idea of putting something else there ...
+  	 */
+  	switch (current_cpu_type()) {
+@@ -424,7 +424,7 @@
+  	case CPU_R4000PC:
+  	case CPU_R4000SC:
+  	case CPU_R4000MC:
+-@@ -1926,6 +1951,15 @@ void r4k_cache_init(void)
++@@ -1930,6 +1955,15 @@ void r4k_cache_init(void)
+  	extern void build_copy_page(void);
+  	struct cpuinfo_mips *c = &current_cpu_data;
+  
+@@ -440,7 +440,7 @@
+  	probe_pcache();
+  	probe_vcache();
+  	setup_scache();
+-@@ -2004,7 +2038,15 @@ void r4k_cache_init(void)
++@@ -2008,7 +2042,15 @@ void r4k_cache_init(void)
+  	 */
+  	local_r4k___flush_cache_all(NULL);
+  
+diff --git a/target/linux/brcm47xx/patches-4.14/610-pci_ide_fix.patch b/target/linux/brcm47xx/patches-4.14/610-pci_ide_fix.patch
+index ccae6a59881b..0b75b52bd1cc 100644
+--- a/target/linux/brcm47xx/patches-4.14/610-pci_ide_fix.patch
++++ b/target/linux/brcm47xx/patches-4.14/610-pci_ide_fix.patch
+@@ -27,7 +27,7 @@ This fixes OpenWrt ticket #7061: https://dev.openwrt.org/ticket/7061
+ ---
+ --- a/include/linux/ide.h
+ +++ b/include/linux/ide.h
+-@@ -241,7 +241,11 @@ static inline void ide_std_init_ports(st
++@@ -240,7 +240,11 @@ static inline void ide_std_init_ports(st
+  	hw->io_ports.ctl_addr = ctl_addr;
+  }
+  
+diff --git a/target/linux/brcm63xx/patches-4.14/206-USB-EHCI-allow-limiting-ports-for-ehci-platform.patch b/target/linux/brcm63xx/patches-4.14/206-USB-EHCI-allow-limiting-ports-for-ehci-platform.patch
+index e7ebb0be155f..3d5eda6637b9 100644
+--- a/target/linux/brcm63xx/patches-4.14/206-USB-EHCI-allow-limiting-ports-for-ehci-platform.patch
++++ b/target/linux/brcm63xx/patches-4.14/206-USB-EHCI-allow-limiting-ports-for-ehci-platform.patch
+@@ -21,7 +21,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
+ 
+ --- a/drivers/usb/host/ehci-hcd.c
+ +++ b/drivers/usb/host/ehci-hcd.c
+-@@ -678,6 +678,10 @@ int ehci_setup(struct usb_hcd *hcd)
++@@ -679,6 +679,10 @@ int ehci_setup(struct usb_hcd *hcd)
+  
+  	/* cache this readonly data; minimize chip reads */
+  	ehci->hcs_params = ehci_readl(ehci, &ehci->caps->hcs_params);
+diff --git a/target/linux/generic/backport-4.14/030-USB-serial-option-fix-dwm-158-3g-modem-interface.patch b/target/linux/generic/backport-4.14/030-USB-serial-option-fix-dwm-158-3g-modem-interface.patch
+index 0e6aa87f9dfe..ab6a8f337429 100644
+--- a/target/linux/generic/backport-4.14/030-USB-serial-option-fix-dwm-158-3g-modem-interface.patch
++++ b/target/linux/generic/backport-4.14/030-USB-serial-option-fix-dwm-158-3g-modem-interface.patch
+@@ -30,7 +30,7 @@ Signed-off-by: Johan Hovold <johan@kernel.org>
+ 
+ --- a/drivers/usb/serial/option.c
+ +++ b/drivers/usb/serial/option.c
+-@@ -1990,7 +1990,8 @@ static const struct usb_device_id option
++@@ -1996,7 +1996,8 @@ static const struct usb_device_id option
+  	{ USB_DEVICE_INTERFACE_CLASS(0x2001, 0x7d01, 0xff) },			/* D-Link DWM-156 (variant) */
+  	{ USB_DEVICE_INTERFACE_CLASS(0x2001, 0x7d02, 0xff) },
+  	{ USB_DEVICE_INTERFACE_CLASS(0x2001, 0x7d03, 0xff) },
+diff --git a/target/linux/generic/backport-4.14/303-v4.16-netfilter-nf_tables-remove-multihook-chains-and-fami.patch b/target/linux/generic/backport-4.14/303-v4.16-netfilter-nf_tables-remove-multihook-chains-and-fami.patch
+index f43456a99e01..3bcdc2774a81 100644
+--- a/target/linux/generic/backport-4.14/303-v4.16-netfilter-nf_tables-remove-multihook-chains-and-fami.patch
++++ b/target/linux/generic/backport-4.14/303-v4.16-netfilter-nf_tables-remove-multihook-chains-and-fami.patch
+@@ -11,7 +11,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ 
+ --- a/include/net/netfilter/nf_tables.h
+ +++ b/include/net/netfilter/nf_tables.h
+-@@ -898,8 +898,6 @@ struct nft_stats {
++@@ -900,8 +900,6 @@ struct nft_stats {
+  	struct u64_stats_sync	syncp;
+  };
+  
+@@ -20,7 +20,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  /**
+   *	struct nft_base_chain - nf_tables base chain
+   *
+-@@ -911,7 +909,7 @@ struct nft_stats {
++@@ -913,7 +911,7 @@ struct nft_stats {
+   *	@dev_name: device name that this base chain is attached to (if any)
+   */
+  struct nft_base_chain {
+@@ -29,7 +29,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	const struct nf_chain_type	*type;
+  	u8				policy;
+  	u8				flags;
+-@@ -972,8 +970,6 @@ enum nft_af_flags {
++@@ -974,8 +972,6 @@ enum nft_af_flags {
+   *	@owner: module owner
+   *	@tables: used internally
+   *	@flags: family flags
+@@ -38,7 +38,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+   *	@hooks: hookfn overrides for packet validation
+   */
+  struct nft_af_info {
+-@@ -983,9 +979,6 @@ struct nft_af_info {
++@@ -985,9 +981,6 @@ struct nft_af_info {
+  	struct module			*owner;
+  	struct list_head		tables;
+  	u32				flags;
+@@ -264,7 +264,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		}
+  		nft_chain_release_hook(&hook);
+  	}
+-@@ -5162,10 +5150,9 @@ static int nf_tables_commit(struct net *
++@@ -5163,10 +5151,9 @@ static int nf_tables_commit(struct net *
+  		case NFT_MSG_DELCHAIN:
+  			list_del_rcu(&trans->ctx.chain->list);
+  			nf_tables_chain_notify(&trans->ctx, NFT_MSG_DELCHAIN);
+@@ -278,7 +278,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  			break;
+  		case NFT_MSG_NEWRULE:
+  			nft_clear(trans->ctx.net, nft_trans_rule(trans));
+-@@ -5302,10 +5289,9 @@ static int nf_tables_abort(struct net *n
++@@ -5303,10 +5290,9 @@ static int nf_tables_abort(struct net *n
+  			} else {
+  				trans->ctx.table->use--;
+  				list_del_rcu(&trans->ctx.chain->list);
+@@ -292,7 +292,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  			}
+  			break;
+  		case NFT_MSG_DELCHAIN:
+-@@ -5408,7 +5394,7 @@ int nft_chain_validate_hooks(const struc
++@@ -5409,7 +5395,7 @@ int nft_chain_validate_hooks(const struc
+  	if (nft_is_base_chain(chain)) {
+  		basechain = nft_base_chain(chain);
+  
+@@ -301,7 +301,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  			return 0;
+  
+  		return -EOPNOTSUPP;
+-@@ -5890,8 +5876,7 @@ int __nft_release_basechain(struct nft_c
++@@ -5891,8 +5877,7 @@ int __nft_release_basechain(struct nft_c
+  
+  	BUG_ON(!nft_is_base_chain(ctx->chain));
+  
+@@ -311,7 +311,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	list_for_each_entry_safe(rule, nr, &ctx->chain->rules, list) {
+  		list_del(&rule->list);
+  		ctx->chain->use--;
+-@@ -5920,8 +5905,7 @@ static void __nft_release_afinfo(struct
++@@ -5921,8 +5906,7 @@ static void __nft_release_afinfo(struct
+  
+  	list_for_each_entry_safe(table, nt, &afi->tables, list) {
+  		list_for_each_entry(chain, &table->chains, list)
+diff --git a/target/linux/generic/backport-4.14/312-v4.16-netfilter-nf_tables-remove-hooks-from-family-definit.patch b/target/linux/generic/backport-4.14/312-v4.16-netfilter-nf_tables-remove-hooks-from-family-definit.patch
+index a12679db43f3..dbfc2eb30cd0 100644
+--- a/target/linux/generic/backport-4.14/312-v4.16-netfilter-nf_tables-remove-hooks-from-family-definit.patch
++++ b/target/linux/generic/backport-4.14/312-v4.16-netfilter-nf_tables-remove-hooks-from-family-definit.patch
+@@ -10,7 +10,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ 
+ --- a/include/net/netfilter/nf_tables.h
+ +++ b/include/net/netfilter/nf_tables.h
+-@@ -876,7 +876,7 @@ enum nft_chain_type {
++@@ -878,7 +878,7 @@ enum nft_chain_type {
+   * 	@family: address family
+   * 	@owner: module owner
+   * 	@hook_mask: mask of valid hooks
+@@ -19,7 +19,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+   */
+  struct nf_chain_type {
+  	const char			*name;
+-@@ -970,7 +970,6 @@ enum nft_af_flags {
++@@ -972,7 +972,6 @@ enum nft_af_flags {
+   *	@owner: module owner
+   *	@tables: used internally
+   *	@flags: family flags
+@@ -27,7 +27,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+   */
+  struct nft_af_info {
+  	struct list_head		list;
+-@@ -979,7 +978,6 @@ struct nft_af_info {
++@@ -981,7 +980,6 @@ struct nft_af_info {
+  	struct module			*owner;
+  	struct list_head		tables;
+  	u32				flags;
+diff --git a/target/linux/generic/backport-4.14/321-v4.16-netfilter-nf_tables-add-flow-table-netlink-frontend.patch b/target/linux/generic/backport-4.14/321-v4.16-netfilter-nf_tables-add-flow-table-netlink-frontend.patch
+index f0109e482360..f0c17ca56ed3 100644
+--- a/target/linux/generic/backport-4.14/321-v4.16-netfilter-nf_tables-add-flow-table-netlink-frontend.patch
++++ b/target/linux/generic/backport-4.14/321-v4.16-netfilter-nf_tables-add-flow-table-netlink-frontend.patch
+@@ -50,7 +50,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  #include <net/netlink.h>
+  
+  #define NFT_JUMP_STACK_SIZE	16
+-@@ -939,6 +940,7 @@ unsigned int nft_do_chain(struct nft_pkt
++@@ -941,6 +942,7 @@ unsigned int nft_do_chain(struct nft_pkt
+   *	@chains: chains in the table
+   *	@sets: sets in the table
+   *	@objects: stateful objects in the table
+@@ -58,7 +58,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+   *	@hgenerator: handle generator state
+   *	@use: number of chain references to this table
+   *	@flags: table flag (see enum nft_table_flags)
+-@@ -950,6 +952,7 @@ struct nft_table {
++@@ -952,6 +954,7 @@ struct nft_table {
+  	struct list_head		chains;
+  	struct list_head		sets;
+  	struct list_head		objects;
+@@ -66,7 +66,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	u64				hgenerator;
+  	u32				use;
+  	u16				flags:14,
+-@@ -1081,6 +1084,44 @@ int nft_register_obj(struct nft_object_t
++@@ -1083,6 +1086,44 @@ int nft_register_obj(struct nft_object_t
+  void nft_unregister_obj(struct nft_object_type *obj_type);
+  
+  /**
+@@ -111,7 +111,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+   *	struct nft_traceinfo - nft tracing information and state
+   *
+   *	@pkt: pktinfo currently processed
+-@@ -1316,4 +1357,11 @@ struct nft_trans_obj {
++@@ -1318,4 +1359,11 @@ struct nft_trans_obj {
+  #define nft_trans_obj(trans)	\
+  	(((struct nft_trans_obj *)trans->data)->obj)
+  
+@@ -292,7 +292,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	list_for_each_entry_safe(obj, ne, &ctx->table->objects, list) {
+  		err = nft_delobj(ctx, obj);
+  		if (err < 0)
+-@@ -4862,6 +4906,605 @@ static void nf_tables_obj_notify(const s
++@@ -4863,6 +4907,605 @@ static void nf_tables_obj_notify(const s
+  		       ctx->afi->family, ctx->report, GFP_KERNEL);
+  }
+  
+@@ -898,7 +898,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  static int nf_tables_fill_gen_info(struct sk_buff *skb, struct net *net,
+  				   u32 portid, u32 seq)
+  {
+-@@ -4892,6 +5535,49 @@ nla_put_failure:
++@@ -4893,6 +5536,49 @@ nla_put_failure:
+  	return -EMSGSIZE;
+  }
+  
+@@ -948,7 +948,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  static void nf_tables_gen_notify(struct net *net, struct sk_buff *skb,
+  				 int event)
+  {
+-@@ -5044,6 +5730,21 @@ static const struct nfnl_callback nf_tab
++@@ -5045,6 +5731,21 @@ static const struct nfnl_callback nf_tab
+  		.attr_count	= NFTA_OBJ_MAX,
+  		.policy		= nft_obj_policy,
+  	},
+@@ -970,7 +970,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  };
+  
+  static void nft_chain_commit_update(struct nft_trans *trans)
+-@@ -5092,6 +5793,9 @@ static void nf_tables_commit_release(str
++@@ -5093,6 +5794,9 @@ static void nf_tables_commit_release(str
+  	case NFT_MSG_DELOBJ:
+  		nft_obj_destroy(nft_trans_obj(trans));
+  		break;
+@@ -980,7 +980,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	}
+  	kfree(trans);
+  }
+-@@ -5211,6 +5915,21 @@ static int nf_tables_commit(struct net *
++@@ -5212,6 +5916,21 @@ static int nf_tables_commit(struct net *
+  			nf_tables_obj_notify(&trans->ctx, nft_trans_obj(trans),
+  					     NFT_MSG_DELOBJ);
+  			break;
+@@ -1002,7 +1002,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		}
+  	}
+  
+-@@ -5248,6 +5967,9 @@ static void nf_tables_abort_release(stru
++@@ -5249,6 +5968,9 @@ static void nf_tables_abort_release(stru
+  	case NFT_MSG_NEWOBJ:
+  		nft_obj_destroy(nft_trans_obj(trans));
+  		break;
+@@ -1012,7 +1012,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	}
+  	kfree(trans);
+  }
+-@@ -5339,6 +6061,17 @@ static int nf_tables_abort(struct net *n
++@@ -5340,6 +6062,17 @@ static int nf_tables_abort(struct net *n
+  			nft_clear(trans->ctx.net, nft_trans_obj(trans));
+  			nft_trans_destroy(trans);
+  			break;
+@@ -1030,7 +1030,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		}
+  	}
+  
+-@@ -5889,6 +6622,7 @@ EXPORT_SYMBOL_GPL(__nft_release_basechai
++@@ -5890,6 +6623,7 @@ EXPORT_SYMBOL_GPL(__nft_release_basechai
+  /* Called by nft_unregister_afinfo() from __net_exit path, nfnl_lock is held. */
+  static void __nft_release_afinfo(struct net *net, struct nft_af_info *afi)
+  {
+@@ -1038,7 +1038,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	struct nft_table *table, *nt;
+  	struct nft_chain *chain, *nc;
+  	struct nft_object *obj, *ne;
+-@@ -5902,6 +6636,9 @@ static void __nft_release_afinfo(struct
++@@ -5903,6 +6637,9 @@ static void __nft_release_afinfo(struct
+  	list_for_each_entry_safe(table, nt, &afi->tables, list) {
+  		list_for_each_entry(chain, &table->chains, list)
+  			nf_tables_unregister_hook(net, table, chain);
+@@ -1048,7 +1048,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		/* No packets are walking on these chains anymore. */
+  		ctx.table = table;
+  		list_for_each_entry(chain, &table->chains, list) {
+-@@ -5912,6 +6649,11 @@ static void __nft_release_afinfo(struct
++@@ -5913,6 +6650,11 @@ static void __nft_release_afinfo(struct
+  				nf_tables_rule_release(&ctx, rule);
+  			}
+  		}
+@@ -1060,7 +1060,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		list_for_each_entry_safe(set, ns, &table->sets, list) {
+  			list_del(&set->list);
+  			table->use--;
+-@@ -5955,6 +6697,8 @@ static int __init nf_tables_module_init(
++@@ -5956,6 +6698,8 @@ static int __init nf_tables_module_init(
+  	if (err < 0)
+  		goto err3;
+  
+@@ -1069,7 +1069,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	pr_info("nf_tables: (c) 2007-2009 Patrick McHardy <kaber@trash.net>\n");
+  	return register_pernet_subsys(&nf_tables_net_ops);
+  err3:
+-@@ -5969,6 +6713,7 @@ static void __exit nf_tables_module_exit
++@@ -5970,6 +6714,7 @@ static void __exit nf_tables_module_exit
+  {
+  	unregister_pernet_subsys(&nf_tables_net_ops);
+  	nfnetlink_subsys_unregister(&nf_tables_subsys);
+diff --git a/target/linux/generic/backport-4.14/327-v4.16-netfilter-nf_tables-remove-nhooks-field-from-struct-.patch b/target/linux/generic/backport-4.14/327-v4.16-netfilter-nf_tables-remove-nhooks-field-from-struct-.patch
+index 188ee11b8488..e328e9dccd9a 100644
+--- a/target/linux/generic/backport-4.14/327-v4.16-netfilter-nf_tables-remove-nhooks-field-from-struct-.patch
++++ b/target/linux/generic/backport-4.14/327-v4.16-netfilter-nf_tables-remove-nhooks-field-from-struct-.patch
+@@ -14,7 +14,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ 
+ --- a/include/net/netfilter/nf_tables.h
+ +++ b/include/net/netfilter/nf_tables.h
+-@@ -969,7 +969,6 @@ enum nft_af_flags {
++@@ -971,7 +971,6 @@ enum nft_af_flags {
+   *
+   *	@list: used internally
+   *	@family: address family
+@@ -22,7 +22,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+   *	@owner: module owner
+   *	@tables: used internally
+   *	@flags: family flags
+-@@ -977,7 +976,6 @@ enum nft_af_flags {
++@@ -979,7 +978,6 @@ enum nft_af_flags {
+  struct nft_af_info {
+  	struct list_head		list;
+  	int				family;
+@@ -82,7 +82,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	hook->priority = ntohl(nla_get_be32(ha[NFTA_HOOK_PRIORITY]));
+  
+  	type = chain_type[afi->family][NFT_CHAIN_T_DEFAULT];
+-@@ -5014,7 +5011,7 @@ static int nf_tables_flowtable_parse_hoo
++@@ -5015,7 +5012,7 @@ static int nf_tables_flowtable_parse_hoo
+  		return -EINVAL;
+  
+  	hooknum = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_NUM]));
+diff --git a/target/linux/generic/backport-4.14/328-v4.16-netfilter-nf_tables-fix-a-typo-in-nf_tables_getflowt.patch b/target/linux/generic/backport-4.14/328-v4.16-netfilter-nf_tables-fix-a-typo-in-nf_tables_getflowt.patch
+index 1f0a5a2bb3d5..32398c7d782c 100644
+--- a/target/linux/generic/backport-4.14/328-v4.16-netfilter-nf_tables-fix-a-typo-in-nf_tables_getflowt.patch
++++ b/target/linux/generic/backport-4.14/328-v4.16-netfilter-nf_tables-fix-a-typo-in-nf_tables_getflowt.patch
+@@ -11,7 +11,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ 
+ --- a/net/netfilter/nf_tables_api.c
+ +++ b/net/netfilter/nf_tables_api.c
+-@@ -5438,7 +5438,7 @@ static int nf_tables_getflowtable(struct
++@@ -5439,7 +5439,7 @@ static int nf_tables_getflowtable(struct
+  
+  	flowtable = nf_tables_flowtable_lookup(table, nla[NFTA_FLOWTABLE_NAME],
+  					       genmask);
+diff --git a/target/linux/generic/backport-4.14/330-v4.16-netfilter-nf_tables-remove-flag-field-from-struct-nf.patch b/target/linux/generic/backport-4.14/330-v4.16-netfilter-nf_tables-remove-flag-field-from-struct-nf.patch
+index 8f82effa79e6..3e31c54156b5 100644
+--- a/target/linux/generic/backport-4.14/330-v4.16-netfilter-nf_tables-remove-flag-field-from-struct-nf.patch
++++ b/target/linux/generic/backport-4.14/330-v4.16-netfilter-nf_tables-remove-flag-field-from-struct-nf.patch
+@@ -10,7 +10,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ 
+ --- a/include/net/netfilter/nf_tables.h
+ +++ b/include/net/netfilter/nf_tables.h
+-@@ -960,10 +960,6 @@ struct nft_table {
++@@ -962,10 +962,6 @@ struct nft_table {
+  	char				*name;
+  };
+  
+@@ -21,7 +21,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  /**
+   *	struct nft_af_info - nf_tables address family info
+   *
+-@@ -971,14 +967,12 @@ enum nft_af_flags {
++@@ -973,14 +969,12 @@ enum nft_af_flags {
+   *	@family: address family
+   *	@owner: module owner
+   *	@tables: used internally
+diff --git a/target/linux/generic/backport-4.14/331-v4.16-netfilter-nf_tables-no-need-for-struct-nft_af_info-t.patch b/target/linux/generic/backport-4.14/331-v4.16-netfilter-nf_tables-no-need-for-struct-nft_af_info-t.patch
+index f7e7eeaa05e8..8ff1c7476fdd 100644
+--- a/target/linux/generic/backport-4.14/331-v4.16-netfilter-nf_tables-no-need-for-struct-nft_af_info-t.patch
++++ b/target/linux/generic/backport-4.14/331-v4.16-netfilter-nf_tables-no-need-for-struct-nft_af_info-t.patch
+@@ -62,7 +62,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		if (ret >= 0) {
+  			ctx->table->flags &= ~NFT_TABLE_F_DORMANT;
+  			nft_trans_table_enable(trans) = true;
+-@@ -5819,7 +5812,6 @@ static int nf_tables_commit(struct net *
++@@ -5820,7 +5813,6 @@ static int nf_tables_commit(struct net *
+  			if (nft_trans_table_update(trans)) {
+  				if (!nft_trans_table_enable(trans)) {
+  					nf_tables_table_disable(net,
+@@ -70,7 +70,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  								trans->ctx.table);
+  					trans->ctx.table->flags |= NFT_TABLE_F_DORMANT;
+  				}
+-@@ -5983,7 +5975,6 @@ static int nf_tables_abort(struct net *n
++@@ -5984,7 +5976,6 @@ static int nf_tables_abort(struct net *n
+  			if (nft_trans_table_update(trans)) {
+  				if (nft_trans_table_enable(trans)) {
+  					nf_tables_table_disable(net,
+diff --git a/target/linux/generic/backport-4.14/334-v4.15-netfilter-nf_tables-fix-potential-NULL-ptr-deref-in-.patch b/target/linux/generic/backport-4.14/334-v4.15-netfilter-nf_tables-fix-potential-NULL-ptr-deref-in-.patch
+index f6e1ef08232b..844df508c638 100644
+--- a/target/linux/generic/backport-4.14/334-v4.15-netfilter-nf_tables-fix-potential-NULL-ptr-deref-in-.patch
++++ b/target/linux/generic/backport-4.14/334-v4.15-netfilter-nf_tables-fix-potential-NULL-ptr-deref-in-.patch
+@@ -15,7 +15,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ 
+ --- a/net/netfilter/nf_tables_api.c
+ +++ b/net/netfilter/nf_tables_api.c
+-@@ -5357,8 +5357,10 @@ static int nf_tables_dump_flowtable_done
++@@ -5358,8 +5358,10 @@ static int nf_tables_dump_flowtable_done
+  	if (!filter)
+  		return 0;
+  
+diff --git a/target/linux/generic/backport-4.14/335-v4.16-netfilter-nf_tables-add-single-table-list-for-all-fa.patch b/target/linux/generic/backport-4.14/335-v4.16-netfilter-nf_tables-add-single-table-list-for-all-fa.patch
+index 340d7167ea6f..cd1d30c6c5d6 100644
+--- a/target/linux/generic/backport-4.14/335-v4.16-netfilter-nf_tables-add-single-table-list-for-all-fa.patch
++++ b/target/linux/generic/backport-4.14/335-v4.16-netfilter-nf_tables-add-single-table-list-for-all-fa.patch
+@@ -17,7 +17,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ 
+ --- a/include/net/netfilter/nf_tables.h
+ +++ b/include/net/netfilter/nf_tables.h
+-@@ -143,22 +143,22 @@ static inline void nft_data_debug(const
++@@ -145,22 +145,22 @@ static inline void nft_data_debug(const
+   *	struct nft_ctx - nf_tables rule/set context
+   *
+   *	@net: net namespace
+@@ -42,7 +42,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	bool				report;
+  };
+  
+-@@ -945,6 +945,7 @@ unsigned int nft_do_chain(struct nft_pkt
++@@ -947,6 +947,7 @@ unsigned int nft_do_chain(struct nft_pkt
+   *	@use: number of chain references to this table
+   *	@flags: table flag (see enum nft_table_flags)
+   *	@genmask: generation mask
+@@ -50,7 +50,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+   *	@name: name of the table
+   */
+  struct nft_table {
+-@@ -957,6 +958,7 @@ struct nft_table {
++@@ -959,6 +960,7 @@ struct nft_table {
+  	u32				use;
+  	u16				flags:14,
+  					genmask:2;
+@@ -58,7 +58,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	char				*name;
+  };
+  
+-@@ -966,13 +968,11 @@ struct nft_table {
++@@ -968,13 +970,11 @@ struct nft_table {
+   *	@list: used internally
+   *	@family: address family
+   *	@owner: module owner
+@@ -679,7 +679,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	nfmsg->version		= NFNETLINK_V0;
+  	nfmsg->res_id		= htons(ctx->net->nft.base_seq & 0xffff);
+  
+-@@ -2952,10 +2949,8 @@ static int nf_tables_dump_sets(struct sk
++@@ -2953,10 +2950,8 @@ static int nf_tables_dump_sets(struct sk
+  {
+  	const struct nft_set *set;
+  	unsigned int idx, s_idx = cb->args[0];
+@@ -690,7 +690,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	struct nft_ctx *ctx = cb->data, ctx_set;
+  
+  	if (cb->args[1])
+-@@ -2964,51 +2959,44 @@ static int nf_tables_dump_sets(struct sk
++@@ -2965,51 +2960,44 @@ static int nf_tables_dump_sets(struct sk
+  	rcu_read_lock();
+  	cb->seq = net->nft.base_seq;
+  
+@@ -771,7 +771,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	}
+  	cb->args[1] = 1;
+  done:
+-@@ -3221,11 +3209,12 @@ static int nf_tables_newset(struct net *
++@@ -3222,11 +3210,12 @@ static int nf_tables_newset(struct net *
+  	if (IS_ERR(afi))
+  		return PTR_ERR(afi);
+  
+@@ -786,7 +786,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  
+  	set = nf_tables_set_lookup(table, nla[NFTA_SET_NAME], genmask);
+  	if (IS_ERR(set)) {
+-@@ -3494,12 +3483,12 @@ static int nft_ctx_init_from_elemattr(st
++@@ -3495,12 +3484,12 @@ static int nft_ctx_init_from_elemattr(st
+  	if (IS_ERR(afi))
+  		return PTR_ERR(afi);
+  
+@@ -802,7 +802,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	return 0;
+  }
+  
+-@@ -3604,7 +3593,6 @@ static int nf_tables_dump_set(struct sk_
++@@ -3605,7 +3594,6 @@ static int nf_tables_dump_set(struct sk_
+  {
+  	struct nft_set_dump_ctx *dump_ctx = cb->data;
+  	struct net *net = sock_net(skb->sk);
+@@ -810,7 +810,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	struct nft_table *table;
+  	struct nft_set *set;
+  	struct nft_set_dump_args args;
+-@@ -3616,21 +3604,19 @@ static int nf_tables_dump_set(struct sk_
++@@ -3617,21 +3605,19 @@ static int nf_tables_dump_set(struct sk_
+  	int event;
+  
+  	rcu_read_lock();
+@@ -841,7 +841,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		}
+  		break;
+  	}
+-@@ -3650,7 +3636,7 @@ static int nf_tables_dump_set(struct sk_
++@@ -3651,7 +3637,7 @@ static int nf_tables_dump_set(struct sk_
+  		goto nla_put_failure;
+  
+  	nfmsg = nlmsg_data(nlh);
+@@ -850,7 +850,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	nfmsg->version      = NFNETLINK_V0;
+  	nfmsg->res_id	    = htons(net->nft.base_seq & 0xffff);
+  
+-@@ -3752,7 +3738,7 @@ static int nf_tables_fill_setelem_info(s
++@@ -3753,7 +3739,7 @@ static int nf_tables_fill_setelem_info(s
+  		goto nla_put_failure;
+  
+  	nfmsg = nlmsg_data(nlh);
+@@ -859,7 +859,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	nfmsg->version		= NFNETLINK_V0;
+  	nfmsg->res_id		= htons(ctx->net->nft.base_seq & 0xffff);
+  
+-@@ -4002,7 +3988,7 @@ static int nft_add_set_elem(struct nft_c
++@@ -4003,7 +3989,7 @@ static int nft_add_set_elem(struct nft_c
+  		list_for_each_entry(binding, &set->bindings, list) {
+  			struct nft_ctx bind_ctx = {
+  				.net	= ctx->net,
+@@ -868,7 +868,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  				.table	= ctx->table,
+  				.chain	= (struct nft_chain *)binding->chain,
+  			};
+-@@ -4554,7 +4540,8 @@ static int nf_tables_newobj(struct net *
++@@ -4555,7 +4541,8 @@ static int nf_tables_newobj(struct net *
+  	if (IS_ERR(afi))
+  		return PTR_ERR(afi);
+  
+@@ -878,7 +878,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (IS_ERR(table))
+  		return PTR_ERR(table);
+  
+-@@ -4572,7 +4559,7 @@ static int nf_tables_newobj(struct net *
++@@ -4573,7 +4560,7 @@ static int nf_tables_newobj(struct net *
+  		return 0;
+  	}
+  
+@@ -887,7 +887,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  
+  	type = nft_obj_type_get(objtype);
+  	if (IS_ERR(type))
+-@@ -4649,7 +4636,6 @@ struct nft_obj_filter {
++@@ -4650,7 +4637,6 @@ struct nft_obj_filter {
+  static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
+  {
+  	const struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
+@@ -895,7 +895,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	const struct nft_table *table;
+  	unsigned int idx = 0, s_idx = cb->args[0];
+  	struct nft_obj_filter *filter = cb->data;
+-@@ -4664,38 +4650,37 @@ static int nf_tables_dump_obj(struct sk_
++@@ -4665,38 +4651,37 @@ static int nf_tables_dump_obj(struct sk_
+  	rcu_read_lock();
+  	cb->seq = net->nft.base_seq;
+  
+@@ -960,7 +960,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		}
+  	}
+  done:
+-@@ -4782,7 +4767,8 @@ static int nf_tables_getobj(struct net *
++@@ -4783,7 +4768,8 @@ static int nf_tables_getobj(struct net *
+  	if (IS_ERR(afi))
+  		return PTR_ERR(afi);
+  
+@@ -970,7 +970,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (IS_ERR(table))
+  		return PTR_ERR(table);
+  
+-@@ -4842,7 +4828,8 @@ static int nf_tables_delobj(struct net *
++@@ -4843,7 +4829,8 @@ static int nf_tables_delobj(struct net *
+  	if (IS_ERR(afi))
+  		return PTR_ERR(afi);
+  
+@@ -980,7 +980,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (IS_ERR(table))
+  		return PTR_ERR(table);
+  
+-@@ -4853,7 +4840,7 @@ static int nf_tables_delobj(struct net *
++@@ -4854,7 +4841,7 @@ static int nf_tables_delobj(struct net *
+  	if (obj->use > 0)
+  		return -EBUSY;
+  
+@@ -989,7 +989,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  
+  	return nft_delobj(&ctx, obj);
+  }
+-@@ -4891,7 +4878,7 @@ static void nf_tables_obj_notify(const s
++@@ -4892,7 +4879,7 @@ static void nf_tables_obj_notify(const s
+  				 struct nft_object *obj, int event)
+  {
+  	nft_obj_notify(ctx->net, ctx->table, obj, ctx->portid, ctx->seq, event,
+@@ -998,7 +998,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  }
+  
+  /*
+-@@ -5081,7 +5068,7 @@ void nft_flow_table_iterate(struct net *
++@@ -5082,7 +5069,7 @@ void nft_flow_table_iterate(struct net *
+  
+  	rcu_read_lock();
+  	list_for_each_entry_rcu(afi, &net->nft.af_info, list) {
+@@ -1007,7 +1007,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  			list_for_each_entry_rcu(flowtable, &table->flowtables, list) {
+  				iter(&flowtable->data, data);
+  			}
+-@@ -5129,7 +5116,8 @@ static int nf_tables_newflowtable(struct
++@@ -5130,7 +5117,8 @@ static int nf_tables_newflowtable(struct
+  	if (IS_ERR(afi))
+  		return PTR_ERR(afi);
+  
+@@ -1017,7 +1017,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (IS_ERR(table))
+  		return PTR_ERR(table);
+  
+-@@ -5146,7 +5134,7 @@ static int nf_tables_newflowtable(struct
++@@ -5147,7 +5135,7 @@ static int nf_tables_newflowtable(struct
+  		return 0;
+  	}
+  
+@@ -1026,7 +1026,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  
+  	flowtable = kzalloc(sizeof(*flowtable), GFP_KERNEL);
+  	if (!flowtable)
+-@@ -5227,7 +5215,8 @@ static int nf_tables_delflowtable(struct
++@@ -5228,7 +5216,8 @@ static int nf_tables_delflowtable(struct
+  	if (IS_ERR(afi))
+  		return PTR_ERR(afi);
+  
+@@ -1036,7 +1036,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (IS_ERR(table))
+  		return PTR_ERR(table);
+  
+-@@ -5238,7 +5227,7 @@ static int nf_tables_delflowtable(struct
++@@ -5239,7 +5228,7 @@ static int nf_tables_delflowtable(struct
+  	if (flowtable->use > 0)
+  		return -EBUSY;
+  
+@@ -1045,7 +1045,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  
+  	return nft_delflowtable(&ctx, flowtable);
+  }
+-@@ -5307,40 +5296,37 @@ static int nf_tables_dump_flowtable(stru
++@@ -5308,40 +5297,37 @@ static int nf_tables_dump_flowtable(stru
+  	struct net *net = sock_net(skb->sk);
+  	int family = nfmsg->nfgen_family;
+  	struct nft_flowtable *flowtable;
+@@ -1107,7 +1107,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		}
+  	}
+  done:
+-@@ -5425,7 +5411,8 @@ static int nf_tables_getflowtable(struct
++@@ -5426,7 +5412,8 @@ static int nf_tables_getflowtable(struct
+  	if (IS_ERR(afi))
+  		return PTR_ERR(afi);
+  
+@@ -1117,7 +1117,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (IS_ERR(table))
+  		return PTR_ERR(table);
+  
+-@@ -5468,7 +5455,7 @@ static void nf_tables_flowtable_notify(s
++@@ -5469,7 +5456,7 @@ static void nf_tables_flowtable_notify(s
+  
+  	err = nf_tables_fill_flowtable_info(skb, ctx->net, ctx->portid,
+  					    ctx->seq, event, 0,
+@@ -1126,7 +1126,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (err < 0) {
+  		kfree_skb(skb);
+  		goto err;
+-@@ -5546,17 +5533,14 @@ static int nf_tables_flowtable_event(str
++@@ -5547,17 +5534,14 @@ static int nf_tables_flowtable_event(str
+  	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
+  	struct nft_flowtable *flowtable;
+  	struct nft_table *table;
+@@ -1147,7 +1147,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		}
+  	}
+  	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
+-@@ -6582,6 +6566,7 @@ EXPORT_SYMBOL_GPL(nft_data_dump);
++@@ -6583,6 +6567,7 @@ EXPORT_SYMBOL_GPL(nft_data_dump);
+  static int __net_init nf_tables_init_net(struct net *net)
+  {
+  	INIT_LIST_HEAD(&net->nft.af_info);
+@@ -1155,7 +1155,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	INIT_LIST_HEAD(&net->nft.commit_list);
+  	net->nft.base_seq = 1;
+  	return 0;
+-@@ -6618,10 +6603,10 @@ static void __nft_release_afinfo(struct
++@@ -6619,10 +6604,10 @@ static void __nft_release_afinfo(struct
+  	struct nft_set *set, *ns;
+  	struct nft_ctx ctx = {
+  		.net	= net,
+diff --git a/target/linux/generic/backport-4.14/336-v4.15-netfilter-exit_net-cleanup-check-added.patch b/target/linux/generic/backport-4.14/336-v4.15-netfilter-exit_net-cleanup-check-added.patch
+index b00675df20e0..38d5ca149fc1 100644
+--- a/target/linux/generic/backport-4.14/336-v4.15-netfilter-exit_net-cleanup-check-added.patch
++++ b/target/linux/generic/backport-4.14/336-v4.15-netfilter-exit_net-cleanup-check-added.patch
+@@ -21,7 +21,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  static struct pernet_operations clusterip_net_ops = {
+ --- a/net/netfilter/nf_tables_api.c
+ +++ b/net/netfilter/nf_tables_api.c
+-@@ -6572,6 +6572,12 @@ static int __net_init nf_tables_init_net
++@@ -6573,6 +6573,12 @@ static int __net_init nf_tables_init_net
+  	return 0;
+  }
+  
+@@ -34,7 +34,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  int __nft_release_basechain(struct nft_ctx *ctx)
+  {
+  	struct nft_rule *rule, *nr;
+-@@ -6649,6 +6655,7 @@ static void __nft_release_afinfo(struct
++@@ -6650,6 +6656,7 @@ static void __nft_release_afinfo(struct
+  
+  static struct pernet_operations nf_tables_net_ops = {
+  	.init	= nf_tables_init_net,
+diff --git a/target/linux/generic/backport-4.14/337-v4.16-netfilter-nf_tables-get-rid-of-pernet-families.patch b/target/linux/generic/backport-4.14/337-v4.16-netfilter-nf_tables-get-rid-of-pernet-families.patch
+index a42581a4bbe9..a9b54ced69d3 100644
+--- a/target/linux/generic/backport-4.14/337-v4.16-netfilter-nf_tables-get-rid-of-pernet-families.patch
++++ b/target/linux/generic/backport-4.14/337-v4.16-netfilter-nf_tables-get-rid-of-pernet-families.patch
+@@ -14,7 +14,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ 
+ --- a/include/net/netfilter/nf_tables.h
+ +++ b/include/net/netfilter/nf_tables.h
+-@@ -975,8 +975,8 @@ struct nft_af_info {
++@@ -977,8 +977,8 @@ struct nft_af_info {
+  	struct module			*owner;
+  };
+  
+@@ -364,7 +364,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		if (afi->family == family)
+  			return afi;
+  	}
+-@@ -5063,15 +5061,12 @@ void nft_flow_table_iterate(struct net *
++@@ -5064,15 +5062,12 @@ void nft_flow_table_iterate(struct net *
+  			    void *data)
+  {
+  	struct nft_flowtable *flowtable;
+@@ -383,7 +383,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		}
+  	}
+  	rcu_read_unlock();
+-@@ -6563,21 +6558,6 @@ int nft_data_dump(struct sk_buff *skb, i
++@@ -6564,21 +6559,6 @@ int nft_data_dump(struct sk_buff *skb, i
+  }
+  EXPORT_SYMBOL_GPL(nft_data_dump);
+  
+@@ -405,7 +405,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  int __nft_release_basechain(struct nft_ctx *ctx)
+  {
+  	struct nft_rule *rule, *nr;
+-@@ -6598,8 +6578,7 @@ int __nft_release_basechain(struct nft_c
++@@ -6599,8 +6579,7 @@ int __nft_release_basechain(struct nft_c
+  }
+  EXPORT_SYMBOL_GPL(__nft_release_basechain);
+  
+@@ -415,7 +415,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  {
+  	struct nft_flowtable *flowtable, *nf;
+  	struct nft_table *table, *nt;
+-@@ -6609,10 +6588,11 @@ static void __nft_release_afinfo(struct
++@@ -6610,10 +6589,11 @@ static void __nft_release_afinfo(struct
+  	struct nft_set *set, *ns;
+  	struct nft_ctx ctx = {
+  		.net	= net,
+@@ -428,7 +428,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		list_for_each_entry(chain, &table->chains, list)
+  			nf_tables_unregister_hook(net, table, chain);
+  		list_for_each_entry(flowtable, &table->flowtables, list)
+-@@ -6653,6 +6633,21 @@ static void __nft_release_afinfo(struct
++@@ -6654,6 +6634,21 @@ static void __nft_release_afinfo(struct
+  	}
+  }
+  
+diff --git a/target/linux/generic/backport-4.14/338-v4.16-netfilter-nf_tables-get-rid-of-struct-nft_af_info-ab.patch b/target/linux/generic/backport-4.14/338-v4.16-netfilter-nf_tables-get-rid-of-struct-nft_af_info-ab.patch
+index 781671846696..b77b025383db 100644
+--- a/target/linux/generic/backport-4.14/338-v4.16-netfilter-nf_tables-get-rid-of-struct-nft_af_info-ab.patch
++++ b/target/linux/generic/backport-4.14/338-v4.16-netfilter-nf_tables-get-rid-of-struct-nft_af_info-ab.patch
+@@ -11,7 +11,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ 
+ --- a/include/net/netfilter/nf_tables.h
+ +++ b/include/net/netfilter/nf_tables.h
+-@@ -956,28 +956,12 @@ struct nft_table {
++@@ -958,28 +958,12 @@ struct nft_table {
+  	struct list_head		flowtables;
+  	u64				hgenerator;
+  	u32				use;
+@@ -42,7 +42,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  int nft_register_chain_type(const struct nf_chain_type *);
+  void nft_unregister_chain_type(const struct nf_chain_type *);
+  
+-@@ -1145,9 +1129,6 @@ void nft_trace_notify(struct nft_tracein
++@@ -1147,9 +1131,6 @@ void nft_trace_notify(struct nft_tracein
+  #define nft_dereference(p)					\
+  	nfnl_dereference(p, NFNL_SUBSYS_NFTABLES)
+  
+@@ -729,7 +729,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	return 0;
+  }
+  
+-@@ -2959,7 +2834,7 @@ static int nf_tables_dump_sets(struct sk
++@@ -2960,7 +2835,7 @@ static int nf_tables_dump_sets(struct sk
+  
+  	list_for_each_entry_rcu(table, &net->nft.tables, list) {
+  		if (ctx->family != NFPROTO_UNSPEC &&
+@@ -738,7 +738,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  			continue;
+  
+  		if (ctx->table && ctx->table != table)
+-@@ -2980,7 +2855,7 @@ static int nf_tables_dump_sets(struct sk
++@@ -2981,7 +2856,7 @@ static int nf_tables_dump_sets(struct sk
+  
+  			ctx_set = *ctx;
+  			ctx_set.table = table;
+@@ -747,7 +747,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  
+  			if (nf_tables_fill_set(skb, &ctx_set, set,
+  					       NFT_MSG_NEWSET,
+-@@ -3092,8 +2967,8 @@ static int nf_tables_newset(struct net *
++@@ -3093,8 +2968,8 @@ static int nf_tables_newset(struct net *
+  {
+  	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
+  	u8 genmask = nft_genmask_next(net);
+@@ -757,7 +757,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	struct nft_table *table;
+  	struct nft_set *set;
+  	struct nft_ctx ctx;
+-@@ -3203,16 +3078,12 @@ static int nf_tables_newset(struct net *
++@@ -3204,16 +3079,12 @@ static int nf_tables_newset(struct net *
+  
+  	create = nlh->nlmsg_flags & NLM_F_CREATE ? true : false;
+  
+@@ -776,7 +776,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  
+  	set = nf_tables_set_lookup(table, nla[NFTA_SET_NAME], genmask);
+  	if (IS_ERR(set)) {
+-@@ -3474,19 +3345,15 @@ static int nft_ctx_init_from_elemattr(st
++@@ -3475,19 +3346,15 @@ static int nft_ctx_init_from_elemattr(st
+  				      u8 genmask)
+  {
+  	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
+@@ -799,7 +799,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	return 0;
+  }
+  
+-@@ -3604,7 +3471,7 @@ static int nf_tables_dump_set(struct sk_
++@@ -3605,7 +3472,7 @@ static int nf_tables_dump_set(struct sk_
+  	rcu_read_lock();
+  	list_for_each_entry_rcu(table, &net->nft.tables, list) {
+  		if (dump_ctx->ctx.family != NFPROTO_UNSPEC &&
+@@ -808,7 +808,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  			continue;
+  
+  		if (table != dump_ctx->ctx.table)
+-@@ -3634,7 +3501,7 @@ static int nf_tables_dump_set(struct sk_
++@@ -3635,7 +3502,7 @@ static int nf_tables_dump_set(struct sk_
+  		goto nla_put_failure;
+  
+  	nfmsg = nlmsg_data(nlh);
+@@ -817,7 +817,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	nfmsg->version      = NFNETLINK_V0;
+  	nfmsg->res_id	    = htons(net->nft.base_seq & 0xffff);
+  
+-@@ -4522,7 +4389,6 @@ static int nf_tables_newobj(struct net *
++@@ -4523,7 +4390,6 @@ static int nf_tables_newobj(struct net *
+  	const struct nft_object_type *type;
+  	u8 genmask = nft_genmask_next(net);
+  	int family = nfmsg->nfgen_family;
+@@ -825,7 +825,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	struct nft_table *table;
+  	struct nft_object *obj;
+  	struct nft_ctx ctx;
+-@@ -4534,11 +4400,7 @@ static int nf_tables_newobj(struct net *
++@@ -4535,11 +4401,7 @@ static int nf_tables_newobj(struct net *
+  	    !nla[NFTA_OBJ_DATA])
+  		return -EINVAL;
+  
+@@ -838,7 +838,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  				       genmask);
+  	if (IS_ERR(table))
+  		return PTR_ERR(table);
+-@@ -4557,7 +4419,7 @@ static int nf_tables_newobj(struct net *
++@@ -4558,7 +4420,7 @@ static int nf_tables_newobj(struct net *
+  		return 0;
+  	}
+  
+@@ -847,7 +847,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  
+  	type = nft_obj_type_get(objtype);
+  	if (IS_ERR(type))
+-@@ -4649,7 +4511,7 @@ static int nf_tables_dump_obj(struct sk_
++@@ -4650,7 +4512,7 @@ static int nf_tables_dump_obj(struct sk_
+  	cb->seq = net->nft.base_seq;
+  
+  	list_for_each_entry_rcu(table, &net->nft.tables, list) {
+@@ -856,7 +856,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  			continue;
+  
+  		list_for_each_entry_rcu(obj, &table->objects, list) {
+-@@ -4672,7 +4534,7 @@ static int nf_tables_dump_obj(struct sk_
++@@ -4673,7 +4535,7 @@ static int nf_tables_dump_obj(struct sk_
+  						    cb->nlh->nlmsg_seq,
+  						    NFT_MSG_NEWOBJ,
+  						    NLM_F_MULTI | NLM_F_APPEND,
+@@ -865,7 +865,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  						    obj, reset) < 0)
+  				goto done;
+  
+-@@ -4730,7 +4592,6 @@ static int nf_tables_getobj(struct net *
++@@ -4731,7 +4593,6 @@ static int nf_tables_getobj(struct net *
+  	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
+  	u8 genmask = nft_genmask_cur(net);
+  	int family = nfmsg->nfgen_family;
+@@ -873,7 +873,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	const struct nft_table *table;
+  	struct nft_object *obj;
+  	struct sk_buff *skb2;
+-@@ -4761,11 +4622,7 @@ static int nf_tables_getobj(struct net *
++@@ -4762,11 +4623,7 @@ static int nf_tables_getobj(struct net *
+  	    !nla[NFTA_OBJ_TYPE])
+  		return -EINVAL;
+  
+@@ -886,7 +886,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  				       genmask);
+  	if (IS_ERR(table))
+  		return PTR_ERR(table);
+-@@ -4812,7 +4669,6 @@ static int nf_tables_delobj(struct net *
++@@ -4813,7 +4670,6 @@ static int nf_tables_delobj(struct net *
+  	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
+  	u8 genmask = nft_genmask_next(net);
+  	int family = nfmsg->nfgen_family;
+@@ -894,7 +894,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	struct nft_table *table;
+  	struct nft_object *obj;
+  	struct nft_ctx ctx;
+-@@ -4822,11 +4678,7 @@ static int nf_tables_delobj(struct net *
++@@ -4823,11 +4679,7 @@ static int nf_tables_delobj(struct net *
+  	    !nla[NFTA_OBJ_NAME])
+  		return -EINVAL;
+  
+@@ -907,7 +907,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  				       genmask);
+  	if (IS_ERR(table))
+  		return PTR_ERR(table);
+-@@ -4838,7 +4690,7 @@ static int nf_tables_delobj(struct net *
++@@ -4839,7 +4691,7 @@ static int nf_tables_delobj(struct net *
+  	if (obj->use > 0)
+  		return -EBUSY;
+  
+@@ -916,7 +916,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  
+  	return nft_delobj(&ctx, obj);
+  }
+-@@ -5023,33 +4875,31 @@ err1:
++@@ -5024,33 +4876,31 @@ err1:
+  	return err;
+  }
+  
+@@ -956,7 +956,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  			return ERR_PTR(-EAGAIN);
+  	}
+  #endif
+-@@ -5097,7 +4947,6 @@ static int nf_tables_newflowtable(struct
++@@ -5098,7 +4948,6 @@ static int nf_tables_newflowtable(struct
+  	u8 genmask = nft_genmask_next(net);
+  	int family = nfmsg->nfgen_family;
+  	struct nft_flowtable *flowtable;
+@@ -964,7 +964,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	struct nft_table *table;
+  	struct nft_ctx ctx;
+  	int err, i, k;
+-@@ -5107,12 +4956,8 @@ static int nf_tables_newflowtable(struct
++@@ -5108,12 +4957,8 @@ static int nf_tables_newflowtable(struct
+  	    !nla[NFTA_FLOWTABLE_HOOK])
+  		return -EINVAL;
+  
+@@ -978,7 +978,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (IS_ERR(table))
+  		return PTR_ERR(table);
+  
+-@@ -5129,7 +4974,7 @@ static int nf_tables_newflowtable(struct
++@@ -5130,7 +4975,7 @@ static int nf_tables_newflowtable(struct
+  		return 0;
+  	}
+  
+@@ -987,7 +987,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  
+  	flowtable = kzalloc(sizeof(*flowtable), GFP_KERNEL);
+  	if (!flowtable)
+-@@ -5142,7 +4987,7 @@ static int nf_tables_newflowtable(struct
++@@ -5143,7 +4988,7 @@ static int nf_tables_newflowtable(struct
+  		goto err1;
+  	}
+  
+@@ -996,7 +996,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (IS_ERR(type)) {
+  		err = PTR_ERR(type);
+  		goto err2;
+-@@ -5202,16 +5047,11 @@ static int nf_tables_delflowtable(struct
++@@ -5203,16 +5048,11 @@ static int nf_tables_delflowtable(struct
+  	u8 genmask = nft_genmask_next(net);
+  	int family = nfmsg->nfgen_family;
+  	struct nft_flowtable *flowtable;
+@@ -1014,7 +1014,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (IS_ERR(table))
+  		return PTR_ERR(table);
+  
+-@@ -5222,7 +5062,7 @@ static int nf_tables_delflowtable(struct
++@@ -5223,7 +5063,7 @@ static int nf_tables_delflowtable(struct
+  	if (flowtable->use > 0)
+  		return -EBUSY;
+  
+@@ -1023,7 +1023,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  
+  	return nft_delflowtable(&ctx, flowtable);
+  }
+-@@ -5297,7 +5137,7 @@ static int nf_tables_dump_flowtable(stru
++@@ -5298,7 +5138,7 @@ static int nf_tables_dump_flowtable(stru
+  	cb->seq = net->nft.base_seq;
+  
+  	list_for_each_entry_rcu(table, &net->nft.tables, list) {
+@@ -1032,7 +1032,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  			continue;
+  
+  		list_for_each_entry_rcu(flowtable, &table->flowtables, list) {
+-@@ -5316,7 +5156,7 @@ static int nf_tables_dump_flowtable(stru
++@@ -5317,7 +5157,7 @@ static int nf_tables_dump_flowtable(stru
+  							  cb->nlh->nlmsg_seq,
+  							  NFT_MSG_NEWFLOWTABLE,
+  							  NLM_F_MULTI | NLM_F_APPEND,
+@@ -1041,7 +1041,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  				goto done;
+  
+  			nl_dump_check_consistent(cb, nlmsg_hdr(skb));
+-@@ -5376,7 +5216,6 @@ static int nf_tables_getflowtable(struct
++@@ -5377,7 +5217,6 @@ static int nf_tables_getflowtable(struct
+  	u8 genmask = nft_genmask_cur(net);
+  	int family = nfmsg->nfgen_family;
+  	struct nft_flowtable *flowtable;
+@@ -1049,7 +1049,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	const struct nft_table *table;
+  	struct sk_buff *skb2;
+  	int err;
+-@@ -5402,12 +5241,8 @@ static int nf_tables_getflowtable(struct
++@@ -5403,12 +5242,8 @@ static int nf_tables_getflowtable(struct
+  	if (!nla[NFTA_FLOWTABLE_NAME])
+  		return -EINVAL;
+  
+@@ -1063,7 +1063,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (IS_ERR(table))
+  		return PTR_ERR(table);
+  
+-@@ -6578,7 +6413,7 @@ int __nft_release_basechain(struct nft_c
++@@ -6579,7 +6414,7 @@ int __nft_release_basechain(struct nft_c
+  }
+  EXPORT_SYMBOL_GPL(__nft_release_basechain);
+  
+@@ -1072,7 +1072,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  {
+  	struct nft_flowtable *flowtable, *nf;
+  	struct nft_table *table, *nt;
+-@@ -6591,7 +6426,7 @@ static void __nft_release_afinfo(struct
++@@ -6592,7 +6427,7 @@ static void __nft_release_afinfo(struct
+  	};
+  
+  	list_for_each_entry_safe(table, nt, &net->nft.tables, list) {
+@@ -1081,7 +1081,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  
+  		list_for_each_entry(chain, &table->chains, list)
+  			nf_tables_unregister_hook(net, table, chain);
+-@@ -6643,7 +6478,7 @@ static int __net_init nf_tables_init_net
++@@ -6644,7 +6479,7 @@ static int __net_init nf_tables_init_net
+  
+  static void __net_exit nf_tables_exit_net(struct net *net)
+  {
+diff --git a/target/linux/generic/backport-4.14/339-v4.16-netfilter-nft_flow_offload-wait-for-garbage-collecto.patch b/target/linux/generic/backport-4.14/339-v4.16-netfilter-nft_flow_offload-wait-for-garbage-collecto.patch
+index 5ae917ff5176..4aca79c68298 100644
+--- a/target/linux/generic/backport-4.14/339-v4.16-netfilter-nft_flow_offload-wait-for-garbage-collecto.patch
++++ b/target/linux/generic/backport-4.14/339-v4.16-netfilter-nft_flow_offload-wait-for-garbage-collecto.patch
+@@ -17,7 +17,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ 
+ --- a/net/netfilter/nf_tables_api.c
+ +++ b/net/netfilter/nf_tables_api.c
+-@@ -4913,13 +4913,13 @@ void nft_flow_table_iterate(struct net *
++@@ -4914,13 +4914,13 @@ void nft_flow_table_iterate(struct net *
+  	struct nft_flowtable *flowtable;
+  	const struct nft_table *table;
+  
+diff --git a/target/linux/generic/backport-4.14/342-v4.16-netfilter-nf_tables-fix-flowtable-free.patch b/target/linux/generic/backport-4.14/342-v4.16-netfilter-nf_tables-fix-flowtable-free.patch
+index b8c85fc2a7cd..efbf478ea2be 100644
+--- a/target/linux/generic/backport-4.14/342-v4.16-netfilter-nf_tables-fix-flowtable-free.patch
++++ b/target/linux/generic/backport-4.14/342-v4.16-netfilter-nf_tables-fix-flowtable-free.patch
+@@ -118,7 +118,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  };
+ --- a/net/netfilter/nf_tables_api.c
+ +++ b/net/netfilter/nf_tables_api.c
+-@@ -5298,17 +5298,12 @@ err:
++@@ -5299,17 +5299,12 @@ err:
+  	nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES, -ENOBUFS);
+  }
+  
+diff --git a/target/linux/generic/backport-4.14/344-v4.16-netfilter-nf_tables-allocate-handle-and-delete-objec.patch b/target/linux/generic/backport-4.14/344-v4.16-netfilter-nf_tables-allocate-handle-and-delete-objec.patch
+index e6c9fd2f74da..ad630e9d5109 100644
+--- a/target/linux/generic/backport-4.14/344-v4.16-netfilter-nf_tables-allocate-handle-and-delete-objec.patch
++++ b/target/linux/generic/backport-4.14/344-v4.16-netfilter-nf_tables-allocate-handle-and-delete-objec.patch
+@@ -12,7 +12,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ 
+ --- a/include/net/netfilter/nf_tables.h
+ +++ b/include/net/netfilter/nf_tables.h
+-@@ -370,6 +370,7 @@ void nft_unregister_set(struct nft_set_t
++@@ -372,6 +372,7 @@ void nft_unregister_set(struct nft_set_t
+   *	@list: table set list node
+   *	@bindings: list of set bindings
+   * 	@name: name of the set
+@@ -20,7 +20,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+   * 	@ktype: key type (numeric type defined by userspace, not used in the kernel)
+   * 	@dtype: data type (verdict or numeric type defined by userspace)
+   * 	@objtype: object type (see NFT_OBJECT_* definitions)
+-@@ -392,6 +393,7 @@ struct nft_set {
++@@ -394,6 +395,7 @@ struct nft_set {
+  	struct list_head		list;
+  	struct list_head		bindings;
+  	char				*name;
+@@ -28,7 +28,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	u32				ktype;
+  	u32				dtype;
+  	u32				objtype;
+-@@ -942,6 +944,7 @@ unsigned int nft_do_chain(struct nft_pkt
++@@ -944,6 +946,7 @@ unsigned int nft_do_chain(struct nft_pkt
+   *	@objects: stateful objects in the table
+   *	@flowtables: flow tables in the table
+   *	@hgenerator: handle generator state
+@@ -36,7 +36,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+   *	@use: number of chain references to this table
+   *	@flags: table flag (see enum nft_table_flags)
+   *	@genmask: generation mask
+-@@ -955,6 +958,7 @@ struct nft_table {
++@@ -957,6 +960,7 @@ struct nft_table {
+  	struct list_head		objects;
+  	struct list_head		flowtables;
+  	u64				hgenerator;
+@@ -44,7 +44,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	u32				use;
+  	u16				family:6,
+  					flags:8,
+-@@ -979,9 +983,9 @@ int nft_verdict_dump(struct sk_buff *skb
++@@ -981,9 +985,9 @@ int nft_verdict_dump(struct sk_buff *skb
+   *	@name: name of this stateful object
+   *	@genmask: generation mask
+   *	@use: number of references to this stateful object
+@@ -56,7 +56,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+   */
+  struct nft_object {
+  	struct list_head		list;
+-@@ -989,6 +993,7 @@ struct nft_object {
++@@ -991,6 +995,7 @@ struct nft_object {
+  	struct nft_table		*table;
+  	u32				genmask:2,
+  					use:30;
+@@ -64,7 +64,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	/* runtime data below here */
+  	const struct nft_object_ops	*ops ____cacheline_aligned;
+  	unsigned char			data[]
+-@@ -1070,6 +1075,7 @@ void nft_unregister_obj(struct nft_objec
++@@ -1072,6 +1077,7 @@ void nft_unregister_obj(struct nft_objec
+   *	@ops_len: number of hooks in array
+   *	@genmask: generation mask
+   *	@use: number of references to this flow table
+@@ -72,7 +72,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+   *	@data: rhashtable and garbage collector
+   * 	@ops: array of hooks
+   */
+-@@ -1082,6 +1088,7 @@ struct nft_flowtable {
++@@ -1084,6 +1090,7 @@ struct nft_flowtable {
+  	int				ops_len;
+  	u32				genmask:2,
+  					use:30;
+@@ -307,7 +307,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (set->flags != 0)
+  		if (nla_put_be32(skb, NFTA_SET_FLAGS, htonl(set->flags)))
+  			goto nla_put_failure;
+-@@ -3149,6 +3217,7 @@ static int nf_tables_newset(struct net *
++@@ -3150,6 +3218,7 @@ static int nf_tables_newset(struct net *
+  	set->udata  = udata;
+  	set->timeout = timeout;
+  	set->gc_int = gc_int;
+@@ -315,7 +315,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  
+  	err = ops->init(set, &desc, nla);
+  	if (err < 0)
+-@@ -3208,7 +3277,10 @@ static int nf_tables_delset(struct net *
++@@ -3209,7 +3278,10 @@ static int nf_tables_delset(struct net *
+  	if (err < 0)
+  		return err;
+  
+@@ -327,7 +327,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (IS_ERR(set))
+  		return PTR_ERR(set);
+  
+-@@ -4277,6 +4349,21 @@ struct nft_object *nf_tables_obj_lookup(
++@@ -4278,6 +4350,21 @@ struct nft_object *nf_tables_obj_lookup(
+  }
+  EXPORT_SYMBOL_GPL(nf_tables_obj_lookup);
+  
+@@ -349,7 +349,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  static const struct nla_policy nft_obj_policy[NFTA_OBJ_MAX + 1] = {
+  	[NFTA_OBJ_TABLE]	= { .type = NLA_STRING,
+  				    .len = NFT_TABLE_MAXNAMELEN - 1 },
+-@@ -4284,6 +4371,7 @@ static const struct nla_policy nft_obj_p
++@@ -4285,6 +4372,7 @@ static const struct nla_policy nft_obj_p
+  				    .len = NFT_OBJ_MAXNAMELEN - 1 },
+  	[NFTA_OBJ_TYPE]		= { .type = NLA_U32 },
+  	[NFTA_OBJ_DATA]		= { .type = NLA_NESTED },
+@@ -357,7 +357,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  };
+  
+  static struct nft_object *nft_obj_init(const struct nft_ctx *ctx,
+-@@ -4431,6 +4519,8 @@ static int nf_tables_newobj(struct net *
++@@ -4432,6 +4520,8 @@ static int nf_tables_newobj(struct net *
+  		goto err1;
+  	}
+  	obj->table = table;
+@@ -366,7 +366,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	obj->name = nla_strdup(nla[NFTA_OBJ_NAME], GFP_KERNEL);
+  	if (!obj->name) {
+  		err = -ENOMEM;
+-@@ -4477,7 +4567,9 @@ static int nf_tables_fill_obj_info(struc
++@@ -4478,7 +4568,9 @@ static int nf_tables_fill_obj_info(struc
+  	    nla_put_string(skb, NFTA_OBJ_NAME, obj->name) ||
+  	    nla_put_be32(skb, NFTA_OBJ_TYPE, htonl(obj->ops->type->type)) ||
+  	    nla_put_be32(skb, NFTA_OBJ_USE, htonl(obj->use)) ||
+@@ -377,7 +377,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		goto nla_put_failure;
+  
+  	nlmsg_end(skb, nlh);
+-@@ -4675,7 +4767,7 @@ static int nf_tables_delobj(struct net *
++@@ -4676,7 +4768,7 @@ static int nf_tables_delobj(struct net *
+  	u32 objtype;
+  
+  	if (!nla[NFTA_OBJ_TYPE] ||
+@@ -386,7 +386,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  		return -EINVAL;
+  
+  	table = nf_tables_table_lookup(net, nla[NFTA_OBJ_TABLE], family,
+-@@ -4684,7 +4776,12 @@ static int nf_tables_delobj(struct net *
++@@ -4685,7 +4777,12 @@ static int nf_tables_delobj(struct net *
+  		return PTR_ERR(table);
+  
+  	objtype = ntohl(nla_get_be32(nla[NFTA_OBJ_TYPE]));
+@@ -400,7 +400,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (IS_ERR(obj))
+  		return PTR_ERR(obj);
+  	if (obj->use > 0)
+-@@ -4756,6 +4853,7 @@ static const struct nla_policy nft_flowt
++@@ -4757,6 +4854,7 @@ static const struct nla_policy nft_flowt
+  	[NFTA_FLOWTABLE_NAME]		= { .type = NLA_STRING,
+  					    .len = NFT_NAME_MAXLEN - 1 },
+  	[NFTA_FLOWTABLE_HOOK]		= { .type = NLA_NESTED },
+@@ -408,7 +408,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  };
+  
+  struct nft_flowtable *nf_tables_flowtable_lookup(const struct nft_table *table,
+-@@ -4773,6 +4871,20 @@ struct nft_flowtable *nf_tables_flowtabl
++@@ -4774,6 +4872,20 @@ struct nft_flowtable *nf_tables_flowtabl
+  }
+  EXPORT_SYMBOL_GPL(nf_tables_flowtable_lookup);
+  
+@@ -429,7 +429,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  #define NFT_FLOWTABLE_DEVICE_MAX	8
+  
+  static int nf_tables_parse_devices(const struct nft_ctx *ctx,
+-@@ -4981,6 +5093,8 @@ static int nf_tables_newflowtable(struct
++@@ -4982,6 +5094,8 @@ static int nf_tables_newflowtable(struct
+  		return -ENOMEM;
+  
+  	flowtable->table = table;
+@@ -438,7 +438,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	flowtable->name = nla_strdup(nla[NFTA_FLOWTABLE_NAME], GFP_KERNEL);
+  	if (!flowtable->name) {
+  		err = -ENOMEM;
+-@@ -5055,8 +5169,14 @@ static int nf_tables_delflowtable(struct
++@@ -5056,8 +5170,14 @@ static int nf_tables_delflowtable(struct
+  	if (IS_ERR(table))
+  		return PTR_ERR(table);
+  
+@@ -455,7 +455,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	if (IS_ERR(flowtable))
+                  return PTR_ERR(flowtable);
+  	if (flowtable->use > 0)
+-@@ -5089,7 +5209,9 @@ static int nf_tables_fill_flowtable_info
++@@ -5090,7 +5210,9 @@ static int nf_tables_fill_flowtable_info
+  
+  	if (nla_put_string(skb, NFTA_FLOWTABLE_TABLE, flowtable->table->name) ||
+  	    nla_put_string(skb, NFTA_FLOWTABLE_NAME, flowtable->name) ||
+diff --git a/target/linux/generic/backport-4.14/357-v4.18-netfilter-nf_flow_table-move-init-code-to-nf_flow_ta.patch b/target/linux/generic/backport-4.14/357-v4.18-netfilter-nf_flow_table-move-init-code-to-nf_flow_ta.patch
+index 96acb6887e6d..44838837e908 100644
+--- a/target/linux/generic/backport-4.14/357-v4.18-netfilter-nf_flow_table-move-init-code-to-nf_flow_ta.patch
++++ b/target/linux/generic/backport-4.14/357-v4.18-netfilter-nf_flow_table-move-init-code-to-nf_flow_ta.patch
+@@ -236,7 +236,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  	.owner		= THIS_MODULE,
+ --- a/net/netfilter/nf_tables_api.c
+ +++ b/net/netfilter/nf_tables_api.c
+-@@ -5108,40 +5108,38 @@ static int nf_tables_newflowtable(struct
++@@ -5109,40 +5109,38 @@ static int nf_tables_newflowtable(struct
+  	}
+  
+  	flowtable->data.type = type;
+@@ -285,7 +285,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  err3:
+  	module_put(type->owner);
+  err2:
+-@@ -5422,10 +5420,8 @@ err:
++@@ -5423,10 +5421,8 @@ err:
+  
+  static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
+  {
+diff --git a/target/linux/generic/backport-4.14/358-v4.18-netfilter-nf_flow_table-fix-priv-pointer-for-netdev-.patch b/target/linux/generic/backport-4.14/358-v4.18-netfilter-nf_flow_table-fix-priv-pointer-for-netdev-.patch
+index ea86e761d78b..0fd8bb0a4fad 100644
+--- a/target/linux/generic/backport-4.14/358-v4.18-netfilter-nf_flow_table-fix-priv-pointer-for-netdev-.patch
++++ b/target/linux/generic/backport-4.14/358-v4.18-netfilter-nf_flow_table-fix-priv-pointer-for-netdev-.patch
+@@ -11,7 +11,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+ 
+ --- a/net/netfilter/nf_tables_api.c
+ +++ b/net/netfilter/nf_tables_api.c
+-@@ -4974,7 +4974,7 @@ static int nf_tables_flowtable_parse_hoo
++@@ -4975,7 +4975,7 @@ static int nf_tables_flowtable_parse_hoo
+  		flowtable->ops[i].pf		= NFPROTO_NETDEV;
+  		flowtable->ops[i].hooknum	= hooknum;
+  		flowtable->ops[i].priority	= priority;
+diff --git a/target/linux/generic/backport-4.14/359-v4.18-netfilter-nf_flow_table-track-flow-tables-in-nf_flow.patch b/target/linux/generic/backport-4.14/359-v4.18-netfilter-nf_flow_table-track-flow-tables-in-nf_flow.patch
+index 643189b5c039..85c97a41a09b 100644
+--- a/target/linux/generic/backport-4.14/359-v4.18-netfilter-nf_flow_table-track-flow-tables-in-nf_flow.patch
++++ b/target/linux/generic/backport-4.14/359-v4.18-netfilter-nf_flow_table-track-flow-tables-in-nf_flow.patch
+@@ -21,7 +21,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  	struct delayed_work		gc_work;
+ --- a/include/net/netfilter/nf_tables.h
+ +++ b/include/net/netfilter/nf_tables.h
+-@@ -1097,9 +1097,6 @@ struct nft_flowtable {
++@@ -1099,9 +1099,6 @@ struct nft_flowtable {
+  struct nft_flowtable *nf_tables_flowtable_lookup(const struct nft_table *table,
+  						 const struct nlattr *nla,
+  						 u8 genmask);
+@@ -88,7 +88,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  	WARN_ON(!nf_flow_offload_gc_step(flow_table));
+ --- a/net/netfilter/nf_tables_api.c
+ +++ b/net/netfilter/nf_tables_api.c
+-@@ -5018,23 +5018,6 @@ static const struct nf_flowtable_type *n
++@@ -5019,23 +5019,6 @@ static const struct nf_flowtable_type *n
+  	return ERR_PTR(-ENOENT);
+  }
+  
+diff --git a/target/linux/generic/hack-4.14/301-mips_image_cmdline_hack.patch b/target/linux/generic/hack-4.14/301-mips_image_cmdline_hack.patch
+index 9bcd2a4401a4..4d90c0782109 100644
+--- a/target/linux/generic/hack-4.14/301-mips_image_cmdline_hack.patch
++++ b/target/linux/generic/hack-4.14/301-mips_image_cmdline_hack.patch
+@@ -10,7 +10,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
+ 
+ --- a/arch/mips/Kconfig
+ +++ b/arch/mips/Kconfig
+-@@ -1159,6 +1159,10 @@ config SYNC_R4K
++@@ -1160,6 +1160,10 @@ config SYNC_R4K
+  config MIPS_MACHINE
+  	def_bool n
+  
+diff --git a/target/linux/generic/pending-4.14/110-ehci_hcd_ignore_oc.patch b/target/linux/generic/pending-4.14/110-ehci_hcd_ignore_oc.patch
+index b45b1c079cc6..4a7f7cfce3ac 100644
+--- a/target/linux/generic/pending-4.14/110-ehci_hcd_ignore_oc.patch
++++ b/target/linux/generic/pending-4.14/110-ehci_hcd_ignore_oc.patch
+@@ -17,7 +17,7 @@ Signed-off-by: Florian Fainelli <florian@openwrt.org>
+ 
+ --- a/drivers/usb/host/ehci-hcd.c
+ +++ b/drivers/usb/host/ehci-hcd.c
+-@@ -651,7 +651,7 @@ static int ehci_run (struct usb_hcd *hcd
++@@ -652,7 +652,7 @@ static int ehci_run (struct usb_hcd *hcd
+  		"USB %x.%x started, EHCI %x.%02x%s\n",
+  		((ehci->sbrn & 0xf0)>>4), (ehci->sbrn & 0x0f),
+  		temp >> 8, temp & 0xff,
+@@ -28,7 +28,7 @@ Signed-off-by: Florian Fainelli <florian@openwrt.org>
+  		    &ehci->regs->intr_enable); /* Turn On Interrupts */
+ --- a/drivers/usb/host/ehci-hub.c
+ +++ b/drivers/usb/host/ehci-hub.c
+-@@ -646,7 +646,7 @@ ehci_hub_status_data (struct usb_hcd *hc
++@@ -645,7 +645,7 @@ ehci_hub_status_data (struct usb_hcd *hc
+  	 * always set, seem to clear PORT_OCC and PORT_CSC when writing to
+  	 * PORT_POWER; that's surprising, but maybe within-spec.
+  	 */
+@@ -37,7 +37,7 @@ Signed-off-by: Florian Fainelli <florian@openwrt.org>
+  		mask = PORT_CSC | PORT_PEC | PORT_OCC;
+  	else
+  		mask = PORT_CSC | PORT_PEC;
+-@@ -1016,7 +1016,7 @@ int ehci_hub_control(
++@@ -1015,7 +1015,7 @@ int ehci_hub_control(
+  		if (temp & PORT_PEC)
+  			status |= USB_PORT_STAT_C_ENABLE << 16;
+  
+diff --git a/target/linux/generic/pending-4.14/300-mips_expose_boot_raw.patch b/target/linux/generic/pending-4.14/300-mips_expose_boot_raw.patch
+index 71dff9b93092..f305e75650e2 100644
+--- a/target/linux/generic/pending-4.14/300-mips_expose_boot_raw.patch
++++ b/target/linux/generic/pending-4.14/300-mips_expose_boot_raw.patch
+@@ -9,7 +9,7 @@ Acked-by: Rob Landley <rob@landley.net>
+ ---
+ --- a/arch/mips/Kconfig
+ +++ b/arch/mips/Kconfig
+-@@ -1068,9 +1068,6 @@ config FW_ARC
++@@ -1069,9 +1069,6 @@ config FW_ARC
+  config ARCH_MAY_HAVE_PC_FDC
+  	bool
+  
+@@ -19,7 +19,7 @@ Acked-by: Rob Landley <rob@landley.net>
+  config CEVT_BCM1480
+  	bool
+  
+-@@ -2968,6 +2965,18 @@ choice
++@@ -2969,6 +2966,18 @@ choice
+  		bool "Extend builtin kernel arguments with bootloader arguments"
+  endchoice
+  
+diff --git a/target/linux/generic/pending-4.14/304-mips_disable_fpu.patch b/target/linux/generic/pending-4.14/304-mips_disable_fpu.patch
+index 47983df948d7..c833c685baa6 100644
+--- a/target/linux/generic/pending-4.14/304-mips_disable_fpu.patch
++++ b/target/linux/generic/pending-4.14/304-mips_disable_fpu.patch
+@@ -24,7 +24,7 @@ v2: incorporated changes suggested by Jonas Gorski
+ 
+ --- a/arch/mips/Kconfig
+ +++ b/arch/mips/Kconfig
+-@@ -2892,6 +2892,20 @@ config MIPS_O32_FP64_SUPPORT
++@@ -2893,6 +2893,20 @@ config MIPS_O32_FP64_SUPPORT
+  
+  	  If unsure, say N.
+  
+diff --git a/target/linux/generic/pending-4.14/341-MIPS-mm-remove-no-op-dma_map_ops-where-possible.patch b/target/linux/generic/pending-4.14/341-MIPS-mm-remove-no-op-dma_map_ops-where-possible.patch
+index 6f5f11350a0b..47965c71a348 100644
+--- a/target/linux/generic/pending-4.14/341-MIPS-mm-remove-no-op-dma_map_ops-where-possible.patch
++++ b/target/linux/generic/pending-4.14/341-MIPS-mm-remove-no-op-dma_map_ops-where-possible.patch
+@@ -30,7 +30,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  	select HAVE_PCSPKR_PLATFORM
+  	select IRQ_MIPS_CPU
+  	select I8253
+-@@ -1129,6 +1131,9 @@ config DMA_NONCOHERENT
++@@ -1130,6 +1132,9 @@ config DMA_NONCOHERENT
+  	bool
+  	select NEED_DMA_MAP_STATE
+  
+@@ -40,7 +40,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  config NEED_DMA_MAP_STATE
+  	bool
+  
+-@@ -1653,6 +1658,7 @@ config CPU_R10000
++@@ -1654,6 +1659,7 @@ config CPU_R10000
+  	select CPU_SUPPORTS_64BIT_KERNEL
+  	select CPU_SUPPORTS_HIGHMEM
+  	select CPU_SUPPORTS_HUGEPAGES
+@@ -48,7 +48,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  	help
+  	  MIPS Technologies R10000-series processors.
+  
+-@@ -1901,9 +1907,11 @@ config SYS_HAS_CPU_MIPS32_R3_5
++@@ -1902,9 +1908,11 @@ config SYS_HAS_CPU_MIPS32_R3_5
+  	bool
+  
+  config SYS_HAS_CPU_MIPS32_R5
+@@ -60,7 +60,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  	bool
+  
+  config SYS_HAS_CPU_MIPS64_R1
+-@@ -1913,6 +1921,7 @@ config SYS_HAS_CPU_MIPS64_R2
++@@ -1914,6 +1922,7 @@ config SYS_HAS_CPU_MIPS64_R2
+  	bool
+  
+  config SYS_HAS_CPU_MIPS64_R6
+diff --git a/target/linux/generic/pending-4.14/640-netfilter-nf_flow_table-add-hardware-offload-support.patch b/target/linux/generic/pending-4.14/640-netfilter-nf_flow_table-add-hardware-offload-support.patch
+index f2aa14c238d1..bbf02a9e914e 100644
+--- a/target/linux/generic/pending-4.14/640-netfilter-nf_flow_table-add-hardware-offload-support.patch
++++ b/target/linux/generic/pending-4.14/640-netfilter-nf_flow_table-add-hardware-offload-support.patch
+@@ -506,7 +506,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ +MODULE_ALIAS("nf-flow-table-hw");
+ --- a/net/netfilter/nf_tables_api.c
+ +++ b/net/netfilter/nf_tables_api.c
+-@@ -4961,6 +4961,14 @@ static int nf_tables_flowtable_parse_hoo
++@@ -4962,6 +4962,14 @@ static int nf_tables_flowtable_parse_hoo
+  	if (err < 0)
+  		goto err1;
+  
+@@ -521,7 +521,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	ops = kzalloc(sizeof(struct nf_hook_ops) * n, GFP_KERNEL);
+  	if (!ops) {
+  		err = -ENOMEM;
+-@@ -5091,10 +5099,19 @@ static int nf_tables_newflowtable(struct
++@@ -5092,10 +5100,19 @@ static int nf_tables_newflowtable(struct
+  	}
+  
+  	flowtable->data.type = type;
+@@ -541,7 +541,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+  	err = nf_tables_flowtable_parse_hook(&ctx, nla[NFTA_FLOWTABLE_HOOK],
+  					     flowtable);
+  	if (err < 0)
+-@@ -5192,7 +5209,8 @@ static int nf_tables_fill_flowtable_info
++@@ -5193,7 +5210,8 @@ static int nf_tables_fill_flowtable_info
+  	    nla_put_string(skb, NFTA_FLOWTABLE_NAME, flowtable->name) ||
+  	    nla_put_be32(skb, NFTA_FLOWTABLE_USE, htonl(flowtable->use)) ||
+  	    nla_put_be64(skb, NFTA_FLOWTABLE_HANDLE, cpu_to_be64(flowtable->handle),
+diff --git a/target/linux/generic/pending-4.14/666-Add-support-for-MAP-E-FMRs-mesh-mode.patch b/target/linux/generic/pending-4.14/666-Add-support-for-MAP-E-FMRs-mesh-mode.patch
+index 96c8ae9c122a..f4173ae4dc53 100644
+--- a/target/linux/generic/pending-4.14/666-Add-support-for-MAP-E-FMRs-mesh-mode.patch
++++ b/target/linux/generic/pending-4.14/666-Add-support-for-MAP-E-FMRs-mesh-mode.patch
+@@ -292,7 +292,7 @@ Signed-off-by: Steven Barth <cyrus@openwrt.org>
+  	__skb_tunnel_rx(skb, tunnel->dev, tunnel->net);
+  
+  	err = dscp_ecn_decapsulate(tunnel, ipv6h, skb);
+-@@ -963,6 +1102,7 @@ static void init_tel_txopt(struct ipv6_t
++@@ -971,6 +1110,7 @@ static void init_tel_txopt(struct ipv6_t
+  	opt->ops.opt_nflen = 8;
+  }
+  
+@@ -300,7 +300,7 @@ Signed-off-by: Steven Barth <cyrus@openwrt.org>
+  /**
+   * ip6_tnl_addr_conflict - compare packet addresses to tunnel's own
+   *   @t: the outgoing tunnel device
+-@@ -1305,6 +1445,7 @@ ip6ip6_tnl_xmit(struct sk_buff *skb, str
++@@ -1313,6 +1453,7 @@ ip6ip6_tnl_xmit(struct sk_buff *skb, str
+  {
+  	struct ip6_tnl *t = netdev_priv(dev);
+  	struct ipv6hdr *ipv6h;
+@@ -308,7 +308,7 @@ Signed-off-by: Steven Barth <cyrus@openwrt.org>
+  	int encap_limit = -1;
+  	__u16 offset;
+  	struct flowi6 fl6;
+-@@ -1372,6 +1513,18 @@ ip6ip6_tnl_xmit(struct sk_buff *skb, str
++@@ -1380,6 +1521,18 @@ ip6ip6_tnl_xmit(struct sk_buff *skb, str
+  	fl6.flowi6_uid = sock_net_uid(dev_net(dev), NULL);
+  	dsfield = INET_ECN_encapsulate(dsfield, ipv6_get_dsfield(ipv6h));
+  
+@@ -327,7 +327,7 @@ Signed-off-by: Steven Barth <cyrus@openwrt.org>
+  	if (iptunnel_handle_offloads(skb, SKB_GSO_IPXIP6))
+  		return -1;
+  
+-@@ -1498,6 +1651,14 @@ ip6_tnl_change(struct ip6_tnl *t, const
++@@ -1506,6 +1659,14 @@ ip6_tnl_change(struct ip6_tnl *t, const
+  	t->parms.link = p->link;
+  	t->parms.proto = p->proto;
+  	t->parms.fwmark = p->fwmark;
+@@ -342,7 +342,7 @@ Signed-off-by: Steven Barth <cyrus@openwrt.org>
+  	dst_cache_reset(&t->dst_cache);
+  	ip6_tnl_link_config(t);
+  	return 0;
+-@@ -1536,6 +1697,7 @@ ip6_tnl_parm_from_user(struct __ip6_tnl_
++@@ -1544,6 +1705,7 @@ ip6_tnl_parm_from_user(struct __ip6_tnl_
+  	p->flowinfo = u->flowinfo;
+  	p->link = u->link;
+  	p->proto = u->proto;
+@@ -350,7 +350,7 @@ Signed-off-by: Steven Barth <cyrus@openwrt.org>
+  	memcpy(p->name, u->name, sizeof(u->name));
+  }
+  
+-@@ -1920,6 +2082,15 @@ static int ip6_tnl_validate(struct nlatt
++@@ -1928,6 +2090,15 @@ static int ip6_tnl_validate(struct nlatt
+  	return 0;
+  }
+  
+@@ -366,7 +366,7 @@ Signed-off-by: Steven Barth <cyrus@openwrt.org>
+  static void ip6_tnl_netlink_parms(struct nlattr *data[],
+  				  struct __ip6_tnl_parm *parms)
+  {
+-@@ -1957,6 +2128,46 @@ static void ip6_tnl_netlink_parms(struct
++@@ -1965,6 +2136,46 @@ static void ip6_tnl_netlink_parms(struct
+  
+  	if (data[IFLA_IPTUN_FWMARK])
+  		parms->fwmark = nla_get_u32(data[IFLA_IPTUN_FWMARK]);
+@@ -413,7 +413,7 @@ Signed-off-by: Steven Barth <cyrus@openwrt.org>
+  }
+  
+  static bool ip6_tnl_netlink_encap_parms(struct nlattr *data[],
+-@@ -2072,6 +2283,12 @@ static void ip6_tnl_dellink(struct net_d
++@@ -2080,6 +2291,12 @@ static void ip6_tnl_dellink(struct net_d
+  
+  static size_t ip6_tnl_get_size(const struct net_device *dev)
+  {
+@@ -426,7 +426,7 @@ Signed-off-by: Steven Barth <cyrus@openwrt.org>
+  	return
+  		/* IFLA_IPTUN_LINK */
+  		nla_total_size(4) +
+-@@ -2101,6 +2318,24 @@ static size_t ip6_tnl_get_size(const str
++@@ -2109,6 +2326,24 @@ static size_t ip6_tnl_get_size(const str
+  		nla_total_size(0) +
+  		/* IFLA_IPTUN_FWMARK */
+  		nla_total_size(4) +
+@@ -451,7 +451,7 @@ Signed-off-by: Steven Barth <cyrus@openwrt.org>
+  		0;
+  }
+  
+-@@ -2108,6 +2343,9 @@ static int ip6_tnl_fill_info(struct sk_b
++@@ -2116,6 +2351,9 @@ static int ip6_tnl_fill_info(struct sk_b
+  {
+  	struct ip6_tnl *tunnel = netdev_priv(dev);
+  	struct __ip6_tnl_parm *parm = &tunnel->parms;
+@@ -461,7 +461,7 @@ Signed-off-by: Steven Barth <cyrus@openwrt.org>
+  
+  	if (nla_put_u32(skb, IFLA_IPTUN_LINK, parm->link) ||
+  	    nla_put_in6_addr(skb, IFLA_IPTUN_LOCAL, &parm->laddr) ||
+-@@ -2117,9 +2355,27 @@ static int ip6_tnl_fill_info(struct sk_b
++@@ -2125,9 +2363,27 @@ static int ip6_tnl_fill_info(struct sk_b
+  	    nla_put_be32(skb, IFLA_IPTUN_FLOWINFO, parm->flowinfo) ||
+  	    nla_put_u32(skb, IFLA_IPTUN_FLAGS, parm->flags) ||
+  	    nla_put_u8(skb, IFLA_IPTUN_PROTO, parm->proto) ||
+@@ -490,7 +490,7 @@ Signed-off-by: Steven Barth <cyrus@openwrt.org>
+  	if (nla_put_u16(skb, IFLA_IPTUN_ENCAP_TYPE, tunnel->encap.type) ||
+  	    nla_put_be16(skb, IFLA_IPTUN_ENCAP_SPORT, tunnel->encap.sport) ||
+  	    nla_put_be16(skb, IFLA_IPTUN_ENCAP_DPORT, tunnel->encap.dport) ||
+-@@ -2159,6 +2415,7 @@ static const struct nla_policy ip6_tnl_p
++@@ -2167,6 +2423,7 @@ static const struct nla_policy ip6_tnl_p
+  	[IFLA_IPTUN_ENCAP_DPORT]	= { .type = NLA_U16 },
+  	[IFLA_IPTUN_COLLECT_METADATA]	= { .type = NLA_FLAG },
+  	[IFLA_IPTUN_FWMARK]		= { .type = NLA_U32 },
+diff --git a/target/linux/generic/pending-4.14/680-NET-skip-GRO-for-foreign-MAC-addresses.patch b/target/linux/generic/pending-4.14/680-NET-skip-GRO-for-foreign-MAC-addresses.patch
+index cf0e50f2d9ff..60f46e69cf40 100644
+--- a/target/linux/generic/pending-4.14/680-NET-skip-GRO-for-foreign-MAC-addresses.patch
++++ b/target/linux/generic/pending-4.14/680-NET-skip-GRO-for-foreign-MAC-addresses.patch
+@@ -42,7 +42,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  	if (netif_elide_gro(skb->dev))
+  		goto normal;
+  
+-@@ -6279,6 +6282,48 @@ static void __netdev_adjacent_dev_unlink
++@@ -6280,6 +6283,48 @@ static void __netdev_adjacent_dev_unlink
+  					   &upper_dev->adj_list.lower);
+  }
+  
+@@ -91,7 +91,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  static int __netdev_upper_dev_link(struct net_device *dev,
+  				   struct net_device *upper_dev, bool master,
+  				   void *upper_priv, void *upper_info)
+-@@ -6317,6 +6362,7 @@ static int __netdev_upper_dev_link(struc
++@@ -6318,6 +6363,7 @@ static int __netdev_upper_dev_link(struc
+  	if (ret)
+  		return ret;
+  
+@@ -99,7 +99,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  	ret = call_netdevice_notifiers_info(NETDEV_CHANGEUPPER, dev,
+  					    &changeupper_info.info);
+  	ret = notifier_to_errno(ret);
+-@@ -6394,6 +6440,7 @@ void netdev_upper_dev_unlink(struct net_
++@@ -6395,6 +6441,7 @@ void netdev_upper_dev_unlink(struct net_
+  
+  	__netdev_adjacent_dev_unlink_neighbour(dev, upper_dev);
+  
+@@ -107,7 +107,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  	call_netdevice_notifiers_info(NETDEV_CHANGEUPPER, dev,
+  				      &changeupper_info.info);
+  }
+-@@ -6958,6 +7005,7 @@ int dev_set_mac_address(struct net_devic
++@@ -6959,6 +7006,7 @@ int dev_set_mac_address(struct net_devic
+  	if (err)
+  		return err;
+  	dev->addr_assign_type = NET_ADDR_SET;
+diff --git a/target/linux/generic/pending-4.14/834-ledtrig-libata.patch b/target/linux/generic/pending-4.14/834-ledtrig-libata.patch
+index 8a15efdc0efd..42e84c9a0a5a 100644
+--- a/target/linux/generic/pending-4.14/834-ledtrig-libata.patch
++++ b/target/linux/generic/pending-4.14/834-ledtrig-libata.patch
+@@ -65,7 +65,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
+  /**
+   *	ata_build_rw_tf - Build ATA taskfile for given read/write request
+   *	@tf: Target ATA taskfile
+-@@ -5123,6 +5136,9 @@ struct ata_queued_cmd *ata_qc_new_init(s
++@@ -5122,6 +5135,9 @@ struct ata_queued_cmd *ata_qc_new_init(s
+  		if (tag < 0)
+  			return NULL;
+  	}
+@@ -75,7 +75,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
+  
+  	qc = __ata_qc_from_tag(ap, tag);
+  	qc->tag = tag;
+-@@ -6024,6 +6040,9 @@ struct ata_port *ata_port_alloc(struct a
++@@ -6023,6 +6039,9 @@ struct ata_port *ata_port_alloc(struct a
+  	ap->stats.unhandled_irq = 1;
+  	ap->stats.idle_irq = 1;
+  #endif
+@@ -85,7 +85,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
+  	ata_sff_port_init(ap);
+  
+  	return ap;
+-@@ -6045,6 +6064,12 @@ static void ata_host_release(struct devi
++@@ -6044,6 +6063,12 @@ static void ata_host_release(struct devi
+  
+  		kfree(ap->pmp_link);
+  		kfree(ap->slave_link);
+@@ -98,7 +98,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
+  		kfree(ap);
+  		host->ports[i] = NULL;
+  	}
+-@@ -6491,7 +6516,23 @@ int ata_host_register(struct ata_host *h
++@@ -6490,7 +6515,23 @@ int ata_host_register(struct ata_host *h
+  		host->ports[i]->print_id = atomic_inc_return(&ata_print_id);
+  		host->ports[i]->local_port_no = i + 1;
+  	}
+@@ -134,7 +134,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
+  
+  /*
+   * Define if arch has non-standard setup.  This is a _PCI_ standard
+-@@ -893,6 +896,12 @@ struct ata_port {
++@@ -894,6 +897,12 @@ struct ata_port {
+  #ifdef CONFIG_ATA_ACPI
+  	struct ata_acpi_gtm	__acpi_init_gtm; /* use ata_acpi_init_gtm() */
+  #endif
+diff --git a/target/linux/lantiq/patches-4.14/0152-lantiq-VPE.patch b/target/linux/lantiq/patches-4.14/0152-lantiq-VPE.patch
+index 21eaee58eb38..83322022201d 100644
+--- a/target/linux/lantiq/patches-4.14/0152-lantiq-VPE.patch
++++ b/target/linux/lantiq/patches-4.14/0152-lantiq-VPE.patch
+@@ -1,6 +1,6 @@
+ --- a/arch/mips/Kconfig
+ +++ b/arch/mips/Kconfig
+-@@ -2325,6 +2325,12 @@ config MIPS_VPE_LOADER
++@@ -2326,6 +2326,12 @@ config MIPS_VPE_LOADER
+  	  Includes a loader for loading an elf relocatable object
+  	  onto another VPE and running it.
+  
+diff --git a/target/linux/layerscape/patches-4.14/202-core-linux-support-layerscape.patch b/target/linux/layerscape/patches-4.14/202-core-linux-support-layerscape.patch
+index bf34f7b35212..e421e556cd29 100644
+--- a/target/linux/layerscape/patches-4.14/202-core-linux-support-layerscape.patch
++++ b/target/linux/layerscape/patches-4.14/202-core-linux-support-layerscape.patch
+@@ -713,7 +713,7 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
+  }
+  
+  #ifdef CONFIG_NET_INGRESS
+-@@ -6338,7 +6339,15 @@ static int __netdev_upper_dev_link(struc
++@@ -6339,7 +6340,15 @@ static int __netdev_upper_dev_link(struc
+  				   struct net_device *upper_dev, bool master,
+  				   void *upper_priv, void *upper_info)
+  {
+@@ -730,7 +730,7 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
+  	int ret = 0;
+  
+  	ASSERT_RTNL();
+-@@ -6356,12 +6365,7 @@ static int __netdev_upper_dev_link(struc
++@@ -6357,12 +6366,7 @@ static int __netdev_upper_dev_link(struc
+  	if (master && netdev_master_upper_dev_get(dev))
+  		return -EBUSY;
+  
+@@ -744,7 +744,7 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
+  					    &changeupper_info.info);
+  	ret = notifier_to_errno(ret);
+  	if (ret)
+-@@ -6373,7 +6377,7 @@ static int __netdev_upper_dev_link(struc
++@@ -6374,7 +6378,7 @@ static int __netdev_upper_dev_link(struc
+  		return ret;
+  
+  	netdev_update_addr_mask(dev);
+@@ -753,7 +753,7 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
+  					    &changeupper_info.info);
+  	ret = notifier_to_errno(ret);
+  	if (ret)
+-@@ -6437,21 +6441,25 @@ EXPORT_SYMBOL(netdev_master_upper_dev_li
++@@ -6438,21 +6442,25 @@ EXPORT_SYMBOL(netdev_master_upper_dev_li
+  void netdev_upper_dev_unlink(struct net_device *dev,
+  			     struct net_device *upper_dev)
+  {
+@@ -784,7 +784,7 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
+  				      &changeupper_info.info);
+  }
+  EXPORT_SYMBOL(netdev_upper_dev_unlink);
+-@@ -6467,11 +6475,13 @@ EXPORT_SYMBOL(netdev_upper_dev_unlink);
++@@ -6468,11 +6476,13 @@ EXPORT_SYMBOL(netdev_upper_dev_unlink);
+  void netdev_bonding_info_change(struct net_device *dev,
+  				struct netdev_bonding_info *bonding_info)
+  {
+@@ -800,7 +800,7 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
+  				      &info.info);
+  }
+  EXPORT_SYMBOL(netdev_bonding_info_change);
+-@@ -6597,11 +6607,13 @@ EXPORT_SYMBOL(dev_get_nest_level);
++@@ -6598,11 +6608,13 @@ EXPORT_SYMBOL(dev_get_nest_level);
+  void netdev_lower_state_changed(struct net_device *lower_dev,
+  				void *lower_state_info)
+  {
+@@ -816,7 +816,7 @@ Signed-off-by: Yangbo Lu <yangbo.lu@nxp.com>
+  				      &changelowerstate_info.info);
+  }
+  EXPORT_SYMBOL(netdev_lower_state_changed);
+-@@ -6892,11 +6904,14 @@ void __dev_notify_flags(struct net_devic
++@@ -6893,11 +6905,14 @@ void __dev_notify_flags(struct net_devic
+  
+  	if (dev->flags & IFF_UP &&
+  	    (changes & ~(IFF_UP | IFF_PROMISC | IFF_ALLMULTI | IFF_VOLATILE))) {
+diff --git a/target/linux/layerscape/patches-4.14/807-usb-support-layerscape.patch b/target/linux/layerscape/patches-4.14/807-usb-support-layerscape.patch
+index 7c0e724c8e92..a986278c4011 100644
+--- a/target/linux/layerscape/patches-4.14/807-usb-support-layerscape.patch
++++ b/target/linux/layerscape/patches-4.14/807-usb-support-layerscape.patch
+@@ -1183,7 +1183,7 @@ Signed-off-by: Zhao Chenhui <chenhui.zhao@freescale.com>
+  #endif				/* _EHCI_FSL_H */
+ --- a/drivers/usb/host/ehci-hub.c
+ +++ b/drivers/usb/host/ehci-hub.c
+-@@ -305,6 +305,8 @@ static int ehci_bus_suspend (struct usb_
++@@ -304,6 +304,8 @@ static int ehci_bus_suspend (struct usb_
+  						USB_PORT_STAT_HIGH_SPEED)
+  				fs_idle_delay = true;
+  			ehci_writel(ehci, t2, reg);
+diff --git a/target/linux/oxnas/patches-4.14/999-libata-hacks.patch b/target/linux/oxnas/patches-4.14/999-libata-hacks.patch
+index bcd1e76c248f..0fb79dfaa82d 100644
+--- a/target/linux/oxnas/patches-4.14/999-libata-hacks.patch
++++ b/target/linux/oxnas/patches-4.14/999-libata-hacks.patch
+@@ -15,7 +15,7 @@
+  	/* initialize internal qc */
+  
+  	/* XXX: Tag 0 is used for drivers with legacy EH as some
+-@@ -5130,6 +5138,9 @@ struct ata_queued_cmd *ata_qc_new_init(s
++@@ -5129,6 +5137,9 @@ struct ata_queued_cmd *ata_qc_new_init(s
+  	if (unlikely(ap->pflags & ATA_PFLAG_FROZEN))
+  		return NULL;
+  
+@@ -25,7 +25,7 @@
+  	/* libsas case */
+  	if (ap->flags & ATA_FLAG_SAS_HOST) {
+  		tag = ata_sas_allocate_tag(ap);
+-@@ -5175,6 +5186,8 @@ void ata_qc_free(struct ata_queued_cmd *
++@@ -5174,6 +5185,8 @@ void ata_qc_free(struct ata_queued_cmd *
+  		qc->tag = ATA_TAG_POISON;
+  		if (ap->flags & ATA_FLAG_SAS_HOST)
+  			ata_sas_free_tag(tag, ap);
+@@ -36,7 +36,7 @@
+  
+ --- a/include/linux/libata.h
+ +++ b/include/linux/libata.h
+-@@ -922,6 +922,8 @@ struct ata_port_operations {
++@@ -923,6 +923,8 @@ struct ata_port_operations {
+  	void (*qc_prep)(struct ata_queued_cmd *qc);
+  	unsigned int (*qc_issue)(struct ata_queued_cmd *qc);
+  	bool (*qc_fill_rtf)(struct ata_queued_cmd *qc);
+@@ -45,7 +45,7 @@
+  
+  	/*
+  	 * Configuration and exception handling
+-@@ -1012,6 +1014,9 @@ struct ata_port_operations {
++@@ -1013,6 +1015,9 @@ struct ata_port_operations {
+  	void (*phy_reset)(struct ata_port *ap);
+  	void (*eng_timeout)(struct ata_port *ap);
+  

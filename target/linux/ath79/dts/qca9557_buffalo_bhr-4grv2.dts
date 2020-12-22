@@ -11,20 +11,16 @@
 	model = "Buffalo BHR-4GRV2";
 
 	aliases {
-		led-boot = &led_power;
-		led-failsafe = &led_power;
-		led-running = &led_power;
-		led-upgrade = &led_power;
-	};
-
-	chosen {
-		bootargs = "console=ttyS0,115200n8";
+		led-boot = &power;
+		led-failsafe = &power;
+		led-running = &power;
+		led-upgrade = &power;
 	};
 
 	leds {
 		compatible = "gpio-leds";
 
-		led_power: power {
+		power: power {
 			label = "bhr-4grv2:green:power";
 			gpios = <&gpio 19 GPIO_ACTIVE_LOW>;
 			default-state = "on";
@@ -47,7 +43,8 @@
 	};
 
 	keys {
-		compatible = "gpio-keys";
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
 
 		reset {
 			label = "reset";
@@ -68,7 +65,6 @@
 
 &spi {
 	status = "okay";
-
 	num-cs = <1>;
 
 	flash@0 {

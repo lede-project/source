@@ -11,16 +11,16 @@
 	model = "I-O DATA ETG3-R";
 
 	aliases {
-		led-boot = &led_power;
-		led-failsafe = &led_power;
-		led-running = &led_power;
-		led-upgrade = &led_power;
+		led-boot = &power;
+		led-failsafe = &power;
+		led-running = &power;
+		led-upgrade = &power;
 	};
 
 	leds {
 		compatible = "gpio-leds";
 
-		led_power: power {
+		power: power {
 			label = "etg3-r:green:power";
 			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
 			default-state = "on";
@@ -33,7 +33,8 @@
 	};
 
 	keys {
-		compatible = "gpio-keys";
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
 
 		reset {
 			label = "reset";
@@ -49,9 +50,8 @@
 };
 
 &spi {
-	status = "okay";
-
 	num-cs = <1>;
+	status = "okay";
 
 	flash@0 {
 		compatible = "jedec,spi-nor";

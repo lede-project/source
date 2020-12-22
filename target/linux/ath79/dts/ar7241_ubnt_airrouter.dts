@@ -8,17 +8,16 @@
 	model = "Ubiquiti AirRouter";
 
 	aliases {
-		led-boot = &led_globe;
-		led-failsafe = &led_globe;
-		led-running = &led_globe;
-		led-upgrade = &led_globe;
-		label-mac-device = &wifi;
+		led-boot = &globe;
+		led-failsafe = &globe;
+		led-running = &globe;
+		led-upgrade = &globe;
 	};
 
-	leds {
+	airrouter-leds {
 		compatible = "gpio-leds";
 
-		led_globe: globe {
+		globe: globe {
 			label = "ubnt:green:globe";
 			gpios = <&gpio 0 GPIO_ACTIVE_LOW>;
 		};

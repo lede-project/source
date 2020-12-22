@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 /dts-v1/;
 
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
 #include "qca9558_devolo_dvl1xxx.dtsi"
 
 / {
@@ -8,10 +11,10 @@
 	model = "devolo WiFi pro 1750e";
 
 	aliases {
-		led-boot = &led_status_blue;
-		led-failsafe = &led_status_red;
-		led-running = &led_status_blue;
-		led-upgrade = &led_status_red;
+		led-boot = &status_blue;
+		led-failsafe = &status_red;
+		led-running = &status_blue;
+		led-upgrade = &status_red;
 	};
 
 	keys {
@@ -34,13 +37,13 @@
 	leds {
 		compatible = "gpio-leds";
 
-		led_status_blue: status_blue {
+		status_blue: status_blue {
 			label = "dvl1750e:blue:status";
 			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
 			default-state = "on";
 		};
 
-		led_status_red: status_red {
+		status_red: status_red {
 			label = "dvl1750e:red:status";
 			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
 		};
@@ -50,6 +53,7 @@
 		compatible = "gpio-beeper";
 		gpios = <&gpio 4 GPIO_ACTIVE_HIGH>;
 	};
+
 
 	gpio_export {
 		compatible = "gpio-export";

@@ -10,34 +10,22 @@
 	compatible = "tplink,archer-d50-v1", "qca,qca9531";
 	model = "TP-Link Archer D50 v1";
 
-	aliases {
-		led-boot = &led_system;
-		led-failsafe = &led_system;
-		led-running = &led_system;
-		led-upgrade = &led_system;
-		label-mac-device = &wmac;
-	};
-
-	chosen {
-		bootargs = "console=ttyS0,115200n8";
-	};
-
-	leds {
+	gpio_leds: leds {
 		compatible = "gpio-leds";
 
-		wlan2g {
+		led_wlan2g: wlan2g {
 			label = "tp-link:white:wlan2g";
 			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
 			linux,default-trigger = "phy0tpt";
 		};
 
-		wlan5g {
+		led_wlan5g: wlan5g {
 			label = "tp-link:white:wlan5g";
 			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
 			linux,default-trigger = "phy1tpt";
-		};
+                };
 
-		qss {
+		qss_led: qss {
 			label = "tp-link:white:qss";
 			gpios = <&gpio 17 GPIO_ACTIVE_LOW>;
 		};
@@ -64,7 +52,7 @@
 			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
 		};
 
-		led_system: system {
+		system: system{
 			label = "tp-link:white:system";
 			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
 			default-state = "on";
@@ -111,7 +99,7 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			partition@0 {
+			uboot:	partition@0 {
 				label = "u-boot";
 				reg = <0x000000 0x020000>;
 				read-only;
@@ -156,7 +144,6 @@
 
 &eth0 {
 	status = "okay";
-
 	phy-handle = <&swphy4>;
 
 	mtd-mac-address = <&romfile 0xf100>;
@@ -165,7 +152,6 @@
 
 &wmac {
 	status = "okay";
-
 	mtd-cal-data = <&art 0x1000>;
 	mtd-mac-address = <&romfile 0xf100>;
 };

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/dts-v1/;
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
@@ -6,15 +7,7 @@
 #include "qca953x.dtsi"
 
 / {
-	chosen {
-		bootargs = "console=ttyS0,115200n8";
-	};
-
-	aliases {
-		label-mac-device = &wmac;
-	};
-
-	leds: leds {
+	gpio_leds: leds {
 		compatible = "gpio-leds";
 
 		wifi {
@@ -23,7 +16,7 @@
 			linux,default-trigger = "phy0tpt";
 		};
 
-		led_qss: qss {
+		qss_led: qss {
 			label = "tp-link:green:qss";
 			gpios = <&gpio 3 GPIO_ACTIVE_LOW>;
 		};
@@ -79,7 +72,6 @@
 
 &spi {
 	status = "okay";
-
 	num-cs = <1>;
 
 	flash@0 {
@@ -119,7 +111,6 @@
 
 &eth0 {
 	status = "okay";
-
 	phy-handle = <&swphy4>;
 
 	mtd-mac-address = <&uboot 0x1fc00>;
@@ -128,7 +119,6 @@
 
 &wmac {
 	status = "okay";
-
 	mtd-cal-data = <&art 0x1000>;
 	mtd-mac-address = <&uboot 0x1fc00>;
 };

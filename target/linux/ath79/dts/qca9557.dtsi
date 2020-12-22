@@ -8,6 +8,10 @@
 	#address-cells = <1>;
 	#size-cells = <1>;
 
+	chosen {
+		bootargs = "console=ttyS0,115200n8";
+	};
+
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -178,24 +182,6 @@
 			};
 		};
 
-		nand: nand@1b800200 {
-			compatible = "qca,ar934x-nand";
-			reg = <0x1b800200 0xb8>;
-
-			interrupts = <21>;
-			interrupt-parent = <&miscintc>;
-
-			resets = <&rst 14>;
-			reset-names = "nand";
-
-			nand-ecc-mode = "hw";
-
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			status = "disabled";
-		};
-
 		gmac: gmac@18070000 {
 			compatible = "qca,qca9550-gmac";
 			reg = <0x18070000 0x58>;
@@ -289,13 +275,14 @@
 			phys = <&usb_phy1>;
 
 			status = "disabled";
-		};
+	};
 
 		spi: spi@1f000000 {
-			compatible = "qca,ar934x-spi";
-			reg = <0x1f000000 0x1c>;
+			compatible = "qca,ar9557-spi", "qca,ar7100-spi";
+			reg = <0x1f000000 0x10>;
 
 			clocks = <&pll ATH79_CLK_AHB>;
+			clock-names = "ahb";
 
 			status = "disabled";
 

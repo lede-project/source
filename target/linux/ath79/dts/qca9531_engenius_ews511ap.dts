@@ -10,16 +10,10 @@
 	compatible = "engenius,ews511ap", "qca,qca9531";
 	model = "EnGenius EWS511AP";
 
-	aliases {
-		led-boot = &led_power;
-		led-failsafe = &led_power;
-		led-running = &led_power;
-		led-upgrade = &led_power;
-	};
-
 	keys {
-		compatible = "gpio-keys";
+		compatible = "gpio-keys-polled";
 
+		poll-interval = <20>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&jtag_disable_pins>;
 
@@ -30,10 +24,17 @@
 		};
 	};
 
+	aliases {
+		led-boot = &power_led;
+		led-failsafe = &power_led;
+		led-running = &power_led;
+		led-upgrade = &power_led;
+	};
+
 	leds {
 		compatible = "gpio-leds";
 
-		led_power: power {
+		power_led: power {
 			label = "ews511ap:amber:power";
 			gpios = <&gpio 0 GPIO_ACTIVE_LOW>;
 			default-state = "on";
@@ -91,7 +92,6 @@
 
 &spi {
 	status = "okay";
-
 	num-cs = <0>;
 
 	flash@0 {
@@ -132,7 +132,6 @@
 
 &eth0 {
 	status = "okay";
-
 	phy-handle = <&swphy4>;
 };
 
@@ -142,6 +141,5 @@
 
 &wmac {
 	status = "okay";
-
 	mtd-cal-data = <&art 0x1000>;
 };

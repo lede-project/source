@@ -10,21 +10,17 @@
 	compatible = "librerouter,librerouter-v1", "qca,qca9558";
 	model = "LibreRouter v1";
 
-	chosen {
-		bootargs = "console=ttyS0,115200n8";
-	};
-
 	aliases {
-		led-boot = &led_system;
-		led-failsafe = &led_system;
-		led-running = &led_system;
-		led-upgrade = &led_system;
+		led-boot = &system;
+		led-failsafe = &system;
+		led-running = &system;
+		led-upgrade = &system;
 	};
 
 	leds {
 		compatible = "gpio-leds";
 
-		led_system: system {
+		system: system {
 			label = "librerouter-v1:green:system";
 			gpios = <&gpio 23 GPIO_ACTIVE_HIGH>;
 			default-state = "on";
@@ -40,9 +36,10 @@
 			label = "librerouter-v1:blue:status";
 			gpios = <&gpio 20 GPIO_ACTIVE_LOW>;
 		};
+
 	};
 
-	keys {
+	button {
 		compatible = "gpio-keys";
 
 		reset {
@@ -51,6 +48,7 @@
 			gpios = <&gpio 17 GPIO_ACTIVE_LOW>;
 			debounce-interval = <60>;
 		};
+
 	};
 
 	watchdog {
@@ -60,6 +58,7 @@
 		hw_margin_ms = <1000>;
 		always-running;
 	};
+
 };
 
 &pcie0 {
@@ -110,7 +109,6 @@
 
 &spi {
 	status = "okay";
-
 	num-cs = <1>;
 
 	flash@0 {
@@ -185,6 +183,7 @@
 	mtd-mac-address = <&art 0x0>;
 
 	phy-handle = <&phy0>;
+
 };
 
 &eth1 {

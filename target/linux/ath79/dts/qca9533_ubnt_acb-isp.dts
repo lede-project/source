@@ -10,10 +10,6 @@
 	compatible = "ubnt,acb-isp", "qca,qca9533";
 	model = "Ubiquiti airCube ISP";
 
-	aliases {
-		label-mac-device = &wmac;
-	};
-
 	keys {
 		compatible = "gpio-keys";
 
@@ -64,8 +60,8 @@
 				read-only;
 			};
 
-			art: partition@ff0000 {
-				label = "art";
+			eeprom: partition@ff0000 {
+				label = "EEPROM";
 				reg = <0xff0000 0x010000>;
 				read-only;
 			};
@@ -79,13 +75,13 @@
 
 &eth0 {
 	status = "okay";
-	mtd-mac-address = <&art 0x0>;
+	mtd-mac-address = <&eeprom 0x0>;
 	phy-handle = <&swphy4>;
 };
 
 &eth1 {
 	status = "okay";
-	mtd-mac-address = <&art 0x6>;
+	mtd-mac-address = <&eeprom 0x6>;
 
 	gmac-config {
 		device = <&gmac>;
@@ -94,5 +90,6 @@
 
 &wmac {
 	status = "okay";
-	mtd-cal-data = <&art 0x1000>;
+	mtd-cal-data = <&eeprom 0x1000>;
+	mtd-mac-address = <&eeprom 0x1002>;
 };

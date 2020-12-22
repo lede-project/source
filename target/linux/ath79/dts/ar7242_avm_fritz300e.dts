@@ -11,15 +11,15 @@
 	model = "AVM FRITZ!WLAN Repeater 300E";
 
 	aliases {
-		led-boot = &led_power;
-		led-failsafe = &led_power;
-		led-running = &led_power;
-		led-upgrade = &led_power;
-		label-mac-device = &ath9k;
+		led-boot = &power;
+		led-failsafe = &power;
+		led-running = &power;
+		led-upgrade = &power;
 	};
 
 	keys {
-		compatible = "gpio-keys";
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
 
 		wps {
 			label = "wps";
@@ -32,7 +32,7 @@
 	leds {
 		compatible = "gpio-leds";
 
-		led_power: power {
+		power: power {
 			label = "fritz300e:green:power";
 			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
 			default-state = "on";
@@ -96,7 +96,6 @@
 
 &spi {
 	status = "okay";
-
 	num-cs = <1>;
 
 	flash@0 {

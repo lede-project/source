@@ -8,10 +8,10 @@
 	compatible = "dlink,dir-825-c1", "qca,ar9344";
 
 	aliases {
-		led-boot = &led_power_orange;
-		led-failsafe = &led_power_orange;
-		led-running = &led_power_blue;
-		led-upgrade = &led_power_orange;
+		led-boot = &orange_power;
+		led-failsafe = &orange_power;
+		led-running = &blue_power;
+		led-upgrade = &orange_power;
 		serial0 = &uart;
 	};
 
@@ -21,40 +21,40 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&enable_gpio_11>;
 
-		led_power_blue: power_blue {
+		blue_power: blue_power {
 			label = "d-link:blue:power";
 			gpios = <&gpio 22 GPIO_ACTIVE_LOW>;
 		};
 
-		usb {
+		blue_usb {
 			label = "d-link:blue:usb";
 			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
 			linux,default-trigger = "usbport";
 			trigger-sources = <&hub_port1>;
 		};
 
-		wan_blue {
+		blue_wan {
 			label = "d-link:blue:wan";
 			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
 		};
 
-		wlan2g {
+		blue_wlan2g {
 			label = "d-link:blue:wlan2g";
 			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
 			linux,default-trigger = "phy0tpt";
 		};
 
-		wps {
+		blue_wps {
 			label = "d-link:blue:wps";
 			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
 		};
 
-		led_power_orange: power_orange {
+		orange_power: orange_power {
 			label = "d-link:orange:power";
 			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
 		};
 
-		wan_orange {
+		orange_wan {
 			label = "d-link:orange:wan";
 			gpios = <&gpio 19 GPIO_ACTIVE_LOW>;
 		};
@@ -63,7 +63,7 @@
 	leds-ath9k {
 		compatible = "gpio-leds";
 
-		wlan5g {
+		blue_wlan5g {
 			label = "d-link:blue:wlan5g";
 			gpios = <&ath9k 0 GPIO_ACTIVE_LOW>;
 			linux,default-trigger = "phy1tpt";
@@ -76,3 +76,4 @@
 		pinctrl-single,bits = <0x8 0x0 0xff000000>;
 	};
 };
+

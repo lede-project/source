@@ -8,39 +8,40 @@
 	compatible = "dlink,dir-835-a1", "qca,ar9344";
 
 	aliases {
-		led-boot = &led_power_orange;
-		led-failsafe = &led_power_orange;
-		led-running = &led_power_green;
-		led-upgrade = &led_power_orange;
+		led-boot = &orange_power;
+		led-failsafe = &orange_power;
+		led-running = &green_power;
+		led-upgrade = &orange_power;
 		serial0 = &uart;
 	};
 
 	leds {
 		compatible = "gpio-leds";
 
-		led_power_green: power_green {
+		green_power: green_power {
 			label = "d-link:green:power";
 			gpios = <&gpio 22 GPIO_ACTIVE_LOW>;
 		};
 
-		wan_green {
+		green_wan {
 			label = "d-link:green:wan";
 			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
 		};
 
-		wps {
+		green_wps {
 			label = "d-link:green:wps";
 			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
 		};
 
-		led_power_orange: power_orange {
+		orange_power: orange_power {
 			label = "d-link:orange:power";
 			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
 		};
 
-		wan_orange {
+		orange_wan {
 			label = "d-link:orange:wan";
 			gpios = <&gpio 19 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
+

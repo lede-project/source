@@ -10,28 +10,24 @@
 	model = "NEC Aterm WG1200CR";
 	compatible = "nec,wg1200cr", "qca,qca9563";
 
-	chosen {
-		bootargs = "console=ttyS0,115200n8";
-	};
-
 	aliases {
-		led-boot = &led_power_green;
-		led-failsafe = &led_power_red;
-		led-running = &led_power_green;
-		led-upgrade = &led_power_green;
+		led-boot = &power_green;
+		led-failsafe = &power_red;
+		led-running = &power_green;
+		led-upgrade = &power_green;
 	};
 
 	leds {
 		compatible = "gpio-leds";
 		/* other LEDs are connected to ath10k (QCA9888) gpiochip */
 
-		led_power_green: power_green {
+		power_green: power_green {
 			label = "wg1200cr:green:power";
 			gpios = <&gpio 5 GPIO_ACTIVE_LOW>;
 			default-state = "on";
 		};
 
-		led_power_red: power_red {
+		power_red: power_red {
 			label = "wg1200cr:red:power";
 			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
 		};
@@ -74,7 +70,6 @@
 
 &spi {
 	status = "okay";
-
 	num-cs = <1>;
 
 	flash@0 {
@@ -173,6 +168,5 @@
 
 &wmac {
 	status = "okay";
-
 	qca,no-eeprom;
 };

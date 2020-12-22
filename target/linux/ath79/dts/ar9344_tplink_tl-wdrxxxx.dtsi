@@ -7,10 +7,10 @@
 
 / {
 	aliases {
-		led-boot = &led_system;
-		led-failsafe = &led_system;
-		led-running = &led_system;
-		led-upgrade = &led_system;
+		led-boot = &system;
+		led-failsafe = &system;
+		led-running = &system;
+		led-upgrade = &system;
 	};
 
 	leds: leds {
@@ -22,7 +22,7 @@
 			linux,default-trigger = "phy0tpt";
 		};
 
-		led_system: system {
+		system: system {
 			label = "tp-link:green:system";
 			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
 			default-state = "on";
@@ -45,7 +45,8 @@
 	};
 
 	keys {
-		compatible = "gpio-keys";
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
 
 		reset {
 			linux,code = <KEY_RESTART>;
@@ -71,9 +72,9 @@
 };
 
 &spi {
-	status = "okay";
-
 	num-cs = <1>;
+
+	status = "okay";
 
 	flash@0 {
 		compatible = "jedec,spi-nor";

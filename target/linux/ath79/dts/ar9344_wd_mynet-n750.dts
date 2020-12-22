@@ -15,10 +15,10 @@
 	};
 
 	aliases {
-		led-boot = &led_power;
-		led-failsafe = &led_power;
-		led-running = &led_power;
-		led-upgrade = &led_power;
+		led-boot = &power;
+		led-failsafe = &power;
+		led-running = &power;
+		led-upgrade = &power;
 	};
 
 	leds {
@@ -39,7 +39,7 @@
 			gpios = <&gpio 13 GPIO_ACTIVE_HIGH>;
 		};
 
-		led_power: power {
+		power: power {
 			label = "mynet-n750:blue:power";
 			gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
 		};
@@ -87,9 +87,9 @@
 };
 
 &spi {
-	status = "okay";
-
 	num-cs = <1>;
+
+	status = "okay";
 
 	flash@0 {
 		compatible = "jedec,spi-nor";
@@ -179,13 +179,11 @@
 
 &wmac {
 	status = "okay";
-
 	qca,no-eeprom;
 };
 
 &mdio0 {
 	status = "okay";
-
 	phy-mask = <0>;
 
 	switch0@1f {

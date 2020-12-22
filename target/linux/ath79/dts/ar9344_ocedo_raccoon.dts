@@ -15,10 +15,10 @@
 	};
 
 	aliases {
-		led-boot = &led_system;
-		led-failsafe = &led_system;
-		led-running = &led_system;
-		led-upgrade = &led_system;
+		led-boot = &system;
+		led-failsafe = &system;
+		led-running = &system;
+		led-upgrade = &system;
 	};
 
 	leds {
@@ -36,7 +36,7 @@
 			linux,default-trigger = "phy0tpt";
 		};
 
-		led_system: system {
+		system: system {
 			label = "raccoon:blue:sys";
 			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
 		};
@@ -53,7 +53,8 @@
 	};
 
 	keys {
-		compatible = "gpio-keys";
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
 
 		reset {
 			linux,code = <KEY_RESTART>;
@@ -76,9 +77,9 @@
 };
 
 &spi {
-	status = "okay";
-
 	num-cs = <1>;
+
+	status = "okay";
 
 	flash@0 {
 		compatible = "jedec,spi-nor";
@@ -161,6 +162,7 @@
 
 	phy0: ethernet-phy@0 {
 		reg = <0>;
+		phy-mode = "rgmii";
 	};
 };
 
@@ -171,6 +173,6 @@
 
 	mtd-mac-address = <&art 0x0>;
 
-	phy-mode = "rgmii-id";
+	phy-mode = "rgmii";
 	phy-handle = <&phy0>;
 };

@@ -10,21 +10,17 @@
 	compatible = "tplink,archer-c2-v3", "qca,qca9563";
 	model = "TP-Link Archer C2 v3";
 
-	chosen {
-		bootargs = "console=ttyS0,115200n8";
-	};
-
 	aliases {
-		led-boot = &led_system;
-		led-failsafe = &led_system;
-		led-running = &led_system;
-		led-upgrade = &led_system;
+		led-boot = &system;
+		led-failsafe = &system;
+		led-running = &system;
+		led-upgrade = &system;
 	};
 
-	leds {
+	gpio_leds: leds {
 		compatible = "gpio-leds";
 
-		led_system: system {
+		system: system {
 			label = "tp-link:green:system";
 			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
 			default-state = "on";
@@ -103,7 +99,6 @@
 
 &spi {
 	status = "okay";
-
 	num-cs = <1>;
 
 	flash@0 {
@@ -183,7 +178,6 @@
 
 &wmac {
 	status = "okay";
-
 	mtd-cal-data = <&art 0x1000>;
 	mtd-mac-address = <&info 0x8>;
 };

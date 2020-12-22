@@ -20,10 +20,10 @@
 	};
 
 	aliases {
-		led-boot = &led_d2;
-		led-failsafe = &led_d2;
-		led-running = &led_d2;
-		led-upgrade = &led_d2;
+		led-boot = &d2;
+		led-failsafe = &d2;
+		led-running = &d2;
+		led-upgrade = &d2;
 	};
 
 	extosc: ref {
@@ -36,7 +36,7 @@
 	leds {
 		compatible = "gpio-leds";
 
-		led_d2: d2 {
+		d2: d2 {
 			label = "ja76pf2:green:d2";
 			gpios = <&gpio 5 GPIO_ACTIVE_LOW>;
 		};
@@ -53,7 +53,8 @@
 	};
 
 	keys {
-		compatible = "gpio-keys";
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
 
 		sw1 {
 			label = "sw1";
@@ -105,7 +106,6 @@
 
 &spi {
 	status = "okay";
-
 	num-cs = <1>;
 
 	flash@0 {

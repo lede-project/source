@@ -11,16 +11,16 @@
 	model = "I-O DATA WN-AG300DGR";
 
 	aliases {
-		led-boot = &led_router;
-		led-failsafe = &led_router;
-		led-running = &led_router;
-		led-upgrade = &led_router;
+		led-boot = &router;
+		led-failsafe = &router;
+		led-running = &router;
+		led-upgrade = &router;
 	};
 
 	leds {
 		compatible = "gpio-leds";
 
-		led_router: router {
+		router: router {
 			label = "wn-ag300dgr:green:router";
 			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
 			default-state = "on";
@@ -55,7 +55,8 @@
 	};
 
 	keys {
-		compatible = "gpio-keys";
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
 
 		eco {
 			label = "eco";
@@ -108,9 +109,8 @@
 };
 
 &spi {
-	status = "okay";
-
 	num-cs = <1>;
+	status = "okay";
 
 	flash@0 {
 		compatible = "jedec,spi-nor";
@@ -213,6 +213,5 @@
 
 &wmac {
 	status = "okay";
-
 	qca,no-eeprom;
 };

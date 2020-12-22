@@ -11,14 +11,10 @@
 	model = "D-Link DIR825B1";
 
 	aliases {
-		led-boot = &led_power_orange;
-		led-failsafe = &led_power_orange;
-		led-running = &led_power_blue;
-		led-upgrade = &led_power_orange;
-	};
-
-	chosen {
-		bootargs = "console=ttyS0,115200";
+		led-boot = &orange_power;
+		led-failsafe = &orange_power;
+		led-running = &blue_power;
+		led-upgrade = &orange_power;
 	};
 
 	extosc: ref {
@@ -30,36 +26,35 @@
 
 	leds {
 		compatible = "gpio-leds";
-
-		usb {
+		blue_usb {
 			label = "d-link:blue:usb";
 			gpios = <&gpio 0 GPIO_ACTIVE_LOW>;
-			trigger-sources = <&usb_ohci_port>, <&usb_ehci_port>;
+			trigger-sources = <&usb_ochi_port>, <&usb_echi_port>;
 			linux,default-trigger = "usbport";
 		};
 
-		led_power_orange: power_orange {
+		orange_power: orange_power {
 			label = "d-link:orange:power";
 			gpios = <&gpio 1 GPIO_ACTIVE_LOW>;
 			default-state = "on";
 		};
 
-		led_power_blue: power_blue {
+		blue_power: blue_power {
 			label = "d-link:blue:power";
 			gpios = <&gpio 2 GPIO_ACTIVE_LOW>;
 		};
 
-		wps {
+		blue_wps {
 			label = "d-link:blue:wps";
 			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
 		};
 
-		planet_orange {
+		orange_planet {
 			label = "d-link:orange:planet";
 			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
 		};
 
-		planet_blue {
+		blue_planet {
 			label = "d-link:blue:planet";
 			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
 		};
@@ -82,18 +77,21 @@
 	};
 
 	keys {
-		compatible = "gpio-keys";
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
 
 		reset {
 			label = "reset";
 			linux,code = <KEY_RESTART>;
 			gpios = <&gpio 3 GPIO_ACTIVE_LOW>;
+			debounce-interval = <60>;
 		};
 
 		wps {
 			label = "wps";
 			linux,code = <KEY_WPS_BUTTON>;
 			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
+			debounce-interval = <60>;
 		};
 	};
 
@@ -118,12 +116,13 @@
 	};
 };
 
+
 &usb1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
 	status = "okay";
 
-	usb_ohci_port: port@1 {
+	usb_ochi_port: port@1 {
 		reg = <1>;
 		#trigger-source-cells = <0>;
 	};
@@ -134,7 +133,7 @@
 	#size-cells = <0>;
 	status = "okay";
 
-	usb_ehci_port: port@1 {
+	usb_echi_port: port@1 {
 		reg = <1>;
 		#trigger-source-cells = <0>;
 	};
@@ -174,7 +173,6 @@
 
 &spi {
 	status = "okay";
-
 	num-cs = <1>;
 
 	flash@0 {
@@ -220,9 +218,9 @@
 	};
 };
 
+
 &eth0 {
 	status = "okay";
-
 	pll-data = <0x11110000 0x00001099 0x00991099>;
 
 	fixed-link {
@@ -233,7 +231,6 @@
 
 &eth1 {
 	status = "okay";
-
 	pll-data = <0x11110000 0x00001099 0x00991099>;
 
 	phy-handle = <&phy4>;

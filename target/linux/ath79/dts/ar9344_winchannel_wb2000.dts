@@ -59,7 +59,8 @@
 	};
 
 	keys {
-		compatible = "gpio-keys";
+		compatible = "gpio-keys-polled";
+		poll-interval = <50>;
 
 		reset {
 			linux,code = <KEY_RESTART>;

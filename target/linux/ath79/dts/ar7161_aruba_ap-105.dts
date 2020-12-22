@@ -15,11 +15,10 @@
 	};
 
 	aliases {
-		led-boot = &led_power_green;
-		led-failsafe = &led_power_red;
-		led-running = &led_power_green;
-		led-upgrade = &led_power_green;
-		label-mac-device = &eth0;
+		led-boot = &power_green;
+		led-failsafe = &power_red;
+		led-running = &power_green;
+		led-upgrade = &power_green;
 	};
 
 	extosc: ref {
@@ -32,23 +31,23 @@
 	leds {
 		compatible = "gpio-leds";
 
-		led_power_green: power_green {
+		power_green: power_green {
 			label = "ap-105:green:power";
 			gpios = <&gpio 3 GPIO_ACTIVE_LOW>;
 		};
 
-		led_power_red: power_red {
+		power_red: power_red {
 			label = "ap-105:red:power";
 			gpios = <&gpio 2 GPIO_ACTIVE_LOW>;
 			panic-indicator;
 		};
 
-		wifi_2g_red {
+		wifi_2g_red: wifi_2g_red {
 			label = "ap-105:red:wlan2g";
 			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
 		};
 
-		wifi_5g_red {
+		wifi_5g_red: wifi_5g_red {
 			label = "ap-105:red:wlan5g";
 			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
 		};
@@ -151,7 +150,6 @@
 
 &spi {
 	status = "okay";
-
 	num-cs = <1>;
 
 	flash@0 {

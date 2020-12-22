@@ -11,14 +11,10 @@
 	compatible = "phicomm,k2t", "qca,qca9563";
 
 	aliases {
-		led-boot = &led_status_red;
-		led-failsafe = &led_status_red;
-		led-running = &led_status_red;
-		led-upgrade = &led_status_red;
-	};
-
-	chosen {
-		bootargs = "console=ttyS0,115200n8";
+		led-boot = &status_red;
+		led-failsafe = &status_red;
+		led-running = &status_red;
+		led-upgrade = &status_red;
 	};
 
 	leds {
@@ -29,7 +25,7 @@
 			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
 		};
 
-		led_status_red: status_red {
+		status_red: status_red {
 			label = "phicomm:red:status";
 			gpios = <&gpio 7 GPIO_ACTIVE_HIGH>;
 		};
@@ -41,7 +37,8 @@
 	};
 
 	keys {
-		compatible = "gpio-keys";
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
 
 		reset {
 			linux,code = <KEY_RESTART>;

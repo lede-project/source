@@ -12,14 +12,15 @@
 
 	aliases {
 		serial0 = &uart;
-		led-boot = &led_power_amber;
-		led-failsafe = &led_power_amber;
-		led-running = &led_power_green;
-		led-upgrade = &led_power_amber;
+		led-boot = &status;
+		led-failsafe = &status;
+		led-running = &running;
+		led-upgrade = &status;
 	};
 
 	keys {
-		compatible = "gpio-keys";
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
 
 		pinctrl-names = "default";
 		pinctrl-0 = <&jtag_disable_pins>;
@@ -35,12 +36,12 @@
 	leds {
 		compatible = "gpio-leds";
 
-		led_power_amber: power_amber {
+		status: power_amber {
 			label = "pcs:amber:power";
 			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
 		};
 
-		led_power_green: power_green {
+		running: power_green {
 			label = "pcs:green:power";
 			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
 			default-state = "on";
@@ -83,9 +84,9 @@
 };
 
 &spi {
-	status = "okay";
-
 	num-cs = <1>;
+
+	status = "okay";
 
 	flash@0 {
 		compatible = "jedec,spi-nor";

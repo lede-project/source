@@ -11,9 +11,9 @@
 	model = "Buffalo WZR-HP-G302H A1A0";
 
 	aliases {
-		led-boot = &led_diag;
-		led-failsafe = &led_diag;
-		led-upgrade = &led_diag;
+		led-boot = &diag;
+		led-failsafe = &diag;
+		led-upgrade = &diag;
 	};
 
 	extosc: ref {
@@ -23,7 +23,8 @@
 	};
 
 	keys {
-		compatible = "gpio-keys";
+		compatible = "gpio-keys-polled";
+		poll-interval = <20>;
 
 		reset {
 			label = "reset";
@@ -32,7 +33,7 @@
 			debounce-interval = <60>;
 		};
 
-		usb {
+		button_usb {
 			label = "usb";
 			linux,code = <BTN_2>;
 			gpios = <&gpio 7 GPIO_ACTIVE_LOW>;
@@ -66,7 +67,7 @@
 	leds {
 		compatible = "gpio-leds";
 
-		led_diag: diag {
+		diag: diag {
 			label = "buffalo:red:diag";
 			gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
 		};
@@ -163,7 +164,6 @@
 
 &spi {
 	status = "okay";
-
 	cs-gpios = <0>, <0>;
 	num-cs = <2>;
 

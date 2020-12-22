@@ -1,10 +1,9 @@
 BOARDNAME := Generic devices with NAND flash
+FEATURES += squashfs nand rtc
 
-FEATURES += squashfs nand
-
-DEFAULT_PACKAGES += wpad
+DEFAULT_PACKAGES += wpad-basic
 
 define Target/Description
-	Firmware for boards using Qualcomm Atheros, MIPS-based SoCs
-	in the ar72xx and subsequent series, with support for NAND flash
+	Build firmware for Atheros AR71xx/AR913x based boards with
+	NAND flash, e.g. Netgear WNDR4300.
 endef
