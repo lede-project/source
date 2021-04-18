@@ -1,2 +1,2 @@
 #!/bin/sh
-mount -t antfs $@
+mount -t antfs "$@"
