@@ -1,5 +1,4 @@
 name: Build Kernel
-
 on:
   pull_request:
     paths:
