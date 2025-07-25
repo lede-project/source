@@ -1,0 +1,9 @@
+config SDIOHAL
+	tristate "SDIO Support"
+	depends on SC23XX
+	default n
+	help
+	  Enable this module for Spreadtrum SC2355
+	  chip sdio interface bus Support.
+	  Please insmod this module before any other
+	  WCN subsystems. Thanks.
