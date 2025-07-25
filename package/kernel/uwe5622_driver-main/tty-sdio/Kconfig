@@ -1,0 +1,4 @@
+config TTY_OVERY_SDIO
+	tristate "Spard TTY Overy SDIO Driver"
+	help
+	  Spard tty overy sdio driver.
