@@ -1,3 +1,0 @@
-#
-# makefile for SPREADTRUM
-#

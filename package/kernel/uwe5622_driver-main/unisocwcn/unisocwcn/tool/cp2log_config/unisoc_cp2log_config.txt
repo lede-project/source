@@ -1,4 +1,0 @@
-wcn_cp2_log_limit_size=500M;
-wcn_cp2_file_max_num=2;
-wcn_cp2_file_cover_old=true;
-wcn_cp2_log_path="/data/unisoc_dbg";
