@@ -1,0 +1,6 @@
+config MARLIN3_GNSSBAK
+	tristate "gnss support"
+	default n
+	help
+	  Debug system for Spreadtrum MARLIN3 GNSS chip
+	  If unsure, say n.
