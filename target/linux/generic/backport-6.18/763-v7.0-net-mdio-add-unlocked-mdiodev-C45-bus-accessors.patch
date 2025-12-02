@@ -19,7 +19,7 @@ Signed-off-by: Paolo Abeni <pabeni@redhat.com>
 
 --- a/include/linux/mdio.h
 +++ b/include/linux/mdio.h
-@@ -668,6 +668,19 @@ static inline int mdiodev_modify_changed
+@@ -648,6 +648,19 @@ static inline int mdiodev_modify_changed
  				      mask, set);
  }
  

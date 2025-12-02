@@ -40,7 +40,7 @@ Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
  	&safexcel_alg_authenc_hmac_sha1_ctr_aes,
  	&safexcel_alg_authenc_hmac_sha224_ctr_aes,
  	&safexcel_alg_authenc_hmac_sha256_ctr_aes,
-@@ -1241,11 +1243,13 @@ static struct safexcel_alg_template *saf
+@@ -1240,11 +1242,13 @@ static struct safexcel_alg_template *saf
  	&safexcel_alg_hmac_sha3_256,
  	&safexcel_alg_hmac_sha3_384,
  	&safexcel_alg_hmac_sha3_512,
@@ -70,7 +70,7 @@ Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
  extern struct safexcel_alg_template safexcel_alg_authenc_hmac_sha1_ctr_aes;
  extern struct safexcel_alg_template safexcel_alg_authenc_hmac_sha224_ctr_aes;
  extern struct safexcel_alg_template safexcel_alg_authenc_hmac_sha256_ctr_aes;
-@@ -982,11 +984,13 @@ extern struct safexcel_alg_template safe
+@@ -981,11 +983,13 @@ extern struct safexcel_alg_template safe
  extern struct safexcel_alg_template safexcel_alg_hmac_sha3_256;
  extern struct safexcel_alg_template safexcel_alg_hmac_sha3_384;
  extern struct safexcel_alg_template safexcel_alg_hmac_sha3_512;

@@ -50,7 +50,7 @@ Signed-off-by: Paolo Abeni <pabeni@redhat.com>
 
 --- a/drivers/net/dsa/Kconfig
 +++ b/drivers/net/dsa/Kconfig
-@@ -79,6 +79,8 @@ source "drivers/net/dsa/microchip/Kconfi
+@@ -74,6 +74,8 @@ source "drivers/net/dsa/microchip/Kconfi
  
  source "drivers/net/dsa/mv88e6xxx/Kconfig"
  
@@ -61,8 +61,8 @@ Signed-off-by: Paolo Abeni <pabeni@redhat.com>
  source "drivers/net/dsa/qca/Kconfig"
 --- a/drivers/net/dsa/Makefile
 +++ b/drivers/net/dsa/Makefile
-@@ -21,6 +21,7 @@ obj-y				+= b53/
- obj-y				+= hirschmann/
+@@ -19,6 +19,7 @@ obj-y				+= hirschmann/
+ obj-y				+= lantiq/
  obj-y				+= microchip/
  obj-y				+= mv88e6xxx/
 +obj-y				+= mxl862xx/

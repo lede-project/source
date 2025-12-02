@@ -28,7 +28,7 @@ Signed-off-by: Yury Norov (NVIDIA) <yury.norov@gmail.com>
  #include <linux/clkdev.h>
 --- a/drivers/clk/at91/pmc.h
 +++ b/drivers/clk/at91/pmc.h
-@@ -116,9 +116,6 @@ struct at91_clk_pms {
+@@ -117,9 +117,6 @@ struct at91_clk_pms {
  	unsigned int parent;
  };
  
