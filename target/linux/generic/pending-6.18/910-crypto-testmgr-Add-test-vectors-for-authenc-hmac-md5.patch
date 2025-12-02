@@ -17,7 +17,7 @@ Signed-off-by: Aleksander Jan Bajkowski <olek2@wp.pl>
 
 --- a/crypto/testmgr.c
 +++ b/crypto/testmgr.c
-@@ -4375,6 +4375,13 @@ static const struct alg_test_desc alg_te
+@@ -4177,6 +4177,13 @@ static const struct alg_test_desc alg_te
  			.cprng = __VECS(ansi_cprng_aes_tv_template)
  		}
  	}, {
@@ -33,7 +33,7 @@ Signed-off-by: Aleksander Jan Bajkowski <olek2@wp.pl>
  		.test = alg_test_aead,
 --- a/crypto/testmgr.h
 +++ b/crypto/testmgr.h
-@@ -17133,6 +17133,261 @@ static const struct cipher_testvec aes_c
+@@ -15826,6 +15826,261 @@ static const struct cipher_testvec aes_c
  	},
  };
  

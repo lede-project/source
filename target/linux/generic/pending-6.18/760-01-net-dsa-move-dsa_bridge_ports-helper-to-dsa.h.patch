@@ -16,7 +16,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 
 --- a/include/net/dsa.h
 +++ b/include/net/dsa.h
-@@ -832,6 +832,19 @@ dsa_tree_offloads_bridge_dev(struct dsa_
+@@ -833,6 +833,19 @@ dsa_tree_offloads_bridge_dev(struct dsa_
  	return false;
  }
  
