@@ -57,7 +57,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  static umode_t gpy_hwmon_is_visible(const void *data,
  				    enum hwmon_sensor_types type,
  				    u32 attr, int channel)
-@@ -217,14 +242,25 @@ static const struct hwmon_ops gpy_hwmon_
+@@ -217,19 +242,35 @@ static const struct hwmon_ops gpy_hwmon_
  	.read		= gpy_hwmon_read,
  };
  
@@ -81,11 +81,6 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	struct device *dev = &phydev->mdio.dev;
 +	const struct hwmon_chip_info *info;
  	struct device *hwmon_dev;
- 	char *hwmon_name;
- 
-@@ -232,10 +268,15 @@ static int gpy_hwmon_register(struct phy
- 	if (IS_ERR(hwmon_name))
- 		return PTR_ERR(hwmon_name);
  
 +	if (phy_id_compare_model(phydev->phy_id, PHY_ID_MXL86252) ||
 +	    phy_id_compare_model(phydev->phy_id, PHY_ID_MXL86282))
@@ -93,15 +88,14 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 +	else
 +		info = &gpy_hwmon_chip_info;
 +
- 	hwmon_dev = devm_hwmon_device_register_with_info(dev, hwmon_name,
- 							 phydev,
+ 	hwmon_dev = devm_hwmon_device_register_with_info(dev, NULL, phydev,
 -							 &gpy_hwmon_chip_info,
 -							 NULL);
 +							 info, NULL);
  
  	return PTR_ERR_OR_ZERO(hwmon_dev);
  }
-@@ -1331,6 +1372,50 @@ static struct phy_driver gpy_drivers[] =
+@@ -1328,6 +1369,50 @@ static struct phy_driver gpy_drivers[] =
  		.led_hw_control_set = gpy_led_hw_control_set,
  		.led_polarity_set = gpy_led_polarity_set,
  	},
@@ -152,7 +146,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  };
  module_phy_driver(gpy_drivers);
  
-@@ -1348,6 +1433,8 @@ static const struct mdio_device_id __may
+@@ -1345,6 +1430,8 @@ static const struct mdio_device_id __may
  	{PHY_ID_MATCH_MODEL(PHY_ID_GPY241BM)},
  	{PHY_ID_MATCH_MODEL(PHY_ID_GPY245B)},
  	{PHY_ID_MATCH_MODEL(PHY_ID_MXL86211C)},
