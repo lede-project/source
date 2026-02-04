@@ -3519,8 +3519,6 @@ static int rtpcs_931x_sds_set_media(struct rtpcs_serdes *sds, enum rtpcs_sds_med
 	rtpcs_sds_write_bits(sds, 0x2e, 0xf, 5, 0, 0x4);
 
 	rtpcs_sds_write_bits(sds, 0x2a, 0x12, 7, 6, 0x1);
-	/* TODO: can we drop this in favor of turning off SerDes ealier? */
-	rtpcs_931x_sds_set_mode(sds, RTPCS_SDS_MODE_OFF);
 
 	if (sds_media == RTPCS_SDS_MEDIA_NONE)
 		return 0;
@@ -3724,6 +3722,7 @@ static int rtpcs_931x_setup_serdes(struct rtpcs_serdes *sds,
 	pr_info("%s: 2.5gbit %08X", __func__, rtpcs_sds_read(sds, 0x41, 0x14));
 
 	rtpcs_931x_sds_power(sds, false);
+	rtpcs_931x_sds_set_mode(sds, RTPCS_SDS_MODE_OFF);
 
 	ret = rtpcs_931x_sds_config_hw_mode(sds, hw_mode);
 	if (ret < 0)
