@@ -16,7 +16,7 @@ Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 
 --- a/drivers/gpio/gpio-realtek-otto.c
 +++ b/drivers/gpio/gpio-realtek-otto.c
-@@ -350,6 +350,10 @@ static const struct of_device_id realtek
+@@ -351,6 +351,10 @@ static const struct of_device_id realtek
  	{
  		.compatible = "realtek,rtl9310-gpio",
  	},
