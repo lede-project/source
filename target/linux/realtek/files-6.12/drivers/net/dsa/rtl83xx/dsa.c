@@ -1936,7 +1936,7 @@ void rtldsa_83xx_fast_age(struct dsa_switch *ds, int port)
 	mutex_unlock(&priv->reg_mutex);
 }
 
-static void rtldsa_931x_fast_age(struct dsa_switch *ds, int port)
+static void rtldsa_931x_fast_age_old(struct dsa_switch *ds, int port)
 {
 	struct rtl838x_switch_priv *priv = ds->priv;
 	u32 val;
@@ -1956,12 +1956,12 @@ static void rtldsa_931x_fast_age(struct dsa_switch *ds, int port)
 	mutex_unlock(&priv->reg_mutex);
 }
 
-static void rtldsa_930x_fast_age(struct dsa_switch *ds, int port)
+static void rtldsa_930x_fast_age_old(struct dsa_switch *ds, int port)
 {
 	struct rtl838x_switch_priv *priv = ds->priv;
 
 	if (priv->family_id == RTL9310_FAMILY_ID)
-		return rtldsa_931x_fast_age(ds, port);
+		return rtldsa_931x_fast_age_old(ds, port);
 
 	pr_debug("FAST AGE port %d\n", port);
 	mutex_lock(&priv->reg_mutex);
@@ -3076,7 +3076,7 @@ const struct dsa_switch_ops rtldsa_93xx_switch_ops = {
 	.port_bridge_join	= rtldsa_port_bridge_join,
 	.port_bridge_leave	= rtldsa_port_bridge_leave,
 	.port_stp_state_set	= rtldsa_port_stp_state_set,
-	.port_fast_age		= rtldsa_930x_fast_age,
+	.port_fast_age		= rtldsa_930x_fast_age_old,
 	.port_mst_state_set	= rtldsa_port_mst_state_set,
 
 	.port_vlan_filtering	= rtldsa_vlan_filtering,
