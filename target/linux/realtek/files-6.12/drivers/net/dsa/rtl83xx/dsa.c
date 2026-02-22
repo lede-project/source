@@ -1936,44 +1936,6 @@ void rtldsa_83xx_fast_age(struct dsa_switch *ds, int port)
 	mutex_unlock(&priv->reg_mutex);
 }
 
-static void rtldsa_931x_fast_age_old(struct dsa_switch *ds, int port)
-{
-	struct rtl838x_switch_priv *priv = ds->priv;
-	u32 val;
-
-	mutex_lock(&priv->reg_mutex);
-
-	sw_w32(0, RTL931X_L2_TBL_FLUSH_CTRL + 4);
-
-	val = 0;
-	val |= port << 11;
-	val |= BIT(24); /* compare port id */
-	val |= BIT(28); /* status - trigger flush */
-	sw_w32(val, RTL931X_L2_TBL_FLUSH_CTRL);
-
-	do { } while (sw_r32(RTL931X_L2_TBL_FLUSH_CTRL) & BIT(28));
-
-	mutex_unlock(&priv->reg_mutex);
-}
-
-static void rtldsa_930x_fast_age_old(struct dsa_switch *ds, int port)
-{
-	struct rtl838x_switch_priv *priv = ds->priv;
-
-	if (priv->family_id == RTL9310_FAMILY_ID)
-		return rtldsa_931x_fast_age_old(ds, port);
-
-	pr_debug("FAST AGE port %d\n", port);
-	mutex_lock(&priv->reg_mutex);
-	sw_w32(port << 11, RTL930X_L2_TBL_FLUSH_CTRL + 4);
-
-	sw_w32(BIT(26) | BIT(30), RTL930X_L2_TBL_FLUSH_CTRL);
-
-	do { } while (sw_r32(priv->r->l2_tbl_flush_ctrl) & BIT(30));
-
-	mutex_unlock(&priv->reg_mutex);
-}
-
 static int rtldsa_port_mst_state_set(struct dsa_switch *ds, int port,
 				     const struct switchdev_mst_state *st)
 {
@@ -2183,6 +2145,16 @@ static int rtldsa_vlan_del(struct dsa_switch *ds, int port,
 	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
+}
+
+static void rtldsa_port_fast_age(struct dsa_switch *ds, int port)
+{
+	struct rtl838x_switch_priv *priv = ds->priv;
+
+	mutex_lock(&priv->reg_mutex);
+	if (!priv->r->fast_age)
+		priv->r->fast_age(priv, port, -1);
+	mutex_unlock(&priv->reg_mutex);
 }
 
 static int rtldsa_port_vlan_fast_age(struct dsa_switch *ds, int port, u16 vid)
@@ -3076,7 +3048,7 @@ const struct dsa_switch_ops rtldsa_93xx_switch_ops = {
 	.port_bridge_join	= rtldsa_port_bridge_join,
 	.port_bridge_leave	= rtldsa_port_bridge_leave,
 	.port_stp_state_set	= rtldsa_port_stp_state_set,
-	.port_fast_age		= rtldsa_930x_fast_age_old,
+	.port_fast_age		= rtldsa_port_fast_age,
 	.port_mst_state_set	= rtldsa_port_mst_state_set,
 
 	.port_vlan_filtering	= rtldsa_vlan_filtering,
