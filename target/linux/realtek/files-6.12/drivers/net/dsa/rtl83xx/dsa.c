@@ -2190,11 +2190,11 @@ static int rtldsa_port_vlan_fast_age(struct dsa_switch *ds, int port, u16 vid)
 	struct rtl838x_switch_priv *priv = ds->priv;
 	int ret;
 
-	if (!priv->r->vlan_port_fast_age)
+	if (!priv->r->fast_age)
 		return -EOPNOTSUPP;
 
 	mutex_lock(&priv->reg_mutex);
-	ret = priv->r->vlan_port_fast_age(priv, port, vid);
+	ret = priv->r->fast_age(priv, port, vid);
 	mutex_unlock(&priv->reg_mutex);
 
 	return ret;
