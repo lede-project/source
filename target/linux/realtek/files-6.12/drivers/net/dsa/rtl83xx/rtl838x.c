@@ -1613,6 +1613,20 @@ static void rtl838x_vlan_port_pvid_set(int port, enum pbvlan_type type, int pvid
 		sw_w32_mask(0xfff << 16, pvid << 16, RTL838X_VLAN_PORT_PB_VLAN + (port << 2));
 }
 
+static int rtldsa_838x_fast_age(struct rtl838x_switch_priv *priv, int port, int vid)
+{
+	u32 val;
+
+	val = BIT(26) | BIT(23) | (port << 5);
+	if (vid >= 0)
+		val |= BIT(24) | (vid << 10);
+
+	sw_w32(val, priv->r->l2_tbl_flush_ctrl);
+	do { } while (sw_r32(priv->r->l2_tbl_flush_ctrl) & BIT(26));
+
+	return 0;
+}
+
 static int rtl838x_set_ageing_time(unsigned long msec)
 {
 	int t = sw_r32(RTL838X_L2_CTRL_1);
@@ -1731,6 +1745,7 @@ const struct rtldsa_config rtldsa_838x_cfg = {
 	.vlan_port_keep_tag_set = rtl838x_vlan_port_keep_tag_set,
 	.vlan_port_pvidmode_set = rtl838x_vlan_port_pvidmode_set,
 	.vlan_port_pvid_set = rtl838x_vlan_port_pvid_set,
+	.fast_age = rtldsa_838x_fast_age,
 	.trk_mbr_ctr = rtl838x_trk_mbr_ctr,
 	.rma_bpdu_fld_pmask = RTL838X_RMA_BPDU_FLD_PMSK,
 	.spcl_trap_eapol_ctrl = RTL838X_SPCL_TRAP_EAPOL_CTRL,

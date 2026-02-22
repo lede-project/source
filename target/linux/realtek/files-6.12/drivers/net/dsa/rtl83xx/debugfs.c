@@ -384,7 +384,7 @@ static ssize_t age_out_write(struct file *filp, const char __user *buffer,
 	if (res < 0)
 		return res;
 
-	rtldsa_83xx_fast_age(p->dp->ds, p->dp->index);
+	rtldsa_port_fast_age(p->dp->ds, p->dp->index);
 
 	return res;
 }

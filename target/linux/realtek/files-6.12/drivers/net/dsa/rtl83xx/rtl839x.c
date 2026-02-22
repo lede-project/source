@@ -1554,6 +1554,20 @@ static void rtl839x_vlan_port_pvid_set(int port, enum pbvlan_type type, int pvid
 		sw_w32_mask(0xfff << 16, pvid << 16, RTL839X_VLAN_PORT_PB_VLAN + (port << 2));
 }
 
+static int rtldsa_839x_fast_age(struct rtl838x_switch_priv *priv, int port, int vid)
+{
+	u32 val;
+
+	val = BIT(28) | BIT(25) | (port << 6);
+	if (vid >= 0)
+		val |= BIT(26) | (vid << 12);
+
+	sw_w32(val, priv->r->l2_tbl_flush_ctrl);
+	do { } while (sw_r32(priv->r->l2_tbl_flush_ctrl) & BIT(28));
+
+	return 0;
+}
+
 static int rtl839x_set_ageing_time(unsigned long msec)
 {
 	int t = sw_r32(RTL839X_L2_CTRL_1);
@@ -1671,6 +1685,7 @@ const struct rtldsa_config rtldsa_839x_cfg = {
 	.write_l2_entry_using_hash = rtl839x_write_l2_entry_using_hash,
 	.read_cam = rtl839x_read_cam,
 	.write_cam = rtl839x_write_cam,
+	.fast_age = rtldsa_839x_fast_age,
 	.trk_mbr_ctr = rtl839x_trk_mbr_ctr,
 	.rma_bpdu_fld_pmask = RTL839X_RMA_BPDU_FLD_PMSK,
 	.spcl_trap_eapol_ctrl = RTL839X_SPCL_TRAP_EAPOL_CTRL,
