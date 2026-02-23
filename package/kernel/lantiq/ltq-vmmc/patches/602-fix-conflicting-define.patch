@@ -1,0 +1,10 @@
+--- a/src/drv_vmmc_init_cap.c
++++ b/src/drv_vmmc_init_cap.c
+@@ -39,6 +39,7 @@
+ /* ============================= */
+ /* Local Macros & Definitions    */
+ /* ============================= */
++#undef MIN
+ #define MIN(x,y) ({ (x) < (y) ? (x) : (y); })
+ 
+ /* ============================= */
