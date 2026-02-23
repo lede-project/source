@@ -1,0 +1,10 @@
+--- a/ep.c
++++ b/ep.c
+@@ -42,6 +42,7 @@
+ #define DC_EP_DBG
+ 
+ #define MAJ	2
++#undef MIN
+ #define MIN	1
+ #define BUILD	0
+ #define DRV_VERSION __stringify(MAJ) "." __stringify(MIN) "." \
