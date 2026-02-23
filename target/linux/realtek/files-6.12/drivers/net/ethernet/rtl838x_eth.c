@@ -211,12 +211,15 @@ static inline void rteth_confirm_and_disable_irqs(struct rteth_ctrl *ctrl,
 	u32 mask = GENMASK(ctrl->r->rx_rings - 1, 0);
 	u32 shift = ctrl->r->rx_rings % 32;
 	u32 reg = ctrl->r->rx_rings / 32;
+	unsigned long flags;
 	u32 active;
 
 	/* get all irqs, disable only rx (on RTL839x this keeps L2), confirm all */
+	spin_lock_irqsave(&ctrl->lock, flags);
 	active = sw_r32(ctrl->r->dma_if_intr_sts + reg * 4);
 	sw_w32_mask(active & (mask << shift), 0, ctrl->r->dma_if_intr_msk + reg * 4);
 	sw_w32(active, ctrl->r->dma_if_intr_sts + reg * 4);
+	spin_unlock_irqrestore(&ctrl->lock, flags);
 
 	/* ~mask filters out RTL93xx devices */
 	*l2 = !!(active & ~mask & RTL839X_DMA_IF_INTR_NOTIFY_MASK);
