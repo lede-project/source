@@ -1085,21 +1085,13 @@ static int rteth_hw_receive(struct net_device *dev, int ring, int budget)
 	return work_done;
 }
 
-static int rtl838x_poll_rx(struct napi_struct *napi, int budget)
+static int rteth_poll_rx(struct napi_struct *napi, int budget)
 {
 	struct rtl838x_rx_q *rx_q = container_of(napi, struct rtl838x_rx_q, napi);
 	struct rteth_ctrl *ctrl = rx_q->ctrl;
-	int ring = rx_q->id;
-	int work_done = 0;
+	int work_done, ring = rx_q->id;
 
-	while (work_done < budget) {
-		int work = rteth_hw_receive(ctrl->netdev, ring, budget - work_done);
-
-		if (!work)
-			break;
-		work_done += work;
-	}
-
+	work_done = rteth_hw_receive(ctrl->netdev, ring, budget);
 	if (work_done < budget && napi_complete_done(napi, work_done))
 		rteth_reenable_irq(ctrl, ring);
 
@@ -1707,7 +1699,7 @@ static int rtl838x_eth_probe(struct platform_device *pdev)
 	for (int i = 0; i < RTETH_RX_RINGS; i++) {
 		ctrl->rx_qs[i].id = i;
 		ctrl->rx_qs[i].ctrl = ctrl;
-		netif_napi_add(dev, &ctrl->rx_qs[i].napi, rtl838x_poll_rx);
+		netif_napi_add(dev, &ctrl->rx_qs[i].napi, rteth_poll_rx);
 	}
 
 	platform_set_drvdata(pdev, dev);
