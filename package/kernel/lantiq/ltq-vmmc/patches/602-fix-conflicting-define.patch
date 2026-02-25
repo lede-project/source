@@ -8,3 +8,23 @@
  #define MIN(x,y) ({ (x) < (y) ? (x) : (y); })
  
  /* ============================= */
+--- a/src/drv_vmmc_init.c
++++ b/src/drv_vmmc_init.c
+@@ -88,6 +88,7 @@ CREATE_TRACE_GROUP(VMMC);
+ /** what compatible driver version */
+ #define DRV_VMMC_WHAT_STR "@(#)Lantiq VMMC device driver, version " DRV_VMMC_VER_STR
+ 
++#undef MAX
+ #define MAX(x,y) ((x) > (y) ? (x) : (y))
+ 
+ #define MPS_CH_VALID(mpsCh)      ((mpsCh >= 1 && mpsCh <= 7) ? 1 : 0)
+--- a/src/drv_vmmc_sig_cptd.c
++++ b/src/drv_vmmc_sig_cptd.c
+@@ -38,6 +38,7 @@
+ /** define which constant is taken for cpt level calculation */
+ #define CONST_CPT                CONST_CPT_BLACKMAN
+ /* return the maximum of two scalar values */
++#undef MAX
+ #define MAX(x,y) ((x) > (y) ? (x) : (y))
+ 
+ /* ============================= */
