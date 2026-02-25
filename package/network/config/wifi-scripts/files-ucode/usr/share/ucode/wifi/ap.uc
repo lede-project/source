@@ -134,7 +134,7 @@ function iface_auth_type(config) {
 			config.macaddr_acl = 2;
 			config.wpa_psk_radius = 2;
 		} else if (length(config.key) == 64) {
-			config.wpa_psk = key;
+			config.wpa_psk = config.key;
 		} else if (length(config.key) >= 8 && length(config.key) <= 63) {
 			config.wpa_passphrase = config.key;
 		} else if (config.key) {
