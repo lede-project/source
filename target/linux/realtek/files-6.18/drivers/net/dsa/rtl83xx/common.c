@@ -1610,7 +1610,6 @@ static int rtl83xx_sw_probe(struct platform_device *pdev)
 	case RTL8380_FAMILY_ID:
 		priv->ds->ops = &rtldsa_83xx_switch_ops;
 		priv->ds->phylink_mac_ops = &rtldsa_83xx_phylink_mac_ops;
-		priv->fib_entries = 8192;
 		priv->ds->num_lag_ids = 8;
 		priv->l2_bucket_size = 4;
 		priv->n_mst = 64;
@@ -1618,7 +1617,6 @@ static int rtl83xx_sw_probe(struct platform_device *pdev)
 	case RTL8390_FAMILY_ID:
 		priv->ds->ops = &rtldsa_83xx_switch_ops;
 		priv->ds->phylink_mac_ops = &rtldsa_83xx_phylink_mac_ops;
-		priv->fib_entries = 16384;
 		priv->ds->num_lag_ids = 16;
 		priv->l2_bucket_size = 4;
 		priv->n_mst = 256;
@@ -1626,7 +1624,6 @@ static int rtl83xx_sw_probe(struct platform_device *pdev)
 	case RTL9300_FAMILY_ID:
 		priv->ds->ops = &rtldsa_93xx_switch_ops;
 		priv->ds->phylink_mac_ops = &rtldsa_93xx_phylink_mac_ops;
-		priv->fib_entries = 16384;
 		priv->ds->num_lag_ids = 16;
 		sw_w32(0, RTL930X_ST_CTRL);
 		priv->l2_bucket_size = 8;
@@ -1635,7 +1632,6 @@ static int rtl83xx_sw_probe(struct platform_device *pdev)
 	case RTL9310_FAMILY_ID:
 		priv->ds->ops = &rtldsa_93xx_switch_ops;
 		priv->ds->phylink_mac_ops = &rtldsa_93xx_phylink_mac_ops;
-		priv->fib_entries = 16384;
 		priv->ds->num_lag_ids = 16;
 		sw_w32(0, RTL931x_ST_CTRL);
 		priv->l2_bucket_size = 8;

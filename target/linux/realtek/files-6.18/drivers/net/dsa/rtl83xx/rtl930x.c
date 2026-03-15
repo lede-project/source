@@ -2794,6 +2794,7 @@ static void rtldsa_930x_qos_init(struct rtl838x_switch_priv *priv)
 
 const struct rtldsa_config rtldsa_930x_cfg = {
 	.cpu_port = RTL930X_CPU_PORT,
+	.fib_entries = 16384,
 	.mask_port_reg_be = rtl838x_mask_port_reg,
 	.set_port_reg_be = rtl838x_set_port_reg,
 	.get_port_reg_be = rtl838x_get_port_reg,

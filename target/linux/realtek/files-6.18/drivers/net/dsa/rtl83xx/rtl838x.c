@@ -1808,6 +1808,7 @@ int rtldsa_83xx_lag_setup_algomask(struct rtl838x_switch_priv *priv, int group,
 
 const struct rtldsa_config rtldsa_838x_cfg = {
 	.cpu_port = RTL838X_CPU_PORT,
+	.fib_entries = 8192,
 	.mask_port_reg_be = rtl838x_mask_port_reg,
 	.set_port_reg_be = rtl838x_set_port_reg,
 	.get_port_reg_be = rtl838x_get_port_reg,

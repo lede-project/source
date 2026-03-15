@@ -324,7 +324,7 @@ static int l2_table_show(struct seq_file *m, void *v)
 
 	mutex_lock(&priv->reg_mutex);
 
-	for (int i = 0; i < priv->fib_entries; i++) {
+	for (int i = 0; i < priv->r->fib_entries; i++) {
 		bucket = i >> 2;
 		index = i & 0x3;
 		priv->r->read_l2_entry_using_hash(bucket, index, &e);

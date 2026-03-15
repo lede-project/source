@@ -2002,7 +2002,7 @@ static int rtldsa_port_fdb_dump(struct dsa_switch *ds, int port,
 
 	mutex_lock(&priv->reg_mutex);
 
-	for (int i = 0; i < priv->fib_entries; i++) {
+	for (int i = 0; i < priv->r->fib_entries; i++) {
 		priv->r->read_l2_entry_using_hash(i >> 2, i & 0x3, &e);
 
 		if (!e.valid)
