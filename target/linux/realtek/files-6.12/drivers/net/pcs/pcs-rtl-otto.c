@@ -2951,8 +2951,7 @@ static void rtpcs_930x_sds_usxgmii_config(struct rtpcs_serdes *sds, int nway_en,
 	rtpcs_sds_write_bits(sds, 0x6, 0x1d, 11, 10, sync_bit);
 }
 
-static int rtpcs_930x_sds_patch(struct rtpcs_serdes *sds,
-				enum rtpcs_sds_mode hw_mode)
+static int rtpcs_930x_sds_config_hw_mode(struct rtpcs_serdes *sds, enum rtpcs_sds_mode hw_mode)
 {
 	int (*apply_fn)(struct rtpcs_serdes *, const struct rtpcs_sds_config *, size_t);
 	bool is_xsgmii = (hw_mode == RTPCS_SDS_MODE_XSGMII);
@@ -3043,8 +3042,8 @@ static int rtpcs_930x_setup_serdes(struct rtpcs_serdes *sds,
 	if (ret < 0)
 		return ret;
 
-	/* Apply serdes patches */
-	ret = rtpcs_930x_sds_patch(sds, hw_mode);
+	/* Apply configuration for a hardware mode to SerDes */
+	ret = rtpcs_930x_sds_config_hw_mode(sds, hw_mode);
 	if (ret < 0)
 		return ret;
 
@@ -3052,9 +3051,6 @@ static int rtpcs_930x_setup_serdes(struct rtpcs_serdes *sds,
 
 	/* dal_longan_construct_serdesConfig_init */ /* Serdes Construct */
 	rtpcs_930x_phy_enable_10g_1g(sds);
-
-	/* ----> dal_longan_sds_mode_set */
-	pr_info("%s: Configuring RTL9300 SERDES %d\n", __func__, sds->id);
 
 	/* Set SDS polarity */
 	rtpcs_930x_sds_set_polarity(sds, sds->tx_pol_inv, sds->rx_pol_inv);
