@@ -2875,8 +2875,6 @@ static const struct rtpcs_sds_config rtpcs_930x_sds_cfg_xsgmii_odd[] =
 
 static const struct rtpcs_sds_config rtpcs_930x_sds_cfg_usxgmii_sx_even[] =
 {
-	{0x06, 0x00, 0x0000}, {0x06, 0x0D, 0x0F00}, {0x06, 0x0E, 0x055A}, {0x07, 0x10, 0x6003},
-	{0x06, 0x1D, 0x0600}, {0x06, 0x13, 0x68C1}, {0x06, 0x14, 0xF021}, {0x07, 0x06, 0x1401},
 	{0x21, 0x03, 0x8206}, {0x21, 0x05, 0x40B0}, {0x21, 0x06, 0x0010}, {0x21, 0x07, 0xF09F},
 	{0x21, 0x0C, 0x0007}, {0x21, 0x0D, 0x6009}, {0x21, 0x0E, 0x0000}, {0x21, 0x0F, 0x0008},
 	{0x2E, 0x00, 0xA668}, {0x2E, 0x01, 0x2088}, {0x2E, 0x02, 0xD020}, {0x2E, 0x06, 0xC000},
@@ -2895,8 +2893,6 @@ static const struct rtpcs_sds_config rtpcs_930x_sds_cfg_usxgmii_sx_even[] =
 
 static const struct rtpcs_sds_config rtpcs_930x_sds_cfg_usxgmii_sx_odd[] =
 {
-	{0x06, 0x00, 0x0000}, {0x06, 0x0D, 0x0F00}, {0x06, 0x0E, 0x055A}, {0x07, 0x10, 0x6003},
-	{0x06, 0x1D, 0x0600}, {0x06, 0x13, 0x68C1}, {0x06, 0x14, 0xF021}, {0x07, 0x06, 0x1401},
 	{0x21, 0x03, 0x8206}, {0x21, 0x05, 0x40B0}, {0x21, 0x06, 0x0010}, {0x21, 0x07, 0xF09F},
 	{0x21, 0x0A, 0x0003}, {0x21, 0x0B, 0x0005}, {0x21, 0x0C, 0x0007}, {0x21, 0x0D, 0x6009},
 	{0x21, 0x0E, 0x0000}, {0x21, 0x0F, 0x0008},
@@ -2919,29 +2915,39 @@ static const struct rtpcs_sds_config rtpcs_930x_sds_cfg_5g_qsgmii[] =
 	{0x2A, 0x02, 0x35A1},{0x2A, 0x03, 0x6960},
 };
 
-static void rtpcs_930x_sds_usxgmii_config(struct rtpcs_serdes *sds, int nway_en,
+static void rtpcs_930x_sds_usxgmii_config(struct rtpcs_serdes *sds, bool nway_en,
 					  u32 opcode, u32 am_period,
 					  u32 all_am_markers, u32 an_table,
 					  u32 sync_bit)
 {
-	rtpcs_sds_write_bits(sds, 0x7, 0x11, 0, 0, nway_en);
-	rtpcs_sds_write_bits(sds, 0x7, 0x11, 1, 1, nway_en);
-	rtpcs_sds_write_bits(sds, 0x7, 0x11, 2, 2, nway_en);
-	rtpcs_sds_write_bits(sds, 0x7, 0x11, 3, 3, nway_en);
+	/* this comes from USXGMII patch sequences of the SDK */
+	rtpcs_sds_write(sds, 0x06, 0x00, 0x0000);
+	rtpcs_sds_write(sds, 0x06, 0x0D, 0x0F00);
+	rtpcs_sds_write(sds, 0x06, 0x1D, 0x0600);
+	rtpcs_sds_write(sds, 0x07, 0x06, 0x1401); /* CFG_QHSG_TXCFG_MAC_CH0 */
+
+	/*
+	 * Controls the USXGMII AN mode. Two states are currently known:
+	 * - 0x03: generic/standard-compliant mode
+	 * - 0xaa: Realtek-proprietary mode (e.g. RTL8224)
+	 */
+	rtpcs_sds_write_bits(sds, 0x7, 0x10, 7, 0, opcode);		/* CFG_QHSG_AN_OPC */
+	/* CFG_QHSG_AN_EN_CHX: bits [3:0] enable AN on channels 3..0 */
+	rtpcs_sds_write_bits(sds, 0x7, 0x11, 3, 0, nway_en ? 0xf : 0);
+
 	rtpcs_sds_write_bits(sds, 0x6, 0x12, 15, 0, am_period);
-	rtpcs_sds_write_bits(sds, 0x6, 0x13, 7,  0, all_am_markers);
-	rtpcs_sds_write_bits(sds, 0x6, 0x13, 15, 8, all_am_markers);
-	rtpcs_sds_write_bits(sds, 0x6, 0x14, 7,  0, all_am_markers);
-	rtpcs_sds_write_bits(sds, 0x6, 0x14, 15, 8, all_am_markers);
-	rtpcs_sds_write_bits(sds, 0x6, 0x15, 7,  0, all_am_markers);
-	rtpcs_sds_write_bits(sds, 0x6, 0x15, 15, 8, all_am_markers);
-	rtpcs_sds_write_bits(sds, 0x6, 0x16, 7,  0, all_am_markers);
-	rtpcs_sds_write_bits(sds, 0x6, 0x16, 15, 8, all_am_markers);
-	rtpcs_sds_write_bits(sds, 0x6, 0x17, 7,  0, all_am_markers);
-	rtpcs_sds_write_bits(sds, 0x6, 0x17, 15, 8, all_am_markers);
-	rtpcs_sds_write_bits(sds, 0x6, 0x18, 7,  0, all_am_markers);
-	rtpcs_sds_write_bits(sds, 0x6, 0x18, 15, 8, all_am_markers);
-	rtpcs_sds_write_bits(sds, 0x7, 0x10, 7, 0, opcode);
+	rtpcs_sds_write_bits(sds, 0x6, 0x13, 7,  0, all_am_markers);	/* CFG_AM0_M0 */
+	rtpcs_sds_write_bits(sds, 0x6, 0x13, 15, 8, all_am_markers);	/* CFG_AM0_M1 */
+	rtpcs_sds_write_bits(sds, 0x6, 0x14, 7,  0, all_am_markers);	/* CFG_AM0_M2 */
+	rtpcs_sds_write_bits(sds, 0x6, 0x14, 15, 8, all_am_markers);	/* CFG_AM1_M0 */
+	rtpcs_sds_write_bits(sds, 0x6, 0x15, 7,  0, all_am_markers);	/* CFG_AM1_M1 */
+	rtpcs_sds_write_bits(sds, 0x6, 0x15, 15, 8, all_am_markers);	/* CFG_AM1_M2 */
+	rtpcs_sds_write_bits(sds, 0x6, 0x16, 7,  0, all_am_markers);	/* CFG_AM2_M0 */
+	rtpcs_sds_write_bits(sds, 0x6, 0x16, 15, 8, all_am_markers);	/* CFG_AM2_M1 */
+	rtpcs_sds_write_bits(sds, 0x6, 0x17, 7,  0, all_am_markers);	/* CFG_AM2_M2 */
+	rtpcs_sds_write_bits(sds, 0x6, 0x17, 15, 8, all_am_markers);	/* CFG_AM3_M0 */
+	rtpcs_sds_write_bits(sds, 0x6, 0x18, 7,  0, all_am_markers);	/* CFG_AM3_M1 */
+	rtpcs_sds_write_bits(sds, 0x6, 0x18, 15, 8, all_am_markers);	/* CFG_AM3_M2 */
 	rtpcs_sds_write_bits(sds, 0x6, 0xe, 10, 10, an_table);
 	rtpcs_sds_write_bits(sds, 0x6, 0x1d, 11, 10, sync_bit);
 }
@@ -2996,16 +3002,16 @@ static int rtpcs_930x_sds_config_hw_mode(struct rtpcs_serdes *sds, enum rtpcs_sd
 	case RTPCS_SDS_MODE_USXGMII_10GSXGMII:
 		APPLY_EO(sds, is_even_sds, rtpcs_930x_sds_cfg_usxgmii_sx_even,
 			 rtpcs_930x_sds_cfg_usxgmii_sx_odd);
+
+		/* opcode 0x03: standard/generic USXGMII mode */
+		rtpcs_930x_sds_usxgmii_config(sds, true, 0x03, 0xa4, 0, 1, 0x1);
 		break;
 
 	case RTPCS_SDS_MODE_USXGMII_10GQXGMII:
+		/* don't run for now since USXGMII-QX setup is broken currently */
+		/* rtpcs_930x_sds_usxgmii_config(sds, false, 0xaa, 0x5078, 0, 1, 0x1); */
 	default:
 		return 0;
-	}
-
-	if (hw_mode == RTPCS_SDS_MODE_USXGMII_10GQXGMII) {
-		/* Default configuration */
-		rtpcs_930x_sds_usxgmii_config(sds, 1, 0xaa, 0x5078, 0, 1, 0x1);
 	}
 
 #undef APPLY_EO
