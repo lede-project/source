@@ -74,7 +74,7 @@ Signed-off-by: Bevan Weiss <bevan.weiss@gmail.com>
 +    defaults: 0x40
 +    required: false
 +
-+  hasivo,execute-bit-regs:
++  hasivo,execute-bit-registers:
 +    description: >
 +      Array of registers for which the execute-bit mask should be
 +      applied.  Writes to other registers will not have the execute-bit mask
@@ -160,7 +160,7 @@ Signed-off-by: Bevan Weiss <bevan.weiss@gmail.com>
 +obj-$(CONFIG_MFD_HASIVO_STC8) += hasivo-stc8-mfd.o
 --- /dev/null
 +++ b/drivers/mfd/hasivo-stc8-mfd.c
-@@ -0,0 +1,182 @@
+@@ -0,0 +1,169 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Hasivo STC8 MFD driver with configurable write ORing for execute bit
@@ -180,8 +180,8 @@ Signed-off-by: Bevan Weiss <bevan.weiss@gmail.com>
 +	struct regmap *parent_regmap;
 +	struct regmap *child_regmap;
 +	u32 exec_bit;
-+	u32 *exec_regs;
 +	size_t num_exec_regs;
++	u32 exec_regs[] __counted_by(num_exec_regs);
 +};
 +
 +/* Check if register requires execute bit */
@@ -232,26 +232,30 @@ Signed-off-by: Bevan Weiss <bevan.weiss@gmail.com>
 +	.reg_write = stc8_child_reg_write,
 +};
 +
-+static int stc8_parse_dt(struct stc8_mfd *mfd, struct device_node *np)
++static int stc8_i2c_probe(struct i2c_client *client)
 +{
-+	int ret, count;
++	struct device_node *np = client->dev.of_node;
++	struct stc8_mfd *mfd;
++	u32 exec_bit;
++	int count;
++	int ret;
 +
 +	/* Get execute bit value (default 0x40) */
-+	mfd->exec_bit = 0x40;
-+	ret = of_property_read_u32(np, "hasivo,execute-bit", &mfd->exec_bit);
++	if (of_property_read_u32(np, "hasivo,execute-bit", &exec_bit))
++		exec_bit = 0x40;
 +
 +	/* Get count of execute registers */
 +	count = of_property_count_u32_elems(np, "hasivo,execute-bit-registers");
-+	if (count <= 0) {
-+		mfd->num_exec_regs = 0;
-+	}
-+	else {
-+		mfd->num_exec_regs = count;
-+		mfd->exec_regs = devm_kcalloc(mfd->dev, count, sizeof(u32),
-+					     GFP_KERNEL);
-+		if (!mfd->exec_regs)
-+			return -ENOMEM;
++	if (count < 0)
++		count = 0;
 +
++	mfd = devm_kzalloc(&client->dev, struct_size(mfd, exec_regs, count), GFP_KERNEL);
++	if (!mfd)
++		return -ENOMEM;
++
++	mfd->num_exec_regs = count;
++	mfd->dev = &client->dev;
++	if (count > 0) {
 +		ret = of_property_read_u32_array(np, "hasivo,execute-bit-registers",
 +						mfd->exec_regs, count);
 +		if (ret) {
@@ -260,30 +264,13 @@ Signed-off-by: Bevan Weiss <bevan.weiss@gmail.com>
 +		}
 +	}
 +
++	mfd->exec_bit = exec_bit;
 +	dev_info(mfd->dev, "execute-bit=0x%02x, %zu execute-bit-registers\n",
 +		 mfd->exec_bit, mfd->num_exec_regs);
 +
-+	return 0;
-+}
++	dev_dbg(mfd->dev, "Hasivo STC8 MFD driver probed started\n");
 +
-+static int stc8_i2c_probe(struct i2c_client *client)
-+{
-+	struct stc8_mfd *mfd;
-+	int ret;
-+
-+	dev_dbg(&client->dev, "Hasivo STC8 MFD driver probed started\n");
-+
-+	mfd = devm_kzalloc(&client->dev, sizeof(struct stc8_mfd), GFP_KERNEL);
-+	if (!mfd)
-+		return -ENOMEM;
-+
-+	mfd->dev = &client->dev;
 +	i2c_set_clientdata(client, mfd);
-+
-+	/* Parse device tree properties */
-+	ret = stc8_parse_dt(mfd, mfd->dev->of_node);
-+	if (ret)
-+		return ret;
 +
 +	/* Create parent regmap for direct I2C access */
 +	mfd->parent_regmap = devm_regmap_init_i2c(client,
