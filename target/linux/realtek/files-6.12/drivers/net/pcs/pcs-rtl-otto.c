@@ -2962,6 +2962,14 @@ static int rtpcs_930x_sds_config_hw_mode(struct rtpcs_serdes *sds, enum rtpcs_sd
 #define APPLY_EO(sds, is_even, e, o) \
 	apply_fn(sds, (is_even) ? (e) : (o), (is_even) ? ARRAY_SIZE(e) : ARRAY_SIZE(o))
 
+	if (hw_mode == RTPCS_SDS_MODE_QSGMII) {
+		if (sds->id >= 2)
+			return -ENOTSUPP;
+
+		return rtpcs_sds_apply_config(sds, rtpcs_930x_sds_cfg_5g_qsgmii,
+					      ARRAY_SIZE(rtpcs_930x_sds_cfg_5g_qsgmii));
+	}
+
 	switch (hw_mode) {
 	case RTPCS_SDS_MODE_1000BASEX:
 	case RTPCS_SDS_MODE_SGMII:
@@ -2973,12 +2981,6 @@ static int rtpcs_930x_sds_config_hw_mode(struct rtpcs_serdes *sds, enum rtpcs_sd
 	case RTPCS_SDS_MODE_2500BASEX:
 		APPLY_EO(sds, is_even_sds, rtpcs_930x_sds_cfg_10g_2500bx_even,
 			 rtpcs_930x_sds_cfg_10g_2500bx_odd);
-		break;
-
-	case RTPCS_SDS_MODE_QSGMII:
-		/* only QSGMII on 5G SerDes (0 + 1) for now */
-		rtpcs_sds_apply_config(sds, rtpcs_930x_sds_cfg_5g_qsgmii,
-				       ARRAY_SIZE(rtpcs_930x_sds_cfg_5g_qsgmii));
 		break;
 
 	case RTPCS_SDS_MODE_XSGMII:
