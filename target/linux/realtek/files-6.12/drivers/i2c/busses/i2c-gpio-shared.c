@@ -10,6 +10,8 @@
 #include <linux/mutex.h>
 #include <linux/platform_device.h>
 
+#define GPIO_SHARED_MAX_BUS	4
+
 struct gpio_shared_ctx;
 
 struct gpio_shared_bus {
@@ -19,8 +21,6 @@ struct gpio_shared_bus {
 	struct i2c_algo_bit_data bit_data;
 	struct gpio_shared_ctx *ctx;
 };
-
-#define GPIO_SHARED_MAX_BUS	4
 
 struct gpio_shared_ctx {
 	struct device *dev;
@@ -97,7 +97,7 @@ static int gpio_shared_probe(struct platform_device *pdev)
 	if (IS_ERR(ctx->scl))
 		return dev_err_probe(dev, PTR_ERR(ctx->scl), "shared SCL node not found\n");
 
-	if (device_get_child_node_count(dev) >= GPIO_SHARED_MAX_BUS)
+	if (device_get_child_node_count(dev) > GPIO_SHARED_MAX_BUS)
 		return dev_err_probe(dev, -EINVAL, "Too many channels\n");
 
 	device_for_each_child_node(dev, child) {
