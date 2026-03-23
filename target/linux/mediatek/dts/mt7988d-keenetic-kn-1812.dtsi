@@ -398,6 +398,8 @@
 		compatible = "ethernet-phy-ieee802.3-c45";
 		reg = <0x1b>;
 
+		interrupt-parent = <&pio>;
+		interrupts = <2 IRQ_TYPE_LEVEL_LOW>;
 		reset-gpios = <&pio 4 GPIO_ACTIVE_LOW>;
 		reset-assert-us = <100000>;
 		reset-deassert-us = <221000>;
