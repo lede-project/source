@@ -428,7 +428,7 @@ function device_htmode_append(config) {
 			config.he_spr_psr_enabled = false;
 		if (!(he_mac_cap[0] & 0x4))
 			config.he_twt_responder = false;
-		if (!(he_mac_cap[0] & 0x1))
+		if (!config.he_twt_responder)
 			config.he_twt_required= false;
 
 		append_vars(config, [
