@@ -369,7 +369,6 @@
 	nvmem-cell-names = "mac-address";
 	label = "wan";
 	phy-mode = "internal";
-	phy-connection-type = "internal";
 	phy = <&int_2p5g_phy>;
 	status = "okay";
 };
@@ -411,7 +410,6 @@
 	nvmem-cell-names = "mac-address";
 	label = "lan5";
 	phy-mode = "usxgmii";
-	phy-connection-type = "usxgmii";
 	phy = <&phy27>;
 	status = "okay";
 };
