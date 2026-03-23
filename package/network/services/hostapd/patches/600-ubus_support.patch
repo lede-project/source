@@ -92,7 +92,7 @@ probe/assoc/auth requests via object subscribe.
  		return 0;
 --- a/src/ap/drv_callbacks.c
 +++ b/src/ap/drv_callbacks.c
-@@ -332,6 +332,10 @@ int hostapd_notif_assoc(struct hostapd_d
+@@ -333,6 +333,10 @@ int hostapd_notif_assoc(struct hostapd_d
  #endif /* CONFIG_OWE */
  	bool updated = false;
  	bool driver_acl;
@@ -103,7 +103,7 @@ probe/assoc/auth requests via object subscribe.
  
  #ifdef CONFIG_P2P
  	if (hapd->p2p_group && (!hapd->started || hapd->disabled)) {
-@@ -527,6 +531,12 @@ int hostapd_notif_assoc(struct hostapd_d
+@@ -528,6 +532,12 @@ int hostapd_notif_assoc(struct hostapd_d
  	}
  #endif /* CONFIG_IEEE80211BE */
  
@@ -116,7 +116,7 @@ probe/assoc/auth requests via object subscribe.
  #ifdef CONFIG_P2P
  	if (elems.p2p) {
  		wpabuf_free(sta->p2p_ie);
-@@ -1424,6 +1434,7 @@ void hostapd_event_ch_switch(struct host
+@@ -1425,6 +1435,7 @@ void hostapd_event_ch_switch(struct host
  
  		wpa_msg(hapd->msg_ctx, MSG_INFO, AP_CSA_FINISHED
  			"freq=%d dfs=%d", freq, is_dfs);
@@ -185,7 +185,7 @@ probe/assoc/auth requests via object subscribe.
  	int interface_added; /* virtual interface added for this BSS */
  	unsigned int started:1;
  	unsigned int disabled:1;
-@@ -783,6 +785,7 @@ hostapd_alloc_bss_data(struct hostapd_if
+@@ -785,6 +787,7 @@ hostapd_alloc_bss_data(struct hostapd_if
  		       struct hostapd_bss_config *bss);
  int hostapd_setup_interface(struct hostapd_iface *iface);
  int hostapd_setup_interface_complete(struct hostapd_iface *iface, int err);

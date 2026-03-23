@@ -131,7 +131,7 @@ Subject: [PATCH] Remove some unnecessary control interface functionality
  static void ieee802_1x_wnm_notif_send(void *eloop_ctx, void *timeout_ctx)
 --- a/src/ap/wpa_auth.c
 +++ b/src/ap/wpa_auth.c
-@@ -6490,6 +6490,7 @@ static const char * wpa_bool_txt(int val
+@@ -6526,6 +6526,7 @@ static const char * wpa_bool_txt(int val
  	return val ? "TRUE" : "FALSE";
  }
  
@@ -139,7 +139,7 @@ Subject: [PATCH] Remove some unnecessary control interface functionality
  
  #define RSN_SUITE "%02x-%02x-%02x-%d"
  #define RSN_SUITE_ARG(s) \
-@@ -6642,7 +6643,7 @@ int wpa_get_mib_sta(struct wpa_state_mac
+@@ -6678,7 +6679,7 @@ int wpa_get_mib_sta(struct wpa_state_mac
  
  	return len;
  }
@@ -181,7 +181,7 @@ Subject: [PATCH] Remove some unnecessary control interface functionality
  
 --- a/wpa_supplicant/ap.c
 +++ b/wpa_supplicant/ap.c
-@@ -1527,7 +1527,7 @@ int wpas_ap_wps_nfc_report_handover(stru
+@@ -1535,7 +1535,7 @@ int wpas_ap_wps_nfc_report_handover(stru
  #endif /* CONFIG_WPS */
  
  

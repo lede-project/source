@@ -407,7 +407,7 @@ as adding/removing interfaces.
  	int interface_added; /* virtual interface added for this BSS */
  	unsigned int started:1;
  	unsigned int disabled:1;
-@@ -585,6 +591,7 @@ struct hostapd_mld {
+@@ -587,6 +593,7 @@ struct hostapd_mld {
   */
  struct hostapd_iface {
  	struct hapd_interfaces *interfaces;
@@ -415,7 +415,7 @@ as adding/removing interfaces.
  	void *owner;
  	char *config_fname;
  	struct hostapd_config *conf;
-@@ -794,11 +801,16 @@ struct hostapd_iface * hostapd_init(stru
+@@ -796,11 +803,16 @@ struct hostapd_iface * hostapd_init(stru
  struct hostapd_iface *
  hostapd_interface_init_bss(struct hapd_interfaces *interfaces, const char *phy,
  			   const char *config_fname, int debug);
@@ -432,7 +432,7 @@ as adding/removing interfaces.
  int hostapd_enable_iface(struct hostapd_iface *hapd_iface);
  int hostapd_reload_iface(struct hostapd_iface *hapd_iface);
  int hostapd_reload_bss_only(struct hostapd_data *bss);
-@@ -824,6 +836,7 @@ hostapd_switch_channel_fallback(struct h
+@@ -826,6 +838,7 @@ hostapd_switch_channel_fallback(struct h
  void hostapd_cleanup_cs_params(struct hostapd_data *hapd);
  void hostapd_periodic_iface(struct hostapd_iface *iface);
  int hostapd_owe_trans_get_info(struct hostapd_data *hapd);
@@ -614,7 +614,7 @@ as adding/removing interfaces.
  	 * set_sta_vlan - Bind a station into a specific interface (AP only)
  	 * @priv: Private driver interface data
  	 * @ifname: Interface (main or virtual BSS or VLAN)
-@@ -7017,6 +7036,7 @@ union wpa_event_data {
+@@ -7023,6 +7042,7 @@ union wpa_event_data {
  
  	/**
  	 * struct ch_switch
@@ -622,7 +622,7 @@ as adding/removing interfaces.
  	 * @freq: Frequency of new channel in MHz
  	 * @ht_enabled: Whether this is an HT channel
  	 * @ch_offset: Secondary channel offset
-@@ -7027,6 +7047,7 @@ union wpa_event_data {
+@@ -7033,6 +7053,7 @@ union wpa_event_data {
  	 * @punct_bitmap: Puncturing bitmap
  	 */
  	struct ch_switch {
@@ -859,7 +859,7 @@ as adding/removing interfaces.
  
  	if (link) {
  		data.ch_switch.link_id = nla_get_u8(link);
-@@ -4332,6 +4335,7 @@ static void do_process_drv_event(struct
+@@ -4421,6 +4424,7 @@ static void do_process_drv_event(struct
  				     tb[NL80211_ATTR_CENTER_FREQ1],
  				     tb[NL80211_ATTR_CENTER_FREQ2],
  				     tb[NL80211_ATTR_PUNCT_BITMAP],
@@ -867,7 +867,7 @@ as adding/removing interfaces.
  				     0);
  		break;
  	case NL80211_CMD_CH_SWITCH_NOTIFY:
-@@ -4344,6 +4348,7 @@ static void do_process_drv_event(struct
+@@ -4433,6 +4437,7 @@ static void do_process_drv_event(struct
  				     tb[NL80211_ATTR_CENTER_FREQ1],
  				     tb[NL80211_ATTR_CENTER_FREQ2],
  				     tb[NL80211_ATTR_PUNCT_BITMAP],
