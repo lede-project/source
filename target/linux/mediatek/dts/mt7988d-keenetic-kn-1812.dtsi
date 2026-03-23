@@ -608,3 +608,7 @@
 &tphy {
 	status = "okay";
 };
+
+&xsphy {
+	status = "okay";
+};
