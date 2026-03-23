@@ -2818,9 +2818,6 @@ static int rtpcs_930x_sds_config_hw_mode(struct rtpcs_serdes *sds, enum rtpcs_sd
 
 	apply_fn = is_xsgmii ? rtpcs_sds_apply_config_xsg : rtpcs_sds_apply_config;
 
-#define APPLY_EO(sds, is_even, e, o) \
-	apply_fn(sds, (is_even) ? (e) : (o), (is_even) ? ARRAY_SIZE(e) : ARRAY_SIZE(o))
-
 	/* USXGMII-QX broken, rely on bootloader setup */
 	if (hw_mode == RTPCS_SDS_MODE_USXGMII_10GQXGMII)
 		return 0;
@@ -2895,12 +2892,16 @@ static int rtpcs_930x_sds_config_hw_mode(struct rtpcs_serdes *sds, enum rtpcs_sd
 		return 0;
 	}
 
-	APPLY_EO(sds, is_even_sds, rtpcs_930x_sds_cfg_final_even, rtpcs_930x_sds_cfg_final_odd);
+	if (is_even_sds)
+		apply_fn(sds, rtpcs_930x_sds_cfg_final_even,
+			 ARRAY_SIZE(rtpcs_930x_sds_cfg_final_even));
+	else
+		apply_fn(sds, rtpcs_930x_sds_cfg_final_odd,
+			 ARRAY_SIZE(rtpcs_930x_sds_cfg_final_odd));
 
 	if (hw_mode == RTPCS_SDS_MODE_10GBASER && is_even_sds)
 		rtpcs_sds_write(sds, 0x2F, 0x1D, 0x76E1);
 
-#undef APPLY_EO
 	return 0;
 }
 
