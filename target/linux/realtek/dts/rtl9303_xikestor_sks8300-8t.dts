@@ -51,6 +51,8 @@
 
 	i2c@0 {
 		reg = <0>;
+		#address-cells = <1>;
+		#size-cells = <0>;
 
 		temperature_sensor: temperature-sensor@48 {
 			compatible = "national,lm75";
