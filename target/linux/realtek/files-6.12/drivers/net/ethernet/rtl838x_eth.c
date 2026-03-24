@@ -672,7 +672,6 @@ static void rteth_839x_setup_notify_ring_buffer(struct rteth_ctrl *ctrl)
 
 static void rteth_838x_hw_init(struct rteth_ctrl *ctrl)
 {
-	rteth_838x_hw_en_rxtx(ctrl);
 	/* Trap IGMP/MLD traffic to CPU-Port */
 	sw_w32(0x3, RTL838X_SPCL_TRAP_IGMP_CTRL);
 	/* Flush learned FDB entries on link down of a port */
@@ -681,7 +680,6 @@ static void rteth_838x_hw_init(struct rteth_ctrl *ctrl)
 
 static void rteth_839x_hw_init(struct rteth_ctrl *ctrl)
 {
-	rteth_839x_hw_en_rxtx(ctrl);
 	/* Trap MLD and IGMP messages to CPU_PORT */
 	sw_w32(0x3, RTL839X_SPCL_TRAP_IGMP_CTRL);
 	/* Flush learned FDB entries on link down of a port */
@@ -690,7 +688,6 @@ static void rteth_839x_hw_init(struct rteth_ctrl *ctrl)
 
 static void rteth_930x_hw_init(struct rteth_ctrl *ctrl)
 {
-	rteth_930x_hw_en_rxtx(ctrl);
 	/* Flush learned FDB entries on link down of a port */
 	sw_w32_mask(0, BIT(7), RTL930X_L2_CTRL);
 	/* Trap MLD and IGMP messages to CPU_PORT */
@@ -699,7 +696,6 @@ static void rteth_930x_hw_init(struct rteth_ctrl *ctrl)
 
 static void rteth_931x_hw_init(struct rteth_ctrl *ctrl)
 {
-	rteth_931x_hw_en_rxtx(ctrl);
 	/* Trap MLD and IGMP messages to CPU_PORT */
 	sw_w32((0x2 << 3) | 0x2, RTL931X_VLAN_APP_PKT_CTRL);
 	/* Set PCIE_PWR_DOWN */
@@ -728,6 +724,7 @@ static int rteth_open(struct net_device *ndev)
 		napi_enable(&ctrl->rx_qs[i].napi);
 
 	ctrl->r->hw_init(ctrl);
+	ctrl->r->hw_en_rxtx(ctrl);
 	netif_tx_start_all_queues(ndev);
 	spin_unlock_irqrestore(&ctrl->lock, flags);
 
@@ -906,7 +903,7 @@ static void rteth_tx_timeout(struct net_device *ndev, unsigned int txqueue)
 	spin_lock_irqsave(&ctrl->lock, flags);
 	rteth_hw_stop(ctrl);
 	rteth_hw_ring_setup(ctrl);
-	rteth_838x_hw_en_rxtx(ctrl);
+	ctrl->r->hw_en_rxtx(ctrl);
 	netif_trans_update(ndev);
 	netif_start_queue(ndev);
 	spin_unlock_irqrestore(&ctrl->lock, flags);
@@ -1324,6 +1321,7 @@ static const struct rteth_config rteth_838x_cfg = {
 	.update_counter = rteth_83xx_update_counter,
 	.create_tx_header = rteth_838x_create_tx_header,
 	.decode_tag = rteth_838x_decode_tag,
+	.hw_en_rxtx = rteth_838x_hw_en_rxtx,
 	.hw_init = &rteth_838x_hw_init,
 	.hw_stop = &rteth_838x_hw_stop,
 	.hw_reset = &rteth_838x_hw_reset,
@@ -1367,6 +1365,7 @@ static const struct rteth_config rteth_839x_cfg = {
 	.update_counter = rteth_83xx_update_counter,
 	.create_tx_header = rteth_839x_create_tx_header,
 	.decode_tag = rteth_839x_decode_tag,
+	.hw_en_rxtx = rteth_839x_hw_en_rxtx,
 	.hw_init = &rteth_839x_hw_init,
 	.hw_stop = &rteth_839x_hw_stop,
 	.hw_reset = &rteth_839x_hw_reset,
@@ -1412,6 +1411,7 @@ static const struct rteth_config rteth_930x_cfg = {
 	.update_counter = rteth_93xx_update_counter,
 	.create_tx_header = rteth_93xx_create_tx_header,
 	.decode_tag = rteth_930x_decode_tag,
+	.hw_en_rxtx = rteth_930x_hw_en_rxtx,
 	.hw_init = &rteth_930x_hw_init,
 	.hw_stop = &rteth_930x_hw_stop,
 	.hw_reset = &rteth_93xx_hw_reset,
@@ -1456,6 +1456,7 @@ static const struct rteth_config rteth_931x_cfg = {
 	.update_counter = rteth_93xx_update_counter,
 	.create_tx_header = rteth_93xx_create_tx_header,
 	.decode_tag = rteth_931x_decode_tag,
+	.hw_en_rxtx = rteth_931x_hw_en_rxtx,
 	.hw_init = &rteth_931x_hw_init,
 	.hw_stop = &rteth_931x_hw_stop,
 	.hw_reset = &rteth_93xx_hw_reset,
