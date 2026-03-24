@@ -51,6 +51,16 @@
 		phy-mode = #m ; \
 	};
 
+#define SWITCH_PORT_LED(p, l, s, c, m) \
+	port##p: port@##p { \
+		reg = <##p>; \
+		label = SWITCH_PORT_LABEL(l) ; \
+		led-set = <##c>; \
+		pcs-handle = <&serdes##s>; \
+		phy-handle = <&phy##p>; \
+		phy-mode = #m ; \
+	};
+
 #define SWITCH_SFP_PORT(n, s, m) \
 	port##n: port@##n { \
 		reg = <##n>; \
