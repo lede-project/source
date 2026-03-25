@@ -1475,7 +1475,7 @@ static const struct ethtool_ops rteth_ethtool_ops = {
 	.set_link_ksettings = rteth_set_link_ksettings,
 };
 
-static int rtl838x_eth_probe(struct platform_device *pdev)
+static int rteth_probe(struct platform_device *pdev)
 {
 	struct net_device *dev;
 	struct device_node *dn = pdev->dev.of_node;
@@ -1611,7 +1611,7 @@ static int rtl838x_eth_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static void rtl838x_eth_remove(struct platform_device *pdev)
+static void rteth_remove(struct platform_device *pdev)
 {
 	struct net_device *dev = platform_get_drvdata(pdev);
 	struct rteth_ctrl *ctrl = netdev_priv(dev);
@@ -1647,8 +1647,8 @@ static const struct of_device_id rteth_of_ids[] = {
 MODULE_DEVICE_TABLE(of, rteth_of_ids);
 
 static struct platform_driver rtl838x_eth_driver = {
-	.probe  = rtl838x_eth_probe,
-	.remove = rtl838x_eth_remove,
+	.probe  = rteth_probe,
+	.remove = rteth_remove,
 	.driver = {
 		.name = KBUILD_MODNAME,
 		.pm = NULL,
