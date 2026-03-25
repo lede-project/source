@@ -1616,15 +1616,13 @@ static void rtl838x_eth_remove(struct platform_device *pdev)
 	struct net_device *dev = platform_get_drvdata(pdev);
 	struct rteth_ctrl *ctrl = netdev_priv(dev);
 
-	if (dev) {
-		pr_info("Removing platform driver for rtl838x-eth\n");
-		rteth_hw_stop(ctrl);
+	pr_info("Removing platform driver for rtl838x-eth\n");
+	rteth_hw_stop(ctrl);
 
-		netif_tx_stop_all_queues(dev);
+	netif_tx_stop_all_queues(dev);
 
-		for (int i = 0; i < RTETH_RX_RINGS; i++)
-			netif_napi_del(&ctrl->rx_qs[i].napi);
-	}
+	for (int i = 0; i < RTETH_RX_RINGS; i++)
+		netif_napi_del(&ctrl->rx_qs[i].napi);
 }
 
 static const struct of_device_id rteth_of_ids[] = {
