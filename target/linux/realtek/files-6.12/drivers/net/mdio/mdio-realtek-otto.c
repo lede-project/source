@@ -111,8 +111,7 @@
 	for_each_set_bit(addr, ctrl->valid_ports, RTMDIO_MAX_PHY)
 
 #define rtmdio_ctrl_from_bus(bus) \
-	((struct rtmdio_ctrl *)(bus)->priv)
-
+	(((struct rtmdio_chan *)(bus)->priv)->ctrl)
 
 /*
  * On all Realtek switch platforms the hardware periodically reads the link status of all
@@ -194,6 +193,10 @@ struct rtmdio_ctrl {
 	struct rtmdio_port port[RTMDIO_MAX_PHY];
 	struct rtmdio_bus bus[RTMDIO_MAX_SMI_BUS];
 	DECLARE_BITMAP(valid_ports, RTMDIO_MAX_PHY);
+};
+
+struct rtmdio_chan {
+	struct rtmdio_ctrl *ctrl;
 };
 
 struct rtmdio_config {
@@ -909,20 +912,20 @@ static int rtmdio_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct rtmdio_ctrl *ctrl;
+	struct rtmdio_chan *chan;
 	struct mii_bus *bus;
 	int ret, addr;
 
-	bus = devm_mdiobus_alloc_size(dev, sizeof(*ctrl));
-	if (!bus)
+	ctrl = devm_kzalloc(dev, sizeof(*ctrl), GFP_KERNEL);
+	if (!ctrl)
 		return -ENOMEM;
 
-	ctrl = bus->priv;
+	platform_set_drvdata(pdev, ctrl);
 	ctrl->cfg = (const struct rtmdio_config *)device_get_match_data(dev);
 	ctrl->map = syscon_node_to_regmap(pdev->dev.of_node->parent);
 	if (IS_ERR(ctrl->map))
 		return PTR_ERR(ctrl->map);
 
-	platform_set_drvdata(pdev, ctrl);
 	ret = rtmdio_map_ports(dev);
 	if (ret) {
 		for_each_phy(ctrl, addr)
@@ -930,6 +933,13 @@ static int rtmdio_probe(struct platform_device *pdev)
 		return ret;
 	}
 	rtmdio_setup_smi_topology(ctrl);
+
+	bus = devm_mdiobus_alloc_size(dev, sizeof(*chan));
+	if (!bus)
+		return -ENOMEM;
+
+	chan = bus->priv;
+	chan->ctrl = ctrl;
 
 	bus->name = "Realtek MDIO bus";
 	bus->reset = rtmdio_reset;
@@ -940,7 +950,6 @@ static int rtmdio_probe(struct platform_device *pdev)
 	bus->parent = dev;
 	bus->phy_mask = ~0;
 	snprintf(bus->id, MII_BUS_ID_SIZE, "realtek-mdio");
-
 	device_set_node(&bus->dev, of_fwnode_handle(dev->of_node));
 
 	ret = devm_mdiobus_register(dev, bus);
