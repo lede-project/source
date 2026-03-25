@@ -567,9 +567,8 @@ static int rtmdio_write(struct mii_bus *bus, int addr, int regnum, u16 val)
 	return 0;
 }
 
-static void rtmdio_setup_smi_topology(struct mii_bus *bus)
+static void rtmdio_setup_smi_topology(struct rtmdio_ctrl *ctrl)
 {
-	struct rtmdio_ctrl *ctrl = bus->priv;
 	u32 reg, mask, val, addr;
 
 	for_each_phy(ctrl, addr) {
@@ -926,6 +925,7 @@ static int rtmdio_probe(struct platform_device *pdev)
 			of_node_put(ctrl->port[addr].dn);
 		return ret;
 	}
+	rtmdio_setup_smi_topology(ctrl);
 
 	bus->name = "Realtek MDIO bus";
 	bus->reset = rtmdio_reset;
@@ -939,7 +939,6 @@ static int rtmdio_probe(struct platform_device *pdev)
 
 	device_set_node(&bus->dev, of_fwnode_handle(dev->of_node));
 
-	rtmdio_setup_smi_topology(bus);
 	ret = devm_mdiobus_register(dev, bus);
 	if (ret)
 		return ret;
