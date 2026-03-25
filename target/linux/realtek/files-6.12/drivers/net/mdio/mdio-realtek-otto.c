@@ -172,11 +172,14 @@
  * reimplemented. For now it should be sufficient.
  */
 
+struct rtmdio_port {
+	int page;
+};
 
 struct rtmdio_ctrl {
 	struct regmap *map;
 	const struct rtmdio_config *cfg;
-	int page[RTMDIO_MAX_PHY];
+	struct rtmdio_port port[RTMDIO_MAX_PHY];
 	bool raw[RTMDIO_MAX_PHY];
 	int smi_bus[RTMDIO_MAX_PHY];
 	int smi_addr[RTMDIO_MAX_PHY];
@@ -508,14 +511,14 @@ static int rtmdio_read(struct mii_bus *bus, int addr, int regnum)
 	if (addr >= ctrl->cfg->num_phys)
 		return -ENODEV;
 
-	if (regnum == RTMDIO_PAGE_SELECT && ctrl->page[addr] != ctrl->cfg->raw_page)
-		return ctrl->page[addr];
+	if (regnum == RTMDIO_PAGE_SELECT && ctrl->port[addr].page != ctrl->cfg->raw_page)
+		return ctrl->port[addr].page;
 
-	ctrl->raw[addr] = (ctrl->page[addr] == ctrl->cfg->raw_page);
+	ctrl->raw[addr] = (ctrl->port[addr].page == ctrl->cfg->raw_page);
 
-	err = (*ctrl->cfg->read_phy)(bus, addr, ctrl->page[addr], regnum, &val);
+	err = (*ctrl->cfg->read_phy)(bus, addr, ctrl->port[addr].page, regnum, &val);
 	pr_debug("rd_PHY(adr=%d, pag=%d, reg=%d) = %d, err = %d\n",
-		 addr, ctrl->page[addr], regnum, val, err);
+		 addr, ctrl->port[addr].page, regnum, val, err);
 	return err ? err : val;
 }
 
@@ -541,10 +544,10 @@ static int rtmdio_write(struct mii_bus *bus, int addr, int regnum, u16 val)
 	if (addr >= ctrl->cfg->num_phys)
 		return -ENODEV;
 
-	page = ctrl->page[addr];
+	page = ctrl->port[addr].page;
 
 	if (regnum == RTMDIO_PAGE_SELECT)
-		ctrl->page[addr] = val;
+		ctrl->port[addr].page = val;
 
 	if (!ctrl->raw[addr] && (regnum != RTMDIO_PAGE_SELECT || page == ctrl->cfg->raw_page)) {
 		ctrl->raw[addr] = (page == ctrl->cfg->raw_page);
