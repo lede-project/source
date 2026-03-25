@@ -174,13 +174,13 @@
 
 struct rtmdio_port {
 	int page;
+	bool raw;
 };
 
 struct rtmdio_ctrl {
 	struct regmap *map;
 	const struct rtmdio_config *cfg;
 	struct rtmdio_port port[RTMDIO_MAX_PHY];
-	bool raw[RTMDIO_MAX_PHY];
 	int smi_bus[RTMDIO_MAX_PHY];
 	int smi_addr[RTMDIO_MAX_PHY];
 	struct device_node *phy_node[RTMDIO_MAX_PHY];
@@ -514,7 +514,7 @@ static int rtmdio_read(struct mii_bus *bus, int addr, int regnum)
 	if (regnum == RTMDIO_PAGE_SELECT && ctrl->port[addr].page != ctrl->cfg->raw_page)
 		return ctrl->port[addr].page;
 
-	ctrl->raw[addr] = (ctrl->port[addr].page == ctrl->cfg->raw_page);
+	ctrl->port[addr].raw = (ctrl->port[addr].page == ctrl->cfg->raw_page);
 
 	err = (*ctrl->cfg->read_phy)(bus, addr, ctrl->port[addr].page, regnum, &val);
 	pr_debug("rd_PHY(adr=%d, pag=%d, reg=%d) = %d, err = %d\n",
@@ -549,8 +549,9 @@ static int rtmdio_write(struct mii_bus *bus, int addr, int regnum, u16 val)
 	if (regnum == RTMDIO_PAGE_SELECT)
 		ctrl->port[addr].page = val;
 
-	if (!ctrl->raw[addr] && (regnum != RTMDIO_PAGE_SELECT || page == ctrl->cfg->raw_page)) {
-		ctrl->raw[addr] = (page == ctrl->cfg->raw_page);
+	if (!ctrl->port[addr].raw &&
+	    (regnum != RTMDIO_PAGE_SELECT || page == ctrl->cfg->raw_page)) {
+		ctrl->port[addr].raw = (page == ctrl->cfg->raw_page);
 
 		err = (*ctrl->cfg->write_phy)(bus, addr, page, regnum, val);
 		pr_debug("wr_PHY(adr=%d, pag=%d, reg=%d, val=%d) err = %d\n",
@@ -558,7 +559,7 @@ static int rtmdio_write(struct mii_bus *bus, int addr, int regnum, u16 val)
 		return err;
 	}
 
-	ctrl->raw[addr] = false;
+	ctrl->port[addr].raw = false;
 	return 0;
 }
 
