@@ -180,11 +180,15 @@ struct rtmdio_port {
 	u8 smi_bus;
 };
 
+struct rtmdio_bus {
+	bool is_c45;
+};
+
 struct rtmdio_ctrl {
 	struct regmap *map;
 	const struct rtmdio_config *cfg;
 	struct rtmdio_port port[RTMDIO_MAX_PHY];
-	bool smi_bus_is_c45[RTMDIO_MAX_SMI_BUS];
+	struct rtmdio_bus bus[RTMDIO_MAX_SMI_BUS];
 	DECLARE_BITMAP(valid_ports, RTMDIO_MAX_PHY);
 };
 
@@ -711,7 +715,7 @@ static int rtmdio_930x_reset(struct mii_bus *bus)
 	/* Define C22/C45 bus feature set */
 	for (int addr = 0; addr < RTMDIO_MAX_SMI_BUS; addr++) {
 		mask = BIT(16 + addr);
-		val = ctrl->smi_bus_is_c45[addr] ? mask : 0;
+		val = ctrl->bus[addr].is_c45 ? mask : 0;
 		regmap_update_bits(ctrl->map, RTMDIO_930X_SMI_GLB_CTRL, mask, val);
 	}
 
@@ -768,7 +772,7 @@ static int rtmdio_931x_reset(struct mii_bus *bus)
 
 	/* Define C22/C45 bus feature set */
 	for (int i = 0; i < RTMDIO_MAX_SMI_BUS; i++) {
-		if (ctrl->smi_bus_is_c45[i])
+		if (ctrl->bus[i].is_c45)
 			c45_mask |= 0x2 << (i * 2);  /* Std. C45, non-standard is 0x3 */
 	}
 	regmap_update_bits(ctrl->map, RTMDIO_931X_SMI_GLB_CTRL1, GENMASK(7, 0), c45_mask);
@@ -887,7 +891,7 @@ static int rtmdio_map_ports(struct device *dev)
 					     of_fwnode_handle(phy->parent));
 
 		if (of_device_is_compatible(phy, "ethernet-phy-ieee802.3-c45"))
-			ctrl->smi_bus_is_c45[smi_bus] = true;
+			ctrl->bus[smi_bus].is_c45 = true;
 
 		ctrl->port[addr].smi_bus = smi_bus;
 		ctrl->port[addr].smi_addr = smi_addr;
