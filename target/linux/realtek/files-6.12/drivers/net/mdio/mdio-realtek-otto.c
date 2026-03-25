@@ -173,6 +173,7 @@
  */
 
 struct rtmdio_port {
+	struct device_node *dn;
 	int page;
 	bool raw;
 	u8 smi_addr;
@@ -183,7 +184,6 @@ struct rtmdio_ctrl {
 	struct regmap *map;
 	const struct rtmdio_config *cfg;
 	struct rtmdio_port port[RTMDIO_MAX_PHY];
-	struct device_node *phy_node[RTMDIO_MAX_PHY];
 	bool smi_bus_is_c45[RTMDIO_MAX_SMI_BUS];
 	DECLARE_BITMAP(valid_ports, RTMDIO_MAX_PHY);
 };
@@ -891,7 +891,7 @@ static int rtmdio_map_ports(struct device *dev)
 
 		ctrl->port[addr].smi_bus = smi_bus;
 		ctrl->port[addr].smi_addr = smi_addr;
-		ctrl->phy_node[addr] = of_node_get(phy);
+		ctrl->port[addr].dn = of_node_get(phy);
 		__set_bit(addr, ctrl->valid_ports);
 	}
 
@@ -919,7 +919,7 @@ static int rtmdio_probe(struct platform_device *pdev)
 	ret = rtmdio_map_ports(dev);
 	if (ret) {
 		for_each_phy(ctrl, addr)
-			of_node_put(ctrl->phy_node[addr]);
+			of_node_put(ctrl->port[addr].dn);
 		return ret;
 	}
 
@@ -943,8 +943,8 @@ static int rtmdio_probe(struct platform_device *pdev)
 	for_each_phy(ctrl, addr) {
 		if (!ret)
 			ret = fwnode_mdiobus_register_phy(bus,
-				of_fwnode_handle(ctrl->phy_node[addr]), addr);
-		of_node_put(ctrl->phy_node[addr]);
+				of_fwnode_handle(ctrl->port[addr].dn), addr);
+		of_node_put(ctrl->port[addr].dn);
 	}
 	if (ret)
 		return ret;
