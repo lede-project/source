@@ -908,31 +908,11 @@ static int rtmdio_map_ports(struct device *dev)
 	return 0;
 }
 
-static int rtmdio_probe(struct platform_device *pdev)
+static int rtmdio_probe_one(struct device *dev, struct rtmdio_ctrl *ctrl)
 {
-	struct device *dev = &pdev->dev;
-	struct rtmdio_ctrl *ctrl;
 	struct rtmdio_chan *chan;
 	struct mii_bus *bus;
 	int ret, addr;
-
-	ctrl = devm_kzalloc(dev, sizeof(*ctrl), GFP_KERNEL);
-	if (!ctrl)
-		return -ENOMEM;
-
-	platform_set_drvdata(pdev, ctrl);
-	ctrl->cfg = (const struct rtmdio_config *)device_get_match_data(dev);
-	ctrl->map = syscon_node_to_regmap(pdev->dev.of_node->parent);
-	if (IS_ERR(ctrl->map))
-		return PTR_ERR(ctrl->map);
-
-	ret = rtmdio_map_ports(dev);
-	if (ret) {
-		for_each_phy(ctrl, addr)
-			of_node_put(ctrl->port[addr].dn);
-		return ret;
-	}
-	rtmdio_setup_smi_topology(ctrl);
 
 	bus = devm_mdiobus_alloc_size(dev, sizeof(*chan));
 	if (!bus)
@@ -954,7 +934,7 @@ static int rtmdio_probe(struct platform_device *pdev)
 
 	ret = devm_mdiobus_register(dev, bus);
 	if (ret)
-		return ret;
+		return dev_err_probe(dev, ret, "cannot register MDIO bus\n");
 
 	for_each_phy(ctrl, addr) {
 		if (!ret)
@@ -965,10 +945,42 @@ static int rtmdio_probe(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
+	/*
+	 * TODO: This polling setup needs to be relocated into rtmdio_probe(). It is a generic
+	 * function and not bus specific. But this will require more rework of the data
+	 * structures. For now it is easier to hand over the single bus that was just created.
+	 */
 	if (ctrl->cfg->setup_polling)
 		ctrl->cfg->setup_polling(bus);
 
 	return 0;
+}
+
+static int rtmdio_probe(struct platform_device *pdev)
+{
+	struct device *dev = &pdev->dev;
+	struct rtmdio_ctrl *ctrl;
+	int ret, addr;
+
+	ctrl = devm_kzalloc(dev, sizeof(*ctrl), GFP_KERNEL);
+	if (!ctrl)
+		return -ENOMEM;
+
+	platform_set_drvdata(pdev, ctrl);
+	ctrl->cfg = (const struct rtmdio_config *)device_get_match_data(dev);
+	ctrl->map = syscon_node_to_regmap(pdev->dev.of_node->parent);
+	if (IS_ERR(ctrl->map))
+		return PTR_ERR(ctrl->map);
+
+	ret = rtmdio_map_ports(dev);
+	if (ret) {
+		for_each_phy(ctrl, addr)
+			of_node_put(ctrl->port[addr].dn);
+		return ret;
+	}
+	rtmdio_setup_smi_topology(ctrl);
+
+	return rtmdio_probe_one(dev, ctrl);
 }
 
 static const struct rtmdio_config rtmdio_838x_cfg = {
