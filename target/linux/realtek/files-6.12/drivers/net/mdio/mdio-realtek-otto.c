@@ -175,13 +175,13 @@
 struct rtmdio_port {
 	int page;
 	bool raw;
+	u8 smi_bus;
 };
 
 struct rtmdio_ctrl {
 	struct regmap *map;
 	const struct rtmdio_config *cfg;
 	struct rtmdio_port port[RTMDIO_MAX_PHY];
-	int smi_bus[RTMDIO_MAX_PHY];
 	int smi_addr[RTMDIO_MAX_PHY];
 	struct device_node *phy_node[RTMDIO_MAX_PHY];
 	bool smi_bus_is_c45[RTMDIO_MAX_SMI_BUS];
@@ -572,7 +572,7 @@ static void rtmdio_setup_smi_topology(struct mii_bus *bus)
 		if (ctrl->cfg->bus_map_base) {
 			reg = (addr / 16) * 4;
 			mask = 0x3 << ((addr % 16) * 2);
-			val = ctrl->smi_bus[addr] << ((addr % 16) * 2);
+			val = ctrl->port[addr].smi_bus << ((addr % 16) * 2);
 			regmap_update_bits(ctrl->map, ctrl->cfg->bus_map_base + reg, mask, val);
 		}
 
@@ -738,7 +738,7 @@ static void rtmdio_930x_setup_polling(struct mii_bus *bus)
 		regmap_update_bits(ctrl->map, RTMDIO_930X_SMI_MAC_TYPE_CTRL, mask, val);
 
 		/* polling via standard or resolution register */
-		mask = BIT(20 + ctrl->smi_bus[addr]);
+		mask = BIT(20 + ctrl->port[addr].smi_bus);
 		val = phyinfo.has_res_reg ? mask : 0;
 		regmap_update_bits(ctrl->map, RTMDIO_930X_SMI_GLB_CTRL, mask, val);
 
@@ -789,9 +789,9 @@ static void rtmdio_931x_setup_polling(struct mii_bus *bus)
 
 	/* Define PHY specific polling parameters */
 	for_each_phy(ctrl, addr) {
-		int smi = ctrl->smi_bus[addr];
+		u8 smi = ctrl->port[addr].smi_bus;
 		unsigned int mask, val;
-		
+
 		if (rtmdio_get_phy_info(bus, addr, &phyinfo))
 			continue;
 
@@ -838,7 +838,7 @@ static int rtmdio_reset(struct mii_bus *bus)
 static int rtmdio_map_ports(struct device *dev)
 {
 	struct rtmdio_ctrl *ctrl = dev_get_drvdata(dev);
-	int bus_addr, addr;
+	int smi_bus, addr;
 
 	struct device_node *switch_node __free(device_node) =
 		of_get_child_by_name(dev->of_node->parent, "ethernet-switch");
@@ -873,18 +873,18 @@ static int rtmdio_map_ports(struct device *dev)
 			return dev_err_probe(dev, -EINVAL, "%pfwP no phy address\n",
 					     of_fwnode_handle(phy));
 
-		if (of_property_read_u32(phy->parent, "reg", &bus_addr))
+		if (of_property_read_u32(phy->parent, "reg", &smi_bus))
 			return dev_err_probe(dev, -EINVAL, "%pfwP no bus address\n",
 					     of_fwnode_handle(phy->parent));
 
-		if (bus_addr >= RTMDIO_MAX_SMI_BUS)
+		if (smi_bus >= RTMDIO_MAX_SMI_BUS)
 			return dev_err_probe(dev, -EINVAL, "%pfwP illegal bus number\n",
 					     of_fwnode_handle(phy->parent));
 
 		if (of_device_is_compatible(phy, "ethernet-phy-ieee802.3-c45"))
-			ctrl->smi_bus_is_c45[bus_addr] = true;
+			ctrl->smi_bus_is_c45[smi_bus] = true;
 
-		ctrl->smi_bus[addr] = bus_addr;
+		ctrl->port[addr].smi_bus = smi_bus;
 		ctrl->phy_node[addr] = of_node_get(phy);
 		__set_bit(addr, ctrl->valid_ports);
 	}
