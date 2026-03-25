@@ -116,8 +116,8 @@ Signed-off-by: Mikhail Kshevetskiy <mikhail.kshevetskiy@iopsys.eu>
  		}
  	}
  	free_netdev(eth->napi_dev);
-@@ -3222,10 +3236,12 @@ static void airoha_remove(struct platfor
- 		airoha_dev_stop(port->dev);
+@@ -3221,10 +3235,12 @@ static void airoha_remove(struct platfor
+ 
  		unregister_netdev(port->dev);
  		airoha_metadata_dst_free(port);
 +#if defined(CONFIG_PCS_AIROHA)

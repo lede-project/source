@@ -210,8 +210,8 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  		}
  	}
  	free_netdev(eth->napi_dev);
-@@ -3080,6 +3219,10 @@ static void airoha_remove(struct platfor
- 		airoha_dev_stop(port->dev);
+@@ -3079,6 +3218,10 @@ static void airoha_remove(struct platfor
+ 
  		unregister_netdev(port->dev);
  		airoha_metadata_dst_free(port);
 +		if (airhoa_is_phy_external(port)) {
