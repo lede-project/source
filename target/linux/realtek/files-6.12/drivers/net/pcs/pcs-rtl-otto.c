@@ -2815,6 +2815,7 @@ static int rtpcs_930x_sds_config_hw_mode(struct rtpcs_serdes *sds, enum rtpcs_sd
 	int (*apply_fn)(struct rtpcs_serdes *, const struct rtpcs_sds_config *, size_t);
 	bool is_xsgmii = (hw_mode == RTPCS_SDS_MODE_XSGMII);
 	bool is_even_sds = (sds == rtpcs_sds_get_even(sds));
+	int ret;
 
 	apply_fn = is_xsgmii ? rtpcs_sds_apply_config_xsg : rtpcs_sds_apply_config;
 
@@ -2840,13 +2841,18 @@ static int rtpcs_930x_sds_config_hw_mode(struct rtpcs_serdes *sds, enum rtpcs_sd
 		}
 	}
 
-	apply_fn(sds, rtpcs_930x_sds_cfg_ana_com, ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_com));
+	ret = apply_fn(sds, rtpcs_930x_sds_cfg_ana_com, ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_com));
+	if (ret < 0)
+		return ret;
 
 	switch (hw_mode) {
 	case RTPCS_SDS_MODE_1000BASEX:
 	case RTPCS_SDS_MODE_SGMII:
-		rtpcs_sds_apply_config(sds, rtpcs_930x_sds_cfg_ana_1g,
-				       ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_1g));
+		ret = rtpcs_sds_apply_config(sds, rtpcs_930x_sds_cfg_ana_1g,
+					     ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_1g));
+		if (ret < 0)
+			return ret;
+
 		break;
 
 	case RTPCS_SDS_MODE_10GBASER:
@@ -2859,29 +2865,48 @@ static int rtpcs_930x_sds_config_hw_mode(struct rtpcs_serdes *sds, enum rtpcs_sd
 		 * we switch the mode on demand so might only need to apply one sequence
 		 * at a time.
 		 */
-		rtpcs_sds_apply_config(sds, rtpcs_930x_sds_cfg_ana_1g,
-				       ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_1g));
-		rtpcs_sds_apply_config(sds, rtpcs_930x_sds_cfg_ana_3g,
-				       ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_3g));
-		rtpcs_sds_apply_config(sds, rtpcs_930x_sds_cfg_ana_10g,
-				       ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_10g));
+		ret = rtpcs_sds_apply_config(sds, rtpcs_930x_sds_cfg_ana_1g,
+					     ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_1g));
+		if (ret < 0)
+			return ret;
+
+		ret = rtpcs_sds_apply_config(sds, rtpcs_930x_sds_cfg_ana_3g,
+					     ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_3g));
+		if (ret < 0)
+			return ret;
+
+		ret = rtpcs_sds_apply_config(sds, rtpcs_930x_sds_cfg_ana_10g,
+					     ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_10g));
+		if (ret < 0)
+			return ret;
 
 		rtpcs_sds_write(sds, 0x2F, 0x14, 0xE008);
 		break;
 
 	case RTPCS_SDS_MODE_2500BASEX:
-		rtpcs_sds_apply_config(sds, rtpcs_930x_sds_cfg_ana_1g,
-				       ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_1g));
-		rtpcs_sds_apply_config(sds, rtpcs_930x_sds_cfg_ana_3g,
-				       ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_3g));
+		ret = rtpcs_sds_apply_config(sds, rtpcs_930x_sds_cfg_ana_1g,
+					     ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_1g));
+		if (ret < 0)
+			return ret;
+
+		ret = rtpcs_sds_apply_config(sds, rtpcs_930x_sds_cfg_ana_3g,
+					     ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_3g));
+		if (ret < 0)
+			return ret;
+
 		break;
 
 	case RTPCS_SDS_MODE_XSGMII:
 	case RTPCS_SDS_MODE_USXGMII_10GSXGMII:
-		apply_fn(sds, rtpcs_930x_sds_cfg_ana_10g,
-			 ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_10g));
-		apply_fn(sds, rtpcs_930x_sds_cfg_usxgmii_xsgmii,
-			 ARRAY_SIZE(rtpcs_930x_sds_cfg_usxgmii_xsgmii));
+		ret = apply_fn(sds, rtpcs_930x_sds_cfg_ana_10g,
+			       ARRAY_SIZE(rtpcs_930x_sds_cfg_ana_10g));
+		if (ret < 0)
+			return ret;
+
+		ret = apply_fn(sds, rtpcs_930x_sds_cfg_usxgmii_xsgmii,
+			       ARRAY_SIZE(rtpcs_930x_sds_cfg_usxgmii_xsgmii));
+		if (ret < 0)
+			return ret;
 
 		if (hw_mode == RTPCS_SDS_MODE_USXGMII_10GSXGMII)
 			/* opcode 0x03: standard/generic USXGMII mode */
@@ -2893,11 +2918,14 @@ static int rtpcs_930x_sds_config_hw_mode(struct rtpcs_serdes *sds, enum rtpcs_sd
 	}
 
 	if (is_even_sds)
-		apply_fn(sds, rtpcs_930x_sds_cfg_final_even,
-			 ARRAY_SIZE(rtpcs_930x_sds_cfg_final_even));
+		ret = apply_fn(sds, rtpcs_930x_sds_cfg_final_even,
+			       ARRAY_SIZE(rtpcs_930x_sds_cfg_final_even));
 	else
-		apply_fn(sds, rtpcs_930x_sds_cfg_final_odd,
-			 ARRAY_SIZE(rtpcs_930x_sds_cfg_final_odd));
+		ret = apply_fn(sds, rtpcs_930x_sds_cfg_final_odd,
+			       ARRAY_SIZE(rtpcs_930x_sds_cfg_final_odd));
+
+	if (ret < 0)
+		return ret;
 
 	if (hw_mode == RTPCS_SDS_MODE_10GBASER && is_even_sds)
 		rtpcs_sds_write(sds, 0x2F, 0x1D, 0x76E1);
