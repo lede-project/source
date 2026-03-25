@@ -1489,11 +1489,6 @@ static int rtl838x_eth_probe(struct platform_device *pdev)
 	pr_info("Probing RTL838X eth device pdev: %x, dev: %x\n",
 		(u32)pdev, (u32)(&pdev->dev));
 
-	if (!dn) {
-		dev_err(&pdev->dev, "No DT found\n");
-		return -EINVAL;
-	}
-
 	cfg = device_get_match_data(&pdev->dev);
 
 	dev = devm_alloc_etherdev_mqs(&pdev->dev, sizeof(struct rteth_ctrl), RTETH_TX_RINGS, RTETH_RX_RINGS);
