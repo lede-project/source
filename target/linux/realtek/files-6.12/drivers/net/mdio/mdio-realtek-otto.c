@@ -175,6 +175,7 @@
 struct rtmdio_port {
 	int page;
 	bool raw;
+	u8 smi_addr;
 	u8 smi_bus;
 };
 
@@ -182,7 +183,6 @@ struct rtmdio_ctrl {
 	struct regmap *map;
 	const struct rtmdio_config *cfg;
 	struct rtmdio_port port[RTMDIO_MAX_PHY];
-	int smi_addr[RTMDIO_MAX_PHY];
 	struct device_node *phy_node[RTMDIO_MAX_PHY];
 	bool smi_bus_is_c45[RTMDIO_MAX_SMI_BUS];
 	DECLARE_BITMAP(valid_ports, RTMDIO_MAX_PHY);
@@ -579,7 +579,7 @@ static void rtmdio_setup_smi_topology(struct mii_bus *bus)
 		if (ctrl->cfg->port_map_base) {
 			reg = (addr / 6) * 4;
 			mask = 0x1f << ((addr % 6) * 5);
-			val = ctrl->smi_addr[addr] << ((addr % 6) * 5);
+			val = ctrl->port[addr].smi_addr << ((addr % 6) * 5);
 			regmap_update_bits(ctrl->map, ctrl->cfg->port_map_base + reg, mask, val);
 		}
 	}
@@ -838,7 +838,7 @@ static int rtmdio_reset(struct mii_bus *bus)
 static int rtmdio_map_ports(struct device *dev)
 {
 	struct rtmdio_ctrl *ctrl = dev_get_drvdata(dev);
-	int smi_bus, addr;
+	int smi_bus, smi_addr, addr;
 
 	struct device_node *switch_node __free(device_node) =
 		of_get_child_by_name(dev->of_node->parent, "ethernet-switch");
@@ -869,8 +869,13 @@ static int rtmdio_map_ports(struct device *dev)
 			return dev_err_probe(dev, -EINVAL, "%pfwP duplicated port number\n",
 					     of_fwnode_handle(port));
 
-		if (of_property_read_u32(phy, "reg", &ctrl->smi_addr[addr]))
+		if (of_property_read_u32(phy, "reg", &smi_addr))
 			return dev_err_probe(dev, -EINVAL, "%pfwP no phy address\n",
+					     of_fwnode_handle(phy));
+
+		/* relaxed check as RTL839x uses MDIO addresses 0..51 */
+		if (smi_addr >= ctrl->cfg->num_phys)
+			return dev_err_probe(dev, -EINVAL, "%pfwP illegal phy address\n",
 					     of_fwnode_handle(phy));
 
 		if (of_property_read_u32(phy->parent, "reg", &smi_bus))
@@ -885,6 +890,7 @@ static int rtmdio_map_ports(struct device *dev)
 			ctrl->smi_bus_is_c45[smi_bus] = true;
 
 		ctrl->port[addr].smi_bus = smi_bus;
+		ctrl->port[addr].smi_addr = smi_addr;
 		ctrl->phy_node[addr] = of_node_get(phy);
 		__set_bit(addr, ctrl->valid_ports);
 	}
