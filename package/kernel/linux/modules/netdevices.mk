@@ -804,6 +804,23 @@ endef
 
 $(eval $(call KernelPackage,dsa-mv88e6xxx))
 
+define KernelPackage/dsa-mxl862xx
+  SUBMENU:=Network Devices
+  TITLE:=MaxLinear MXL862 switch support
+  KCONFIG:= \
+    CONFIG_NET_DSA_TAG_MXL_862XX \
+    CONFIG_NET_DSA_TAG_MXL_862XX_8021Q \
+    CONFIG_NET_DSA_MXL862
+  DEPENDS:=+kmod-dsa +kmod-lib-crc16 +kmod-phy-maxlinear
+  FILES:= \
+    $(LINUX_DIR)/drivers/net/dsa/mxl862xx/mxl862xx_dsa.ko \
+    $(LINUX_DIR)/net/dsa/tag_mxl862xx.ko \
+    $(LINUX_DIR)/net/dsa/tag_mxl862xx_8021q.ko
+  AUTOLOAD:=$(call AutoProbe,mxl862xx_dsa)
+endef
+
+$(eval $(call KernelPackage,dsa-mxl862xx))
+
 define KernelPackage/dsa-qca8k
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Qualcomm Atheros QCA8xxx switch family DSA support
