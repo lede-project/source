@@ -76,7 +76,7 @@ static bool rtsds_mmd_to_sds(struct rtsds_ctrl *ctrl, int addr, int devad, int m
  * with mdio command line tools can be time consuming. Provide a convenient register dump.
  */
 
-#define RTSDS_DBG_PAGE_NAMES	48
+#define RTSDS_DBG_PAGE_NAMES	0x36
 #define RTSDS_DBG_ROOT_DIR	"realtek_otto_serdes"
 
 struct rtsds_debug_info {
@@ -85,21 +85,24 @@ struct rtsds_debug_info {
 };
 
 static const char * const rtsds_page_name[RTSDS_DBG_PAGE_NAMES] = {
-	[0] = "SDS",		[1] = "SDS_EXT",
-	[2] = "FIB",		[3] = "FIB_EXT",
-	[4] = "DTE",		[5] = "DTE_EXT",
-	[6] = "TGX",		[7] = "TGX_EXT",
-	[8] = "ANA_RG",		[9] = "ANA_RG_EXT",
-	[10] = "ANA_TG",	[11] = "ANA_TG_EXT",
-	[31] = "ANA_WDIG",
-	[32] = "ANA_MISC",	[33] = "ANA_COM",
-	[34] = "ANA_SP",	[35] = "ANA_SP_EXT",
-	[36] = "ANA_1G",	[37] = "ANA_1G_EXT",
-	[38] = "ANA_2G",	[39] = "ANA_2G_EXT",
-	[40] = "ANA_3G",	[41] = "ANA_3G_EXT",
-	[42] = "ANA_5G",	[43] = "ANA_5G_EXT",
-	[44] = "ANA_6G",	[45] = "ANA_6G_EXT",
-	[46] = "ANA_10G",	[47] = "ANA_10G_EXT",
+	[0x00] = "SDS",		[0x01] = "SDS_EXT",
+	[0x02] = "FIB",		[0x03] = "FIB_EXT",
+	[0x04] = "TGR_STD_0",	[0x05] = "TGR_STD_1",
+	[0x06] = "TGR_PRO_0",	[0x07] = "TGR_PRO_1",
+	[0x08] = "TGX_STD_0",	[0x09] = "TGX_STD_1",
+	[0x0a] = "TGX_PRO_0",	[0x0b] = "TGX_PRO_1",
+	[0x1f] = "WDIG",
+	[0x20] = "ANA_MISC",	[0x21] = "ANA_COM",
+	[0x22] = "ANA_SPD",	[0x23] = "ANA_SPD_EXT",
+	[0x24] = "ANA_1G2",	[0x25] = "ANA_1G2_EXT",
+	[0x26] = "ANA_2G5",	[0x27] = "ANA_2G5_EXT",
+	[0x28] = "ANA_3G1",	[0x29] = "ANA_3G1_EXT",
+	[0x2a] = "ANA_5G0",	[0x2b] = "ANA_5G0_EXT",
+	[0x2c] = "ANA_6G2",	[0x2d] = "ANA_6G2_EXT",
+	[0x2e] = "ANA_10G",	[0x2f] = "ANA_10G_EXT",
+	[0x30] = "GPON_SP",	[0x31] = "GPON_SP_EXT",
+	[0x32] = "EPON_SP",	[0x33] = "EPON_SP_EXT",
+	[0x34] = "ANA_6G0",	[0x35] = "ANA_6G0_EXT",
 };
 
 static int rtsds_sds_to_mmd(int sds_page, int sds_regnum)
@@ -127,9 +130,9 @@ static int rtsds_dbg_registers_show(struct seq_file *seqf, void *unused)
 		}
 
 		if (subpage < RTSDS_DBG_PAGE_NAMES && rtsds_page_name[subpage])
-			seq_printf(seqf, "%*s: ", -11, rtsds_page_name[subpage]);
+			seq_printf(seqf, "%*s: ", -12, rtsds_page_name[subpage]);
 		else
-			seq_printf(seqf, "PAGE %02X    : ", page);
+			seq_printf(seqf, "PAGE %02X     : ", page);
 
 		for (regnum = 0; regnum < RTSDS_REG_CNT; regnum++)
 			seq_printf(seqf, "%04X ",
