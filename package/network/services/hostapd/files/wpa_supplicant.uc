@@ -943,7 +943,7 @@ function iface_ubus_notify(ifname, event)
 	if (!obj)
 		return;
 
-	obj.notify('ctrl-event', { event }, null, null, null, -1);
+	obj.notify('ctrl-event', { ifname, event }, null, null, null, -1);
 }
 
 function iface_ubus_add(ifname)
