@@ -233,8 +233,9 @@ static int rtsds_838x_write(struct rtsds_ctrl *ctrl, int sds, int page, int regn
  * 0x05 (TGR_STD_1)	<zero>		<zero>		TGRX/1		<zero>
  * 0x06 (TGR_PRO_0)	<zero>		<zero>		TGRX/2		<zero>
  * 0x07 (TGR_PRO_1)	<zero>		<zero>		TGRX/3		<zero>
- * 0x08 (TGX_STD_0)	ANA_RG		ANA_RG		<zero>		<zero>
- * 0x09 (TGX_STD_1)	ANA_RG_EXT	ANA_RG_EXT	<zero>		<zero>
+ * ...			<zero>		<zero>		<zero>		<zero>
+ * 0x24 (ANA_1G2)	ANA_RG		ANA_RG		<zero>		<zero>
+ * 0x25 (ANA_1G2_EXT)	ANA_RG_EXT	ANA_RG_EXT	<zero>		<zero>
  * ...			<zero>		<zero>		<zero>		<zero>
  * 0x2e (ANA_10G)	<zero>		<zero>		ANA_TG		ANA_TG
  * 0x2f (ANA_10G_EXT)	<zero>		<zero>		ANA_TG_EXT	ANA_TG_EXT
@@ -249,8 +250,8 @@ static int rtsds_839x_reg_offset(int sds, int page, int regnum)
 		return offset + (page << 6) + ((sds & 1) << 8);
 	else if (page >= 4 && page <=7 && (sds == 8 || sds == 12))
 		return offset + (page << 6) + 0x100;
-	else if (page >= 8 && page <= 9 && sds5g)
-		return offset + (page << 6) + 0x100 + ((sds & 1) << 7);
+	else if (page >= 0x24 && page <= 0x25 && sds5g)
+		return offset + ((page - 0x1c) << 6) + 0x100 + ((sds & 1) << 7);
 	else if (page >= 0x2e && page <= 0x2f && !sds5g)
 		return offset + ((page - 0x24) << 6) + 0x80 + ((sds & 1) << 7);
 
