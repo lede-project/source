@@ -134,16 +134,16 @@ enum rtpcs_sds_mode {
 	RTPCS_SDS_MODE_USXGMII_2_5GSXGMII,
 };
 
-enum rtpcs_port_media {
-	RTPCS_PORT_MEDIA_NONE,
-	RTPCS_PORT_MEDIA_FIBER_100M,
-	RTPCS_PORT_MEDIA_FIBER_1G,
-	RTPCS_PORT_MEDIA_FIBER_2_5G,
-	RTPCS_PORT_MEDIA_FIBER_10G,
-	RTPCS_PORT_MEDIA_DAC_50CM,
-	RTPCS_PORT_MEDIA_DAC_100CM,
-	RTPCS_PORT_MEDIA_DAC_300CM,
-	RTPCS_PORT_MEDIA_DAC_500CM,
+enum rtpcs_sds_media {
+	RTPCS_SDS_MEDIA_NONE,
+	RTPCS_SDS_MEDIA_FIBER_100M,
+	RTPCS_SDS_MEDIA_FIBER_1G,
+	RTPCS_SDS_MEDIA_FIBER_2_5G,
+	RTPCS_SDS_MEDIA_FIBER_10G,
+	RTPCS_SDS_MEDIA_DAC_50CM,
+	RTPCS_SDS_MEDIA_DAC_100CM,
+	RTPCS_SDS_MEDIA_DAC_300CM,
+	RTPCS_SDS_MEDIA_DAC_500CM,
 };
 
 enum rtpcs_sds_pll_type {
@@ -3503,8 +3503,7 @@ static int rtpcs_931x_sds_set_polarity(struct rtpcs_serdes *sds,
 	return rtpcs_sds_write_bits(sds, 0x80, 0x0, 9, 8, val);
 }
 
-static int rtpcs_931x_sds_set_port_media(struct rtpcs_serdes *sds,
-					 enum rtpcs_port_media port_media)
+static int rtpcs_931x_sds_set_media(struct rtpcs_serdes *sds, enum rtpcs_sds_media sds_media)
 {
 	struct rtpcs_serdes *even_sds = rtpcs_sds_get_even(sds);
 	bool is_dac, is_10g;
@@ -3527,7 +3526,7 @@ static int rtpcs_931x_sds_set_port_media(struct rtpcs_serdes *sds,
 	/* TODO: can we drop this in favor of turning off SerDes ealier? */
 	rtpcs_931x_sds_set_mode(sds, RTPCS_SDS_MODE_OFF);
 
-	if (port_media == RTPCS_PORT_MEDIA_NONE)
+	if (sds_media == RTPCS_SDS_MEDIA_NONE)
 		return 0;
 
 	rtpcs_sds_write(sds, 0x21, 0x19, 0xf0f0); /* from XS1930-10 SDK */
@@ -3538,34 +3537,34 @@ static int rtpcs_931x_sds_set_port_media(struct rtpcs_serdes *sds,
 	rtpcs_931x_sds_rx_reset(sds);
 	rtpcs_931x_sds_reset_leq_dfe(sds);
 
-	is_dac = (port_media == RTPCS_PORT_MEDIA_DAC_50CM ||
-		  port_media == RTPCS_PORT_MEDIA_DAC_100CM ||
-		  port_media == RTPCS_PORT_MEDIA_DAC_300CM ||
-		  port_media == RTPCS_PORT_MEDIA_DAC_500CM);
-	is_10g = is_dac || port_media == RTPCS_PORT_MEDIA_FIBER_10G;
+	is_dac = (sds_media == RTPCS_SDS_MEDIA_DAC_50CM ||
+		  sds_media == RTPCS_SDS_MEDIA_DAC_100CM ||
+		  sds_media == RTPCS_SDS_MEDIA_DAC_300CM ||
+		  sds_media == RTPCS_SDS_MEDIA_DAC_500CM);
+	is_10g = is_dac || sds_media == RTPCS_SDS_MEDIA_FIBER_10G;
 
-	if (port_media != RTPCS_PORT_MEDIA_FIBER_100M) {
+	if (sds_media != RTPCS_SDS_MEDIA_FIBER_100M) {
 		rtpcs_sds_write_bits(sds, 0x20, 0x0, 11, 10, 0x0);
 		rtpcs_sds_write_bits(sds, 0x2a, 0x7, 15, 15, is_dac ? 0x1 : 0x0);
 		rtpcs_sds_write_bits(sds, 0x20, 0x0, 11, 10, 0x3);
 	}
 
-	switch (port_media) {
-	case RTPCS_PORT_MEDIA_DAC_50CM:
-	case RTPCS_PORT_MEDIA_DAC_100CM:
+	switch (sds_media) {
+	case RTPCS_SDS_MEDIA_DAC_50CM:
+	case RTPCS_SDS_MEDIA_DAC_100CM:
 		rtpcs_sds_write_bits(sds, 0x2e, 0x1, 15, 0, 0x1340);
 		rtpcs_sds_write(sds, 0x21, 0x19, 0xf0a5); /* from XS1930-10 SDK */
 		rtpcs_sds_write(even_sds, 0x2e, 0x8, 0x02a0); /* [10:7] impedance */
 		break;
 
-	case RTPCS_PORT_MEDIA_DAC_300CM:
-	case RTPCS_PORT_MEDIA_DAC_500CM:
+	case RTPCS_SDS_MEDIA_DAC_300CM:
+	case RTPCS_SDS_MEDIA_DAC_500CM:
 		rtpcs_sds_write_bits(sds, 0x2e, 0x1, 15, 0, 0x5200);
 		rtpcs_sds_write(sds, 0x21, 0x19, 0xf0a5); /* from XS1930-10 SDK */
 		rtpcs_sds_write(even_sds, 0x2e, 0x8, 0x02a0); /* [10:7] impedance */
 		break;
 
-	case RTPCS_PORT_MEDIA_FIBER_10G:
+	case RTPCS_SDS_MEDIA_FIBER_10G:
 		/*
 		 * TODO: this would need to be saved during early init, before
 		 * actually changing any SerDes settings. Then restored here.
@@ -3739,17 +3738,17 @@ static int rtpcs_931x_setup_serdes(struct rtpcs_serdes *sds,
 
 	switch (hw_mode) {
 	case RTPCS_SDS_MODE_OFF:
-		ret = rtpcs_931x_sds_set_port_media(sds, RTPCS_PORT_MEDIA_NONE);
+		ret = rtpcs_931x_sds_set_media(sds, RTPCS_SDS_MEDIA_NONE);
 		break;
 	case RTPCS_SDS_MODE_2500BASEX:
-		ret = rtpcs_931x_sds_set_port_media(sds, RTPCS_PORT_MEDIA_FIBER_2_5G);
+		ret = rtpcs_931x_sds_set_media(sds, RTPCS_SDS_MEDIA_FIBER_2_5G);
 		break;
 	case RTPCS_SDS_MODE_10GBASER:
-		ret = rtpcs_931x_sds_set_port_media(sds, RTPCS_PORT_MEDIA_FIBER_10G);
+		ret = rtpcs_931x_sds_set_media(sds, RTPCS_SDS_MEDIA_FIBER_10G);
 		break;
 	case RTPCS_SDS_MODE_SGMII:
 	case RTPCS_SDS_MODE_1000BASEX:
-		ret = rtpcs_931x_sds_set_port_media(sds, RTPCS_PORT_MEDIA_FIBER_1G);
+		ret = rtpcs_931x_sds_set_media(sds, RTPCS_SDS_MEDIA_FIBER_1G);
 		break;
 	default:
 		break;
