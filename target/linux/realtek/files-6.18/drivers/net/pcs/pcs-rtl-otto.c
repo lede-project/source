@@ -140,10 +140,8 @@ enum rtpcs_sds_media {
 	RTPCS_SDS_MEDIA_FIBER_1G,
 	RTPCS_SDS_MEDIA_FIBER_2_5G,
 	RTPCS_SDS_MEDIA_FIBER_10G,
-	RTPCS_SDS_MEDIA_DAC_50CM,
-	RTPCS_SDS_MEDIA_DAC_100CM,
-	RTPCS_SDS_MEDIA_DAC_300CM,
-	RTPCS_SDS_MEDIA_DAC_500CM,
+	RTPCS_SDS_MEDIA_DAC_SHORT,	/*  < 3m */
+	RTPCS_SDS_MEDIA_DAC_LONG,	/* >= 3m */
 };
 
 enum rtpcs_sds_pll_type {
@@ -3537,10 +3535,8 @@ static int rtpcs_931x_sds_set_media(struct rtpcs_serdes *sds, enum rtpcs_sds_med
 	rtpcs_931x_sds_rx_reset(sds);
 	rtpcs_931x_sds_reset_leq_dfe(sds);
 
-	is_dac = (sds_media == RTPCS_SDS_MEDIA_DAC_50CM ||
-		  sds_media == RTPCS_SDS_MEDIA_DAC_100CM ||
-		  sds_media == RTPCS_SDS_MEDIA_DAC_300CM ||
-		  sds_media == RTPCS_SDS_MEDIA_DAC_500CM);
+	is_dac = (sds_media == RTPCS_SDS_MEDIA_DAC_SHORT ||
+		  sds_media == RTPCS_SDS_MEDIA_DAC_LONG);
 	is_10g = is_dac || sds_media == RTPCS_SDS_MEDIA_FIBER_10G;
 
 	if (sds_media != RTPCS_SDS_MEDIA_FIBER_100M) {
@@ -3550,15 +3546,13 @@ static int rtpcs_931x_sds_set_media(struct rtpcs_serdes *sds, enum rtpcs_sds_med
 	}
 
 	switch (sds_media) {
-	case RTPCS_SDS_MEDIA_DAC_50CM:
-	case RTPCS_SDS_MEDIA_DAC_100CM:
+	case RTPCS_SDS_MEDIA_DAC_SHORT:
 		rtpcs_sds_write_bits(sds, 0x2e, 0x1, 15, 0, 0x1340);
 		rtpcs_sds_write(sds, 0x21, 0x19, 0xf0a5); /* from XS1930-10 SDK */
 		rtpcs_sds_write(even_sds, 0x2e, 0x8, 0x02a0); /* [10:7] impedance */
 		break;
 
-	case RTPCS_SDS_MEDIA_DAC_300CM:
-	case RTPCS_SDS_MEDIA_DAC_500CM:
+	case RTPCS_SDS_MEDIA_DAC_LONG:
 		rtpcs_sds_write_bits(sds, 0x2e, 0x1, 15, 0, 0x5200);
 		rtpcs_sds_write(sds, 0x21, 0x19, 0xf0a5); /* from XS1930-10 SDK */
 		rtpcs_sds_write(even_sds, 0x2e, 0x8, 0x02a0); /* [10:7] impedance */
