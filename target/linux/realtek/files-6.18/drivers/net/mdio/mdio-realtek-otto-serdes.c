@@ -23,7 +23,7 @@
 #define RTSDS_838X_BASE			0xe780
 
 #define RTSDS_839X_SDS_CNT		14
-#define RTSDS_839X_PAGE_CNT		12
+#define RTSDS_839X_PAGE_CNT		64
 #define RTSDS_839X_BASE			0xa000
 
 #define RTSDS_930X_SDS_CNT		12
@@ -224,34 +224,35 @@ static int rtsds_838x_write(struct rtsds_ctrl *ctrl, int sds, int page, int regn
  *
  * The most consistent mapping that aligns to the RTL93xx devices is:
  *
- *		even 5G SerDes	odd 5G SerDes	even 10G SerDes	odd 10G SerDes
- * Page 0:	XSG0/0		XSG1/0		XSG0/0		XSG1/0
- * Page 1:	XSG0/1		XSG1/1		XSG0/1		XSG1/1
- * Page 2:	XSG0/2		XSG1/2		XSG0/2		XSG1/2
- * Page 3:	XSG0/3		XSG1/3		XSG0/3		XSG1/3
- * Page 4:	<zero>		<zero>		TGRX/0		<zero>
- * Page 5:	<zero>		<zero>		TGRX/1		<zero>
- * Page 6:	<zero>		<zero>		TGRX/2		<zero>
- * Page 7:	<zero>		<zero>		TGRX/3		<zero>
- * Page 8:	ANA_RG		ANA_RG		<zero>		<zero>
- * Page 9:	ANA_RG_EXT	ANA_RG_EXT	<zero>		<zero>
- * Page 10:	<zero>		<zero>		ANA_TG		ANA_TG
- * Page 11:	<zero>		<zero>		ANA_TG_EXT	ANA_TG_EXT
+ * RTL93xx page		even 5G SerDes	odd 5G SerDes	even 10G SerDes	odd 10G SerDes
+ * 0x00 (SDS)		XSG0/0		XSG1/0		XSG0/0		XSG1/0
+ * 0x01 (SDS_EXT)	XSG0/1		XSG1/1		XSG0/1		XSG1/1
+ * 0x02 (FIB)		XSG0/2		XSG1/2		XSG0/2		XSG1/2
+ * 0x03 (FIB_EXT)	XSG0/3		XSG1/3		XSG0/3		XSG1/3
+ * 0x04 (TGR_STD_0)	<zero>		<zero>		TGRX/0		<zero>
+ * 0x05 (TGR_STD_1)	<zero>		<zero>		TGRX/1		<zero>
+ * 0x06 (TGR_PRO_0)	<zero>		<zero>		TGRX/2		<zero>
+ * 0x07 (TGR_PRO_1)	<zero>		<zero>		TGRX/3		<zero>
+ * 0x08 (TGX_STD_0)	ANA_RG		ANA_RG		<zero>		<zero>
+ * 0x09 (TGX_STD_1)	ANA_RG_EXT	ANA_RG_EXT	<zero>		<zero>
+ * ...			<zero>		<zero>		<zero>		<zero>
+ * 0x2e (ANA_10G)	<zero>		<zero>		ANA_TG		ANA_TG
+ * 0x2f (ANA_10G_EXT)	<zero>		<zero>		ANA_TG_EXT	ANA_TG_EXT
  */
 
 static int rtsds_839x_reg_offset(int sds, int page, int regnum)
 {
-	int offset = ((sds & 0xfe) << 9) + ((regnum & 0xfe) << 1) + (page << 6);
+	int offset = ((sds & 0xfe) << 9) + ((regnum & 0xfe) << 1);
 	int sds5g = (GENMASK(11, 10) | GENMASK(7, 0)) & BIT(sds);
 
 	if (page < 4)
-		return offset + ((sds & 1) << 8);
-	else if ((page & 4) && (sds == 8 || sds == 12))
-		return offset + 0x100;
+		return offset + (page << 6) + ((sds & 1) << 8);
+	else if (page >= 4 && page <=7 && (sds == 8 || sds == 12))
+		return offset + (page << 6) + 0x100;
 	else if (page >= 8 && page <= 9 && sds5g)
-		return offset + 0x100 + ((sds & 1) << 7);
-	else if (page >= 10 && !sds5g)
-		return offset + 0x80 + ((sds & 1) << 7);
+		return offset + (page << 6) + 0x100 + ((sds & 1) << 7);
+	else if (page >= 0x2e && page <= 0x2f && !sds5g)
+		return offset + ((page - 0x24) << 6) + 0x80 + ((sds & 1) << 7);
 
 	return -EINVAL; /* hole */
 }
