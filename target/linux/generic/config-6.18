@@ -245,6 +245,7 @@ CONFIG_ALLOW_DEV_COREDUMP=y
 # CONFIG_ARCH_ARTPEC is not set
 # CONFIG_ARCH_ASPEED is not set
 # CONFIG_ARCH_AT91 is not set
+# CONFIG_ARCH_AXIADO is not set
 # CONFIG_ARCH_AXXIA is not set
 # CONFIG_ARCH_BCM is not set
 # CONFIG_ARCH_BCM2835 is not set
