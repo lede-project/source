@@ -136,10 +136,7 @@ enum rtpcs_sds_mode {
 
 enum rtpcs_sds_media {
 	RTPCS_SDS_MEDIA_NONE,
-	RTPCS_SDS_MEDIA_FIBER_100M,
-	RTPCS_SDS_MEDIA_FIBER_1G,
-	RTPCS_SDS_MEDIA_FIBER_2_5G,
-	RTPCS_SDS_MEDIA_FIBER_10G,
+	RTPCS_SDS_MEDIA_FIBER,
 	RTPCS_SDS_MEDIA_DAC_SHORT,	/*  < 3m */
 	RTPCS_SDS_MEDIA_DAC_LONG,	/* >= 3m */
 };
@@ -3501,7 +3498,8 @@ static int rtpcs_931x_sds_set_polarity(struct rtpcs_serdes *sds,
 	return rtpcs_sds_write_bits(sds, 0x80, 0x0, 9, 8, val);
 }
 
-static int rtpcs_931x_sds_set_media(struct rtpcs_serdes *sds, enum rtpcs_sds_media sds_media)
+static int rtpcs_931x_sds_set_media(struct rtpcs_serdes *sds, enum rtpcs_sds_media sds_media,
+				    enum rtpcs_sds_mode hw_mode)
 {
 	struct rtpcs_serdes *even_sds = rtpcs_sds_get_even(sds);
 	bool is_dac, is_10g;
@@ -3537,13 +3535,17 @@ static int rtpcs_931x_sds_set_media(struct rtpcs_serdes *sds, enum rtpcs_sds_med
 
 	is_dac = (sds_media == RTPCS_SDS_MEDIA_DAC_SHORT ||
 		  sds_media == RTPCS_SDS_MEDIA_DAC_LONG);
-	is_10g = is_dac || sds_media == RTPCS_SDS_MEDIA_FIBER_10G;
+	is_10g = (hw_mode == RTPCS_SDS_MODE_10GBASER);
 
-	if (sds_media != RTPCS_SDS_MEDIA_FIBER_100M) {
-		rtpcs_sds_write_bits(sds, 0x20, 0x0, 11, 10, 0x0);
-		rtpcs_sds_write_bits(sds, 0x2a, 0x7, 15, 15, is_dac ? 0x1 : 0x0);
-		rtpcs_sds_write_bits(sds, 0x20, 0x0, 11, 10, 0x3);
-	}
+	rtpcs_sds_write_bits(sds, 0x20, 0x0, 11, 10, 0x0);
+	rtpcs_sds_write_bits(sds, 0x2a, 0x7, 15, 15, is_dac ? 0x1 : 0x0);
+	rtpcs_sds_write_bits(sds, 0x20, 0x0, 11, 10, 0x3);
+
+	/* Skip the TX settings for non-10G for now because we do not know
+	 * if they have an effect for non-10G.
+	 */
+	if (!is_10g)
+		goto skip_tx;
 
 	switch (sds_media) {
 	case RTPCS_SDS_MEDIA_DAC_SHORT:
@@ -3558,7 +3560,7 @@ static int rtpcs_931x_sds_set_media(struct rtpcs_serdes *sds, enum rtpcs_sds_med
 		rtpcs_sds_write(even_sds, 0x2e, 0x8, 0x02a0); /* [10:7] impedance */
 		break;
 
-	case RTPCS_SDS_MEDIA_FIBER_10G:
+	case RTPCS_SDS_MEDIA_FIBER:
 		/*
 		 * TODO: this would need to be saved during early init, before
 		 * actually changing any SerDes settings. Then restored here.
@@ -3571,6 +3573,7 @@ static int rtpcs_931x_sds_set_media(struct rtpcs_serdes *sds, enum rtpcs_sds_med
 		break;
 	}
 
+skip_tx:
 	/* CFG_LINKDW_SEL? (same semantics as 930x) */
 	rtpcs_sds_write_bits(sds, 0x6, 0xd, 6, 6, is_dac ? 0x0 : 0x1);
 
@@ -3732,17 +3735,13 @@ static int rtpcs_931x_setup_serdes(struct rtpcs_serdes *sds,
 
 	switch (hw_mode) {
 	case RTPCS_SDS_MODE_OFF:
-		ret = rtpcs_931x_sds_set_media(sds, RTPCS_SDS_MEDIA_NONE);
-		break;
-	case RTPCS_SDS_MODE_2500BASEX:
-		ret = rtpcs_931x_sds_set_media(sds, RTPCS_SDS_MEDIA_FIBER_2_5G);
-		break;
-	case RTPCS_SDS_MODE_10GBASER:
-		ret = rtpcs_931x_sds_set_media(sds, RTPCS_SDS_MEDIA_FIBER_10G);
+		ret = rtpcs_931x_sds_set_media(sds, RTPCS_SDS_MEDIA_NONE, hw_mode);
 		break;
 	case RTPCS_SDS_MODE_SGMII:
 	case RTPCS_SDS_MODE_1000BASEX:
-		ret = rtpcs_931x_sds_set_media(sds, RTPCS_SDS_MEDIA_FIBER_1G);
+	case RTPCS_SDS_MODE_2500BASEX:
+	case RTPCS_SDS_MODE_10GBASER:
+		ret = rtpcs_931x_sds_set_media(sds, RTPCS_SDS_MEDIA_FIBER, hw_mode);
 		break;
 	default:
 		break;
