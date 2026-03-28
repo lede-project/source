@@ -13,7 +13,7 @@ Signed-off-by: Robert Marko <robert.marko@sartura.hr>
 
 --- a/drivers/hwmon/Kconfig
 +++ b/drivers/hwmon/Kconfig
-@@ -602,7 +602,7 @@ config SENSORS_I5K_AMB
+@@ -632,7 +632,7 @@ config SENSORS_I5K_AMB
  
  config SENSORS_SPARX5
  	tristate "Sparx5 SoC temperature sensor"

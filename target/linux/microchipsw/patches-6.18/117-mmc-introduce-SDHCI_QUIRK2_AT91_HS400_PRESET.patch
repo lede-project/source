@@ -16,15 +16,15 @@ Signed-off-by: Andrei Simion <andrei.simion@microchip.com>
 
 --- a/drivers/mmc/host/sdhci.h
 +++ b/drivers/mmc/host/sdhci.h
-@@ -270,6 +270,7 @@
+@@ -317,6 +317,7 @@
  #define SDHCI_PRESET_FOR_SDR104        0x6C
  #define SDHCI_PRESET_FOR_DDR50 0x6E
  #define SDHCI_PRESET_FOR_HS400 0x74 /* Non-standard */
 +#define SDHCI_PRESET_FOR_HS400_AT91	0x244 /* AT91 specific */
- #define SDHCI_PRESET_DRV_MASK		GENMASK(15, 14)
- #define SDHCI_PRESET_CLKGEN_SEL		BIT(10)
- #define SDHCI_PRESET_SDCLK_FREQ_MASK	GENMASK(9, 0)
-@@ -484,6 +485,10 @@ struct sdhci_host {
+ 
+ /* UHS2 */
+ #define SDHCI_PRESET_FOR_UHS2  0x74
+@@ -536,6 +537,10 @@ struct sdhci_host {
  #define SDHCI_QUIRK2_USE_32BIT_BLK_CNT			(1<<18)
  /* Issue CMD and DATA reset together */
  #define SDHCI_QUIRK2_ISSUE_CMD_DAT_RESET_TOGETHER	(1<<19)

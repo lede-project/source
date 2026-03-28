@@ -17,7 +17,7 @@ Signed-off-by: Andrei Simion <andrei.simion@microchip.com>
 
 --- a/drivers/mmc/host/sdhci-of-at91.c
 +++ b/drivers/mmc/host/sdhci-of-at91.c
-@@ -419,6 +419,8 @@ static int sdhci_at91_probe(struct platf
+@@ -413,6 +413,8 @@ static int sdhci_at91_probe(struct platf
  
  	/* Perform a software reset before using the IP */
  	sdhci_at91_reset(host, SDHCI_RESET_ALL);

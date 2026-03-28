@@ -23,7 +23,7 @@ Signed-off-by: Vinod Koul <vkoul@kernel.org>
 
 --- a/drivers/dma/at_xdmac.c
 +++ b/drivers/dma/at_xdmac.c
-@@ -2259,12 +2259,29 @@ static int __maybe_unused atmel_xdmac_ru
+@@ -2257,12 +2257,29 @@ static int __maybe_unused atmel_xdmac_ru
  	return clk_enable(atxdmac->clk);
  }
  
@@ -55,7 +55,7 @@ Signed-off-by: Vinod Koul <vkoul@kernel.org>
  
  	irq = platform_get_irq(pdev, 0);
  	if (irq < 0)
-@@ -2280,7 +2297,10 @@ static int at_xdmac_probe(struct platfor
+@@ -2278,7 +2295,10 @@ static int at_xdmac_probe(struct platfor
  	 * of channels to do the allocation.
  	 */
  	reg = readl_relaxed(base + AT_XDMAC_GTYPE);

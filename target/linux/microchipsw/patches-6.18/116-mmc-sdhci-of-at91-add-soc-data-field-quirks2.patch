@@ -37,7 +37,7 @@ Signed-off-by: Andrei Simion <andrei.simion@microchip.com>
  };
  
  static const struct sdhci_at91_soc_data soc_data_sam9x60 = {
-@@ -506,9 +506,7 @@ static int sdhci_at91_probe(struct platf
+@@ -494,9 +494,7 @@ static int sdhci_at91_probe(struct platf
  	pm_runtime_set_autosuspend_delay(&pdev->dev, 50);
  	pm_runtime_use_autosuspend(&pdev->dev);
  

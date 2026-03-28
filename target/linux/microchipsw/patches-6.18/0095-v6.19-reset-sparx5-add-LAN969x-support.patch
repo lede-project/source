@@ -16,12 +16,12 @@ Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
 --- a/drivers/reset/Kconfig
 +++ b/drivers/reset/Kconfig
-@@ -147,7 +147,7 @@ config RESET_LPC18XX
+@@ -170,7 +170,7 @@ config RESET_LPC18XX
  
  config RESET_MCHP_SPARX5
- 	bool "Microchip Sparx5 reset driver"
--	depends on ARCH_SPARX5 || SOC_LAN966 || COMPILE_TEST
-+	depends on ARCH_SPARX5 || ARCH_LAN969X || SOC_LAN966 || COMPILE_TEST
+ 	tristate "Microchip Sparx5 reset driver"
+-	depends on ARCH_SPARX5 || SOC_LAN966 || MCHP_LAN966X_PCI || COMPILE_TEST
++	depends on ARCH_SPARX5 || ARCH_LAN969X || SOC_LAN966 || MCHP_LAN966X_PCI || COMPILE_TEST
  	default y if SPARX5_SWITCH
  	select MFD_SYSCON
  	help

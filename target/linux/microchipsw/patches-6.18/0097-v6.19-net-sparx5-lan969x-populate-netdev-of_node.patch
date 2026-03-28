@@ -15,7 +15,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 
 --- a/drivers/net/ethernet/microchip/sparx5/sparx5_main.c
 +++ b/drivers/net/ethernet/microchip/sparx5/sparx5_main.c
-@@ -396,6 +396,8 @@ static int sparx5_create_port(struct spa
+@@ -395,6 +395,8 @@ static int sparx5_create_port(struct spa
  
  	spx5_port->phylink = phylink;
  

@@ -15,7 +15,7 @@ Signed-off-by: Robert Marko <robert.marko@sartura.hr>
 
 --- a/drivers/nvmem/Kconfig
 +++ b/drivers/nvmem/Kconfig
-@@ -127,7 +127,7 @@ config NVMEM_JZ4780_EFUSE
+@@ -150,7 +150,7 @@ config NVMEM_JZ4780_EFUSE
  
  config NVMEM_LAN9662_OTPC
  	tristate "Microchip LAN9662 OTP controller support"

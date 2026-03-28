@@ -17,7 +17,7 @@ Signed-off-by: Robert Marko <robert.marko@sartura.hr>
 
 --- a/drivers/spi/Kconfig
 +++ b/drivers/spi/Kconfig
-@@ -147,7 +147,7 @@ config SPI_AT91_USART
+@@ -180,7 +180,7 @@ config SPI_AT91_USART
  
  config SPI_ATMEL_QUADSPI
  	tristate "Atmel Quad SPI Controller"
@@ -28,7 +28,7 @@ Signed-off-by: Robert Marko <robert.marko@sartura.hr>
  	  This enables support for the Quad SPI controller in master mode.
 --- a/drivers/spi/atmel-quadspi.c
 +++ b/drivers/spi/atmel-quadspi.c
-@@ -1053,9 +1053,9 @@ static int atmel_qspi_set_pad_calibratio
+@@ -1052,9 +1052,9 @@ static int atmel_qspi_set_pad_calibratio
  					  ATMEL_QSPI_TIMEOUT);
  
  	/* Refresh analogic blocks every 1 ms.*/
@@ -40,7 +40,7 @@ Signed-off-by: Robert Marko <robert.marko@sartura.hr>
  
  	return ret;
  }
-@@ -1114,7 +1114,7 @@ static int atmel_qspi_sama7g5_init(struc
+@@ -1113,7 +1113,7 @@ static int atmel_qspi_sama7g5_init(struc
  	 * Check if the SoC supports pad calibration in Octal SPI mode.
  	 * Proceed only if both the capabilities are true.
  	 */
@@ -49,7 +49,7 @@ Signed-off-by: Robert Marko <robert.marko@sartura.hr>
  		ret = atmel_qspi_set_pad_calibration(aq);
  		if (ret)
  			return ret;
-@@ -1649,6 +1649,17 @@ static const struct atmel_qspi_caps atme
+@@ -1672,6 +1672,17 @@ static const struct atmel_qspi_caps atme
  	.has_dllon = true,
  };
  
@@ -67,7 +67,7 @@ Signed-off-by: Robert Marko <robert.marko@sartura.hr>
  static const struct of_device_id atmel_qspi_dt_ids[] = {
  	{
  		.compatible = "atmel,sama5d2-qspi",
-@@ -1678,6 +1689,10 @@ static const struct of_device_id atmel_q
+@@ -1701,6 +1712,10 @@ static const struct of_device_id atmel_q
  		.compatible = "microchip,sama7d65-qspi",
  		.data = &atmel_sama7d65_qspi_caps,
  	},

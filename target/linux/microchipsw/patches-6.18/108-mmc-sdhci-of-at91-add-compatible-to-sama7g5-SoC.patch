@@ -59,7 +59,7 @@ Signed-off-by: Andrei Simion <andrei.simion@microchip.com>
  	writew(SDHCI_AT91_PRESET_COMMON_CONF | preset_div,
  	       host->ioaddr + SDHCI_PRESET_FOR_SDR104);
  	preset_div = DIV_ROUND_UP(gck_rate, 50000000) - 1;
-@@ -425,8 +437,9 @@ static int sdhci_at91_probe(struct platf
+@@ -413,8 +425,9 @@ static int sdhci_at91_probe(struct platf
  	pm_runtime_set_autosuspend_delay(&pdev->dev, 50);
  	pm_runtime_use_autosuspend(&pdev->dev);
  

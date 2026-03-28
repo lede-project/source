@@ -86,7 +86,7 @@ Signed-off-by: Robert Marko <robert.marko@sartura.hr>
 +}
 --- a/drivers/net/ethernet/microchip/sparx5/sparx5_main.c
 +++ b/drivers/net/ethernet/microchip/sparx5/sparx5_main.c
-@@ -1108,6 +1108,8 @@ static const struct sparx5_ops sparx5_op
+@@ -1107,6 +1107,8 @@ static const struct sparx5_ops sparx5_op
  	.fdma_deinit             = &sparx5_fdma_deinit,
  	.fdma_poll               = &sparx5_fdma_napi_callback,
  	.fdma_xmit               = &sparx5_fdma_xmit,
