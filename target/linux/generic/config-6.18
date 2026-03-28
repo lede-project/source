@@ -212,6 +212,7 @@ CONFIG_ALLOW_DEV_COREDUMP=y
 # CONFIG_AMD_MEM_ENCRYPT is not set
 # CONFIG_AMD_NODE is not set
 # CONFIG_AMD_PHY is not set
+# CONFIG_AMD_SBRMI_I2C is not set
 # CONFIG_AMD_QDMA is not set
 # CONFIG_AMD_XGBE is not set
 # CONFIG_AMD_XGBE_HAVE_ECC is not set
