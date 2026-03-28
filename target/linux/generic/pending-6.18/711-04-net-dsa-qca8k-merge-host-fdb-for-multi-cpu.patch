@@ -21,7 +21,7 @@ Signed-off-by: Kevin Staley <glaciertablet@gmail.com>
 
 --- a/drivers/net/dsa/qca/qca8k-common.c
 +++ b/drivers/net/dsa/qca/qca8k-common.c
-@@ -836,6 +836,13 @@ int qca8k_port_fdb_add(struct dsa_switch
+@@ -829,6 +829,13 @@ int qca8k_port_fdb_add(struct dsa_switch
  	struct qca8k_priv *priv = ds->priv;
  	u16 port_mask = BIT(port);
  
@@ -35,7 +35,7 @@ Signed-off-by: Kevin Staley <glaciertablet@gmail.com>
  	return qca8k_port_fdb_insert(priv, addr, port_mask, vid);
  }
  
-@@ -849,6 +856,9 @@ int qca8k_port_fdb_del(struct dsa_switch
+@@ -842,6 +849,9 @@ int qca8k_port_fdb_del(struct dsa_switch
  	if (!vid)
  		vid = QCA8K_PORT_VID_DEF;
  
