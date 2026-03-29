@@ -1490,7 +1490,7 @@ static void rtl931x_pie_init(struct rtl838x_switch_priv *priv)
 
 	pr_debug("%s\n", __func__);
 	/* Enable ACL lookup on all ports, including CPU_PORT */
-	for (int i = 0; i <= priv->cpu_port; i++)
+	for (int i = 0; i <= priv->r->cpu_port; i++)
 		sw_w32(1, RTL931X_ACL_PORT_LOOKUP_CTRL(i));
 
 	/* Include IPG in metering */
@@ -1670,7 +1670,7 @@ static void rtldsa_931x_led_init(struct rtl838x_switch_priv *priv)
 
 	rtldsa_931x_led_get_forced(node, leds_in_set, forced_leds_per_port);
 
-	for (int i = 0; i < priv->cpu_port; i++) {
+	for (int i = 0; i < priv->r->cpu_port; i++) {
 		int pos = (i << 1) % 32;
 		u32 set;
 
@@ -1934,6 +1934,7 @@ static void rtldsa_931x_qos_init(struct rtl838x_switch_priv *priv)
 }
 
 const struct rtldsa_config rtldsa_931x_cfg = {
+	.cpu_port = RTL931X_CPU_PORT,
 	.mask_port_reg_be = rtl839x_mask_port_reg_be,
 	.set_port_reg_be = rtl839x_set_port_reg_be,
 	.get_port_reg_be = rtl839x_get_port_reg_be,

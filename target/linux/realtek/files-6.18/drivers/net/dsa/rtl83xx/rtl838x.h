@@ -1412,6 +1412,7 @@ struct rtldsa_config {
 	int imr_glb;
 	int n_counters;
 	int n_pie_blocks;
+	u8 cpu_port;
 	u8 port_ignore;
 	int trk_ctrl;
 	int trk_hash_ctrl;
@@ -1515,7 +1516,6 @@ struct rtl838x_switch_priv {
 	int mirror_group_ports[4];
 	struct mii_bus *parent_bus;
 	const struct rtldsa_config *r;
-	u8 cpu_port;
 	u8 port_mask;
 	u8 port_width;
 	u64 irq_mask;
