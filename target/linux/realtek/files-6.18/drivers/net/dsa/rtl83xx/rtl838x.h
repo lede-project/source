@@ -1516,7 +1516,6 @@ struct rtl838x_switch_priv {
 	int mirror_group_ports[4];
 	struct mii_bus *parent_bus;
 	const struct rtldsa_config *r;
-	u8 port_mask;
 	u8 port_width;
 	u64 irq_mask;
 	u32 fib_entries;
