@@ -576,7 +576,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  #include "mxl862xx-phylink.h"
  
  void mxl862xx_phylink_get_caps(struct dsa_switch *ds, int port,
-@@ -19,8 +23,393 @@ void mxl862xx_phylink_get_caps(struct ds
+@@ -19,8 +23,410 @@ void mxl862xx_phylink_get_caps(struct ds
  	config->mac_capabilities = MAC_ASYM_PAUSE | MAC_SYM_PAUSE | MAC_10 |
  				   MAC_100 | MAC_1000 | MAC_2500FD;
  
@@ -808,6 +808,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +}
 +
 +static void mxl862xx_pcs_get_state(struct phylink_pcs *pcs,
++				   unsigned int neg_mode,
 +				   struct phylink_link_state *state)
 +{
 +	struct mxl862xx_priv *priv = pcs_to_mxl862xx_pcs(pcs)->priv;
@@ -845,7 +846,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +		bmsr = BMSR_LSTATUS;
 +		if (st.an_complete)
 +			bmsr |= BMSR_ANEGCOMPLETE;
-+		phylink_mii_c22_pcs_decode_state(state, bmsr, lpa);
++		phylink_mii_c22_pcs_decode_state(state, neg_mode, bmsr, lpa);
 +
 +		/* Override speed/duplex with firmware's resolved values
 +		 * for downshift detection.
@@ -950,6 +951,22 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +
 +	pcs->pcs.ops = &mxl862xx_pcs_ops;
 +	pcs->pcs.poll = true;
++
++	/* Sub-ports only support QSGMII (quad mode with dedicated
++	 * PHY_INTERFACE_MODE). Single-lane USXGMII is supported on main
++	 * ports only; quad USXGMII is not yet supported as Linux lacks the
++	 * infrastructure to signal TDM mode before AN.
++	 */
++	__set_bit(PHY_INTERFACE_MODE_QSGMII, pcs->pcs.supported_interfaces);
++	if (port != 9 && port != 13)
++		return;
++
++	__set_bit(PHY_INTERFACE_MODE_SGMII, pcs->pcs.supported_interfaces);
++	__set_bit(PHY_INTERFACE_MODE_1000BASEX, pcs->pcs.supported_interfaces);
++	__set_bit(PHY_INTERFACE_MODE_2500BASEX, pcs->pcs.supported_interfaces);
++	__set_bit(PHY_INTERFACE_MODE_10GBASER, pcs->pcs.supported_interfaces);
++	__set_bit(PHY_INTERFACE_MODE_10GKR, pcs->pcs.supported_interfaces);
++	__set_bit(PHY_INTERFACE_MODE_USXGMII, pcs->pcs.supported_interfaces);
 +}
 +
 +static struct phylink_pcs *
@@ -972,7 +989,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  }
  
  static void mxl862xx_phylink_mac_config(struct phylink_config *config,
-@@ -48,4 +437,5 @@ const struct phylink_mac_ops mxl862xx_ph
+@@ -48,4 +454,5 @@ const struct phylink_mac_ops mxl862xx_ph
  	.mac_config = mxl862xx_phylink_mac_config,
  	.mac_link_down = mxl862xx_phylink_mac_link_down,
  	.mac_link_up = mxl862xx_phylink_mac_link_up,

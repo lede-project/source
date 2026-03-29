@@ -89,7 +89,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  
 --- a/drivers/net/dsa/mxl862xx/mxl862xx-phylink.c
 +++ b/drivers/net/dsa/mxl862xx/mxl862xx-phylink.c
-@@ -532,3 +532,88 @@ void mxl862xx_serdes_get_stats(struct ds
+@@ -549,3 +549,88 @@ void mxl862xx_serdes_get_stats(struct ds
  		data += 4;
  	}
  }
