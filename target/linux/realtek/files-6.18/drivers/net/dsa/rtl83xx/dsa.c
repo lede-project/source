@@ -1452,10 +1452,11 @@ static void rtldsa_port_xstp_state_set(struct rtl838x_switch_priv *priv, int por
 				       u8 state, u16 mst_slot)
 				       __must_hold(&priv->reg_mutex)
 {
+	/* 838x/930x have 28 ports and 2 bit fields other devices 4 bit fields. */
+	int n = priv->r->cpu_port == RTL838X_CPU_PORT ? 2 : 4;
 	u32 port_state[4];
 	int index, bit;
 	int pos = port;
-	int n = priv->port_width << 1;
 
 	/* Ports above or equal CPU port can never be configured */
 	if (port >= priv->r->cpu_port)
