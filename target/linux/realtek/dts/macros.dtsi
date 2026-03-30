@@ -13,8 +13,8 @@
 		phy-is-integrated; \
 	};
 
-#define EXTERNAL_PHY(n) \
-	phy##n: ethernet-phy@##n { \
+#define PHY_C22(p, n) \
+	phy##p: ethernet-phy@n { \
 		reg = <##n>; \
 		compatible = "ethernet-phy-ieee802.3-c22"; \
 	};
