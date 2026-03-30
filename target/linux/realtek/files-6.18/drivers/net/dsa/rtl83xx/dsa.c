@@ -526,7 +526,7 @@ static void rtldsa_93xx_phylink_mac_link_up(struct phylink_config *config,
 			mcr |= RTL930X_RX_PAUSE_EN;
 		if (duplex == DUPLEX_FULL || priv->lagmembers & BIT_ULL(port))
 			mcr |= RTL930X_DUPLEX_MODE;
-		if (dsa_port_is_cpu(dp) || !priv->ports[port].phy_is_integrated)
+		if (dsa_port_is_cpu(dp) || priv->ports[port].phy)
 			mcr |= RTL930X_FORCE_EN;
 	}
 

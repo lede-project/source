@@ -327,30 +327,7 @@ static int rtl83xx_mdio_probe(struct rtl838x_switch_priv *priv)
 			}
 		}
 
-		if (!phy_node) {
-			if (priv->ports[pn].pcs)
-				priv->ports[pn].phy_is_integrated = true;
-
-			continue;
-		}
-
-		if (of_property_read_bool(phy_node, "phy-is-integrated") &&
-		    !of_property_read_bool(phy_node, "sfp")) {
-			priv->ports[pn].phy = PHY_RTL8218B_INT;
-			continue;
-		}
-
-		if (!of_property_read_bool(phy_node, "phy-is-integrated") &&
-		    of_property_read_bool(phy_node, "sfp")) {
-			priv->ports[pn].phy = PHY_RTL8214FC;
-			continue;
-		}
-
-		if (!of_property_read_bool(phy_node, "phy-is-integrated") &&
-		    !of_property_read_bool(phy_node, "sfp")) {
-			priv->ports[pn].phy = PHY_RTL8218B_EXT;
-			continue;
-		}
+		priv->ports[pn].phy = !!phy_node;
 	}
 
 	/* Disable MAC polling the PHY so that we can start configuration */
