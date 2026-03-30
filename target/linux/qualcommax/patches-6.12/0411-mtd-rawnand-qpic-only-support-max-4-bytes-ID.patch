@@ -14,7 +14,7 @@ Signed-off-by: Ziyang Huang <hzyitc@outlook.com>
 
 --- a/drivers/mtd/nand/raw/nand_base.c
 +++ b/drivers/mtd/nand/raw/nand_base.c
-@@ -4955,7 +4955,7 @@ static bool find_full_id_nand(struct nan
+@@ -4965,7 +4965,7 @@ static bool find_full_id_nand(struct nan
  
  	memorg = nanddev_get_memorg(&chip->base);
  
