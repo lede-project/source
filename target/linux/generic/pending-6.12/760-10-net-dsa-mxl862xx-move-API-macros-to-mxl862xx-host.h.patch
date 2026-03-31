@@ -1,7 +1,7 @@
-From de41d438c4e90876449715a307dd03fa37338742 Mon Sep 17 00:00:00 2001
+From e583eeeb907f0abeef2082162293a5d63b9fd6fa Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Thu, 26 Mar 2026 01:50:00 +0000
-Subject: [PATCH 19/35] net: dsa: mxl862xx: move API macros to mxl862xx-host.h
+Subject: [PATCH 10/26] net: dsa: mxl862xx: move API macros to mxl862xx-host.h
 
 Move the MXL862XX_API_WRITE, MXL862XX_API_READ and
 MXL862XX_API_READ_QUIET convenience macros from mxl862xx.c to

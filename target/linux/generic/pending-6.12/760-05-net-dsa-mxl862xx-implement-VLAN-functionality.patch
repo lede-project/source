@@ -1,7 +1,7 @@
-From 7286ac4f850339aac37dd52633f4a70816b621a8 Mon Sep 17 00:00:00 2001
+From 0d88d02cc9dccad01ff88f54e1beee867107b942 Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Tue, 10 Mar 2026 02:36:00 +0000
-Subject: [PATCH 14/35] net: dsa: mxl862xx: implement VLAN functionality
+Subject: [PATCH 05/26] net: dsa: mxl862xx: implement VLAN functionality
 
 Add VLAN support using both the Extended VLAN (EVLAN) engine and the
 VLAN Filter (VF) engine in a hybrid architecture that allows a higher
@@ -35,11 +35,11 @@ VLAN Filter blocks across ports with identical VID sets.
 
 Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 ---
- drivers/net/dsa/mxl862xx/mxl862xx-api.h | 329 ++++++++
+ drivers/net/dsa/mxl862xx/mxl862xx-api.h | 329 +++++++++
  drivers/net/dsa/mxl862xx/mxl862xx-cmd.h |  12 +
- drivers/net/dsa/mxl862xx/mxl862xx.c     | 960 +++++++++++++++++++++++-
- drivers/net/dsa/mxl862xx/mxl862xx.h     | 110 ++-
- 4 files changed, 1386 insertions(+), 25 deletions(-)
+ drivers/net/dsa/mxl862xx/mxl862xx.c     | 915 +++++++++++++++++++++++-
+ drivers/net/dsa/mxl862xx/mxl862xx.h     | 104 ++-
+ 4 files changed, 1344 insertions(+), 16 deletions(-)
 
 --- a/drivers/net/dsa/mxl862xx/mxl862xx-api.h
 +++ b/drivers/net/dsa/mxl862xx/mxl862xx-api.h
@@ -577,7 +577,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  	mxl862xx_fw_portmap_from_bitmap(br_port_cfg.bridge_port_map, p->portmap);
  
  	for (i = 0; i < ARRAY_SIZE(mxl862xx_flood_meters); i++) {
-@@ -329,13 +472,131 @@ static int mxl862xx_sync_bridge_members(
+@@ -329,6 +472,91 @@ static int mxl862xx_sync_bridge_members(
  	return ret;
  }
  
@@ -609,11 +609,6 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +	return 0;
 +}
 +
-+/**
-+ * mxl862xx_vf_init - Initialize per-port VF block software state
-+ * @vf: VLAN Filter block to initialize
-+ * @size: block size (entries per port)
-+ */
 +static void mxl862xx_vf_init(struct mxl862xx_vf_block *vf, u16 size)
 +{
 +	vf->allocated = false;
@@ -623,15 +618,6 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +	INIT_LIST_HEAD(&vf->vids);
 +}
 +
-+/**
-+ * mxl862xx_vf_block_alloc - Allocate a VLAN Filter block from firmware
-+ * @priv: driver private data
-+ * @size: number of entries to allocate
-+ * @block_id: output -- block ID assigned by firmware
-+ *
-+ * Allocates a contiguous VLAN Filter block and configures it to discard
-+ * unmatched tagged frames (VID membership enforcement).
-+ */
 +static int mxl862xx_vf_block_alloc(struct mxl862xx_priv *priv,
 +				   u16 size, u16 *block_id)
 +{
@@ -650,15 +636,6 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +	return 0;
 +}
 +
-+/**
-+ * mxl862xx_vf_entry_discard - Write a DISCARD entry to plug an unused slot
-+ * @priv: driver private data
-+ * @block_id: HW VLAN Filter block ID
-+ * @index: entry index within the block
-+ *
-+ * Unwritten VLAN Filter entries default to VID=0 / ALLOW which would
-+ * leak VID 0 traffic. This writes a DISCARD entry to plug the slot.
-+ */
 +static int mxl862xx_vf_entry_discard(struct mxl862xx_priv *priv,
 +				     u16 block_id, u16 index)
 +{
@@ -673,16 +650,6 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +	return MXL862XX_API_WRITE(priv, MXL862XX_VLANFILTER_SET, cfg);
 +}
 +
-+/**
-+ * mxl862xx_vf_alloc - Allocate the port's VF HW block
-+ * @priv: driver private data
-+ * @vf: VLAN Filter block (must have been initialized via mxl862xx_vf_init)
-+ *
-+ * Allocates the block and writes a DISCARD sentinel at index 0 so that
-+ * when active_count is 0, the single-entry scan window blocks VID-0
-+ * (which would otherwise match the zeroed-out default and be allowed).
-+ * Called once per port from port_setup.
-+ */
 +static int mxl862xx_vf_alloc(struct mxl862xx_priv *priv,
 +			     struct mxl862xx_vf_block *vf)
 +{
@@ -699,18 +666,10 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +	return mxl862xx_vf_entry_discard(priv, vf->block_id, 0);
 +}
 +
- /**
-  * mxl862xx_allocate_bridge - Allocate a firmware bridge instance
-  * @priv: driver private data
-  * @bridge_id: output -- firmware bridge ID assigned by the firmware
-  *
-  * Newly allocated bridges default to flooding all traffic classes
-- * (unknown unicast, multicast, broadcast).  Callers that need
-+ * (unknown unicast, multicast, broadcast). Callers that need
-  * different forwarding behavior must call mxl862xx_bridge_config_fwd()
-  * after allocation.
-  *
-@@ -404,6 +665,9 @@ static int mxl862xx_add_single_port_brid
+ static int mxl862xx_allocate_bridge(struct mxl862xx_priv *priv, u16 *bridge_id)
+ {
+ 	struct mxl862xx_bridge_alloc br_alloc = {};
+@@ -392,6 +620,9 @@ static int mxl862xx_add_single_port_brid
  static int mxl862xx_setup(struct dsa_switch *ds)
  {
  	struct mxl862xx_priv *priv = ds->priv;
@@ -720,7 +679,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  	int ret;
  
  	ret = mxl862xx_reset(priv);
-@@ -414,6 +678,50 @@ static int mxl862xx_setup(struct dsa_swi
+@@ -402,6 +633,50 @@ static int mxl862xx_setup(struct dsa_swi
  	if (ret)
  		return ret;
  
@@ -771,7 +730,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  	ret = mxl862xx_setup_drop_meter(ds);
  	if (ret)
  		return ret;
-@@ -495,27 +803,616 @@ static int mxl862xx_configure_sp_tag_pro
+@@ -483,27 +758,616 @@ static int mxl862xx_configure_sp_tag_pro
  	return MXL862XX_API_WRITE(ds->priv, MXL862XX_SS_SPTAG_SET, tag);
  }
  
@@ -1392,7 +1351,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  static int mxl862xx_port_bridge_join(struct dsa_switch *ds, int port,
  				     const struct dsa_bridge bridge,
  				     bool *tx_fwd_offload,
-@@ -565,6 +1462,22 @@ static void mxl862xx_port_bridge_leave(s
+@@ -553,6 +1417,22 @@ static void mxl862xx_port_bridge_leave(s
  	bitmap_zero(p->portmap, MXL862XX_MAX_BRIDGE_PORTS);
  	__set_bit(dp->cpu_dp->index, p->portmap);
  	p->flood_block = 0;
@@ -1415,7 +1374,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  	err = mxl862xx_set_bridge_port(ds, port);
  	if (err)
  		dev_err(ds->dev,
-@@ -614,6 +1527,28 @@ static int mxl862xx_port_setup(struct ds
+@@ -602,6 +1482,28 @@ static int mxl862xx_port_setup(struct ds
  	if (ret)
  		return ret;
  
@@ -1444,37 +1403,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  	priv->ports[port].setup_done = true;
  
  	return 0;
-@@ -808,7 +1743,7 @@ static int mxl862xx_port_mdb_del(struct
- 	mxl862xx_fw_portmap_clear_bit(qparam.port_map, port);
- 
- 	if (mxl862xx_fw_portmap_is_empty(qparam.port_map)) {
--		/* No ports left — remove the entry entirely */
-+		/* No ports left -- remove the entry entirely */
- 		rparam.fid = cpu_to_le16(fid);
- 		rparam.tci = cpu_to_le16(FIELD_PREP(MXL862XX_TCI_VLAN_ID, mdb->vid));
- 		ether_addr_copy(rparam.mac, mdb->addr);
-@@ -899,7 +1834,7 @@ static void mxl862xx_port_stp_state_set(
- /* Deferred work handler for host flood configuration.
-  *
-  * port_set_host_flood is called from atomic context (under
-- * netif_addr_lock), so firmware calls must be deferred.  The worker
-+ * netif_addr_lock), so firmware calls must be deferred. The worker
-  * acquires rtnl_lock() to serialize with DSA callbacks that access the
-  * same driver state.
-  */
-@@ -924,9 +1859,9 @@ static void mxl862xx_host_flood_work_fn(
- 	mc = p->host_flood_mc;
- 
- 	/* The hardware controls unknown-unicast/multicast forwarding per FID
--	 * (bridge), not per source port.  For bridged ports all members share
-+	 * (bridge), not per source port. For bridged ports all members share
- 	 * one FID, so we cannot selectively suppress flooding to the CPU for
--	 * one source port while allowing it for another.  Silently ignore the
-+	 * one source port while allowing it for another. Silently ignore the
- 	 * request -- the excess flooding towards the CPU is harmless.
- 	 */
- 	if (!dsa_port_bridge_dev_get(dsa_to_port(ds, port)))
-@@ -1026,6 +1961,9 @@ static const struct dsa_switch_ops mxl86
+@@ -1012,6 +1914,9 @@ static const struct dsa_switch_ops mxl86
  	.port_fdb_dump = mxl862xx_port_fdb_dump,
  	.port_mdb_add = mxl862xx_port_mdb_add,
  	.port_mdb_del = mxl862xx_port_mdb_del,
@@ -1484,15 +1413,6 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  };
  
  static void mxl862xx_phylink_mac_config(struct phylink_config *config,
-@@ -1111,7 +2049,7 @@ static void mxl862xx_remove(struct mdio_
- 
- 	/* Cancel any pending host flood work.  dsa_unregister_switch()
- 	 * has already called port_teardown (which sets setup_done=false),
--	 * but a worker could still be blocked on rtnl_lock().  Since we
-+	 * but a worker could still be blocked on rtnl_lock(). Since we
- 	 * are now outside RTNL, cancel_work_sync() will not deadlock.
- 	 */
- 	for (i = 0; i < MXL862XX_MAX_PORTS; i++)
 --- a/drivers/net/dsa/mxl862xx/mxl862xx.h
 +++ b/drivers/net/dsa/mxl862xx/mxl862xx.h
 @@ -13,6 +13,8 @@ struct mxl862xx_priv;
@@ -1504,7 +1424,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  
  /* Number of __le16 words in a firmware portmap (128-bit bitmap). */
  #define MXL862XX_FW_PORTMAP_WORDS	(MXL862XX_MAX_BRIDGE_PORTS / 16)
-@@ -86,12 +88,72 @@ static inline bool mxl862xx_fw_portmap_i
+@@ -86,6 +88,66 @@ static inline bool mxl862xx_fw_portmap_i
  }
  
  /**
@@ -1571,15 +1491,6 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
   * struct mxl862xx_port - per-port state tracked by the driver
   * @priv:                back-pointer to switch private data; needed by
   *                       deferred work handlers to access ds and priv
-- * @fid:                 firmware FID for the permanent single-port bridge;
-- *                       kept alive for the lifetime of the port so traffic is
-- *                       never forwarded while the port is unbridged
-+ * @fid:                 firmware FID for the permanent single-port bridge; kept
-+ *                       alive for the lifetime of the port so traffic is never
-+ *                       forwarded while the port is unbridged
-  * @portmap:             bitmap of switch port indices that share the current
-  *                       bridge with this port
-  * @flood_block:         bitmask of firmware meter indices that are currently
 @@ -101,6 +163,11 @@ static inline bool mxl862xx_fw_portmap_i
   * @setup_done:          set at end of port_setup, cleared at start of
   *                       port_teardown; guards deferred work against

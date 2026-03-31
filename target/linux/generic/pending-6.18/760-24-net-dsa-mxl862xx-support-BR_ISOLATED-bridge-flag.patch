@@ -1,7 +1,7 @@
-From 74b6654ba74eb142340de4c51b97c0221cfcae37 Mon Sep 17 00:00:00 2001
+From d49d1f8bee29269def7593f980d0e08bfb5c3ef8 Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Wed, 25 Mar 2026 01:51:33 +0000
-Subject: [PATCH 33/35] net: dsa: mxl862xx: support BR_ISOLATED bridge flag
+Subject: [PATCH 24/26] net: dsa: mxl862xx: support BR_ISOLATED bridge flag
 
 Implement port isolation by excluding isolated ports from each other's
 forwarding portmaps in sync_bridge_members. Non-isolated ports can
@@ -34,7 +34,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  			if (member != port) {
  				bp = mxl862xx_lag_bridge_port(priv,
  							     member);
-@@ -3948,7 +3956,7 @@ static int mxl862xx_port_pre_bridge_flag
+@@ -3907,7 +3915,7 @@ static int mxl862xx_port_pre_bridge_flag
  					  struct netlink_ext_ack *extack)
  {
  	if (flags.mask & ~(BR_FLOOD | BR_MCAST_FLOOD | BR_BCAST_FLOOD |
@@ -43,15 +43,15 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  		return -EINVAL;
  
  	return 0;
-@@ -3962,6 +3970,7 @@ static int mxl862xx_port_bridge_flags(st
+@@ -3920,6 +3928,7 @@ static int mxl862xx_port_bridge_flags(st
+ 	struct mxl862xx_priv *priv = ds->priv;
  	unsigned long old_block = priv->ports[port].flood_block;
  	unsigned long block = old_block;
- 	bool need_update = false;
 +	struct dsa_port *dp;
  	int ret;
  	u16 bp;
  
-@@ -4018,6 +4027,21 @@ static int mxl862xx_port_bridge_flags(st
+@@ -3972,6 +3981,21 @@ static int mxl862xx_port_bridge_flags(st
  			return ret;
  	}
  

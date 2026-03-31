@@ -1,7 +1,7 @@
-From dd62e68cd0bd29934c3efbce687d5e103cc4b331 Mon Sep 17 00:00:00 2001
+From 43eb3eed250ea4e7e83371fcbf2bfb8d626eade6 Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Tue, 24 Mar 2026 18:51:13 +0000
-Subject: [PATCH 23/35] net: dsa: mxl862xx: trap link-local frames to the CPU
+Subject: [PATCH 14/26] net: dsa: mxl862xx: trap link-local frames to the CPU
  port
 
 Install per-CTP PCE rules on each user port that trap IEEE 802.1D
@@ -817,7 +817,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  static int mxl862xx_set_bridge_port(struct dsa_switch *ds, int port)
  {
  	struct mxl862xx_bridge_port_config br_port_cfg = {};
-@@ -1594,6 +1658,11 @@ static int mxl862xx_port_setup(struct ds
+@@ -1549,6 +1613,11 @@ static int mxl862xx_port_setup(struct ds
  	if (ret)
  		return ret;
  

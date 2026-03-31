@@ -1,7 +1,7 @@
-From d40565e2e00fc2c8f04b9c571fcbea2f146db844 Mon Sep 17 00:00:00 2001
+From 24d752291784e30d7329bed15744bbbc6a3e2485 Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Tue, 24 Mar 2026 18:14:33 +0000
-Subject: [PATCH 21/35] net: dsa: mxl862xx: add SerDes ethtool statistics
+Subject: [PATCH 12/26] net: dsa: mxl862xx: add SerDes ethtool statistics
 
 Expose SerDes equalization and signal detect parameters as ethtool
 statistics on ports 9-16 (XPCS-backed ports). Uses the XPCS EQ_GET
@@ -239,7 +239,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  #endif /* __MXL862XX_PHYLINK_H */
 --- a/drivers/net/dsa/mxl862xx/mxl862xx.c
 +++ b/drivers/net/dsa/mxl862xx/mxl862xx.c
-@@ -2007,6 +2007,8 @@ static void mxl862xx_get_strings(struct
+@@ -1960,6 +1960,8 @@ static void mxl862xx_get_strings(struct
  
  	for (i = 0; i < ARRAY_SIZE(mxl862xx_mib); i++)
  		ethtool_puts(&data, mxl862xx_mib[i].name);
@@ -248,7 +248,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  }
  
  static int mxl862xx_get_sset_count(struct dsa_switch *ds, int port, int sset)
-@@ -2014,7 +2016,7 @@ static int mxl862xx_get_sset_count(struc
+@@ -1967,7 +1969,7 @@ static int mxl862xx_get_sset_count(struc
  	if (sset != ETH_SS_STATS)
  		return 0;
  
@@ -257,7 +257,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  }
  
  static int mxl862xx_read_rmon(struct dsa_switch *ds, int port,
-@@ -2050,6 +2052,8 @@ static void mxl862xx_get_ethtool_stats(s
+@@ -2003,6 +2005,8 @@ static void mxl862xx_get_ethtool_stats(s
  		else
  			*data++ = le64_to_cpu(*(__le64 *)field);
  	}

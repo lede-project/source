@@ -1,7 +1,7 @@
-From 8b66d20f7e5226f4854a39cfb9f25a0591a5bb83 Mon Sep 17 00:00:00 2001
+From bab5a69e3872a693069e430a1fa0d2825ea83b4f Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Tue, 24 Mar 2026 04:14:38 +0000
-Subject: [PATCH 16/35] net: dsa: mxl862xx: implement .get_stats64
+Subject: [PATCH 07/26] net: dsa: mxl862xx: implement .get_stats64
 
 Poll free-running firmware RMON counters every 2 seconds and accumulate
 deltas into 64-bit per-port statistics. 32-bit packet counters wrap
@@ -11,10 +11,49 @@ that counters are always up to date when queried.
 
 Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 ---
- drivers/net/dsa/mxl862xx/mxl862xx.c | 167 ++++++++++++++++++++++++++++
- drivers/net/dsa/mxl862xx/mxl862xx.h |  51 +++++++++
- 2 files changed, 218 insertions(+)
+ drivers/net/dsa/mxl862xx/mxl862xx-host.c |   8 +-
+ drivers/net/dsa/mxl862xx/mxl862xx.c      | 174 +++++++++++++++++++++++
+ drivers/net/dsa/mxl862xx/mxl862xx.h      |  63 +++++++-
+ 3 files changed, 238 insertions(+), 7 deletions(-)
 
+--- a/drivers/net/dsa/mxl862xx/mxl862xx-host.c
++++ b/drivers/net/dsa/mxl862xx/mxl862xx-host.c
+@@ -48,7 +48,7 @@ static void mxl862xx_crc_err_work_fn(str
+ 		dev_close(dp->conduit);
+ 	rtnl_unlock();
+ 
+-	clear_bit(0, &priv->crc_err);
++	clear_bit(MXL862XX_FLAG_CRC_ERR, &priv->flags);
+ }
+ 
+ /* Firmware CRC error codes (outside normal Zephyr errno range). */
+@@ -247,7 +247,7 @@ static int mxl862xx_issue_cmd(struct mxl
+ 
+ 	ret = mxl862xx_crc6_verify(ctrl_enc, len_enc, &fw_result);
+ 	if (ret) {
+-		if (!test_and_set_bit(0, &priv->crc_err))
++		if (!test_and_set_bit(MXL862XX_FLAG_CRC_ERR, &priv->flags))
+ 			schedule_work(&priv->crc_err_work);
+ 		return -EIO;
+ 	}
+@@ -314,7 +314,7 @@ static int mxl862xx_send_cmd(struct mxl8
+ 	if (ret < 0) {
+ 		if ((ret == MXL862XX_FW_CRC6_ERR ||
+ 		     ret == MXL862XX_FW_CRC16_ERR) &&
+-		    !test_and_set_bit(0, &priv->crc_err))
++		    !test_and_set_bit(MXL862XX_FLAG_CRC_ERR, &priv->flags))
+ 			schedule_work(&priv->crc_err_work);
+ 		if (!quiet)
+ 			dev_err(&priv->mdiodev->dev,
+@@ -458,7 +458,7 @@ int mxl862xx_api_wrap(struct mxl862xx_pr
+ 	}
+ 
+ 	if (crc16(0xffff, (const u8 *)data, size) != crc) {
+-		if (!test_and_set_bit(0, &priv->crc_err))
++		if (!test_and_set_bit(MXL862XX_FLAG_CRC_ERR, &priv->flags))
+ 			schedule_work(&priv->crc_err_work);
+ 		ret = -EIO;
+ 		goto out;
 --- a/drivers/net/dsa/mxl862xx/mxl862xx.c
 +++ b/drivers/net/dsa/mxl862xx/mxl862xx.c
 @@ -30,6 +30,12 @@
@@ -30,7 +69,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  struct mxl862xx_mib_desc {
  	unsigned int size;
  	unsigned int offset;
-@@ -784,6 +790,9 @@ static int mxl862xx_setup(struct dsa_swi
+@@ -739,6 +745,9 @@ static int mxl862xx_setup(struct dsa_swi
  	if (ret)
  		return ret;
  
@@ -40,7 +79,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  	return mxl862xx_setup_mdio(ds);
  }
  
-@@ -2102,6 +2111,156 @@ static void mxl862xx_get_pause_stats(str
+@@ -2055,6 +2064,158 @@ static void mxl862xx_get_pause_stats(str
  	pause_stats->rx_pause_frames = le32_to_cpu(cnt.rx_good_pause_pkts);
  }
  
@@ -160,8 +199,9 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +	dsa_switch_for_each_available_port(dp, ds)
 +		mxl862xx_stats_poll(ds, dp->index);
 +
-+	schedule_delayed_work(&priv->stats_work,
-+			      MXL862XX_STATS_POLL_INTERVAL);
++	if (!test_bit(MXL862XX_FLAG_WORK_STOPPED, &priv->flags))
++		schedule_delayed_work(&priv->stats_work,
++				      MXL862XX_STATS_POLL_INTERVAL);
 +}
 +
 +static void mxl862xx_get_stats64(struct dsa_switch *ds, int port,
@@ -189,15 +229,16 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +	spin_unlock_bh(&priv->ports[port].stats_lock);
 +
 +	/* Trigger a fresh poll so the next read sees up-to-date counters.
-+	 * No-op if the work is already pending or running.
++	 * No-op if the work is already pending, running, or teardown started.
 +	 */
-+	schedule_delayed_work(&priv->stats_work, 0);
++	if (!test_bit(MXL862XX_FLAG_WORK_STOPPED, &priv->flags))
++		schedule_delayed_work(&priv->stats_work, 0);
 +}
 +
  static const struct dsa_switch_ops mxl862xx_switch_ops = {
  	.get_tag_protocol = mxl862xx_get_tag_protocol,
  	.setup = mxl862xx_setup,
-@@ -2132,6 +2291,7 @@ static const struct dsa_switch_ops mxl86
+@@ -2085,6 +2246,7 @@ static const struct dsa_switch_ops mxl86
  	.get_eth_mac_stats = mxl862xx_get_eth_mac_stats,
  	.get_eth_ctrl_stats = mxl862xx_get_eth_ctrl_stats,
  	.get_pause_stats = mxl862xx_get_pause_stats,
@@ -205,7 +246,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  };
  
  static void mxl862xx_phylink_mac_config(struct phylink_config *config,
-@@ -2193,8 +2353,11 @@ static int mxl862xx_probe(struct mdio_de
+@@ -2146,16 +2308,22 @@ static int mxl862xx_probe(struct mdio_de
  		priv->ports[i].priv = priv;
  		INIT_WORK(&priv->ports[i].host_flood_work,
  			  mxl862xx_host_flood_work_fn);
@@ -216,20 +257,33 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +
  	dev_set_drvdata(dev, ds);
  
- 	return dsa_register_switch(ds);
-@@ -2213,6 +2376,8 @@ static void mxl862xx_remove(struct mdio_
+ 	err = dsa_register_switch(ds);
+ 	if (err) {
++		set_bit(MXL862XX_FLAG_WORK_STOPPED, &priv->flags);
++		cancel_delayed_work_sync(&priv->stats_work);
+ 		mxl862xx_host_shutdown(priv);
+ 		for (i = 0; i < MXL862XX_MAX_PORTS; i++)
+ 			cancel_work_sync(&priv->ports[i].host_flood_work);
+ 	}
++
+ 	return err;
+ }
  
- 	dsa_unregister_switch(ds);
+@@ -2170,6 +2338,9 @@ static void mxl862xx_remove(struct mdio_
  
+ 	priv = ds->priv;
+ 
++	set_bit(MXL862XX_FLAG_WORK_STOPPED, &priv->flags);
 +	cancel_delayed_work_sync(&priv->stats_work);
 +
- 	mxl862xx_host_shutdown(priv);
+ 	dsa_unregister_switch(ds);
  
- 	/* Cancel any pending host flood work.  dsa_unregister_switch()
-@@ -2237,6 +2402,8 @@ static void mxl862xx_shutdown(struct mdi
+ 	mxl862xx_host_shutdown(priv);
+@@ -2196,6 +2367,9 @@ static void mxl862xx_shutdown(struct mdi
  
  	dsa_switch_shutdown(ds);
  
++	set_bit(MXL862XX_FLAG_WORK_STOPPED, &priv->flags);
 +	cancel_delayed_work_sync(&priv->stats_work);
 +
  	mxl862xx_host_shutdown(priv);
@@ -296,7 +350,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
   */
  struct mxl862xx_port {
  	struct mxl862xx_priv *priv;
-@@ -195,6 +240,9 @@ struct mxl862xx_port {
+@@ -195,16 +240,25 @@ struct mxl862xx_port {
  	bool host_flood_uc;
  	bool host_flood_mc;
  	struct work_struct host_flood_work;
@@ -305,8 +359,26 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +	spinlock_t stats_lock;
  };
  
++/* Bit indices for struct mxl862xx_priv::flags */
++#define MXL862XX_FLAG_CRC_ERR		0
++#define MXL862XX_FLAG_WORK_STOPPED	1
++
  /**
-@@ -216,6 +264,8 @@ struct mxl862xx_port {
+  * struct mxl862xx_priv - driver private data for an MxL862xx switch
+  * @ds:                 pointer to the DSA switch instance
+  * @mdiodev:            MDIO device used to communicate with the switch firmware
+  * @crc_err_work:       deferred work for shutting down all ports on MDIO CRC
+  *                      errors
+- * @crc_err:            set atomically before CRC-triggered shutdown, cleared
+- *                      after
++ * @flags:              atomic status flags; %MXL862XX_FLAG_CRC_ERR is set
++ *                      before CRC-triggered shutdown and cleared after;
++ *                      %MXL862XX_FLAG_WORK_STOPPED is set before cancelling
++ *                      stats_work to prevent rescheduling during teardown
+  * @drop_meter:         index of the single shared zero-rate firmware meter
+  *                      used to unconditionally drop traffic (used to block
+  *                      flooding)
+@@ -216,18 +270,21 @@ struct mxl862xx_port {
   * @evlan_ingress_size: per-port ingress Extended VLAN block size
   * @evlan_egress_size:  per-port egress Extended VLAN block size
   * @vf_block_size:      per-port VLAN Filter block size
@@ -315,7 +387,13 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
   */
  struct mxl862xx_priv {
  	struct dsa_switch *ds;
-@@ -228,6 +278,7 @@ struct mxl862xx_priv {
+ 	struct mdio_device *mdiodev;
+ 	struct work_struct crc_err_work;
+-	unsigned long crc_err;
++	unsigned long flags;
+ 	u16 drop_meter;
+ 	struct mxl862xx_port ports[MXL862XX_MAX_PORTS];
+ 	u16 bridges[MXL862XX_MAX_BRIDGES + 1];
  	u16 evlan_ingress_size;
  	u16 evlan_egress_size;
  	u16 vf_block_size;

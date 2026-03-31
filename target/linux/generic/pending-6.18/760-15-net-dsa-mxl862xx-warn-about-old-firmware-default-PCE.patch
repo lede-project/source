@@ -1,7 +1,7 @@
-From 3bba25f7ba35e3bca8230bd37ffb612944dbf301 Mon Sep 17 00:00:00 2001
+From e18f5b235d8df21209c73f4f0bbc00cc3a1973ba Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Tue, 24 Mar 2026 18:51:21 +0000
-Subject: [PATCH 24/35] net: dsa: mxl862xx: warn about old firmware default PCE
+Subject: [PATCH 15/26] net: dsa: mxl862xx: warn about old firmware default PCE
  rules
 
 Firmware versions older than 1.0.80 install global PCE rules at
@@ -19,7 +19,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 
 --- a/drivers/net/dsa/mxl862xx/mxl862xx.c
 +++ b/drivers/net/dsa/mxl862xx/mxl862xx.c
-@@ -854,6 +854,10 @@ static int mxl862xx_setup(struct dsa_swi
+@@ -809,6 +809,10 @@ static int mxl862xx_setup(struct dsa_swi
  	if (ret)
  		return ret;
  

@@ -1,7 +1,7 @@
-From 31359e8b7673e656d0591a9eb5014b45911383ae Mon Sep 17 00:00:00 2001
+From 4e1d854199c166f617b93b7542e863e6a8ad2ccb Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Tue, 24 Mar 2026 03:44:41 +0000
-Subject: [PATCH 26/35] net: dsa: mxl862xx: add link aggregation support
+Subject: [PATCH 17/26] net: dsa: mxl862xx: add link aggregation support
 
 Implement LAG offloading via the firmware's trunking engine.  A
 dedicated firmware bridge port is allocated per LAG and remains
@@ -234,7 +234,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  	return ret;
  }
  
-@@ -1926,6 +2018,408 @@ static int mxl862xx_setup_cpu_bridge(str
+@@ -1881,6 +1973,408 @@ static int mxl862xx_setup_cpu_bridge(str
  	return mxl862xx_set_bridge_port(ds, port);
  }
  
@@ -643,7 +643,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  static int mxl862xx_port_bridge_join(struct dsa_switch *ds, int port,
  				     const struct dsa_bridge bridge,
  				     bool *tx_fwd_offload,
-@@ -1952,7 +2446,18 @@ static int mxl862xx_port_bridge_join(str
+@@ -1907,7 +2401,18 @@ static int mxl862xx_port_bridge_join(str
  		return 0;
  	}
  
@@ -663,7 +663,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  }
  
  static void mxl862xx_port_bridge_leave(struct dsa_switch *ds, int port,
-@@ -2011,6 +2516,17 @@ static void mxl862xx_port_bridge_leave(s
+@@ -1966,6 +2471,17 @@ static void mxl862xx_port_bridge_leave(s
  			"failed to update CPU VBP for port %d: %pe\n", port,
  			ERR_PTR(err));
  
@@ -681,7 +681,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  	if (!dsa_bridge_ports(ds, bridge.dev))
  		mxl862xx_free_bridge(ds, &bridge);
  }
-@@ -2636,18 +3152,17 @@ static int mxl862xx_get_fid(struct dsa_s
+@@ -2591,18 +3107,17 @@ static int mxl862xx_get_fid(struct dsa_s
  }
  
  /**
@@ -707,7 +707,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
   */
  static int mxl862xx_fdb_bridge_port(struct dsa_switch *ds, int port,
  				    const struct dsa_db db)
-@@ -2663,7 +3178,7 @@ static int mxl862xx_fdb_bridge_port(stru
+@@ -2618,7 +3133,7 @@ static int mxl862xx_fdb_bridge_port(stru
  			return bp_cpu;
  	}
  
@@ -716,7 +716,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  }
  
  /**
-@@ -2907,11 +3422,43 @@ static int mxl862xx_port_fdb_del(struct
+@@ -2862,11 +3377,43 @@ static int mxl862xx_port_fdb_del(struct
  	return ret;
  }
  
@@ -760,7 +760,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  	u32 entry_port_id;
  	int ret;
  
-@@ -2925,7 +3472,7 @@ static int mxl862xx_port_fdb_dump(struct
+@@ -2880,7 +3427,7 @@ static int mxl862xx_port_fdb_dump(struct
  
  		entry_port_id = le32_to_cpu(param.port_id);
  
@@ -769,7 +769,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  			ret = cb(param.mac, FIELD_GET(MXL862XX_TCI_VLAN_ID,
  						      le16_to_cpu(param.tci)),
  				 param.static_entry, data);
-@@ -3562,6 +4109,11 @@ static const struct dsa_switch_ops mxl86
+@@ -3521,6 +4068,11 @@ static const struct dsa_switch_ops mxl86
  	.port_fdb_dump = mxl862xx_port_fdb_dump,
  	.port_mdb_add = mxl862xx_port_mdb_add,
  	.port_mdb_del = mxl862xx_port_mdb_del,
@@ -781,7 +781,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  	.port_vlan_filtering = mxl862xx_port_vlan_filtering,
  	.port_vlan_add = mxl862xx_port_vlan_add,
  	.port_vlan_del = mxl862xx_port_vlan_del,
-@@ -3602,6 +4154,7 @@ static int mxl862xx_probe(struct mdio_de
+@@ -3561,6 +4113,7 @@ static int mxl862xx_probe(struct mdio_de
  	ds->num_ports = MXL862XX_MAX_PORTS;
  	ds->fdb_isolation = true;
  	ds->max_num_bridges = MXL862XX_MAX_BRIDGES;
@@ -791,7 +791,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  
 --- a/drivers/net/dsa/mxl862xx/mxl862xx.h
 +++ b/drivers/net/dsa/mxl862xx/mxl862xx.h
-@@ -14,6 +14,19 @@
+@@ -16,6 +16,19 @@ struct mxl862xx_priv;
  #define MXL862XX_MAX_BRIDGE_PORTS	128
  #define MXL862XX_TOTAL_EVLAN_ENTRIES	1024
  #define MXL862XX_TOTAL_VF_ENTRIES	1024
@@ -835,9 +835,9 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  	/* Hardware stats accumulation */
  	struct mxl862xx_port_stats stats;
  	spinlock_t stats_lock;
-@@ -328,6 +351,15 @@ union mxl862xx_fw_version {
-  *                      DSA bridge number. Indexed by dsa_bridge.num
-  *                      (0 .. ds->max_num_bridges).
+@@ -334,6 +357,15 @@ union mxl862xx_fw_version {
+  * @evlan_egress_size:  per-port egress Extended VLAN block size
+  * @cpu_evlan_ingress_size: CPU port ingress EVLAN block size (tag_8021q)
   * @vf_block_size:      per-port VLAN Filter block size
 + * @lag_bridge_ports:   maps DSA LAG ID to firmware bridge port ID;
 + *                      zero means no bridge port allocated for that LAG.
@@ -851,7 +851,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
   * @stats_work:         periodic work item that polls RMON hardware counters
   *                      and accumulates them into 64-bit per-port stats
   */
-@@ -346,6 +378,8 @@ struct mxl862xx_priv {
+@@ -352,6 +384,8 @@ struct mxl862xx_priv {
  	u16 evlan_egress_size;
  	u16 cpu_evlan_ingress_size;
  	u16 vf_block_size;

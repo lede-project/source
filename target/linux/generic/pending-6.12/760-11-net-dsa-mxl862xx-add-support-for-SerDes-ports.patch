@@ -1,7 +1,7 @@
-From 88f46eb32d1aed296af2005c3ed8f23a6eea64c3 Mon Sep 17 00:00:00 2001
+From e25f0886853607e4a6d1157ae84e43e8224cf3b7 Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Sun, 22 Mar 2026 00:57:44 +0000
-Subject: [PATCH 20/35] net: dsa: mxl862xx: add support for SerDes ports
+Subject: [PATCH 11/26] net: dsa: mxl862xx: add support for SerDes ports
 
 The MxL862xx has two XPCS/SerDes interfaces (XPCS0 for ports 9-12,
 XPCS1 for ports 13-16). Each can operate in various single-lane
@@ -990,7 +990,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  #endif /* __MXL862XX_PHYLINK_H */
 --- a/drivers/net/dsa/mxl862xx/mxl862xx.c
 +++ b/drivers/net/dsa/mxl862xx/mxl862xx.c
-@@ -729,7 +729,7 @@ static int mxl862xx_setup(struct dsa_swi
+@@ -684,7 +684,7 @@ static int mxl862xx_setup(struct dsa_swi
  	int n_user_ports = 0, max_vlans;
  	int ingress_finals, vid_rules;
  	struct dsa_port *dp;
@@ -999,7 +999,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  
  	ret = mxl862xx_reset(priv);
  	if (ret)
-@@ -739,6 +739,9 @@ static int mxl862xx_setup(struct dsa_swi
+@@ -694,6 +694,9 @@ static int mxl862xx_setup(struct dsa_swi
  	if (ret)
  		return ret;
  
@@ -1034,7 +1034,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
   * union mxl862xx_fw_version - firmware version for comparison and display
   * @major: firmware major version
   * @minor: firmware minor version
-@@ -291,6 +307,8 @@ union mxl862xx_fw_version {
+@@ -297,6 +313,8 @@ union mxl862xx_fw_version {
   *                      flooding)
   * @fw_version:         cached firmware version, populated at probe and
   *                      compared with MXL862XX_FW_VER_MIN()
@@ -1043,8 +1043,8 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
   * @ports:              per-port state, indexed by switch port number
   * @bridges:            maps DSA bridge number to firmware bridge ID;
   *                      zero means no firmware bridge allocated for that
-@@ -309,6 +327,7 @@ struct mxl862xx_priv {
- 	unsigned long crc_err;
+@@ -315,6 +333,7 @@ struct mxl862xx_priv {
+ 	unsigned long flags;
  	u16 drop_meter;
  	union mxl862xx_fw_version fw_version;
 +	struct mxl862xx_pcs serdes_ports[8];

@@ -1,7 +1,7 @@
-From 2cb9aeb3a8d7ebac20331e0a533dcfbd73fa4237 Mon Sep 17 00:00:00 2001
+From 8deb5be9638f7eb3009ed3eb619eedadee1df523 Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Tue, 24 Mar 2026 23:42:18 +0000
-Subject: [PATCH 31/35] net: dsa: mxl862xx: implement port MTU configuration
+Subject: [PATCH 22/26] net: dsa: mxl862xx: implement port MTU configuration
 
 The firmware exposes a global max_packet_len register via
 MXL862XX_COMMON_CFGSET. Since this is switch-wide rather than
@@ -25,7 +25,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  #include <linux/module.h>
  #include <linux/of_device.h>
  #include <linux/of_mdio.h>
-@@ -3768,6 +3769,53 @@ static int mxl862xx_set_ageing_time(stru
+@@ -3723,6 +3724,53 @@ static int mxl862xx_set_ageing_time(stru
  	return ret;
  }
  
@@ -79,7 +79,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  static void mxl862xx_port_stp_state_set(struct dsa_switch *ds, int port,
  					u8 state)
  {
-@@ -4215,6 +4263,8 @@ static const struct dsa_switch_ops mxl86
+@@ -4174,6 +4222,8 @@ static const struct dsa_switch_ops mxl86
  	.port_disable = mxl862xx_port_disable,
  	.port_fast_age = mxl862xx_port_fast_age,
  	.set_ageing_time = mxl862xx_set_ageing_time,

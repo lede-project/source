@@ -1,7 +1,7 @@
-From 0902a6790750714445c75a66d60f1bc4897126ce Mon Sep 17 00:00:00 2001
+From c2fb7f0df63ac994850f766e7f2eb50c6c5ef2cf Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Tue, 24 Mar 2026 18:17:49 +0000
-Subject: [PATCH 34/35] DO NOT SUBMIT: net: dsa: mxl862xx: re-introduce PCE
+Subject: [PATCH 25/26] DO NOT SUBMIT: net: dsa: mxl862xx: re-introduce PCE
  workaround for old firmware
 
 Re-introduce the mxl862xx_disable_fw_global_rules() function that
@@ -64,7 +64,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  
  /* Per-CTP offset used for the link-local trap rule. Each port's CTP
   * flow-table block is pre-allocated by the firmware during init (44
-@@ -1154,9 +1191,11 @@ static int mxl862xx_setup(struct dsa_swi
+@@ -1109,9 +1146,11 @@ static int mxl862xx_setup(struct dsa_swi
  	if (ret)
  		return ret;
  

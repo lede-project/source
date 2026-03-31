@@ -1,7 +1,7 @@
-From d55ca68eb0d20a66c32d531b0a454871b486c1b1 Mon Sep 17 00:00:00 2001
+From 13a4c918cd9ded7207f38033511ab13f7aff9bd2 Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Wed, 25 Mar 2026 01:47:19 +0000
-Subject: [PATCH 32/35] net: dsa: mxl862xx: support BR_HAIRPIN_MODE bridge flag
+Subject: [PATCH 23/26] net: dsa: mxl862xx: support BR_HAIRPIN_MODE bridge flag
 
 Implement hairpin mode by including the port's own bridge port ID in
 its forwarding portmap. When hairpin is enabled, bridged frames whose
@@ -18,9 +18,9 @@ bridge member rebuild since only the calling port is affected.
 
 Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 ---
- drivers/net/dsa/mxl862xx/mxl862xx.c | 30 ++++++++++++++++++++++++++++-
+ drivers/net/dsa/mxl862xx/mxl862xx.c | 29 +++++++++++++++++++++++++++--
  drivers/net/dsa/mxl862xx/mxl862xx.h |  6 ++++++
- 2 files changed, 35 insertions(+), 1 deletion(-)
+ 2 files changed, 33 insertions(+), 2 deletions(-)
 
 --- a/drivers/net/dsa/mxl862xx/mxl862xx.c
 +++ b/drivers/net/dsa/mxl862xx/mxl862xx.c
@@ -40,7 +40,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  		err = mxl862xx_set_bridge_port(ds, port);
  		if (err)
  			ret = err;
-@@ -3939,7 +3948,7 @@ static int mxl862xx_port_pre_bridge_flag
+@@ -3898,7 +3907,7 @@ static int mxl862xx_port_pre_bridge_flag
  					  struct netlink_ext_ack *extack)
  {
  	if (flags.mask & ~(BR_FLOOD | BR_MCAST_FLOOD | BR_BCAST_FLOOD |
@@ -49,20 +49,19 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  		return -EINVAL;
  
  	return 0;
-@@ -3954,6 +3963,7 @@ static int mxl862xx_port_bridge_flags(st
+@@ -3912,6 +3921,7 @@ static int mxl862xx_port_bridge_flags(st
+ 	unsigned long old_block = priv->ports[port].flood_block;
  	unsigned long block = old_block;
- 	bool need_update = false;
  	int ret;
 +	u16 bp;
  
  	if (flags.mask & BR_FLOOD) {
  		if (flags.val & BR_FLOOD)
-@@ -3988,6 +3998,24 @@ static int mxl862xx_port_bridge_flags(st
- 		ret = mxl862xx_set_bridge_port(ds, port);
- 		if (ret)
- 			return ret;
-+	}
-+
+@@ -3940,7 +3950,22 @@ static int mxl862xx_port_bridge_flags(st
+ 	if (flags.mask & BR_LEARNING)
+ 		priv->ports[port].learning = !!(flags.val & BR_LEARNING);
+ 
+-	if ((block != old_block) || (flags.mask & BR_LEARNING)) {
 +	if (flags.mask & BR_HAIRPIN_MODE) {
 +		bp = mxl862xx_lag_bridge_port(priv, port);
 +		priv->ports[port].hairpin = !!(flags.val & BR_HAIRPIN_MODE);
@@ -75,13 +74,13 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +			__set_bit(bp, priv->ports[port].portmap);
 +		else
 +			__clear_bit(bp, priv->ports[port].portmap);
++	}
 +
-+		ret = mxl862xx_set_bridge_port(ds, port);
-+		if (ret)
-+			return ret;
- 	}
- 
- 	return 0;
++	if ((block != old_block) ||
++	    (flags.mask & (BR_LEARNING | BR_HAIRPIN_MODE))) {
+ 		priv->ports[port].flood_block = block;
+ 		ret = mxl862xx_set_bridge_port(ds, port);
+ 		if (ret)
 --- a/drivers/net/dsa/mxl862xx/mxl862xx.h
 +++ b/drivers/net/dsa/mxl862xx/mxl862xx.h
 @@ -241,6 +241,10 @@ struct mxl862xx_port_stats {

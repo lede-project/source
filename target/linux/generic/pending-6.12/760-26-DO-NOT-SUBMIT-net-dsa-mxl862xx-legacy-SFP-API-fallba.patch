@@ -1,7 +1,7 @@
-From 0ac876d5b952218ab79ea0a0815cf6fd1290b1d0 Mon Sep 17 00:00:00 2001
+From f0548f842b9ff31f19452a2fc72a16f937d86008 Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Tue, 24 Mar 2026 18:19:56 +0000
-Subject: [PATCH 35/35] DO NOT SUBMIT: net: dsa: mxl862xx: legacy SFP API
+Subject: [PATCH 26/26] DO NOT SUBMIT: net: dsa: mxl862xx: legacy SFP API
  fallback for old firmware
 
 Re-introduce the SYS_MISC_SFP_SET-based PCS implementation as a

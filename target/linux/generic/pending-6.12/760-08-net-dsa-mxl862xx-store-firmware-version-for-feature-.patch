@@ -1,7 +1,7 @@
-From fecfbea928cd762b19ff17aa16fb1ab143d73db1 Mon Sep 17 00:00:00 2001
+From da12469e73282da814163125153f381823e33f20 Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Tue, 24 Mar 2026 17:56:35 +0000
-Subject: [PATCH 17/35] net: dsa: mxl862xx: store firmware version for feature
+Subject: [PATCH 08/26] net: dsa: mxl862xx: store firmware version for feature
  gating
 
 Query the firmware version at init (already done in wait_ready),
@@ -40,10 +40,11 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  #include <linux/mdio.h>
  #include <linux/workqueue.h>
  #include <net/dsa.h>
-@@ -246,6 +247,38 @@ struct mxl862xx_port {
+@@ -245,6 +246,38 @@ struct mxl862xx_port {
+ 	spinlock_t stats_lock;
  };
  
- /**
++/**
 + * union mxl862xx_fw_version - firmware version for comparison and display
 + * @major: firmware major version
 + * @minor: firmware minor version
@@ -75,11 +76,10 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +#define MXL862XX_FW_VER_MIN(priv, maj, min, rev) \
 +	((priv)->fw_version.raw >= MXL862XX_FW_VER(maj, min, rev))
 +
-+/**
-  * struct mxl862xx_priv - driver private data for an MxL862xx switch
-  * @ds:                 pointer to the DSA switch instance
-  * @mdiodev:            MDIO device used to communicate with the switch firmware
-@@ -256,6 +289,8 @@ struct mxl862xx_port {
+ /* Bit indices for struct mxl862xx_priv::flags */
+ #define MXL862XX_FLAG_CRC_ERR		0
+ #define MXL862XX_FLAG_WORK_STOPPED	1
+@@ -262,6 +295,8 @@ struct mxl862xx_port {
   * @drop_meter:         index of the single shared zero-rate firmware meter
   *                      used to unconditionally drop traffic (used to block
   *                      flooding)
@@ -88,9 +88,9 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
   * @ports:              per-port state, indexed by switch port number
   * @bridges:            maps DSA bridge number to firmware bridge ID;
   *                      zero means no firmware bridge allocated for that
-@@ -273,6 +308,7 @@ struct mxl862xx_priv {
+@@ -279,6 +314,7 @@ struct mxl862xx_priv {
  	struct work_struct crc_err_work;
- 	unsigned long crc_err;
+ 	unsigned long flags;
  	u16 drop_meter;
 +	union mxl862xx_fw_version fw_version;
  	struct mxl862xx_port ports[MXL862XX_MAX_PORTS];

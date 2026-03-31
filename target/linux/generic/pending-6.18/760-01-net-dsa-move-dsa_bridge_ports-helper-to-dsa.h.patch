@@ -1,7 +1,7 @@
-From de6dd19a3edd1dc6400fecf77610e438441a02ac Mon Sep 17 00:00:00 2001
+From cd698f1ae94c16499e2714b31dd6048e6f9f068d Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Wed, 25 Mar 2026 17:54:11 +0000
-Subject: [PATCH 10/35] net: dsa: move dsa_bridge_ports() helper to dsa.h
+Subject: [PATCH 01/26] net: dsa: move dsa_bridge_ports() helper to dsa.h
 
 The yt921x driver contains a helper to create a bitmap of ports
 which are members of a bridge.
@@ -12,7 +12,7 @@ can make use of it as well.
 Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 ---
  include/net/dsa.h | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ 2 files changed, 13 insertions(+), 13 deletions(-)
 
 --- a/include/net/dsa.h
 +++ b/include/net/dsa.h

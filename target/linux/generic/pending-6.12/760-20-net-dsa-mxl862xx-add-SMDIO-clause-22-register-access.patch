@@ -1,7 +1,7 @@
-From 1a87b829ef3280d646dc480f7b261d9e32896899 Mon Sep 17 00:00:00 2001
+From 0145151dc68aa318d8addb6fe7f12c0967f951da Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Tue, 24 Mar 2026 16:30:17 +0000
-Subject: [PATCH 29/35] net: dsa: mxl862xx: add SMDIO clause-22 register access
+Subject: [PATCH 20/26] net: dsa: mxl862xx: add SMDIO clause-22 register access
 
 Add mxl862xx_smdio_read() and mxl862xx_smdio_write() for clause-22
 SMDIO register access. MCUboot rescue mode only exposes clause-22

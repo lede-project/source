@@ -1,7 +1,7 @@
-From 54dd5fabc543f8538202367a863eb0e9161bacab Mon Sep 17 00:00:00 2001
+From ee227a5e4c74f599cc1b34578b32214d5873ad2f Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Tue, 24 Mar 2026 18:15:32 +0000
-Subject: [PATCH 22/35] net: dsa: mxl862xx: add SerDes self-test via PRBS and
+Subject: [PATCH 13/26] net: dsa: mxl862xx: add SerDes self-test via PRBS and
  BERT
 
 Implement the dsa_switch_ops.self_test callback for SerDes ports
@@ -198,7 +198,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  #endif /* __MXL862XX_PHYLINK_H */
 --- a/drivers/net/dsa/mxl862xx/mxl862xx.c
 +++ b/drivers/net/dsa/mxl862xx/mxl862xx.c
-@@ -2286,6 +2286,7 @@ static const struct dsa_switch_ops mxl86
+@@ -2241,6 +2241,7 @@ static const struct dsa_switch_ops mxl86
  	.get_eth_ctrl_stats = mxl862xx_get_eth_ctrl_stats,
  	.get_pause_stats = mxl862xx_get_pause_stats,
  	.get_stats64 = mxl862xx_get_stats64,

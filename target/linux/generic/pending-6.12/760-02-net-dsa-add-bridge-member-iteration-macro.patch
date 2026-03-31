@@ -1,7 +1,7 @@
-From 880cde7abf58cb1316382ae7f59aac93c313e8fe Mon Sep 17 00:00:00 2001
+From c161533e1605a7282563c139323a3913890fdb72 Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Wed, 25 Mar 2026 17:54:41 +0000
-Subject: [PATCH 11/35] net: dsa: add bridge member iteration macro
+Subject: [PATCH 02/26] net: dsa: add bridge member iteration macro
 
 Drivers that offload bridges need to iterate over the ports that are
 members of a given bridge, for example to rebuild per-port forwarding

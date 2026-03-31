@@ -1,7 +1,7 @@
-From 149bb02d5bf031a1eb85f91377f54913de3a08ff Mon Sep 17 00:00:00 2001
+From 753efe27a9afee52c4ad42098a9b9278366d63cc Mon Sep 17 00:00:00 2001
 From: Daniel Golle <daniel@makrotopia.org>
 Date: Wed, 25 Mar 2026 17:54:52 +0000
-Subject: [PATCH 12/35] dsa: tag_mxl862xx: set dsa_default_offload_fwd_mark()
+Subject: [PATCH 03/26] dsa: tag_mxl862xx: set dsa_default_offload_fwd_mark()
 
 The MxL862xx offloads bridge forwarding in hardware, so set
 dsa_default_offload_fwd_mark() to avoid duplicate forwarding of
