@@ -393,8 +393,7 @@
 		#size-cells = <0>;
 
 		compatible = "mediatek,mt8173-xhci";
-		reg = <0x1e1c0000 0x1000
-		       0x1e1d0700 0x0100>;
+		reg = <0x1e1c0000 0x1000>, <0x1e1d0700 0x0100>;
 		reg-names = "mac", "ippc";
 
 		clocks = <&sysc MT7621_CLK_XTAL>;
@@ -456,8 +455,7 @@
 		status = "disabled";
 
 		compatible = "mediatek,mt7621-nfc";
-		reg = <0x1e003000 0x800
-			0x1e003800 0x800>;
+		reg = <0x1e003000 0x800>, <0x1e003800 0x800>;
 		reg-names = "nfi", "ecc";
 
 		clocks = <&sysc MT7621_CLK_NAND>;
