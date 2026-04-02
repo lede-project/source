@@ -157,7 +157,7 @@
 			reg = <0x5000 0x1000>;
 		};
 
-		uartlite: uartlite@c00 {
+		uartlite: serial@c00 {
 			compatible = "ns16550a";
 			reg = <0xc00 0x100>;
 
@@ -176,7 +176,7 @@
 			pinctrl-names = "default";
 		};
 
-		uartlite2: uartlite2@d00 {
+		uartlite2: serial@d00 {
 			compatible = "ns16550a";
 			reg = <0xd00 0x100>;
 
@@ -196,7 +196,7 @@
 			status = "disabled";
 		};
 
-		uartlite3: uartlite3@e00 {
+		uartlite3: serial@e00 {
 			compatible = "ns16550a";
 			reg = <0xe00 0x100>;
 
