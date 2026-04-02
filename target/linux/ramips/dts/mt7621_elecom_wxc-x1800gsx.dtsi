@@ -225,11 +225,6 @@
 	};
 };
 
-&uartlite {
-	pinctrl-0 = <&uart1_pins>;
-	pinctrl-names = "default";
-};
-
 &xhci {
 	status = "disabled";
 };
