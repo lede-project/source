@@ -1368,6 +1368,8 @@ struct rtldsa_mirror_config {
 };
 
 struct rtldsa_config {
+	const struct dsa_switch_ops *switch_ops;
+	const struct phylink_mac_ops *phylink_mac_ops;
 	void (*mask_port_reg_be)(u64 clear, u64 set, int reg);
 	void (*set_port_reg_be)(u64 set, int reg);
 	u64 (*get_port_reg_be)(int reg);
