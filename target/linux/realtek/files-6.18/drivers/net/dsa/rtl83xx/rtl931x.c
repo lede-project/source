@@ -1936,6 +1936,7 @@ static void rtldsa_931x_qos_init(struct rtl838x_switch_priv *priv)
 const struct rtldsa_config rtldsa_931x_cfg = {
 	.switch_ops = &rtldsa_93xx_switch_ops,
 	.phylink_mac_ops = &rtldsa_93xx_phylink_mac_ops,
+	.num_lag_ids = 16,
 	.cpu_port = RTL931X_CPU_PORT,
 	.fib_entries = 16384, /* TODO: has 32K but code cannot handle that */
 	.mask_port_reg_be = rtl839x_mask_port_reg_be,

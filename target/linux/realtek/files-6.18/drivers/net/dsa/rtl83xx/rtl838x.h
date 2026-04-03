@@ -1414,6 +1414,7 @@ struct rtldsa_config {
 	int imr_glb;
 	int n_counters;
 	int n_pie_blocks;
+	u8 num_lag_ids;
 	u8 cpu_port;
 	u8 port_ignore;
 	u32 fib_entries;
