@@ -1724,6 +1724,7 @@ int rtldsa_83xx_lag_setup_algomask(struct rtl838x_switch_priv *priv, int group,
 const struct rtldsa_config rtldsa_839x_cfg = {
 	.switch_ops = &rtldsa_83xx_switch_ops,
 	.phylink_mac_ops = &rtldsa_83xx_phylink_mac_ops,
+	.spanning_tree_ctrl = RTL839X_ST_CTRL,
 	.l2_bucket_size = 4,
 	.n_mst = 256,
 	.num_lag_ids = 16,

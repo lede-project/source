@@ -1596,6 +1596,7 @@ static int rtl83xx_sw_probe(struct platform_device *pdev)
 	priv->ds->ops = priv->r->switch_ops;
 	priv->ds->phylink_mac_ops = priv->r->phylink_mac_ops;
 	priv->ds->num_lag_ids = priv->r->num_lag_ids;
+	priv->ds->num_ports = priv->r->cpu_port + 1;
 
 	priv->dev = dev;
 	dev_set_drvdata(dev, priv);
@@ -1610,15 +1611,7 @@ static int rtl83xx_sw_probe(struct platform_device *pdev)
 
 	priv->family_id = soc_info.family;
 	priv->id = soc_info.id;
-	switch (soc_info.family) {
-	case RTL9300_FAMILY_ID:
-		sw_w32(0, RTL930X_ST_CTRL);
-		break;
-	case RTL9310_FAMILY_ID:
-		sw_w32(0, RTL931x_ST_CTRL);
-		break;
-	}
-	priv->ds->num_ports = priv->r->cpu_port + 1;
+	sw_w32(0, priv->r->spanning_tree_ctrl);
 	priv->irq_mask = GENMASK_ULL(priv->r->cpu_port - 1, 0);
 
 	err = rtl83xx_mdio_probe(priv);
