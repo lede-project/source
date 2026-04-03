@@ -726,7 +726,7 @@ static int rtl83xx_l2_nexthop_add(struct rtl838x_switch_priv *priv, struct rtl83
 	e.port = nh->port;
 
 	/* Loop over all entries in the hash-bucket and over the second block on 93xx SoCs */
-	for (int i = 0; i < priv->l2_bucket_size; i++) {
+	for (int i = 0; i < priv->r->l2_bucket_size; i++) {
 		entry = priv->r->read_l2_entry_using_hash(key, i, &e);
 
 		if (!e.valid || ((entry & 0x0fffffffffffffffULL) == seed)) {
@@ -1611,23 +1611,11 @@ static int rtl83xx_sw_probe(struct platform_device *pdev)
 	priv->family_id = soc_info.family;
 	priv->id = soc_info.id;
 	switch (soc_info.family) {
-	case RTL8380_FAMILY_ID:
-		priv->l2_bucket_size = 4;
-		priv->n_mst = 64;
-		break;
-	case RTL8390_FAMILY_ID:
-		priv->l2_bucket_size = 4;
-		priv->n_mst = 256;
-		break;
 	case RTL9300_FAMILY_ID:
 		sw_w32(0, RTL930X_ST_CTRL);
-		priv->l2_bucket_size = 8;
-		priv->n_mst = 64;
 		break;
 	case RTL9310_FAMILY_ID:
 		sw_w32(0, RTL931x_ST_CTRL);
-		priv->l2_bucket_size = 8;
-		priv->n_mst = 128;
 		break;
 	}
 	priv->ds->num_ports = priv->r->cpu_port + 1;
@@ -1642,7 +1630,7 @@ static int rtl83xx_sw_probe(struct platform_device *pdev)
 	}
 
 	priv->msts = devm_kcalloc(priv->dev,
-				  priv->n_mst - 1, sizeof(struct rtldsa_mst),
+				  priv->r->n_mst - 1, sizeof(struct rtldsa_mst),
 				  GFP_KERNEL);
 	if (!priv->msts)
 		return -ENOMEM;

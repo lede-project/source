@@ -1417,6 +1417,8 @@ struct rtldsa_config {
 	u8 num_lag_ids;
 	u8 cpu_port;
 	u8 port_ignore;
+	u8 l2_bucket_size;
+	u16 n_mst;
 	u32 fib_entries;
 	int trk_ctrl;
 	int trk_hash_ctrl;
@@ -1521,8 +1523,6 @@ struct rtl838x_switch_priv {
 	struct mii_bus *parent_bus;
 	const struct rtldsa_config *r;
 	u64 irq_mask;
-	int l2_bucket_size;
-	u16 n_mst;
 	struct dentry *dbgfs_dir;
 
 	/** @lags_port_members: Port (bit) is part of a specific LAG */
