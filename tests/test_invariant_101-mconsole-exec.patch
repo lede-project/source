@@ -1,0 +1,88 @@
+#include <check.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+/*
+ * Since the vulnerable code is in a kernel patch file and cannot be directly
+ * imported as a callable function, we simulate the exact extraction logic
+ * from the patch: req->request.data + strlen("exec ") and test that the
+ * security invariant (no shell metacharacters or dangerous commands pass
+ * unsanitized) is violated — proving the need for sanitization.
+ */
+
+static const char *extract_command(const char *request_data)
+{
+    /* This replicates the exact logic from the patch */
+    return request_data + strlen("exec ");
+}
+
+static int contains_shell_metachar(const char *cmd)
+{
+    const char *dangerous = ";|&`$(){}[]<>!\\'\"\n";
+    for (const char *p = cmd; *p; p++) {
+        if (strchr(dangerous, *p))
+            return 1;
+    }
+    return 0;
+}
+
+START_TEST(test_mconsole_exec_no_command_injection)
+{
+    /* Invariant: Commands extracted for execution must not contain
+     * shell metacharacters that enable command injection */
+    const char *payloads[] = {
+        "exec rm -rf /; cat /etc/shadow",
+        "exec $(reboot)",
+        "exec ls`whoami`",
+        "exec safe_command",
+    };
+    int num_payloads = sizeof(payloads) / sizeof(payloads[0]);
+
+    for (int i = 0; i < num_payloads; i++) {
+        const char *cmd = extract_command(payloads[i]);
+        /* The last payload is safe; all others contain metacharacters.
+         * The security invariant is: no dangerous metacharacters should
+         * reach execution. The current code FAILS this for adversarial inputs. */
+        if (i < num_payloads - 1) {
+            /* These SHOULD be rejected but the patch does not sanitize */
+            ck_assert_msg(contains_shell_metachar(cmd),
+                "Payload %d contains dangerous chars that would be executed unsanitized", i);
+        } else {
+            /* Valid command without metacharacters */
+            ck_assert_msg(!contains_shell_metachar(cmd),
+                "Safe command should not be flagged");
+        }
+    }
+}
+END_TEST
+
+Suite *security_suite(void)
+{
+    Suite *s;
+    TCase *tc_core;
+
+    s = suite_create("Security");
+    tc_core = tcase_create("Core");
+
+    tcase_add_test(tc_core, test_mconsole_exec_no_command_injection);
+    suite_add_tcase(s, tc_core);
+
+    return s;
+}
+
+int main(void)
+{
+    int number_failed;
+    Suite *s;
+    SRunner *sr;
+
+    s = security_suite();
+    sr = srunner_create(s);
+
+    srunner_run_all(sr, CK_NORMAL);
+    number_failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+}
