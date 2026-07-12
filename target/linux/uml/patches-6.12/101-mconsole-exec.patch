@@ -21,7 +21,6 @@
  extern void mconsole_stop(struct mc_request *req);
  extern void mconsole_go(struct mc_request *req);
  extern void mconsole_log(struct mc_request *req);
-+extern void mconsole_exec(struct mc_request *req);
  extern void mconsole_proc(struct mc_request *req);
  extern void mconsole_stack(struct mc_request *req);
  
@@ -117,7 +116,6 @@
  	{ "stop", mconsole_stop, MCONSOLE_PROC },
  	{ "go", mconsole_go, MCONSOLE_INTR },
  	{ "log", mconsole_log, MCONSOLE_INTR },
-+	{ "exec", mconsole_exec, MCONSOLE_PROC },
  	{ "proc", mconsole_proc, MCONSOLE_PROC },
  	{ "stack", mconsole_stack, MCONSOLE_INTR },
  };
