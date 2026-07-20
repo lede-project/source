@@ -23,7 +23,7 @@
   "check_space_after_assignment": false,
   "check_makefile_indentation": false,
   "check_pkg_release": "warning",
-  "require_linked_github_account": true,
+  "require_linked_github_account": "warning",
   "enable_stale_bot": false,
   "enable_labeler_yml": true
 }
