@@ -109,7 +109,7 @@ define Device/engenius_ews2910p-v1
   SOC := rtl8380
   DEVICE_MODEL := EWS2910P
   DEVICE_VARIANT := v1
-  DEVICE_PACKAGES += realtek-poe
+  DEVICE_PACKAGES += kmod-pse-realtek-mcu-uart
   UIMAGE_MAGIC := 0x03802910
   SUPPORTED_DEVICES += engenius,ews2910p
 endef
@@ -120,6 +120,7 @@ define Device/engenius_ews2910p-v3
   SOC := rtl8380
   DEVICE_MODEL := EWS2910P
   DEVICE_VARIANT := v3
+  DEVICE_PACKAGES += kmod-pse-realtek-mcu-uart
   UIMAGE_MAGIC := 0x03010500
 endef
 TARGET_DEVICES += engenius_ews2910p-v3

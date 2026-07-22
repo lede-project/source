@@ -203,10 +203,6 @@ realtek_setup_poe()
 	datto,l8)
 		ucidef_set_poe 55 "lan5 lan6 lan7 lan8 lan4 lan3 lan2 lan1"
 		;;
-	engenius,ews2910p-v1|\
-	engenius,ews2910p-v3)
-		ucidef_set_poe 60 "$(filter_port_list "$lan_list" "lan9 lan10")"
-		;;
 	hpe,1920-8g-poe-65w)
 		ucidef_set_poe 65 "$(filter_port_list_reverse "$lan_list" "lan9 lan10")"
 		;;
