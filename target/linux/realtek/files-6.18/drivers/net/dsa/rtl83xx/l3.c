@@ -99,6 +99,7 @@
 
 /* L3 Routing */
 #define RTL839X_ROUTING_SA_CTRL			0x6afc
+#define RTL839X_ROUTING_EXCPT_CTRL		0x100c
 #define RTL930X_L3_HOST_TBL_CTRL		(0xAB48)
 #define RTL930X_L3_IPUC_ROUTE_CTRL		(0xAB4C)
 #define RTL930X_L3_IP6UC_ROUTE_CTRL		(0xAB50)
@@ -203,6 +204,13 @@ static void otto_l3_839x_setup_port_macs(struct otto_l3_ctrl *ctrl)
 static int otto_l3_839x_setup(struct otto_l3_ctrl *ctrl)
 {
 	otto_l3_839x_setup_port_macs(ctrl);
+
+	/* A routed packet whose TTL runs out goes to the CPU, which answers
+	 * it with Time Exceeded, instead of being dropped. IP4_TTL_EXECEED,
+	 * bits 3:2: 0 drop, 1 forward, 2 trap (Realtek GPL SDK,
+	 * dal_cypress_trap.c).
+	 */
+	sw_w32_mask(0x3 << 2, 2 << 2, RTL839X_ROUTING_EXCPT_CTRL);
 
 	return 0;
 }
