@@ -1538,7 +1538,7 @@ static void rtl839x_write_pie_action(u32 r[],  struct pie_rule *pr)
 
 	r[14] |= ((u32)(pr->fwd_data & 0x3fff)) << 18;
 	r[14] |= pr->log_octets ? BIT(17) : 0;
-	r[14] |= ((u32)(pr->log_data & 0x7ff)) << 4;
+	r[14] |= ((u32)(pr->log_data & 0x7ff)) << 6;
 	r[14] |= (pr->mir_data & 0x3) << 3;
 	r[14] |= ((u32)(pr->meter_data >> 7)) & 0x7;
 	r[15] |= (u32)(pr->meter_data) << 26;
@@ -1576,7 +1576,7 @@ static void rtl839x_read_pie_action(u32 r[],  struct pie_rule *pr)
 	pr->log_sel = r[13] & BIT(4);
 
 	pr->fwd_data = r[14] >> 18;
-	pr->log_data = (r[14] >> 4) & 0x7ff;
+	pr->log_data = (r[14] >> 6) & 0x7ff;
 
 	/* TODO: Read in the other data fields */
 
